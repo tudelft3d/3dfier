@@ -11,6 +11,7 @@
 		9AA812D71B8F5572005CC48F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AA812D61B8F5572005CC48F /* main.cpp */; };
 		9AD49DF31B908AA3003B44D7 /* Polygon3d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AD49DF11B908AA3003B44D7 /* Polygon3d.cpp */; };
 		9AD49DF61B909BF2003B44D7 /* input.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AD49DF41B909BF2003B44D7 /* input.cpp */; };
+		9AD49DF91B909EF9003B44D7 /* Map3d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9AD49DF71B909EF9003B44D7 /* Map3d.cpp */; };
 		9ADED2011B906A5A00F5F8BA /* libpdal_util.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ADED1FF1B906A5A00F5F8BA /* libpdal_util.dylib */; };
 		9ADED2021B906A5A00F5F8BA /* libpdalcpp.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ADED2001B906A5A00F5F8BA /* libpdalcpp.dylib */; };
 		9ADED2041B906A8E00F5F8BA /* liblaszip.6.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ADED2031B906A8E00F5F8BA /* liblaszip.6.0.0.dylib */; };
@@ -37,6 +38,8 @@
 		9AD49DF21B908AA3003B44D7 /* Polygon3d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Polygon3d.h; sourceTree = "<group>"; };
 		9AD49DF41B909BF2003B44D7 /* input.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = input.cpp; sourceTree = "<group>"; };
 		9AD49DF51B909BF2003B44D7 /* input.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = input.h; sourceTree = "<group>"; };
+		9AD49DF71B909EF9003B44D7 /* Map3d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.cpp.cpp; path = Map3d.cpp; sourceTree = "<group>"; tabWidth = 2; };
+		9AD49DF81B909EF9003B44D7 /* Map3d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Map3d.h; sourceTree = "<group>"; };
 		9ADED1FF1B906A5A00F5F8BA /* libpdal_util.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpdal_util.dylib; path = ../../../../usr/local/Cellar/pdal/HEAD/lib/libpdal_util.dylib; sourceTree = "<group>"; };
 		9ADED2001B906A5A00F5F8BA /* libpdalcpp.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpdalcpp.dylib; path = ../../../../usr/local/Cellar/pdal/HEAD/lib/libpdalcpp.dylib; sourceTree = "<group>"; };
 		9ADED2031B906A8E00F5F8BA /* liblaszip.6.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = liblaszip.6.0.0.dylib; path = ../../../../usr/local/Cellar/laszip/2.2.0/lib/liblaszip.6.0.0.dylib; sourceTree = "<group>"; };
@@ -60,6 +63,8 @@
 		9A8ABF141B8C732200BA8FF3 = {
 			isa = PBXGroup;
 			children = (
+				9AD49DF71B909EF9003B44D7 /* Map3d.cpp */,
+				9AD49DF81B909EF9003B44D7 /* Map3d.h */,
 				9AD49DF41B909BF2003B44D7 /* input.cpp */,
 				9AD49DF51B909BF2003B44D7 /* input.h */,
 				9AD49DF11B908AA3003B44D7 /* Polygon3d.cpp */,
@@ -141,6 +146,7 @@
 				9AA812D71B8F5572005CC48F /* main.cpp in Sources */,
 				9AD49DF31B908AA3003B44D7 /* Polygon3d.cpp in Sources */,
 				9AD49DF61B909BF2003B44D7 /* input.cpp in Sources */,
+				9AD49DF91B909EF9003B44D7 /* Map3d.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
