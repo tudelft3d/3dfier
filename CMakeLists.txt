@@ -27,7 +27,6 @@ endif()
 
 # Boost
 find_package( Boost REQUIRED )
-
 if ( NOT Boost_FOUND )
   message(SEND_ERROR "3dfier requires the Boost library")
   return()  
@@ -35,17 +34,21 @@ endif()
 
 # GDAL
 find_package( GDAL )
-
 if ( NOT GDAL_FOUND )
   message(SEND_ERROR "3dfier requires the GDAL library")
 endif()
 
-include_directories( ${GDAL_INCLUDE_DIR}, include )
+# PDAL
+find_package(PDAL 1.0.0 REQUIRED CONFIG)
+include_directories(${PDAL_INCLUDE_DIRS})
+
+
+include_directories( ${GDAL_INCLUDE_DIR} ${PDAL_INCLUDE_DIR} , include )
 
 # Creating entries for target: 3dfier
 # ############################
 
-add_executable( 3dfier main.cpp )
+add_executable( 3dfier main.cpp Polygon3d.cpp)
 
-target_link_libraries(3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY})
+target_link_libraries(3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${PDAL_LIBRARIES} )
 
