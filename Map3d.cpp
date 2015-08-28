@@ -9,6 +9,7 @@ Map3d::Map3d() {
 
 Map3d::~Map3d() {
   // TODO : destructor Map3d
+  _lsPolys.clear();
 }
 
 
@@ -33,6 +34,11 @@ bool Map3d::add_possible_layers(std::vector<std::string> ls) {
 }
 
 
+const std::vector<Polygon3d*>& Map3d::get_polygons3d() {
+  return _lsPolys;
+}
+
+
 bool Map3d::add_point(double x, double y, double z) {
   std::vector<PairIndexed> re;
   Point2d p(x, y);
@@ -41,11 +47,9 @@ bool Map3d::add_point(double x, double y, double z) {
   Box querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
   for (auto& v : re) {
-    std::cout << "POLYGON" << std::endl;
     Polygon3d* pgn3 = v.second;
     if (bg::within(p, *(pgn3->get_polygon2d())) == true)
-      std::cout << "INSIDE" << std::endl;
-//    pgn3->add_polygon3d( TODO: ADD POINTS HERE BASED ON EXTRUSIONTYPE
+      pgn3->add_elevation_point(x, y, z);
   }
   return true;
 }

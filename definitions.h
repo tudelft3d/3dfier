@@ -37,9 +37,6 @@ typedef enum
   SIMPLE_MEDIAN    = 1,
   TIN_ALL_POINTS   = 2,
   TIN_SIMPLIFIED   = 3,
-  HORIZONTAL_MEDIAN    = 1,
-  COMPOSITESURFACE = 1,
-  MULTISURFACE     = 2,
 } ExtrusionType;
 
 #endif

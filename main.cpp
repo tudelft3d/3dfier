@@ -21,8 +21,13 @@ int main(int argc, const char * argv[]) {
   
   map3d.construct_rtree();
   
-  std::cout << map3d.add_point(74659.1, 447682.4, 0) << std::endl;
+  std::cout << map3d.add_point(74659.1, 447682.4, 11.1) << std::endl;
 
+  const std::vector<Polygon3d*> l = map3d.get_polygons3d();
+  for (auto p: l) {
+    if (p->get_elevation() != -999)
+      std::cout << p->get_id() << ": " << p->get_elevation() << std::endl;
+  }
   std::cout << "done." << std::endl;
   return 1;
 }

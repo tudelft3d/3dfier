@@ -23,6 +23,8 @@ public:
   bool add_point(double x, double y, double z);
 
   unsigned long get_num_polygons();
+
+  const std::vector<Polygon3d*>& get_polygons3d();  
      
 private:
   std::vector<Polygon3d*>             _lsPolys;
