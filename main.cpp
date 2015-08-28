@@ -9,8 +9,15 @@
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
-
 #include <boost/geometry/index/rtree.hpp>
+
+#include <pdal/PointView.hpp>
+#include <pdal/BufferReader.hpp>
+#include <pdal/Pointtable.hpp>
+#include <pdal/Dimension.hpp>
+#include <pdal/Options.hpp>
+#include <pdal/LasReader.hpp>
+
 
 namespace bg  = boost::geometry;
 namespace bgi = boost::geometry::index;
@@ -22,6 +29,7 @@ typedef bg::model::box<Point> Box;
 typedef std::pair<Box, std::string> Value;
 
 //----------
+bool readlas(std::string ifile);
 bool do_top10(std::vector<std::pair< Polygon*, std::string> >& lsPolys);
 bool do_shp(std::vector<std::pair< Polygon*, std::string> >& lsPolys);
 bool indextests(std::vector<std::pair< Polygon*, std::string> >& lsPolys);
@@ -34,11 +42,32 @@ int main(int argc, const char * argv[]) {
   OGRRegisterAll();
   std::vector<std::pair< Polygon*, std::string> > lsPolys;
 
-  do_top10(lsPolys);
+  readlas("/Users/hugo/data/ahn2/g37en2.laz");
+//  do_top10(lsPolys);
 //  do_shp(lsPolys);
-  indextests(lsPolys);
+//  indextests(lsPolys);
   std::cout << "done." << std::endl;
   return 1;
+}
+
+
+bool readlas(std::string ifile) {
+  pdal::Options options;
+  options.add("filename", ifile);
+  pdal::PointTable table;
+  pdal::LasReader reader;
+  reader.setOptions(options);
+  reader.prepare(table);
+  pdal::PointViewSet viewSet = reader.execute(table);
+  pdal::PointViewPtr view = *viewSet.begin();
+  
+  for (int i = 0; i < view->size(); i++){
+    double x = view->getFieldAs<double>(pdal::Dimension::Id::X, i);
+    double y = view->getFieldAs<double>(pdal::Dimension::Id::Y, i);
+    double z = view->getFieldAs<double>(pdal::Dimension::Id::Z, i);
+    std::cout << x << ", " << y << ", " << z << std::endl;
+  }
+  return true;
 }
 
 
