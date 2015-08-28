@@ -2,6 +2,7 @@
 #include "Map3d.h"
 
 
+
 Map3d::Map3d() {
   OGRRegisterAll();
 }
@@ -31,27 +32,20 @@ bool Map3d::add_possible_layers(std::vector<std::string> ls) {
   return true;
 }
 
-bool Map3d::add_point(Point2d* q) {
-  std::vector<Value> re;
-  Point2d minp(bg::get<0>(q) - 0.5, bg::get<1>(q) - 0.5);
-  Point2d maxp(bg::get<0>(q) + 0.5, bg::get<1>(q) + 0.5);
-  Box querybox(minp, maxp);
-  _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
-  for (auto& v : re) {
-    std::cout << "---\npolygon #" << v.second << std::endl;
-  }
-  return true;
-}
-
 
 bool Map3d::add_point(double x, double y, double z) {
-  std::vector<Value> re;
+  std::vector<PairIndexed> re;
+  Point2d p(x, y);
   Point2d minp(x - 0.5, y - 0.5);
   Point2d maxp(x + 0.5, y + 0.5);
   Box querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
   for (auto& v : re) {
-    std::cout << "---\npolygon #" << v.second << std::endl;
+    std::cout << "POLYGON" << std::endl;
+    Polygon3d* pgn3 = v.second;
+    if (bg::within(p, *(pgn3->get_polygon2d())) == true)
+      std::cout << "INSIDE" << std::endl;
+//    pgn3->add_polygon3d( TODO: ADD POINTS HERE BASED ON EXTRUSIONTYPE
   }
   return true;
 }
@@ -60,7 +54,7 @@ bool Map3d::add_point(double x, double y, double z) {
 bool Map3d::construct_rtree() {
   std::clog << "Constructing the R-tree...";
   for (auto p: _lsPolys) 
-    _rtree.insert(std::make_pair(p->get_bbox2d(), p->get_id()));
+    _rtree.insert(std::make_pair(p->get_bbox2d(), p));
   std::cout << " done." << std::endl;
   return true;
 }

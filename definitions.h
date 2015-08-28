@@ -27,8 +27,9 @@ namespace bgi = boost::geometry::index;
 typedef bg::model::d2::point_xy<double> Point2d;
 typedef bg::model::point<double, 3, bg::cs::cartesian> Point3d;
 typedef bg::model::polygon<Point2d, true, true> Polygon2d; //-- cw, first=last
+
 typedef bg::model::box<Point2d> Box;
-typedef std::pair<Box, std::string> Value;
+
 
 typedef enum
 {
@@ -36,6 +37,9 @@ typedef enum
   SIMPLE_MEDIAN    = 1,
   TIN_ALL_POINTS   = 2,
   TIN_SIMPLIFIED   = 3,
+  HORIZONTAL_MEDIAN    = 1,
+  COMPOSITESURFACE = 1,
+  MULTISURFACE     = 2,
 } ExtrusionType;
 
 #endif

@@ -27,4 +27,7 @@ std::string Polygon3d::get_id() {
   return _id;
 }
 
+Polygon2d* Polygon3d::get_polygon2d() {
+    return _p2d;
+}
 

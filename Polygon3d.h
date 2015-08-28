@@ -19,13 +19,14 @@ public:
   Polygon3d  (Polygon2d* p, ExtrusionType type, std::string id);
   ~Polygon3d ();
 
-  Box get_bbox2d();
+  Box         get_bbox2d();
   std::string get_id();
+  Polygon2d*  get_polygon2d();
      
 private:
   Polygon2d*    _p2d;
   std::string   _id;
-  ExtrusionType _type;
+  int           _type;
 };
 
 

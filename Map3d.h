@@ -5,6 +5,7 @@
 #include "definitions.h"
 #include "Polygon3d.h"
 
+typedef std::pair<Box, Polygon3d*> PairIndexed;
 
 class Map3d
 {
@@ -18,14 +19,14 @@ public:
 
   bool construct_rtree();
   bool add_polygon3d(Polygon3d* pgn);
-  bool add_point(Point2d* q);
+//  bool add_point(Point2d* q);
   bool add_point(double x, double y, double z);
 
   unsigned long get_num_polygons();
      
 private:
   std::vector<Polygon3d*>             _lsPolys;
-  bgi::rtree< Value, bgi::rstar<16> > _rtree;
+  bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
   std::vector<std::string>            _possible_layers;
 };
 
