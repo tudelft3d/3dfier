@@ -1,9 +1,7 @@
 
+
 #include "definitions.h"
 #include "Polygon3d.h"
-#include <tclap/CmdLine.h>
-
-
 
 
 //----------
@@ -20,9 +18,9 @@ int main(int argc, const char * argv[]) {
   OGRRegisterAll();
   std::vector<Polygon3d*> lsPolys;
 
-//  readlas("/Users/hugo/data/ahn2/g37en2.laz");
   do_top10(lsPolys);
-//  do_shp(lsPolys);
+//  readlas("/Users/hugo/data/ahn2/g37en2.laz");
+
   indextests(lsPolys);
   std::cout << "done." << std::endl;
   return 1;
@@ -98,46 +96,6 @@ bool do_top10(std::vector<Polygon3d*>& lsPolys) {
 }
 
 
-// bool do_shp(std::vector<std::pair< Polygon*, std::string> >& lsPolys) {
-//   std::string ifile = "/Users/hugo/Dropbox/data/pprepair/extent/somepolygons2.shp";
-//   std::cout << "Reading input dataset: " << ifile << std::endl;
-//   std::vector<std::string> layers;
-//   layers.push_back("somepolygons2");
-//   std::vector<OGRFeature*> lsOGRFeatures;
-//   if (getOGRFeatures(ifile, layers, lsOGRFeatures) == false)
-//     return false;
-//   int i = 0;
-//   for (std::vector<OGRFeature*>::iterator f = lsOGRFeatures.begin() ; f != lsOGRFeatures.end(); f++) {
-//     if (i % 1000 == 0)
-//       std::cout << "\t#" << i << std::endl;
-//     i++;
-//     switch((*f)->GetGeometryRef()->getGeometryType()) {
-//       case wkbPolygon:
-//       case wkbPolygon25D: {
-//         Polygon* p = new Polygon();
-//         char *output_wkt;
-//         (*f)->GetGeometryRef()->exportToWkt(&output_wkt);
-//         bg::read_wkt(output_wkt, *p);
-//         //        std::cout << (bg::is_valid(*p) ? "yes" : "no") << std::endl;
-//         std::pair<Polygon*, std::string> tmp(p, "test");
-//         lsPolys.push_back(tmp);
-//         break;
-//       }
-//       case wkbMultiPolygon:
-//       case wkbMultiPolygon25D: {
-//         std::cout << "Multi-fudgin'-Polygons: TODO" << std::endl;
-//         break;
-//       }
-//       default:
-//         std::cerr << "\tFeature #" << (*f)->GetFID() << ": unsupported type (";
-//         std::cerr << "). Skipped." << std::endl;
-//         continue;
-//         break;
-//     }
-//   }
-//   std::cout << lsPolys.size() << std::endl;
-//   return true;
-// }
 
 
 
