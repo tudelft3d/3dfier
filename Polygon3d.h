@@ -16,7 +16,7 @@ class Polygon3d
 {
 public:
   Polygon3d  ();
-  Polygon3d  (Polygon2d* p, int type, std::string id);
+  Polygon3d  (Polygon2d* p, ExtrusionType type, std::string id);
   ~Polygon3d ();
 
   Box get_bbox2d();
@@ -25,7 +25,7 @@ public:
 private:
   Polygon2d*    _p2d;
   std::string   _id;
-  int           _type;
+  ExtrusionType _type;
 };
 
 

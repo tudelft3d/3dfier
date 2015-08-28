@@ -30,4 +30,12 @@ typedef bg::model::polygon<Point2d, true, true> Polygon2d; //-- cw, first=last
 typedef bg::model::box<Point2d> Box;
 typedef std::pair<Box, std::string> Value;
 
+typedef enum
+{
+  SIMPLE_AVG       = 0,
+  SIMPLE_MEDIAN    = 1,
+  TIN_ALL_POINTS   = 2,
+  TIN_SIMPLIFIED   = 3,
+} ExtrusionType;
+
 #endif

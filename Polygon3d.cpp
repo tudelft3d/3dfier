@@ -8,7 +8,7 @@
 
 #include "Polygon3d.h"
 
-Polygon3d::Polygon3d(Polygon2d* p, int type, std::string id) {
+Polygon3d::Polygon3d(Polygon2d* p, ExtrusionType type, std::string id) {
   _id = id;
   _p2d = p;
   _type = type;
