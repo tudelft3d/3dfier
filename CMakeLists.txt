@@ -48,7 +48,7 @@ include_directories( ${GDAL_INCLUDE_DIR} ${PDAL_INCLUDE_DIR} , include )
 # Creating entries for target: 3dfier
 # ############################
 
-add_executable( 3dfier main.cpp Polygon3d.cpp)
+add_executable( 3dfier input.cpp main.cpp Polygon3d.cpp)
 
 target_link_libraries(3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${PDAL_LIBRARIES} )
 
