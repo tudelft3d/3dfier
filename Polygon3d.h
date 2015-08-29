@@ -10,8 +10,11 @@ class Polygon3d
 public:
   Polygon3d  (Polygon2d* p, std::string id);
   ~Polygon3d ();
-  virtual bool  add_elevation_point(double x, double y, double z) = 0;
-  virtual double      get_elevation() = 0;
+
+  virtual ExtrusionType get_extrusion_type() = 0;
+  virtual bool          add_elevation_point(double x, double y, double z) = 0;
+  virtual std::string   get_3d_representation() = 0;
+
   std::string   get_id();
   Polygon2d*    get_polygon2d();
   Box           get_bbox2d();
@@ -28,12 +31,13 @@ protected:
 
 
 
-class Polygon3d_SA : public Polygon3d 
+class Polygon3d_H_AVG : public Polygon3d 
 {
 public:
-  Polygon3d_SA (Polygon2d* p, std::string id);
-  bool        add_elevation_point(double x, double y, double z);
-  double      get_elevation();
+  Polygon3d_H_AVG (Polygon2d* p, std::string id);
+  bool          add_elevation_point(double x, double y, double z);
+  ExtrusionType get_extrusion_type();
+  std::string   get_3d_representation();
 private:
   double      _total_elevation; 
 };

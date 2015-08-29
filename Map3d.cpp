@@ -93,7 +93,7 @@ bool Map3d::read_gml_file(std::string ifile, std::string idfield) {
           char *output_wkt;
           f->GetGeometryRef()->exportToWkt(&output_wkt);
           bg::read_wkt(output_wkt, *p2);
-          Polygon3d_SA* p3 = new Polygon3d_SA(p2, f->GetFieldAsString(idfield.c_str()));
+          Polygon3d_H_AVG* p3 = new Polygon3d_H_AVG(p2, f->GetFieldAsString(idfield.c_str()));
           _lsPolys.push_back(p3);
           break;
         }
