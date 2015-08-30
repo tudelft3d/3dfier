@@ -33,10 +33,11 @@ typedef bg::model::box<Point2d> Box;
 
 typedef enum
 {
-  SIMPLE_AVG       = 0,
-  SIMPLE_MEDIAN    = 1,
-  TIN_ALL_POINTS   = 2,
-  TIN_SIMPLIFIED   = 3,
+  HORIZONTAL_AVG       = 0, //-- LOD1 buildings
+  HORIZONTAL_MEDIAN    = 1, //-- LOD1 buildings
+  BOUNDARY_3D          = 2, //-- water, roads: no points added, only 3D boundary
+  TIN_ALL_POINTS       = 3,
+  TIN_SIMPLIFIED       = 4,
 } ExtrusionType;
 
 #endif
