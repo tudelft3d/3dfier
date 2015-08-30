@@ -7,6 +7,11 @@ Map3d::Map3d() {
   OGRRegisterAll();
 }
 
+Map3d::Map3d(std::vector<std::string> allowed_layers) {
+  OGRRegisterAll();
+  this->add_allowed_layers(allowed_layers);
+}
+
 Map3d::~Map3d() {
   // TODO : destructor Map3d
   _lsPolys.clear();
@@ -19,8 +24,8 @@ bool Map3d::add_polygon3d(Polygon3d* pgn) {
 }
 
 
-bool Map3d::add_possible_layer(std::string l) {
-  _possible_layers.push_back(l);
+bool Map3d::add_allowed_layer(std::string l) {
+  _allowed_layers.push_back(l);
   return true;
 }
 
@@ -28,8 +33,8 @@ unsigned long Map3d::get_num_polygons() {
   return _lsPolys.size();
 }
 
-bool Map3d::add_possible_layers(std::vector<std::string> ls) {
-  _possible_layers.insert(_possible_layers.end(), ls.begin(), ls.end());
+bool Map3d::add_allowed_layers(std::vector<std::string> ls) {
+  _allowed_layers.insert(_allowed_layers.end(), ls.begin(), ls.end());
   return true;
 }
 
@@ -59,22 +64,21 @@ bool Map3d::construct_rtree() {
   std::clog << "Constructing the R-tree...";
   for (auto p: _lsPolys) 
     _rtree.insert(std::make_pair(p->get_bbox2d(), p));
-  std::cout << " done." << std::endl;
+  std::clog << " done." << std::endl;
   return true;
 }
 
 
-bool Map3d::read_gml_file(std::string ifile, std::string idfield) {
-  std::cout << "Reading input dataset: " << ifile << std::endl;
+bool Map3d::add_gml_file(std::string ifile, std::string idfield) {
+  std::clog << "Reading input dataset: " << ifile << std::endl;
   OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
   if (dataSource == NULL) {
     std::cerr << "Error: Could not open file." << std::endl;
     return false;
   }
-  for (std::string l : _possible_layers) {
+  for (std::string l : _allowed_layers) {
     OGRLayer *dataLayer = dataSource->GetLayerByName(l.c_str());
     if (dataLayer == NULL) {
-      std::clog << "Layer " << l << " not found." << std::endl;
       continue;
     }
     dataLayer->ResetReading();
@@ -93,6 +97,7 @@ bool Map3d::read_gml_file(std::string ifile, std::string idfield) {
           char *output_wkt;
           f->GetGeometryRef()->exportToWkt(&output_wkt);
           bg::read_wkt(output_wkt, *p2);
+          // TODO : type of extrusion should be taken from config file
           Polygon3d_H_AVG* p3 = new Polygon3d_H_AVG(p2, f->GetFieldAsString(idfield.c_str()));
           _lsPolys.push_back(p3);
           break;
@@ -109,4 +114,24 @@ bool Map3d::read_gml_file(std::string ifile, std::string idfield) {
 }
 
      
+
+bool Map3d::add_las_file(std::string ifile) {
+  std::clog << "Reading LAS/LAZ file: " << ifile;
+  pdal::Options options;
+  options.add("filename", ifile);
+  pdal::PointTable table;
+  pdal::LasReader reader;
+  reader.setOptions(options);
+  reader.prepare(table);
+  pdal::PointViewSet viewSet = reader.execute(table);
+  pdal::PointViewPtr view = *viewSet.begin();
+  std::clog << " (" << view->size() << " points)";
+  for (int i = 0; i < view->size(); i++) {
+    this->add_point(view->getFieldAs<double>(pdal::Dimension::Id::X, i),
+                    view->getFieldAs<double>(pdal::Dimension::Id::Y, i),
+                    view->getFieldAs<double>(pdal::Dimension::Id::Z, i) );
+  }
+  std::clog << "done" << std::endl;
+  return true;
+}
 

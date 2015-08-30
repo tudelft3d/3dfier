@@ -34,7 +34,7 @@ Polygon3d_H_AVG::Polygon3d_H_AVG(Polygon2d* p, std::string id) : Polygon3d(p, id
 
 std::string Polygon3d_H_AVG::get_3d_representation() {
   if (this->_no_points > 0)
-    return _id;
+    return (std::to_string(_total_elevation / _no_points));
   else
     return "";
 }
