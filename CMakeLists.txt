@@ -38,17 +38,15 @@ if ( NOT GDAL_FOUND )
   message(SEND_ERROR "3dfier requires the GDAL library")
 endif()
 
-# PDAL
-find_package(PDAL 1.0.0 REQUIRED CONFIG)
-include_directories(${PDAL_INCLUDE_DIRS})
+# LIBLAS
+find_package(LibLAS 1.8 REQUIRED)
+find_package(LASzip 2.0.1 QUIET NO_MODULE)
 
-
-include_directories( ${GDAL_INCLUDE_DIR} ${PDAL_INCLUDE_DIR} , include )
+include_directories( ${GDAL_INCLUDE_DIR} ${libLAS_INCLUDE_DIRS} ${LASZIP_INCLUDE_DIR} , include )
 
 # Creating entries for target: 3dfier
 # ############################
 
 add_executable( 3dfier input.cpp main.cpp Polygon3d.cpp Map3d.cpp)
-
-target_link_libraries(3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${PDAL_LIBRARIES} )
+target_link_libraries(3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${libLAS_LIBRARIES} ${LASZIP_LIBRARY} )
 

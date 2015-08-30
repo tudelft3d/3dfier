@@ -3,6 +3,7 @@
 
 
 #include <iostream>
+#include <fstream>  
 #include <vector>
 #include <map>
 
@@ -17,12 +18,7 @@
 namespace bg  = boost::geometry;
 namespace bgi = boost::geometry::index;
 
-#include <pdal/PointView.hpp>
-#include <pdal/BufferReader.hpp>
-#include <pdal/Pointtable.hpp>
-#include <pdal/Dimension.hpp>
-#include <pdal/Options.hpp>
-#include <pdal/LasReader.hpp>
+#include <liblas/liblas.hpp>
 
 typedef bg::model::d2::point_xy<double> Point2d;
 typedef bg::model::point<double, 3, bg::cs::cartesian> Point3d;
