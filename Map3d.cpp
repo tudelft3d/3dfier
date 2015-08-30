@@ -117,19 +117,21 @@ bool Map3d::add_gml_file(std::string ifile, std::string idfield) {
 
 bool Map3d::add_las_file(std::string ifile) {
   std::clog << "Reading LAS/LAZ file: " << ifile;
-  pdal::Options options;
-  options.add("filename", ifile);
-  pdal::PointTable table;
-  pdal::LasReader reader;
-  reader.setOptions(options);
-  reader.prepare(table);
-  pdal::PointViewSet viewSet = reader.execute(table);
-  pdal::PointViewPtr view = *viewSet.begin();
-  std::clog << " (" << view->size() << " points)";
-  for (int i = 0; i < view->size(); i++) {
-    this->add_point(view->getFieldAs<double>(pdal::Dimension::Id::X, i),
-                    view->getFieldAs<double>(pdal::Dimension::Id::Y, i),
-                    view->getFieldAs<double>(pdal::Dimension::Id::Z, i) );
+  std::ifstream ifs;
+  ifs.open(ifile.c_str(), std::ios::in | std::ios::binary);
+  liblas::ReaderFactory f;
+  liblas::Reader reader = f.CreateWithStream(ifs);
+  liblas::Header const& header = reader.GetHeader();
+  //  std::cout << "Compressed: " << (header.Compressed() == true) ? "true":"false";
+  //  std::cout << "Signature: " << header.GetFileSignature() << '\n';
+  std::clog << " (" << header.GetPointRecordsCount() << " points)";
+  int i = 0;
+  while (reader.ReadNextPoint()) {
+    liblas::Point const& p = reader.GetPoint();
+    this->add_point(p.GetX(), p.GetY(), p.GetZ());
+    if (i % 1000000 == 0)
+      std::clog << "\t" << i/1000000 << "M" << std::endl;
+    i++;
   }
   std::clog << "done" << std::endl;
   return true;

@@ -25,8 +25,8 @@ protected:
   int             _no_points;
 
   // TODO : these should be put in classes that inherits from Polygon3d
-  vector<double>   _medianvalues; //-- SIMPLE_MEDIAN method
-  vector<Point3d*> _lsPts3d;
+//  vector<double>   _medianvalues; //-- SIMPLE_MEDIAN method
+//  vector<Point3d*> _lsPts3d;
 };
 
 
