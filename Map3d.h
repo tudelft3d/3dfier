@@ -23,7 +23,7 @@ public:
   bool construct_rtree();
   bool add_polygon3d(Polygon3d* pgn);
 //  bool add_point(Point2d* q);
-  bool add_point(double x, double y, double z);
+  Polygon3d* add_point(double x, double y, double z, Polygon3d* trythisone = NULL);
 
   unsigned long get_num_polygons();
 

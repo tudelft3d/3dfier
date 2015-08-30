@@ -44,19 +44,27 @@ const std::vector<Polygon3d*>& Map3d::get_polygons3d() {
 }
 
 
-bool Map3d::add_point(double x, double y, double z) {
-  std::vector<PairIndexed> re;
+Polygon3d* Map3d::add_point(double x, double y, double z, Polygon3d* trythisone) {
   Point2d p(x, y);
+  if (trythisone != NULL) {
+    if (bg::within(p, *(trythisone->get_polygon2d())) == true) {
+      trythisone->add_elevation_point(x, y, z);
+      return trythisone;
+    }
+  }
+  std::vector<PairIndexed> re;
   Point2d minp(x - 0.5, y - 0.5);
   Point2d maxp(x + 0.5, y + 0.5);
   Box querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
   for (auto& v : re) {
     Polygon3d* pgn3 = v.second;
-    if (bg::within(p, *(pgn3->get_polygon2d())) == true)
+    if (bg::within(p, *(pgn3->get_polygon2d())) == true) {
       pgn3->add_elevation_point(x, y, z);
+      return pgn3;
+    }
   }
-  return true;
+  return NULL;
 }
 
 
@@ -122,13 +130,12 @@ bool Map3d::add_las_file(std::string ifile) {
   liblas::ReaderFactory f;
   liblas::Reader reader = f.CreateWithStream(ifs);
   liblas::Header const& header = reader.GetHeader();
-  //  std::cout << "Compressed: " << (header.Compressed() == true) ? "true":"false";
-  //  std::cout << "Signature: " << header.GetFileSignature() << '\n';
   std::clog << " (" << header.GetPointRecordsCount() << " points)";
   int i = 0;
+  Polygon3d* lastone = NULL;
   while (reader.ReadNextPoint()) {
     liblas::Point const& p = reader.GetPoint();
-    this->add_point(p.GetX(), p.GetY(), p.GetZ());
+    lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
     if (i % 1000000 == 0)
       std::clog << "\t" << i/1000000 << "M" << std::endl;
     i++;
