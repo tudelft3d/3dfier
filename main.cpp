@@ -4,7 +4,7 @@
 #include "Polygon3d.h"
 #include "Map3d.h"
 
-bool readlas(std::string ifile);
+
 
 
 int main(int argc, const char * argv[]) {
@@ -20,6 +20,7 @@ int main(int argc, const char * argv[]) {
   map3d.construct_rtree();
   
   map3d.add_las_file("/Users/hugo/data/ahn2/u37bn2.laz");
+  // map3d.add_las_file("/Users/hugo/data/ahn2/u37en2.laz");
 
   // map3d.add_point(74659.1, 447682.4, 11.1);
 

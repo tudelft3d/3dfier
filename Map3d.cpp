@@ -1,5 +1,6 @@
 
 #include "Map3d.h"
+#include "input.h"
 
 
 
@@ -130,14 +131,14 @@ bool Map3d::add_las_file(std::string ifile) {
   liblas::ReaderFactory f;
   liblas::Reader reader = f.CreateWithStream(ifs);
   liblas::Header const& header = reader.GetHeader();
-  std::clog << " (" << header.GetPointRecordsCount() << " points)";
+  std::clog << " (" << header.GetPointRecordsCount() << " points)" << std::endl;
   int i = 0;
   Polygon3d* lastone = NULL;
   while (reader.ReadNextPoint()) {
     liblas::Point const& p = reader.GetPoint();
     lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
-    if (i % 1000000 == 0)
-      std::clog << "\t" << i/1000000 << "M" << std::endl;
+    if (i % 10000 == 0) 
+      printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
     i++;
   }
   std::clog << "done" << std::endl;
