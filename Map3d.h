@@ -18,6 +18,7 @@ public:
   bool add_allowed_layers(std::vector<std::string> ls);
   
   bool add_gml_file(std::string ifile, std::string idfield);
+  bool add_shp_file(std::string ifile, std::string idfield);
   bool add_las_file(std::string ifile);
 
   bool construct_rtree();

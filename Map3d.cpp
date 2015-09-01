@@ -78,6 +78,49 @@ bool Map3d::construct_rtree() {
 }
 
 
+bool Map3d::add_shp_file(std::string ifile, std::string idfield) {
+  std::clog << "Reading input dataset: " << ifile << std::endl;
+  OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
+  if (dataSource == NULL) {
+    std::cerr << "Error: Could not open file." << std::endl;
+    return false;
+  }
+  int numberOfLayers = dataSource->GetLayerCount();
+  for (int currentLayer = 0; currentLayer < numberOfLayers; currentLayer++) {
+    OGRLayer *dataLayer = dataSource->GetLayer(currentLayer);
+    dataLayer->ResetReading();
+    unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
+    std::clog << "\tLayer: " << dataLayer->GetName() << std::endl;
+    std::clog << "\t(" << numberOfPolygons << " features)" << std::endl;
+    OGRFeature *f;
+    while ((f = dataLayer->GetNextFeature()) != NULL) {
+      switch(f->GetGeometryRef()->getGeometryType()) {
+        case wkbPolygon:
+        case wkbPolygon25D:
+        case wkbMultiPolygon:
+        case wkbMultiPolygon25D:{
+          Polygon2d* p2 = new Polygon2d();
+          // TODO : WKT surely not best/fastest way, to change
+          char *output_wkt;
+          f->GetGeometryRef()->exportToWkt(&output_wkt);
+          bg::read_wkt(output_wkt, *p2);
+          // TODO : type of extrusion should be taken from config file
+          Polygon3d_H_AVG* p3 = new Polygon3d_H_AVG(p2, f->GetFieldAsString(idfield.c_str()));
+          _lsPolys.push_back(p3);
+          break;
+        }
+        default: {
+          continue;
+        }
+      }
+    }
+  }
+  // Free OGR data source
+  OGRDataSource::DestroyDataSource(dataSource);
+  return true;
+}
+
+
 bool Map3d::add_gml_file(std::string ifile, std::string idfield) {
   std::clog << "Reading input dataset: " << ifile << std::endl;
   OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
