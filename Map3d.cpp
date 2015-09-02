@@ -24,7 +24,7 @@ std::string Map3d::get_citygml() {
   ss << get_xml_header();
   ss << get_citygml_namespaces();
   for (auto& p3 : _lsPolys) {
-    ss << p3->get_citygml();
+    ss << p3->get_3d_citygml();
   }
   ss << "</CityModel>";
   return ss.str();
@@ -116,7 +116,7 @@ bool Map3d::add_shp_file(std::string ifile, std::string idfield) {
           f->GetGeometryRef()->exportToWkt(&output_wkt);
           bg::read_wkt(output_wkt, *p2);
           // TODO : type of extrusion should be taken from config file
-          Polygon3d_H_AVG* p3 = new Polygon3d_H_AVG(p2, f->GetFieldAsString(idfield.c_str()));
+          Polygon3d_H_MEDIAN* p3 = new Polygon3d_H_MEDIAN(p2, f->GetFieldAsString(idfield.c_str()));
           _lsPolys.push_back(p3);
           break;
         }

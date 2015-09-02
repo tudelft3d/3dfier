@@ -24,7 +24,59 @@ Polygon2d* Polygon3d::get_polygon2d() {
     return _p2d;
 }
 
+std::string Polygon3d::get_polygon_lifted_gml(Polygon2d* p2, double height, bool reverse) {
+  std::stringstream ss;
+  ss << "<gml:surfaceMember>";
+  ss << "<gml:Polygon>";
+  ss << "<gml:exterior>";
+  ss << "<gml:LinearRing>";
+  if (reverse)
+    bg::reverse(*p2);
+  // TODO : also do the interior rings for extrusion
+  auto r = bg::exterior_ring(*p2);
+  for (int i = 0; i < r.size(); i++)
+    ss << "<gml:pos>" << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << "</gml:pos>";
+  ss << "</gml:LinearRing>";
+  ss << "</gml:exterior>";
+  ss << "</gml:Polygon>";
+  ss << "</gml:surfaceMember>";
+  if (reverse)
+    bg::reverse(*p2);
+  return ss.str();
+}
 
+std::string Polygon3d::get_extruded_line_gml(Point2d* a, Point2d* b, double high, double low, bool reverse) {
+  std::stringstream ss;
+  ss << "<gml:surfaceMember>";
+  ss << "<gml:Polygon>";
+  ss << "<gml:exterior>";
+  ss << "<gml:LinearRing>";
+  ss << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low << "</gml:pos>";
+  ss << "<gml:pos>" << bg::get<0>(a) << " " << bg::get<1>(a) << " " << low << "</gml:pos>";
+  ss << "<gml:pos>" << bg::get<0>(a) << " " << bg::get<1>(a) << " " << high << "</gml:pos>";
+  ss << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << high << "</gml:pos>";
+  ss << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low << "</gml:pos>";
+  ss << "</gml:LinearRing>";
+  ss << "</gml:exterior>";
+  ss << "</gml:Polygon>";
+  ss << "</gml:surfaceMember>";
+  return ss.str();
+}
+
+std::string Polygon3d::get_extruded_lod1_block_gml(Polygon2d* p2, double high, double low) {
+  std::stringstream ss;
+  //-- get floor
+  ss << this->get_polygon_lifted_gml(p2, low, false);
+  //-- get roof
+  ss << this->get_polygon_lifted_gml(p2, high, true);
+  //-- get the walls
+  auto r = bg::exterior_ring(*p2);
+  for (int i = 0; i < (r.size() - 1); i++) 
+    ss << get_extruded_line_gml(&r[i], &r[i + 1], high, low, false);
+  return ss.str();
+}
+
+//-------------------------------
 //-------------------------------
 
 
@@ -32,11 +84,11 @@ Polygon3d_H_AVG::Polygon3d_H_AVG(Polygon2d* p, std::string id) : Polygon3d(p, id
   _total_elevation = 0.0;
 }
 
-std::string Polygon3d_H_AVG::get_3d_representation() {
-  if (this->_no_points > 0)
-    return (std::to_string(_total_elevation / _no_points));
-  else
-    return "";
+double Polygon3d_H_AVG::get_height() {
+ if (this->_no_points > 0)
+   return double(_total_elevation / _no_points);
+ else
+   return -999.0;
 }
 
 bool Polygon3d_H_AVG::add_elevation_point(double x, double y, double z) {
@@ -49,8 +101,17 @@ ExtrusionType Polygon3d_H_AVG::get_extrusion_type() {
   return HORIZONTAL_AVG;
 }
 
-std::string Polygon3d_H_AVG::get_citygml() {
-  return "avg";
+std::string Polygon3d_H_AVG::get_3d_citygml() {
+  std::stringstream ss;
+  //-- get floor
+  ss << this->get_polygon_lifted_gml(this->_p2d, 0, false);
+  //-- get roof
+//  ss << this->get_polygon_lifted_gml(this->_p2d, , true);
+  //-- get the walls
+//  auto r = bg::exterior_ring(*p2);
+//  for (int i = 0; i < (r.size() - 1); i++)
+//    ss << get_extruded_line_gml(&r[i], &r[i + 1], high, low, false);
+  return ss.str();
 }
 
 //-------------------------------
@@ -58,7 +119,7 @@ std::string Polygon3d_H_AVG::get_citygml() {
 Polygon3d_H_MEDIAN::Polygon3d_H_MEDIAN(Polygon2d* p, std::string id) : Polygon3d(p, id) {
 }
 
-std::string Polygon3d_H_MEDIAN::get_citygml() {
+std::string Polygon3d_H_MEDIAN::get_3d_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>";
   ss << "<Building>";
@@ -69,22 +130,21 @@ std::string Polygon3d_H_MEDIAN::get_citygml() {
   ss << "<gml:Solid>";
   ss << "<gml:exterior>";
   ss << "<gml:CompositeSurface>";
-  
+  //-- get floor
+  ss << this->get_polygon_lifted_gml(this->_p2d, 0, false);
+  //-- get roof
+  ss << this->get_polygon_lifted_gml(this->_p2d, this->get_height(), true);
+  //-- get the walls
+  auto r = bg::exterior_ring(*(this->_p2d));
+  for (int i = 0; i < (r.size() - 1); i++) 
+    ss << get_extruded_line_gml(&r[i], &r[i + 1], this->get_height(), 0, false);
   ss << "</gml:CompositeSurface>";
   ss << "</gml:exterior>";
   ss << "</gml:Solid>";
   ss << "</lod1Solid>";
   ss << "</Building>";
   ss << "</cityObjectMember>";
-  
   return ss.str(); 
-
-  // for (auto)
-// <gml:surfaceMember>
-// <gml:Polygon>
-// <gml:exterior>
-// <gml:LinearRing>
-// <gml:pos>85105.3311157 446323.558105 0</gml:pos>
 }
 
 double Polygon3d_H_MEDIAN::get_height() {

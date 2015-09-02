@@ -14,17 +14,19 @@ int main(int argc, const char * argv[]) {
   map3d.add_allowed_layer("Gebouw");
   map3d.add_allowed_layer("Gebouw_Vlak");
   
-   map3d.add_gml_file("/Users/hugo/data/top10nl/nlextract/TOP10NL_37W_00.gml", "identificatie");
-//  map3d.add_shp_file("/Users/hugo/data/pprepair/split/ppsplit2.r.shp", "id");
+//  map3d.add_gml_file("/Users/hugo/data/top10nl/nlextract/TOP10NL_37W_00.gml", "identificatie");
+  map3d.add_shp_file("/Users/hugo/data/pprepair/split/ppsplit2.r.shp", "id");
 
   std::cout << "# of polygons: " << map3d.get_num_polygons() << std::endl;
   map3d.construct_rtree();
+
+  std::cout << map3d.get_citygml() << std::endl;
   
 //  map3d.add_las_file("/Users/hugo/data/ahn2/u37bn2.laz");
   // map3d.add_las_file("/Users/hugo/data/ahn2/u37en2.laz");
 
   // map3d.add_point(74659.1, 447682.4, 11.1);
-  std::cout << map3d.get_citygml() << std::endl;
+  
 
   //-- write string to pugi object for validation/formatting
 //  pugi::xml_document doc;
