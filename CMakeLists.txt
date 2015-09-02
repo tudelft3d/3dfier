@@ -39,7 +39,7 @@ if ( NOT GDAL_FOUND )
 endif()
 
 # LIBLAS
-find_package(LibLAS 1.8 REQUIRED)
+find_package(libLAS 1.8 REQUIRED)
 find_package(LASzip 2.0.1 QUIET NO_MODULE)
 
 include_directories( ${GDAL_INCLUDE_DIR} ${libLAS_INCLUDE_DIRS} ${LASZIP_INCLUDE_DIR} , include )
