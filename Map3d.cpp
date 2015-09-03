@@ -23,6 +23,8 @@ std::string Map3d::get_citygml() {
   std::stringstream ss;
   ss << get_xml_header();
   ss << get_citygml_namespaces();
+  ss << "<gml:name>my3dmap</gml:name>";
+  // TODO : get bbox of dataset
   for (auto& p3 : _lsPolys) {
     ss << p3->get_3d_citygml();
   }

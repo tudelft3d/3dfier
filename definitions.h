@@ -38,10 +38,11 @@ typedef enum
 
 typedef enum
 {
-  AVERAGE   = 1,
-  MEDIAN    = 2,
-  MAXIMUM   = 3,
-  MINIMUM   = 4,
+  AVERAGE    = 1,
+  MEDIAN     = 2,
+  MAXIMUM    = 3,
+  MINIMUM    = 4,
+  // PERCENTILE = 5, https://www.informit.com/guides/content.aspx?g=cplusplus&seqNum=290
 } HeightReference;
 
 

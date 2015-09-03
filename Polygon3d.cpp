@@ -37,11 +37,11 @@ Polygon3d_block::Polygon3d_block(Polygon2d* p, std::string id, HeightReference h
 std::string Polygon3d_block::get_3d_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>";
-  ss << "<Building>";
-  ss << "<measuredHeight uom=\"#m\">";
+  ss << "<bldg:Building>";
+  ss << "<bldg:measuredHeight uom=\"#m\">";
   ss << this->get_height();
-  ss << "</measuredHeight>";
-  ss << "<lod1Solid>";
+  ss << "</bldg:measuredHeight>";
+  ss << "<bldg:lod1Solid>";
   ss << "<gml:Solid>";
   ss << "<gml:exterior>";
   ss << "<gml:CompositeSurface>";
@@ -56,14 +56,15 @@ std::string Polygon3d_block::get_3d_citygml() {
   ss << "</gml:CompositeSurface>";
   ss << "</gml:exterior>";
   ss << "</gml:Solid>";
-  ss << "</lod1Solid>";
-  ss << "</Building>";
+  ss << "</bldg:lod1Solid>";
+  ss << "</bldg:Building>";
   ss << "</cityObjectMember>";
   return ss.str(); 
 }
 
 
 double Polygon3d_block::get_height() {
+  // TODO : return an error if 
   if (_no_points == 0)
     return -999;
   double re;
