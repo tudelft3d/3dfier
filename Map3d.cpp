@@ -115,8 +115,9 @@ bool Map3d::add_shp_file(std::string ifile, std::string idfield) {
           char *output_wkt;
           f->GetGeometryRef()->exportToWkt(&output_wkt);
           bg::read_wkt(output_wkt, *p2);
+          bg::unique(*p2); //-- remove duplicate vertices
           // TODO : type of extrusion should be taken from config file
-          Polygon3d_H_MEDIAN* p3 = new Polygon3d_H_MEDIAN(p2, f->GetFieldAsString(idfield.c_str()));
+          Polygon3d_block* p3 = new Polygon3d_block(p2, f->GetFieldAsString(idfield.c_str()), MEDIAN);
           _lsPolys.push_back(p3);
           break;
         }
@@ -160,8 +161,9 @@ bool Map3d::add_gml_file(std::string ifile, std::string idfield) {
           char *output_wkt;
           f->GetGeometryRef()->exportToWkt(&output_wkt);
           bg::read_wkt(output_wkt, *p2);
+          bg::unique(*p2); //-- remove duplicate vertices
           // TODO : type of extrusion should be taken from config file
-          Polygon3d_H_MEDIAN* p3 = new Polygon3d_H_MEDIAN(p2, f->GetFieldAsString(idfield.c_str()));
+          Polygon3d_block* p3 = new Polygon3d_block(p2, f->GetFieldAsString(idfield.c_str()), MEDIAN);
           _lsPolys.push_back(p3);
           break;
         }
