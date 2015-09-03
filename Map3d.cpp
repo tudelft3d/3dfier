@@ -19,6 +19,19 @@ Map3d::~Map3d() {
 }
 
 
+std::string Map3d::get_citygml() {
+  std::stringstream ss;
+  ss << get_xml_header();
+  ss << get_citygml_namespaces();
+  ss << "<gml:name>my3dmap</gml:name>";
+  // TODO : get bbox of dataset
+  for (auto& p3 : _lsPolys) {
+    ss << p3->get_3d_citygml();
+  }
+  ss << "</CityModel>";
+  return ss.str();
+}
+
 bool Map3d::add_polygon3d(Polygon3d* pgn) {
   _lsPolys.push_back(pgn);
   return true;
@@ -104,8 +117,9 @@ bool Map3d::add_shp_file(std::string ifile, std::string idfield) {
           char *output_wkt;
           f->GetGeometryRef()->exportToWkt(&output_wkt);
           bg::read_wkt(output_wkt, *p2);
+          bg::unique(*p2); //-- remove duplicate vertices
           // TODO : type of extrusion should be taken from config file
-          Polygon3d_H_AVG* p3 = new Polygon3d_H_AVG(p2, f->GetFieldAsString(idfield.c_str()));
+          Polygon3d_block* p3 = new Polygon3d_block(p2, f->GetFieldAsString(idfield.c_str()), MEDIAN);
           _lsPolys.push_back(p3);
           break;
         }
@@ -149,8 +163,9 @@ bool Map3d::add_gml_file(std::string ifile, std::string idfield) {
           char *output_wkt;
           f->GetGeometryRef()->exportToWkt(&output_wkt);
           bg::read_wkt(output_wkt, *p2);
+          bg::unique(*p2); //-- remove duplicate vertices
           // TODO : type of extrusion should be taken from config file
-          Polygon3d_H_AVG* p3 = new Polygon3d_H_AVG(p2, f->GetFieldAsString(idfield.c_str()));
+          Polygon3d_block* p3 = new Polygon3d_block(p2, f->GetFieldAsString(idfield.c_str()), MEDIAN);
           _lsPolys.push_back(p3);
           break;
         }

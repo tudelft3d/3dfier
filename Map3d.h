@@ -29,11 +29,13 @@ public:
   unsigned long get_num_polygons();
 
   const std::vector<Polygon3d*>& get_polygons3d();  
+
+  std::string get_citygml();
      
 private:
-  std::vector<Polygon3d*>             _lsPolys;
+  std::vector<Polygon3d*>   _lsPolys;
+  std::vector<std::string>  _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
-  std::vector<std::string>            _allowed_layers;
 };
 
 

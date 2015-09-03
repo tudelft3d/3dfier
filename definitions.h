@@ -29,11 +29,21 @@ typedef bg::model::box<Point2d> Box;
 
 typedef enum
 {
-  HORIZONTAL_AVG       = 0, //-- LOD1 buildings
-  HORIZONTAL_MEDIAN    = 1, //-- LOD1 buildings
-  BOUNDARY_3D          = 2, //-- water, roads: no points added, only 3D boundary
-  TIN_ALL_POINTS       = 3,
-  TIN_SIMPLIFIED       = 4,
-} ExtrusionType;
+  BLOCK                = 0, //-- LOD1 buildings
+  BOUNDARY_3D          = 1, //-- water, roads: no points added inside, only 3D boundary
+  TIN_ALL_POINTS       = 2,
+  TIN_SIMPLIFIED       = 3,
+
+} Lift3DType;
+
+typedef enum
+{
+  AVERAGE    = 1,
+  MEDIAN     = 2,
+  MAXIMUM    = 3,
+  MINIMUM    = 4,
+  // PERCENTILE = 5, https://www.informit.com/guides/content.aspx?g=cplusplus&seqNum=290
+} HeightReference;
+
 
 #endif
