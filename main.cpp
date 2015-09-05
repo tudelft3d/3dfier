@@ -3,7 +3,7 @@
 #include "input.h"
 #include "Polygon3d.h"
 #include "Map3d.h"
-
+#include "yaml-cpp/yaml.h"
 
 
 int main(int argc, const char * argv[]) {

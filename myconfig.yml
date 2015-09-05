@@ -1,0 +1,24 @@
+
+polygons2d:
+  - input: /Users/hugo/data/campus/partof.shp
+    uniqueid: FACE_ID
+    lifting: BLOCK-MEDIAN
+  - input: /Users/hugo/data/campus/another.shp
+    uniqueid: fid
+    lifting: BLOCK-AVG
+  - input: /Users/temp/data/*.gml
+    layer: Gebouw
+
+elevation:
+  - input: /Users/hugo/data/campus/coverpartof.laz
+  - input: /Users/hugo/data/temp/*.laz
+
+output: 
+  format: CityGML
+  verticaltriangles: false
+  triangulatebuildings: false
+
+simplification:
+  thininputpoints: 100
+
+verbose: yes
