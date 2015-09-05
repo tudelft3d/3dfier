@@ -43,7 +43,7 @@ typedef enum
   MAXIMUM    = 3,
   MINIMUM    = 4,
   // PERCENTILE = 5, https://www.informit.com/guides/content.aspx?g=cplusplus&seqNum=290
-} HeightReference;
+} BlockHeightRef;
 
 
 #endif

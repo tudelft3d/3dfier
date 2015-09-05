@@ -31,15 +31,15 @@ protected:
 class Polygon3d_block : public Polygon3d 
 {
 public:
-  Polygon3d_block (Polygon2d* p, std::string id, HeightReference heightref);
+  Polygon3d_block (Polygon2d* p, std::string id, BlockHeightRef heightref);
   bool            add_elevation_point(double x, double y, double z);
   Lift3DType      get_extrusion_type();
   std::string     get_3d_citygml();
   double          get_height();
-  HeightReference get_height_reference();
+  BlockHeightRef  get_height_reference();
 private:
   std::vector<double> _zvalues;
-  HeightReference     _heightref; 
+  BlockHeightRef     _heightref; 
   // TODO : add a value/function to define a floor for each building too.
 };
 

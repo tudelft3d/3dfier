@@ -30,7 +30,7 @@ Polygon2d* Polygon3d::get_polygon2d() {
 //-------------------------------
 
 
-Polygon3d_block::Polygon3d_block(Polygon2d* p, std::string id, HeightReference heightref) : Polygon3d(p, id) {
+Polygon3d_block::Polygon3d_block(Polygon2d* p, std::string id, BlockHeightRef heightref) : Polygon3d(p, id) {
   _heightref = heightref;
 }
 
@@ -111,6 +111,6 @@ Lift3DType Polygon3d_block::get_extrusion_type() {
   return BLOCK;
 }
 
-HeightReference Polygon3d_block::get_height_reference() {
+BlockHeightRef Polygon3d_block::get_height_reference() {
   return _heightref;
 }
