@@ -1,24 +1,33 @@
 
-polygons2d:
-  - input: /Users/hugo/data/campus/partof.shp
+input_polygons:
+  - datasets: 
+      - /Users/hugo/data/campus/partof.shp
     uniqueid: FACE_ID
-    lifting: BLOCK-MEDIAN
-  - input: /Users/hugo/data/campus/another.shp
+    lifting: BLOCK_MEDIAN
+  
+  - datasets: 
+      - /Users/hugo/data/campus/another.gml
+      - /Users/hugo/data/campus/another2.gml
     uniqueid: fid
-    lifting: BLOCK-AVG
-  - input: /Users/temp/data/*.gml
-    layer: Gebouw
-
-elevation:
-  - input: /Users/hugo/data/campus/coverpartof.laz
-  - input: /Users/hugo/data/temp/*.laz
+    layers:
+      Gebouw: BLOCK_AVG
+      Terrain: TIN_ALL_POINTS
+      Waterdeel: BOUNDARY_3D
+  
+input_elevation:
+  - /Users/hugo/data/campus/coverpartof.laz
+  - /Users/hugo/data/temp/*.laz
+  - /Users/hugo/data/temp/*.las
 
 output: 
   format: CityGML
-  verticaltriangles: false
-  triangulatebuildings: false
+  verticaltriangles: true
 
 simplification:
   thininputpoints: 100
 
-verbose: yes
+buildings:
+  horizontal_floor: true
+  triangulated: false
+
+verbose: true

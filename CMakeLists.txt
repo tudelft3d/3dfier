@@ -42,11 +42,13 @@ endif()
 find_package(libLAS 1.8 REQUIRED)
 find_package(LASzip 2.0.1 QUIET NO_MODULE)
 
-include_directories( ${GDAL_INCLUDE_DIR} ${libLAS_INCLUDE_DIRS} ${LASZIP_INCLUDE_DIR} , include )
+find_package(yaml-cpp)
+
+include_directories( ${GDAL_INCLUDE_DIR} ${libLAS_INCLUDE_DIRS} ${LASZIP_INCLUDE_DIR} ${YAML_CPP_INCLUDE_DIR} , include )
 
 # Creating entries for target: 3dfier
 # ############################
 
 add_executable( 3dfier input.cpp main.cpp Polygon3d.cpp Map3d.cpp)
-target_link_libraries(3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${libLAS_LIBRARIES} ${LASZIP_LIBRARY} )
+target_link_libraries(3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${libLAS_LIBRARIES} ${LASZIP_LIBRARY} ${YAML_CPP_LIBRARIES})
 

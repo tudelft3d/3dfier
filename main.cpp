@@ -7,7 +7,15 @@
 
 
 int main(int argc, const char * argv[]) {
+  
+  if (argc != 2) {
+    std::cout << "Error: the config file (config.yml) is not defined." << std::endl;
+    return 0;
+  }
+
+  YAML::Node nodes = YAML::LoadFile(argv[1]);
   Map3d map3d;
+
   map3d.add_allowed_layer("Terrein");
   map3d.add_allowed_layer("Waterdeel");
   map3d.add_allowed_layer("Wegdeel");
