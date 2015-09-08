@@ -11,9 +11,9 @@ public:
   Polygon3d  (Polygon2d* p, std::string id);
   ~Polygon3d ();
 
-  virtual Lift3DType    get_extrusion_type() = 0;
   virtual bool          add_elevation_point(double x, double y, double z) = 0;
   virtual std::string   get_3d_citygml() = 0;
+  virtual std::string   get_lift_type() = 0;
 
   std::string   get_id();
   Polygon2d*    get_polygon2d();
@@ -27,23 +27,38 @@ protected:
  // vector<Point3d*> _lsPts3d;
 };
 
+//---------------------------------------------
 
-class Polygon3d_block : public Polygon3d 
+class Polygon3dBlockSimple : public Polygon3d 
 {
 public:
-  Polygon3d_block (Polygon2d* p, std::string id, BlockHeightRef heightref);
+  Polygon3dBlockSimple (Polygon2d* p, std::string id, std::string heightref); 
+  
   bool            add_elevation_point(double x, double y, double z);
-  Lift3DType      get_extrusion_type();
   std::string     get_3d_citygml();
   double          get_height();
-  BlockHeightRef  get_height_reference();
+  std::string     get_lift_type();
 private:
-  std::vector<double> _zvalues;
-  BlockHeightRef     _heightref; 
-  // TODO : add a value/function to define a floor for each building too.
+  double          _onezvalue;
+  std::string     _heightref;
 };
 
+//---------------------------------------------
 
+class Polygon3dBlockPercentile : public Polygon3d 
+{
+public:
+  Polygon3dBlockPercentile (Polygon2d* p, std::string id, int percentile);
+  
+  bool            add_elevation_point(double x, double y, double z);
+  std::string     get_3d_citygml();
+  double          get_height();
+  std::string     get_lift_type();
+private:
+  std::vector<double> _zvalues;
+  int                 _percentile;
+  // TODO : add a value/function to define a floor for each building too.
+};
 
 
 #endif /* defined(__boo__Polygon3D__) */

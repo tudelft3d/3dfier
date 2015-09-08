@@ -91,7 +91,51 @@ bool Map3d::construct_rtree() {
 }
 
 
-bool Map3d::add_shp_file(std::string ifile, std::string idfield) {
+bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers) {
+  std::clog << "Reading input dataset: " << ifile << std::endl;
+  OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
+  if (dataSource == NULL) {
+    std::cerr << "Error: Could not open file." << std::endl;
+    return false;
+  }
+  for (auto p : layers) {
+    OGRLayer *dataLayer = dataSource->GetLayerByName((p.first).c_str());
+    if (dataLayer == NULL) {
+      continue;
+    }
+    dataLayer->ResetReading();
+    unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
+    std::clog << "\tLayer: " << dataLayer->GetName() << std::endl;
+    std::clog << "\t(" << numberOfPolygons << " features)" << std::endl;
+    OGRFeature *f;
+    while ((f = dataLayer->GetNextFeature()) != NULL) {
+      switch(f->GetGeometryRef()->getGeometryType()) {
+        case wkbPolygon:
+        case wkbPolygon25D:
+        case wkbMultiPolygon:
+        case wkbMultiPolygon25D:{
+          Polygon2d* p2 = new Polygon2d();
+          // TODO : WKT surely not best/fastest way, to change
+          char *output_wkt;
+          f->GetGeometryRef()->exportToWkt(&output_wkt);
+          bg::read_wkt(output_wkt, *p2);
+          bg::unique(*p2); //-- remove duplicate vertices
+          Polygon3dBlockSimple* p3 = new Polygon3dBlockSimple(p2, f->GetFieldAsString(idfield.c_str()), "AVG");
+          _lsPolys.push_back(p3);
+          break;
+        }
+        default: {
+          continue;
+        }
+      }
+    }
+  }
+  // Free OGR data source
+  OGRDataSource::DestroyDataSource(dataSource);
+  return true;
+}
+ 
+bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::string lifttype) {
   std::clog << "Reading input dataset: " << ifile << std::endl;
   OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
   if (dataSource == NULL) {
@@ -117,9 +161,9 @@ bool Map3d::add_shp_file(std::string ifile, std::string idfield) {
           char *output_wkt;
           f->GetGeometryRef()->exportToWkt(&output_wkt);
           bg::read_wkt(output_wkt, *p2);
-          bg::unique(*p2); //-- remove duplicate vertices
-          // TODO : type of extrusion should be taken from config file
-          Polygon3d_block* p3 = new Polygon3d_block(p2, f->GetFieldAsString(idfield.c_str()), MEDIAN);
+          bg::unique(*p2); //-- remove duplicate vertices, TODO: good idea?
+          // TODO: lifting not all implemented
+          Polygon3dBlockSimple* p3 = new Polygon3dBlockSimple(p2, f->GetFieldAsString(idfield.c_str()), "AVG");
           _lsPolys.push_back(p3);
           break;
         }
@@ -134,53 +178,6 @@ bool Map3d::add_shp_file(std::string ifile, std::string idfield) {
   return true;
 }
 
-
-bool Map3d::add_gml_file(std::string ifile, std::string idfield) {
-  std::clog << "Reading input dataset: " << ifile << std::endl;
-  OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
-  if (dataSource == NULL) {
-    std::cerr << "Error: Could not open file." << std::endl;
-    return false;
-  }
-  for (std::string l : _allowed_layers) {
-    OGRLayer *dataLayer = dataSource->GetLayerByName(l.c_str());
-    if (dataLayer == NULL) {
-      continue;
-    }
-    dataLayer->ResetReading();
-    unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
-    std::clog << "\tLayer: " << dataLayer->GetName() << std::endl;
-    std::clog << "\t(" << numberOfPolygons << " features)" << std::endl;
-    OGRFeature *f;
-    while ((f = dataLayer->GetNextFeature()) != NULL) {
-      switch(f->GetGeometryRef()->getGeometryType()) {
-        case wkbPolygon:
-        case wkbPolygon25D:
-        case wkbMultiPolygon:
-        case wkbMultiPolygon25D:{
-          Polygon2d* p2 = new Polygon2d();
-          // TODO : WKT surely not best/fastest way, to change
-          char *output_wkt;
-          f->GetGeometryRef()->exportToWkt(&output_wkt);
-          bg::read_wkt(output_wkt, *p2);
-          bg::unique(*p2); //-- remove duplicate vertices
-          // TODO : type of extrusion should be taken from config file
-          Polygon3d_block* p3 = new Polygon3d_block(p2, f->GetFieldAsString(idfield.c_str()), MEDIAN);
-          _lsPolys.push_back(p3);
-          break;
-        }
-        default: {
-          continue;
-        }
-      }
-    }
-  }
-  // Free OGR data source
-  OGRDataSource::DestroyDataSource(dataSource);
-  return true;
-}
-
-     
 
 bool Map3d::add_las_file(std::string ifile) {
   std::clog << "Reading LAS/LAZ file: " << ifile;

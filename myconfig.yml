@@ -3,14 +3,14 @@ input_polygons:
   - datasets: 
       - /Users/hugo/data/campus/partof.shp
     uniqueid: FACE_ID
-    lifting: BLOCK_MEDIAN
+    lifting: BLOCK-AVG
   
   - datasets: 
       - /Users/hugo/data/campus/another.gml
       - /Users/hugo/data/campus/another2.gml
     uniqueid: fid
     layers:
-      Gebouw: BLOCK_AVG
+      Gebouw: BLOCK_PERCENTILE-95
       Terrain: TIN_ALL_POINTS
       Waterdeel: BOUNDARY_3D
   
