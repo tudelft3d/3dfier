@@ -4,7 +4,10 @@ To run:
 
 `$ ./3dfier myconfig.yml > output.gml`
 
-dependencies:
+To test it with a very small area around the TUD campus (8 polygons + AHN2 cropped + config file):
+https://www.dropbox.com/sh/wdzhixnqqucuc6p/AAAN1ebHZGP374VAr_Zv3BwBa?dl=0
+
+Dependencies:
 
   1. LIBLAS *with* LASzip support (`brew install liblas --with-laszip`)
   2. GDAL (`brew install gdal`)
