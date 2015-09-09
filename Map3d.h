@@ -11,11 +11,8 @@ class Map3d
 {
 public:
   Map3d  ();
-  Map3d  (std::vector<std::string> allowed_layers);
   ~Map3d ();
 
-  bool add_allowed_layer(std::string l);
-  bool add_allowed_layers(std::vector<std::string> ls);
 
   bool add_polygons_file(std::string ifile, std::string idfield, std::vector<std::pair<std::string, std::string> > &layers);
   bool add_polygons_file(std::string ifile, std::string idfield, std::string lifttype);
@@ -35,7 +32,8 @@ private:
   std::vector<std::string>  _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
 
-  bool add_polygon3d(Polygon3d* pgn);
+  bool extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers);
+
 };
 
 

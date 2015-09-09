@@ -22,33 +22,16 @@ public:
 protected:
   Polygon2d*      _p2d;
   std::string     _id;
-  int             _no_points;
   
  // vector<Point3d*> _lsPts3d;
 };
 
 //---------------------------------------------
 
-class Polygon3dBlockSimple : public Polygon3d 
+class Polygon3dBlock : public Polygon3d 
 {
 public:
-  Polygon3dBlockSimple (Polygon2d* p, std::string id, std::string heightref); 
-  
-  bool            add_elevation_point(double x, double y, double z);
-  std::string     get_3d_citygml();
-  double          get_height();
-  std::string     get_lift_type();
-private:
-  double          _onezvalue;
-  std::string     _heightref;
-};
-
-//---------------------------------------------
-
-class Polygon3dBlockPercentile : public Polygon3d 
-{
-public:
-  Polygon3dBlockPercentile (Polygon2d* p, std::string id, int percentile);
+  Polygon3dBlock (Polygon2d* p, std::string id, std::string lifttype); 
   
   bool            add_elevation_point(double x, double y, double z);
   std::string     get_3d_citygml();
@@ -56,7 +39,7 @@ public:
   std::string     get_lift_type();
 private:
   std::vector<double> _zvalues;
-  int                 _percentile;
+  std::string         _lifttype;
   // TODO : add a value/function to define a floor for each building too.
 };
 

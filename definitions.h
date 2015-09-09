@@ -30,10 +30,8 @@ typedef bg::model::box<Point2d> Box;
 typedef enum
 {
   BLOCK            = 10,
-  BLOCK_PERCENTILE = 11,
-  BOUNDARY3D       = 20, //-- water, roads: no points added inside, only 3D boundary
+  BOUNDARY3D       = 20, 
   TIN_ALL_POINTS   = 30,
-  TIN_SIMPLIFIED   = 31,
 } Lift3DType;
 
 

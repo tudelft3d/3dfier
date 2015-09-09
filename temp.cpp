@@ -26,3 +26,26 @@
 //  }
   
 //boost::geometry::unique(poly); //-- remove duplicates
+
+
+
+//  n = nodes["output"];
+//  std::cout << n.Type() << std::endl;
+//  switch (n.Type()) {
+//      case YAML::NodeType::Null: // ...
+//          std::cout << "null" << std::endl;
+//      case YAML::NodeType::Scalar: // ...
+//          std::cout << "scalar" << std::endl;
+//      case YAML::NodeType::Sequence: // ...
+//          std::cout << "sequence" << std::endl;
+//      case YAML::NodeType::Map: // ...
+//          std::cout << "map" << std::endl;
+//          std::cout << n.size() << std::endl;
+//          for (auto it = n.begin(); it != n.end(); it++) {
+//             std::cout << it->first << std::endl;
+//          }
+//          break;
+//      case YAML::NodeType::Undefined: // ...
+//          std::cout << "fuck knows" << std::endl;
+//  }
+//  std::cout << "\n=========\n" << std::endl;

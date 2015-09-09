@@ -10,13 +10,13 @@ input_polygons:
       - /Users/hugo/data/campus/another2.gml
     uniqueid: fid
     layers:
-      Gebouw: BLOCK_PERCENTILE-95
-      Terrain: TIN_ALL_POINTS
-      Waterdeel: BOUNDARY_3D
+      Gebouw: BLOCK-PERCENTILE95
+      Terrain: TIN-ALL_POINTS
+      Waterdeel: BOUNDARY3D
   
 input_elevation:
+  - /Users/hugo/data/temp/potato.laz
   - /Users/hugo/data/campus/coverpartof.laz
-  - /Users/hugo/data/temp/*.laz
   - /Users/hugo/data/temp/*.las
 
 output: 

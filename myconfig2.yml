@@ -3,7 +3,7 @@ input_polygons:
   - datasets: 
       - /Users/hugo/data/campus/partof.shp
     uniqueid: FACE_ID
-    lifting: BLOCK_PERCENTILE-50
+    lifting: BLOCK-AVG
 
   
 input_elevation:
