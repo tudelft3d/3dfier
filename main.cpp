@@ -50,7 +50,7 @@ int main(int argc, const char * argv[]) {
   //-- add elevation datasets
   n = nodes["input_elevation"];
   for (auto it = n.begin(); it != n.end(); ++it) {
-    map3d.add_las_file(it->as<std::string>());  
+    map3d.add_las_file(it->as<std::string>(), 100);  
   }
   // map3d.add_point(74659.1, 447682.4, 11.1);
 

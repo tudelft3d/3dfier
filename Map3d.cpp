@@ -149,8 +149,10 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
 }
 
 
-bool Map3d::add_las_file(std::string ifile) {
+bool Map3d::add_las_file(std::string ifile, int skip) {
   std::clog << "Reading LAS/LAZ file: " << ifile << std::endl;
+  if (skip != 0)
+    std::clog << "(only reading every " << skip << "th points)" << std::endl;
   std::ifstream ifs;
   ifs.open(ifile.c_str(), std::ios::in | std::ios::binary);
   if (ifs.is_open() == false) {
@@ -165,8 +167,9 @@ bool Map3d::add_las_file(std::string ifile) {
   Polygon3d* lastone = NULL;
   while (reader.ReadNextPoint()) {
     liblas::Point const& p = reader.GetPoint();
-    lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
-    if (i % 10000 == 0) 
+    if ( (skip != 0) && (i %  skip == 0) )
+      lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+    if (i % 100000 == 0) 
       printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
     i++;
   }
