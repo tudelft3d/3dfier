@@ -8,10 +8,6 @@ Map3d::Map3d() {
   OGRRegisterAll();
 }
 
-Map3d::Map3d(std::vector<std::string> allowed_layers) {
-  OGRRegisterAll();
-  this->add_allowed_layers(allowed_layers);
-}
 
 Map3d::~Map3d() {
   // TODO : destructor Map3d
@@ -32,24 +28,10 @@ std::string Map3d::get_citygml() {
   return ss.str();
 }
 
-bool Map3d::add_polygon3d(Polygon3d* pgn) {
-  _lsPolys.push_back(pgn);
-  return true;
-}
 
-
-bool Map3d::add_allowed_layer(std::string l) {
-  _allowed_layers.push_back(l);
-  return true;
-}
 
 unsigned long Map3d::get_num_polygons() {
   return _lsPolys.size();
-}
-
-bool Map3d::add_allowed_layers(std::vector<std::string> ls) {
-  _allowed_layers.insert(_allowed_layers.end(), ls.begin(), ls.end());
-  return true;
 }
 
 
@@ -91,59 +73,22 @@ bool Map3d::construct_rtree() {
 }
 
 
-bool Map3d::add_shp_file(std::string ifile, std::string idfield) {
+bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers) {
   std::clog << "Reading input dataset: " << ifile << std::endl;
   OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
   if (dataSource == NULL) {
-    std::cerr << "Error: Could not open file." << std::endl;
+    std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
     return false;
   }
-  int numberOfLayers = dataSource->GetLayerCount();
-  for (int currentLayer = 0; currentLayer < numberOfLayers; currentLayer++) {
-    OGRLayer *dataLayer = dataSource->GetLayer(currentLayer);
-    dataLayer->ResetReading();
-    unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
-    std::clog << "\tLayer: " << dataLayer->GetName() << std::endl;
-    std::clog << "\t(" << numberOfPolygons << " features)" << std::endl;
-    OGRFeature *f;
-    while ((f = dataLayer->GetNextFeature()) != NULL) {
-      switch(f->GetGeometryRef()->getGeometryType()) {
-        case wkbPolygon:
-        case wkbPolygon25D:
-        case wkbMultiPolygon:
-        case wkbMultiPolygon25D:{
-          Polygon2d* p2 = new Polygon2d();
-          // TODO : WKT surely not best/fastest way, to change
-          char *output_wkt;
-          f->GetGeometryRef()->exportToWkt(&output_wkt);
-          bg::read_wkt(output_wkt, *p2);
-          bg::unique(*p2); //-- remove duplicate vertices
-          // TODO : type of extrusion should be taken from config file
-          Polygon3d_block* p3 = new Polygon3d_block(p2, f->GetFieldAsString(idfield.c_str()), MEDIAN);
-          _lsPolys.push_back(p3);
-          break;
-        }
-        default: {
-          continue;
-        }
-      }
-    }
-  }
-  // Free OGR data source
+  this->extract_and_add_polygon(dataSource, idfield, layers);
   OGRDataSource::DestroyDataSource(dataSource);
   return true;
 }
+ 
 
-
-bool Map3d::add_gml_file(std::string ifile, std::string idfield) {
-  std::clog << "Reading input dataset: " << ifile << std::endl;
-  OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
-  if (dataSource == NULL) {
-    std::cerr << "Error: Could not open file." << std::endl;
-    return false;
-  }
-  for (std::string l : _allowed_layers) {
-    OGRLayer *dataLayer = dataSource->GetLayerByName(l.c_str());
+bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers) {
+ for (auto l : layers) {
+    OGRLayer *dataLayer = dataSource->GetLayerByName((l.first).c_str());
     if (dataLayer == NULL) {
       continue;
     }
@@ -164,9 +109,15 @@ bool Map3d::add_gml_file(std::string ifile, std::string idfield) {
           f->GetGeometryRef()->exportToWkt(&output_wkt);
           bg::read_wkt(output_wkt, *p2);
           bg::unique(*p2); //-- remove duplicate vertices
-          // TODO : type of extrusion should be taken from config file
-          Polygon3d_block* p3 = new Polygon3d_block(p2, f->GetFieldAsString(idfield.c_str()), MEDIAN);
-          _lsPolys.push_back(p3);
+          std::string t = l.second.substr(0, l.second.find_first_of("-"));
+          if (t == "BLOCK") {
+            Polygon3dBlock* p3 = new Polygon3dBlock(p2, f->GetFieldAsString(idfield.c_str()), l.second);
+            _lsPolys.push_back(p3);
+          }
+          else if (t == "BOUNDARY3D")
+            std::cout << "BOUNDARY3D NOT IMPLEMENTED YET" << std::endl;
+          else if (t == "TIN")
+            std::cout << "TIN NOT IMPLEMENTED YET" << std::endl;
           break;
         }
         default: {
@@ -175,21 +126,41 @@ bool Map3d::add_gml_file(std::string ifile, std::string idfield) {
       }
     }
   }
-  // Free OGR data source
+  return true;
+}
+
+bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::string lifttype) {
+  std::clog << "Reading input dataset: " << ifile << std::endl;
+  OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
+  if (dataSource == NULL) {
+    std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
+    return false;
+  }
+  std::vector< std::pair<std::string, std::string> > layers;
+  int numberOfLayers = dataSource->GetLayerCount();
+  for (int currentLayer = 0; currentLayer < numberOfLayers; currentLayer++) {
+    OGRLayer *dataLayer = dataSource->GetLayer(currentLayer);
+    std::pair<std::string, std::string> p(dataLayer->GetName(), lifttype);
+    layers.push_back(p);
+  }
+  this->extract_and_add_polygon(dataSource, idfield, layers);
   OGRDataSource::DestroyDataSource(dataSource);
   return true;
 }
 
-     
 
 bool Map3d::add_las_file(std::string ifile) {
-  std::clog << "Reading LAS/LAZ file: " << ifile;
+  std::clog << "Reading LAS/LAZ file: " << ifile << std::endl;
   std::ifstream ifs;
   ifs.open(ifile.c_str(), std::ios::in | std::ios::binary);
+  if (ifs.is_open() == false) {
+    std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
+    return false;
+  }
   liblas::ReaderFactory f;
   liblas::Reader reader = f.CreateWithStream(ifs);
   liblas::Header const& header = reader.GetHeader();
-  std::clog << " (" << header.GetPointRecordsCount() << " points)" << std::endl;
+  std::clog << "\t(" << header.GetPointRecordsCount() << " points)" << std::endl;
   int i = 0;
   Polygon3d* lastone = NULL;
   while (reader.ReadNextPoint()) {

@@ -29,21 +29,11 @@ typedef bg::model::box<Point2d> Box;
 
 typedef enum
 {
-  BLOCK                = 0, //-- LOD1 buildings
-  BOUNDARY_3D          = 1, //-- water, roads: no points added inside, only 3D boundary
-  TIN_ALL_POINTS       = 2,
-  TIN_SIMPLIFIED       = 3,
-
+  BLOCK            = 10,
+  BOUNDARY3D       = 20, 
+  TIN_ALL_POINTS   = 30,
 } Lift3DType;
 
-typedef enum
-{
-  AVERAGE    = 1,
-  MEDIAN     = 2,
-  MAXIMUM    = 3,
-  MINIMUM    = 4,
-  // PERCENTILE = 5, https://www.informit.com/guides/content.aspx?g=cplusplus&seqNum=290
-} HeightReference;
 
 
 #endif

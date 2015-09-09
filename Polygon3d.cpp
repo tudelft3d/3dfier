@@ -5,7 +5,6 @@
 Polygon3d::Polygon3d(Polygon2d* p, std::string id) {
   _id = id;
   _p2d = p;
-  _no_points = 0;
 }
 
 Polygon3d::~Polygon3d() {
@@ -26,15 +25,20 @@ Polygon2d* Polygon3d::get_polygon2d() {
 }
 
 
+
 //-------------------------------
 //-------------------------------
 
-
-Polygon3d_block::Polygon3d_block(Polygon2d* p, std::string id, HeightReference heightref) : Polygon3d(p, id) {
-  _heightref = heightref;
+Polygon3dBlock::Polygon3dBlock(Polygon2d* p, std::string id, std::string lifttype) : Polygon3d(p, id) 
+{
+  _lifttype = lifttype;
 }
 
-std::string Polygon3d_block::get_3d_citygml() {
+std::string Polygon3dBlock::get_lift_type() {
+  return _lifttype;
+}
+
+std::string Polygon3dBlock::get_3d_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>";
   ss << "<bldg:Building>";
@@ -63,54 +67,47 @@ std::string Polygon3d_block::get_3d_citygml() {
 }
 
 
-double Polygon3d_block::get_height() {
-  // TODO : return an error if 
-  if (_no_points == 0)
+double Polygon3dBlock::get_height() {
+  // TODO : return an error if no points
+  if (_zvalues.size() == 0)
     return -999;
-  double re;
-  switch (_heightref) {
-    case AVERAGE: {
-      double total = 0.0;
-      for (auto z : _zvalues)
-        total += z;
-      re = total / _no_points;
-      break;
+  std::string t = _lifttype.substr(_lifttype.find_first_of("-") + 1);
+  if (t == "MAX") {
+    double v = -99999;
+    for (auto z : _zvalues) {
+      if (z > v)
+        v = z;
     }
-    case MEDIAN:
-      std::nth_element(_zvalues.begin(), _zvalues.begin() + (_zvalues.size() / 2), _zvalues.end());
-      re = _zvalues[_zvalues.size() / 2];
-      break;
-    case MAXIMUM: {
-      double m = -999999;
-      for (auto z : _zvalues)
-        if (z > m)
-          m = z;
-      re = m;
-      break;
-    }
-    case MINIMUM: {
-      double m = 999999;
-      for (auto z : _zvalues)
-        if (z < m)
-          m = z;
-      re = m;
-      break;
-    }
+    return v;
   }
-  return re;
+  else if (t == "MIN") {
+    double v = 99999;
+    for (auto z : _zvalues) {
+      if (z < v)
+        v = z;
+    }
+    return v;
+  }
+  else if (t == "AVG") {
+    double sum = 0.0;
+    for (auto z : _zvalues) 
+      sum += z;
+    return (sum / _zvalues.size());
+  }
+  else if (t == "MEDIAN") {
+    std::nth_element(_zvalues.begin(), _zvalues.begin() + (_zvalues.size() / 2), _zvalues.end());
+    return _zvalues[_zvalues.size() / 2];
+  }
+  else {
+    std::cout << "UNKNOWN HEIGHT" << std::endl;
+  }
+  return -9999;
 }
 
 
-bool Polygon3d_block::add_elevation_point(double x, double y, double z) {
-  _no_points++;
+bool Polygon3dBlock::add_elevation_point(double x, double y, double z) {
   _zvalues.push_back(z);
   return true;
 }
 
-Lift3DType Polygon3d_block::get_extrusion_type() {
-  return BLOCK;
-}
 
-HeightReference Polygon3d_block::get_height_reference() {
-  return _heightref;
-}
