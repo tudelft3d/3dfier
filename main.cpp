@@ -57,12 +57,16 @@ int main(int argc, const char * argv[]) {
   }
 
   n = nodes["output"];
-  if (n["format"].as<std::string>() == "CityGML")
+  if (n["format"].as<std::string>() == "CityGML") {
+    std::clog << "CityGML output" << std::endl;
     std::cout << map3d.get_citygml() << std::endl;
-  else if (n["format"].as<std::string>() == "CSV")
+  }
+  else if (n["format"].as<std::string>() == "CSV") {
+    std::clog << "CSV output" << std::endl;
     std::cout << map3d.get_csv() << std::endl;
+  }
 
-  std::clog << "done." << std::endl;
+  std::clog << "Successfully terminated." << std::endl;
   return 1;
 }
 
