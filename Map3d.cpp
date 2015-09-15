@@ -109,12 +109,13 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
     while ((f = dataLayer->GetNextFeature()) != NULL) {
       switch(f->GetGeometryRef()->getGeometryType()) {
         case wkbPolygon:
-        case wkbPolygon25D:
-        case wkbMultiPolygon:
-        case wkbMultiPolygon25D:{
+        case wkbMultiPolygon: 
+        case wkbMultiPolygon25D:
+        case wkbPolygon25D: {
           Polygon2d* p2 = new Polygon2d();
           // TODO : WKT surely not best/fastest way, to change
           char *output_wkt;
+          f->GetGeometryRef()->flattenTo2D();
           f->GetGeometryRef()->exportToWkt(&output_wkt);
           bg::read_wkt(output_wkt, *p2);
           bg::unique(*p2); //-- remove duplicate vertices
