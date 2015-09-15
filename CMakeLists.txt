@@ -1,7 +1,7 @@
 
 project( 3dfier )
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/" ${CMAKE_MODULE_PATH})
 
 # C++11
 include(CheckCXXCompilerFlag)
@@ -53,5 +53,5 @@ include_directories( ${GDAL_INCLUDE_DIR} ${libLAS_INCLUDE_DIRS} ${LASZIP_INCLUDE
 # Creating entries for target: 3dfier
 
 add_executable( 3dfier input.cpp main.cpp Polygon3d.cpp Map3d.cpp)
-target_link_libraries(3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${libLAS_LIBRARIES} ${LASZIP_LIBRARY} ${yaml-cpp_LIBRARIES} )
+target_link_libraries(3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${yaml-cpp_LIBRARIES} )
 
