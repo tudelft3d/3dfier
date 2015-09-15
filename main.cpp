@@ -50,14 +50,17 @@ int main(int argc, const char * argv[]) {
   //-- add elevation datasets
   n = nodes["input_elevation"];
   for (auto it = n.begin(); it != n.end(); ++it) {
-    map3d.add_las_file(it->as<std::string>(), 100);  
+    YAML::Node tmp = (*it)["datasets"];
+    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+      map3d.add_las_file(it2->as<std::string>(), (*it)["thinning"].as<int>());
+    }
   }
-  // map3d.add_point(74659.1, 447682.4, 11.1);
 
- 
-  //-- give me CityGML string
-  std::cout << map3d.get_citygml() << std::endl;
-  return 1;
+  n = nodes["output"];
+  if (n["format"].as<std::string>() == "CityGML")
+    std::cout << map3d.get_citygml() << std::endl;
+  else if (n["format"].as<std::string>() == "CSV")
+    std::cout << map3d.get_csv() << std::endl;
 
   std::clog << "done." << std::endl;
   return 1;

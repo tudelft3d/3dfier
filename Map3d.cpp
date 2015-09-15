@@ -28,6 +28,14 @@ std::string Map3d::get_citygml() {
   return ss.str();
 }
 
+std::string Map3d::get_csv() {
+  std::stringstream ss;
+  for (auto& p3 : _lsPolys) {
+    ss << p3->get_3d_csv();
+  }
+  return ss.str();
+}
+
 
 
 unsigned long Map3d::get_num_polygons() {
@@ -168,7 +176,7 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
   while (reader.ReadNextPoint()) {
     liblas::Point const& p = reader.GetPoint();
     if (skip != 0) {
-      if (i %  skip == 0)
+      if (i % skip == 0)
         lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
     }
     else {

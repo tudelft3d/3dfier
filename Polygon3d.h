@@ -12,8 +12,9 @@ public:
   ~Polygon3d ();
 
   virtual bool          add_elevation_point(double x, double y, double z) = 0;
-  virtual std::string   get_3d_citygml() = 0;
   virtual std::string   get_lift_type() = 0;
+  virtual std::string   get_3d_citygml() = 0;
+  virtual std::string   get_3d_csv() = 0;
 
   std::string   get_id();
   Polygon2d*    get_polygon2d();
@@ -35,6 +36,7 @@ public:
   
   bool            add_elevation_point(double x, double y, double z);
   std::string     get_3d_citygml();
+  std::string     get_3d_csv();
   double          get_height();
   std::string     get_lift_type();
 private:

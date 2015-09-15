@@ -15,16 +15,16 @@ input_polygons:
       Waterdeel: BOUNDARY3D
   
 input_elevation:
-  - /Users/hugo/data/temp/potato.laz
-  - /Users/hugo/data/campus/coverpartof.laz
-  - /Users/hugo/data/temp/*.las
+  - datasets:
+      - /Users/hugo/data/temp/potato.laz
+      - /Users/hugo/data/campus/coverpartof.laz
+      - /Users/hugo/data/temp/*.las
+    thinning: 0 #-- skip every nth point
 
 output: 
-  format: CityGML
+  format: CityGML # or CSV
   verticaltriangles: true
 
-simplification:
-  thininputpoints: 100
 
 buildings:
   horizontal_floor: true

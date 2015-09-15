@@ -66,6 +66,11 @@ std::string Polygon3dBlock::get_3d_citygml() {
   return ss.str(); 
 }
 
+std::string Polygon3dBlock::get_3d_csv() {
+  std::stringstream ss;
+  ss << this->get_id() << ";" << this->get_height() << std::endl;
+  return ss.str(); 
+}
 
 double Polygon3dBlock::get_height() {
   // TODO : return an error if no points

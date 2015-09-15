@@ -25,7 +25,9 @@ public:
 
   unsigned long get_num_polygons();
   const std::vector<Polygon3d*>& get_polygons3d();  
+  
   std::string get_citygml();
+  std::string get_csv();
      
 private:
   std::vector<Polygon3d*>   _lsPolys;
