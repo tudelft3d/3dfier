@@ -167,8 +167,13 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
   Polygon3d* lastone = NULL;
   while (reader.ReadNextPoint()) {
     liblas::Point const& p = reader.GetPoint();
-    if ( (skip != 0) && (i %  skip == 0) )
+    if (skip != 0) {
+      if (i %  skip == 0)
+        lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+    }
+    else {
       lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+    }
     if (i % 100000 == 0) 
       printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
     i++;
