@@ -45,5 +45,22 @@ private:
   // TODO : add a value/function to define a floor for each building too.
 };
 
+//---------------------------------------------
+
+class Polygon3dBoundary : public Polygon3d
+{
+public:
+  Polygon3dBoundary (Polygon2d* p, std::string id);
+  
+  bool            add_elevation_point(double x, double y, double z);
+  std::string     get_3d_citygml();
+  std::string     get_3d_csv();
+  std::string     get_lift_type();
+private:
+  
+  std::vector<double> _zvalues;
+  std::string         _lifttype;
+  // TODO : add a value/function to define a floor for each building too.
+};
 
 #endif /* defined(__boo__Polygon3D__) */
