@@ -4,6 +4,15 @@
 
 #include "definitions.h"
 
+//-- stuff for Shewchuk's Triangle
+#define ANSI_DECLARATORS
+#define VOID void
+#define REAL double
+
+extern "C" {
+  #include "triangle.h"
+}
+
 
 class Polygon3d
 {
@@ -21,7 +30,7 @@ public:
   Box           get_bbox2d();
 
 protected:
-  Polygon2d*      _p2d;
+  Polygon2d*      _p2;
   std::string     _id;
   
  // vector<Point3d*> _lsPts3d;
@@ -45,6 +54,7 @@ private:
   // TODO : add a value/function to define a floor for each building too.
 };
 
+
 //---------------------------------------------
 
 class Polygon3dBoundary : public Polygon3d
@@ -57,10 +67,11 @@ public:
   std::string     get_3d_csv();
   std::string     get_lift_type();
 private:
-  
-  std::vector<double> _zvalues;
-  std::string         _lifttype;
-  // TODO : add a value/function to define a floor for each building too.
+  std::vector<Point3d>  _lidarpts;
+  std::vector<Point3d>  _vertices;
+  std::vector<Triangle> _triangles;
+
+  bool build_CDT();
 };
 
 #endif /* defined(__boo__Polygon3D__) */
