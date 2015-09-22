@@ -7,6 +7,7 @@
 #include <vector>
 #include <map>
 
+#include <liblas/liblas.hpp>
 #include <ogrsf_frmts.h>
 
 #include <boost/geometry.hpp>
@@ -17,14 +18,11 @@
 
 namespace bg  = boost::geometry;
 namespace bgi = boost::geometry::index;
-
-#include <liblas/liblas.hpp>
-
 typedef bg::model::d2::point_xy<double> Point2d;
 typedef bg::model::point<double, 3, bg::cs::cartesian> Point3d;
 typedef bg::model::polygon<Point2d, true, true> Polygon2d; //-- cw, first=last
-
 typedef bg::model::box<Point2d> Box;
+
 
 
 typedef enum
@@ -34,6 +32,12 @@ typedef enum
   TIN_ALL_POINTS   = 30,
 } Lift3DType;
 
+typedef struct Triangle
+{
+  int v0;
+  int v1;
+  int v2;
+} Triangle;
 
 
 #endif
