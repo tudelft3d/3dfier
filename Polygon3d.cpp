@@ -129,7 +129,10 @@ std::string Polygon3dBoundary::get_lift_type() {
 
 std::string Polygon3dBoundary::get_3d_citygml() {
   build_CDT();
-  return ""; 
+  std::stringstream ss;
+  ss << "# vertices: " << _vertices.size() << std::endl;
+  ss << "# triangles: " << _triangles.size() << std::endl;
+  return ss.str(); 
 }
 
 std::string Polygon3dBoundary::get_3d_csv() {
@@ -143,11 +146,10 @@ bool Polygon3dBoundary::add_elevation_point(double x, double y, double z) {
 }
 
 bool Polygon3dBoundary::build_CDT() {
-  std::cout << "---TRIANGULATE THE POLYGON---" << std::endl;
-
+  if (_vertices.size() > 0)
+    return true;
   auto oring = bg::exterior_ring(*_p2);
   auto irings = bg::interior_rings(*_p2);
-
   struct triangulateio in, out;
   in.numberofpoints = (oring.size() - 1);
   for (auto iring : irings)
@@ -168,7 +170,6 @@ bool Polygon3dBoundary::build_CDT() {
   }
   in.numberofpointattributes = 0;
   in.pointmarkerlist = NULL;
-
   in.numberofsegments = in.numberofpoints;
   in.numberofholes = 0;
   in.numberofregions = 0;
@@ -194,8 +195,7 @@ bool Polygon3dBoundary::build_CDT() {
     start += (iring.size() - 1);
   }
   in.segmentmarkerlist = NULL;
-  
-  
+  //-- output from Triangle
   out.pointlist = (REAL *) NULL;
   out.pointattributelist = (REAL *) NULL;
   out.pointmarkerlist = (int *) NULL;
@@ -206,25 +206,21 @@ bool Polygon3dBoundary::build_CDT() {
   out.segmentmarkerlist = (int *) NULL;
   out.edgelist = (int *) NULL;
   out.edgemarkerlist = (int *) NULL;
-
+  //-- call Triangle
   triangulate((char *)"pz", &in, &out, NULL);
-  
+  //-- free everything from Triangle, and manage myself the output
   if (in.numberofpoints != out.numberofpoints)
-    std::cout << "Points added." << std::endl;
-  for (int i = 0; i < out.numberofpoints; i++) {
-    std::cout << i << " : (" << out.pointlist[i * 2] << ", ";
-    std::cout << out.pointlist[i * 2 + 1] << ", ";
-  }
-
-  std::cout << "# triangles : " << out.numberoftriangles << std::endl;
+    std::cout << "INTERSECTIONS WHILE CDTing." << std::endl;
+  for (int i = 0; i < out.numberofpoints; i++) 
+    _vertices.push_back(Point3d(out.pointlist[i * 2], out.pointlist[i * 2 + 1], 0));
   for (int i = 0; i < out.numberoftriangles; i++) {
-    std::cout << out.trianglelist[i * out.numberofcorners + 0] << "-";
-    std::cout << out.trianglelist[i * out.numberofcorners + 1] << "-";
-    std::cout << out.trianglelist[i * out.numberofcorners + 2] << std::endl;
+    Triangle t;
+    t.v0 = out.trianglelist[i * out.numberofcorners + 0];
+    t.v1 = out.trianglelist[i * out.numberofcorners + 1];
+    t.v2 = out.trianglelist[i * out.numberofcorners + 2];
+    _triangles.push_back(t);
   }
-
   free(in.pointlist);
-  free(in.pointattributelist);
   free(in.pointmarkerlist);
   free(in.segmentlist);
   free(out.pointlist);
@@ -232,8 +228,6 @@ bool Polygon3dBoundary::build_CDT() {
   free(out.pointmarkerlist);
   free(out.trianglelist);
   free(out.triangleattributelist);
-//  free(out.trianglearealist);
-//  free(out.neighborlist);
   free(out.segmentlist);
   free(out.segmentmarkerlist);
   free(out.edgelist);
