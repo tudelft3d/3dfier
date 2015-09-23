@@ -31,14 +31,14 @@ void get_point_inside(Ring2d& ring, Point2d& p) {
 }
 
 
-bool getCDT(Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Triangle> &triangles) {
-  std::cout << "---CDT---" << std::endl;
+bool getCDT(const Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Triangle> &triangles, const std::vector<Point3d> &lidarpts) {
   Ring2d oring = bg::exterior_ring(*p);
   auto irings = bg::interior_rings(*p);
   struct triangulateio in, out;
-  in.numberofpoints = (oring.size() - 1);
+  in.numberofpoints = int(oring.size() - 1);
   for (auto iring : irings)
     in.numberofpoints += (iring.size() - 1);
+  in.numberofpoints += lidarpts.size();
   in.pointlist = (REAL *) malloc(in.numberofpoints * 2 * sizeof(REAL));
   int counter = 0;
   //-- oring
@@ -51,8 +51,7 @@ bool getCDT(Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Triangle> 
     in.numberofholes = 0;
   }
   else {
-    std::cout << "IRING!" << std::endl;
-    in.numberofholes = irings.size();
+    in.numberofholes = int(irings.size());
     in.holelist = (REAL *) malloc(in.numberofholes * 2 * sizeof(REAL));
     int holecount = 0;
     for (auto iring : irings) {
@@ -62,10 +61,15 @@ bool getCDT(Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Triangle> 
       }
       Point2d pinside;
       get_point_inside(iring, pinside);
-      std::cout << "pinside: " << bg::wkt(pinside) << std::endl;
+      // std::cout << "pinside: " << bg::wkt(pinside) << std::endl;
       in.holelist[holecount++] = bg::get<0>(pinside);
       in.holelist[holecount++] = bg::get<1>(pinside);
     }
+  }
+  //-- add the lidar points to the CDT, if any
+  for (auto &pt : lidarpts) {
+    in.pointlist[counter++] = bg::get<0>(pt);
+    in.pointlist[counter++] = bg::get<1>(pt); 
   }
   in.numberofpointattributes = 0;
   in.pointmarkerlist = NULL;
@@ -82,7 +86,7 @@ bool getCDT(Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Triangle> 
   in.segmentlist[counter++] = i;
   in.segmentlist[counter++] = 0;
   //-- irings
-  int start = (oring.size() - 1);
+  int start = int(oring.size() - 1);
   for (auto iring : irings) {
     int i;
     for (i = 0; i < (iring.size() - 2); i++) {
