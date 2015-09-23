@@ -62,6 +62,7 @@ bool getCDT(Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Triangle> 
       }
       Point2d pinside;
       get_point_inside(iring, pinside);
+      std::cout << "pinside: " << bg::wkt(pinside) << std::endl;
       in.holelist[holecount++] = bg::get<0>(pinside);
       in.holelist[holecount++] = bg::get<1>(pinside);
     }
@@ -83,7 +84,8 @@ bool getCDT(Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Triangle> 
   //-- irings
   int start = (oring.size() - 1);
   for (auto iring : irings) {
-    for (int i = 0; i < (iring.size() - 1); i++) {
+    int i;
+    for (i = 0; i < (iring.size() - 2); i++) {
       in.segmentlist[counter++] = (start + i);
       in.segmentlist[counter++] = (start + i + 1);
     }
