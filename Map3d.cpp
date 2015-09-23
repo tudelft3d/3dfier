@@ -126,10 +126,12 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
           }
           else if (t == "BOUNDARY3D") {
             Polygon3dBoundary* p3 = new Polygon3dBoundary(p2, f->GetFieldAsString(idfield.c_str()));
+            _lsPolys.push_back(p3);            
+          }
+          else if (t == "TIN") {
+            Polygon3dTin* p3 = new Polygon3dTin(p2, f->GetFieldAsString(idfield.c_str()), l.second);
             _lsPolys.push_back(p3);
           }
-          else if (t == "TIN")
-            std::cout << "TIN NOT IMPLEMENTED YET" << std::endl;
           break;
         }
         default: {

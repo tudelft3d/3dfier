@@ -43,7 +43,6 @@ public:
 private:
   std::vector<double> _zvalues;
   std::string         _lifttype;
-  // TODO : add a value/function to define a floor for each building too.
 };
 
 
@@ -65,5 +64,26 @@ private:
 
   bool build_CDT();
 };
+
+
+//---------------------------------------------
+
+class Polygon3dTin : public Polygon3d
+{
+public:
+  Polygon3dTin (Polygon2d* p, std::string id, std::string lifttype);
+  
+  bool            add_elevation_point(double x, double y, double z);
+  std::string     get_3d_citygml();
+  std::string     get_3d_csv();
+  std::string     get_lift_type();
+private:
+  std::string           _lifttype;
+  std::vector<Point3d>  _lidarpts;
+  std::vector<Point3d>  _vertices;
+  std::vector<Triangle> _triangles;
+  bool build_CDT();
+};
+
 
 #endif /* defined(__boo__Polygon3D__) */

@@ -151,4 +151,44 @@ bool Polygon3dBoundary::build_CDT() {
   return true;
 }
 
+//-------------------------------
+//-------------------------------
+
+Polygon3dTin::Polygon3dTin(Polygon2d* p, std::string id, std::string lifttype) : Polygon3d(p, id) 
+{
+  _lifttype = lifttype;
+}
+
+std::string Polygon3dTin::get_lift_type() {
+  return _lifttype;
+}
+
+std::string Polygon3dTin::get_3d_citygml() {
+  
+  // std::stringstream ss;
+  // std::cout << "-----LIDAR POINTS-----" << std::endl;
+  // for (auto& pt : _lidarpts)
+  //   std::cout << std::setprecision(12) << bg::get<0>(pt) << ", " << bg::get<1>(pt) << ", " << bg::get<2>(pt) << std::endl;
+  // // ss << "# vertices: " << _vertices.size() << std::endl;
+  // // ss << "# triangles: " << _triangles.size() << std::endl;
+  // // return ss.str();
+  build_CDT();
+  return "done.";
+}
+
+std::string Polygon3dTin::get_3d_csv() {
+  return "EMPTY"; 
+}
+
+
+bool Polygon3dTin::add_elevation_point(double x, double y, double z) {
+  _lidarpts.push_back(Point3d(x, y, z));
+  return true;
+}
+
+bool Polygon3dTin::build_CDT() {
+  std::cout << "is valid? " << (bg::is_valid(*_p2) ? "yes" : "no") << std::endl;
+  getCDT(_p2, _vertices, _triangles, _lidarpts);
+  return true;
+}
 

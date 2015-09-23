@@ -35,6 +35,7 @@ bool getCDT(const Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Tria
   Ring2d oring = bg::exterior_ring(*p);
   auto irings = bg::interior_rings(*p);
   struct triangulateio in, out;
+  int numberofpoints = 
   in.numberofpoints = int(oring.size() - 1);
   for (auto iring : irings)
     in.numberofpoints += (iring.size() - 1);
@@ -73,7 +74,7 @@ bool getCDT(const Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Tria
   }
   in.numberofpointattributes = 0;
   in.pointmarkerlist = NULL;
-  in.numberofsegments = in.numberofpoints;
+  in.numberofsegments = in.numberofpoints - lidarpts.size();
   in.numberofregions = 0;
   in.segmentlist = (int *) malloc(in.numberofsegments * 2 * sizeof(int));
   counter = 0;
