@@ -120,7 +120,6 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
           bg::read_wkt(output_wkt, *p2);
           bg::unique(*p2); //-- remove duplicate vertices
           std::string t = l.second.substr(0, l.second.find_first_of("-"));
-          std::cout << t << std::endl;
           if (t == "BLOCK") {
             Polygon3dBlock* p3 = new Polygon3dBlock(p2, f->GetFieldAsString(idfield.c_str()), l.second);
             _lsPolys.push_back(p3);

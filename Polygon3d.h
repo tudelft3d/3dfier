@@ -3,15 +3,7 @@
 #define __3DFIER__Polygon3D__
 
 #include "definitions.h"
-
-//-- stuff for Shewchuk's Triangle
-#define ANSI_DECLARATORS
-#define VOID void
-#define REAL double
-
-extern "C" {
-  #include "triangle.h"
-}
+#include "geomtools.h"
 
 
 class Polygon3d
