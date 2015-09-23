@@ -180,6 +180,11 @@ std::string Polygon3dTin::get_3d_csv() {
   return "EMPTY"; 
 }
 
+std::string Polygon3dTin::get_obj() {
+  std::stringstream ss;
+  ss << this->get_id() << ";" << this->get_height() << std::endl;
+  return ss.str();
+}
 
 bool Polygon3dTin::add_elevation_point(double x, double y, double z) {
   _lidarpts.push_back(Point3d(x, y, z));

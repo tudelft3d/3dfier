@@ -16,6 +16,7 @@ public:
   virtual std::string   get_lift_type() = 0;
   virtual std::string   get_3d_citygml() = 0;
   virtual std::string   get_3d_csv() = 0;
+  virtual std::string   get_obj() = 0;
 
   std::string   get_id();
   Polygon2d*    get_polygon2d();
@@ -38,6 +39,7 @@ public:
   bool            add_elevation_point(double x, double y, double z);
   std::string     get_3d_citygml();
   std::string     get_3d_csv();
+  std::string     get_obj();
   double          get_height();
   std::string     get_lift_type();
 private:
@@ -56,6 +58,7 @@ public:
   bool            add_elevation_point(double x, double y, double z);
   std::string     get_3d_citygml();
   std::string     get_3d_csv();
+  std::string     get_obj();
   std::string     get_lift_type();
 private:
   std::vector<Point3d>  _lidarpts;
@@ -76,6 +79,7 @@ public:
   bool            add_elevation_point(double x, double y, double z);
   std::string     get_3d_citygml();
   std::string     get_3d_csv();
+  std::string     get_obj();
   std::string     get_lift_type();
 private:
   std::string           _lifttype;
