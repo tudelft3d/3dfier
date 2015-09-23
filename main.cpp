@@ -47,14 +47,14 @@ int main(int argc, const char * argv[]) {
   //-- spatially index the polygons
   map3d.construct_rtree();
 
-  //-- add elevation datasets
-  n = nodes["input_elevation"];
-  for (auto it = n.begin(); it != n.end(); ++it) {
-    YAML::Node tmp = (*it)["datasets"];
-    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-      map3d.add_las_file(it2->as<std::string>(), (*it)["thinning"].as<int>());
-    }
-  }
+  // //-- add elevation datasets
+  // n = nodes["input_elevation"];
+  // for (auto it = n.begin(); it != n.end(); ++it) {
+  //   YAML::Node tmp = (*it)["datasets"];
+  //   for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+  //     map3d.add_las_file(it2->as<std::string>(), (*it)["thinning"].as<int>());
+  //   }
+  // }
 
   n = nodes["output"];
   if (n["format"].as<std::string>() == "CityGML") {
