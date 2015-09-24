@@ -12,11 +12,13 @@ public:
   Polygon3d  (Polygon2d* p, std::string id);
   ~Polygon3d ();
 
+  virtual bool          threeDfy() = 0;
   virtual bool          add_elevation_point(double x, double y, double z) = 0;
   virtual std::string   get_lift_type() = 0;
   virtual std::string   get_3d_citygml() = 0;
   virtual std::string   get_3d_csv() = 0;
-  virtual std::string   get_obj() = 0;
+  virtual std::string   get_obj_v() = 0;
+  virtual std::string   get_obj_f() = 0;
 
   std::string   get_id();
   Polygon2d*    get_polygon2d();
@@ -36,10 +38,12 @@ class Polygon3dBlock : public Polygon3d
 public:
   Polygon3dBlock (Polygon2d* p, std::string id, std::string lifttype); 
   
+  bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
   std::string     get_3d_citygml();
   std::string     get_3d_csv();
-  std::string     get_obj();
+  std::string     get_obj_v();
+  std::string     get_obj_f();
   double          get_height();
   std::string     get_lift_type();
 private:
@@ -55,10 +59,12 @@ class Polygon3dBoundary : public Polygon3d
 public:
   Polygon3dBoundary (Polygon2d* p, std::string id);
   
+  bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
   std::string     get_3d_citygml();
   std::string     get_3d_csv();
-  std::string     get_obj();
+  std::string     get_obj_v();
+  std::string     get_obj_f();
   std::string     get_lift_type();
 private:
   std::vector<Point3d>  _lidarpts;
@@ -76,10 +82,12 @@ class Polygon3dTin : public Polygon3d
 public:
   Polygon3dTin (Polygon2d* p, std::string id, std::string lifttype);
   
+  bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
   std::string     get_3d_citygml();
   std::string     get_3d_csv();
-  std::string     get_obj();
+  std::string     get_obj_v();
+  std::string     get_obj_f();
   std::string     get_lift_type();
 private:
   std::string           _lifttype;

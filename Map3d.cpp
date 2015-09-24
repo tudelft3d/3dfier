@@ -37,7 +37,21 @@ std::string Map3d::get_csv() {
   return ss.str();
 }
 
+std::string Map3d::get_obj_v() {
+  std::stringstream ss;
+  for (auto& p3 : _lsPolys) {
+    ss << p3->get_obj_v();
+  }
+  return ss.str();
+}
 
+std::string Map3d::get_obj_f() {
+  std::stringstream ss;
+  for (auto& p3 : _lsPolys) {
+    ss << p3->get_obj_f();
+  }
+  return ss.str();
+}
 
 unsigned long Map3d::get_num_polygons() {
   return _lsPolys.size();
@@ -70,6 +84,12 @@ Polygon3d* Map3d::add_point(double x, double y, double z, Polygon3d* trythisone)
     }
   }
   return NULL;
+}
+
+bool Map3d::threeDfy() {
+  for (auto& p3 : _lsPolys)
+    p3->threeDfy();
+  return true;
 }
 
 

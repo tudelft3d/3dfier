@@ -38,6 +38,10 @@ std::string Polygon3dBlock::get_lift_type() {
   return _lifttype;
 }
 
+bool Polygon3dBlock::threeDfy() {
+  return true;
+}
+
 std::string Polygon3dBlock::get_3d_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>";
@@ -70,6 +74,14 @@ std::string Polygon3dBlock::get_3d_csv() {
   std::stringstream ss;
   ss << this->get_id() << ";" << this->get_height() << std::endl;
   return ss.str(); 
+}
+
+std::string Polygon3dBlock::get_obj_v() {
+  return "EMPTY";
+}
+
+std::string Polygon3dBlock::get_obj_f() {
+  return "EMPTY";
 }
 
 double Polygon3dBlock::get_height() {
@@ -127,6 +139,11 @@ std::string Polygon3dBoundary::get_lift_type() {
   return "BOUNDARY3D";
 }
 
+bool Polygon3dBoundary::threeDfy() {
+  build_CDT();
+  return true;
+}
+
 std::string Polygon3dBoundary::get_3d_citygml() {
   build_CDT();
   std::stringstream ss;
@@ -137,6 +154,20 @@ std::string Polygon3dBoundary::get_3d_citygml() {
 
 std::string Polygon3dBoundary::get_3d_csv() {
   return "EMPTY"; 
+}
+
+std::string Polygon3dBoundary::get_obj_v() {
+  std::stringstream ss;
+  for (auto& v : _vertices)
+    ss << "v\t" << bg::get<0>(v) << "\t" << bg::get<1>(v) << "\t" << bg::get<2>(v) << std::endl;
+  return ss.str();
+}
+
+std::string Polygon3dBoundary::get_obj_f() {
+  std::stringstream ss;
+ for (auto& t : _triangles)
+    ss << "f\t" << (t.v0 + 1) << "\t" << (t.v1 + 1) << "\t" << (t.v2 + 1) << std::endl;
+  return ss.str();
 }
 
 
@@ -163,6 +194,11 @@ std::string Polygon3dTin::get_lift_type() {
   return _lifttype;
 }
 
+bool Polygon3dTin::threeDfy() {
+  build_CDT();
+  return true;
+}
+
 std::string Polygon3dTin::get_3d_citygml() {
   
   // std::stringstream ss;
@@ -180,11 +216,20 @@ std::string Polygon3dTin::get_3d_csv() {
   return "EMPTY"; 
 }
 
-std::string Polygon3dTin::get_obj() {
+std::string Polygon3dTin::get_obj_v() {
   std::stringstream ss;
-  ss << this->get_id() << ";" << this->get_height() << std::endl;
+  for (auto& v : _vertices)
+    ss << "v\t" << bg::get<0>(v) << "\t" << bg::get<1>(v) << "\t" << bg::get<2>(v) << std::endl;
   return ss.str();
 }
+
+std::string Polygon3dTin::get_obj_f() {
+  std::stringstream ss;
+ for (auto& t : _triangles)
+    ss << "f\t" << (t.v0 + 1) << "\t" << (t.v1 + 1) << "\t" << (t.v2 + 1) << std::endl;
+  return ss.str();
+}
+
 
 bool Polygon3dTin::add_elevation_point(double x, double y, double z) {
   _lidarpts.push_back(Point3d(x, y, z));
