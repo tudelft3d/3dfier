@@ -169,14 +169,14 @@ std::string Polygon3dBoundary::get_3d_csv() {
 std::string Polygon3dBoundary::get_obj_v() {
   std::stringstream ss;
   for (auto& v : _vertices)
-    ss << std::setprecision(2) << std::fixed << "v\t" << bg::get<0>(v) << "\t" << bg::get<1>(v) << "\t" << bg::get<2>(v) << std::endl;
+    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
   return ss.str();
 }
 
 std::string Polygon3dBoundary::get_obj_f(int offset) {
   std::stringstream ss;
   for (auto& t : _triangles)
-    ss << "f\t" << (t.v0 + 1 + offset) << "\t" << (t.v1 + 1 + offset) << "\t" << (t.v2 + 1 + offset) << std::endl;
+    ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
   return ss.str();
 }
 
@@ -187,7 +187,6 @@ bool Polygon3dBoundary::add_elevation_point(double x, double y, double z) {
 }
 
 bool Polygon3dBoundary::build_CDT() {
-  std::cout << "is valid? " << (bg::is_valid(*_p2) ? "yes" : "no") << std::endl;
   getCDT(_p2, _vertices, _triangles);
   return true;
 }
@@ -234,14 +233,14 @@ std::string Polygon3dTin::get_3d_csv() {
 std::string Polygon3dTin::get_obj_v() {
   std::stringstream ss;
   for (auto& v : _vertices)
-    ss << std::setprecision(2) << std::fixed << "v\t" << bg::get<0>(v) << "\t" << bg::get<1>(v) << "\t" << bg::get<2>(v) << std::endl;
+    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
   return ss.str();
 }
 
 std::string Polygon3dTin::get_obj_f(int offset) {
   std::stringstream ss;
  for (auto& t : _triangles)
-    ss << "f\t" << (t.v0 + 1 + offset) << "\t" << (t.v1 + 1 + offset) << "\t" << (t.v2 + 1 + offset) << std::endl;
+    ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
   return ss.str();
 }
 
@@ -252,7 +251,6 @@ bool Polygon3dTin::add_elevation_point(double x, double y, double z) {
 }
 
 bool Polygon3dTin::build_CDT() {
-  std::cout << "is valid? " << (bg::is_valid(*_p2) ? "yes" : "no") << std::endl;
   getCDT(_p2, _vertices, _triangles, _lidarpts);
   return true;
 }

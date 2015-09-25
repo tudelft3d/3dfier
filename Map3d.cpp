@@ -48,6 +48,7 @@ std::string Map3d::get_obj() {
   int i = 0;
   int offset = 0;
   for (auto& p3 : _lsPolys) {
+    ss << "o " << p3->get_id() << std::endl;
     offset += offsets[i++];
     ss << p3->get_obj_f(offset);
   }
