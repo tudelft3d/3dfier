@@ -37,6 +37,23 @@ std::string Map3d::get_csv() {
   return ss.str();
 }
 
+std::string Map3d::get_obj() {
+  std::vector<int> offsets;
+  offsets.push_back(0);
+  std::stringstream ss;
+  for (auto& p3 : _lsPolys) {
+    ss << p3->get_obj_v();
+    offsets.push_back(p3->get_number_vertices());
+  }
+  int i = 0;
+  int offset = 0;
+  for (auto& p3 : _lsPolys) {
+    ss << "o " << p3->get_id() << std::endl;
+    offset += offsets[i++];
+    ss << p3->get_obj_f(offset);
+  }
+  return ss.str();
+}
 
 
 unsigned long Map3d::get_num_polygons() {
@@ -70,6 +87,12 @@ Polygon3d* Map3d::add_point(double x, double y, double z, Polygon3d* trythisone)
     }
   }
   return NULL;
+}
+
+bool Map3d::threeDfy() {
+  for (auto& p3 : _lsPolys)
+    p3->threeDfy();
+  return true;
 }
 
 
@@ -126,10 +149,12 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
           }
           else if (t == "BOUNDARY3D") {
             Polygon3dBoundary* p3 = new Polygon3dBoundary(p2, f->GetFieldAsString(idfield.c_str()));
+            _lsPolys.push_back(p3);            
+          }
+          else if (t == "TIN") {
+            Polygon3dTin* p3 = new Polygon3dTin(p2, f->GetFieldAsString(idfield.c_str()), l.second);
             _lsPolys.push_back(p3);
           }
-          else if (t == "TIN")
-            std::cout << "TIN NOT IMPLEMENTED YET" << std::endl;
           break;
         }
         default: {

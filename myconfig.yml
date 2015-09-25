@@ -22,7 +22,7 @@ input_elevation:
     thinning: 0 #-- skip every nth point
 
 output: 
-  format: CityGML # or CSV
+  format: CityGML # or CSV or OBJ
   verticaltriangles: true
 
 

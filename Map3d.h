@@ -13,7 +13,6 @@ public:
   Map3d  ();
   ~Map3d ();
 
-
   bool add_polygons_file(std::string ifile, std::string idfield, std::vector<std::pair<std::string, std::string> > &layers);
   bool add_polygons_file(std::string ifile, std::string idfield, std::string lifttype);
 
@@ -21,6 +20,7 @@ public:
 //  bool add_point(Point2d* q);
 
   bool construct_rtree();
+  bool threeDfy();
   Polygon3d* add_point(double x, double y, double z, Polygon3d* trythisone = NULL);
 
   unsigned long get_num_polygons();
@@ -28,6 +28,7 @@ public:
   
   std::string get_citygml();
   std::string get_csv();
+  std::string get_obj();
      
 private:
   std::vector<Polygon3d*>   _lsPolys;

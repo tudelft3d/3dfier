@@ -31,45 +31,54 @@ void get_point_inside(Ring2d& ring, Point2d& p) {
 }
 
 
-bool getCDT(Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Triangle> &triangles) {
-  std::cout << "---CDT---" << std::endl;
+bool getCDT(const Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Triangle> &triangles, const std::vector<Point3d> &lidarpts) {
   Ring2d oring = bg::exterior_ring(*p);
   auto irings = bg::interior_rings(*p);
   struct triangulateio in, out;
-  in.numberofpoints = (oring.size() - 1);
+  in.numberofpointattributes = 1;
+  in.numberofpoints = int(oring.size() - 1);
   for (auto iring : irings)
     in.numberofpoints += (iring.size() - 1);
+  in.numberofpoints += lidarpts.size();
   in.pointlist = (REAL *) malloc(in.numberofpoints * 2 * sizeof(REAL));
+  in.pointattributelist = (REAL *) malloc(in.numberofpoints * in.numberofpointattributes * sizeof(REAL));
   int counter = 0;
   //-- oring
   for (int i = 0; i < (oring.size() - 1); i++) {
     in.pointlist[counter++] = bg::get<0>(oring[i]);
     in.pointlist[counter++] = bg::get<1>(oring[i]);
+    in.pointattributelist[i] = 0.0;
   }
   //-- irings
   if (irings.size() == 0) {
     in.numberofholes = 0;
   }
   else {
-    std::cout << "IRING!" << std::endl;
-    in.numberofholes = irings.size();
+    in.numberofholes = int(irings.size());
     in.holelist = (REAL *) malloc(in.numberofholes * 2 * sizeof(REAL));
     int holecount = 0;
     for (auto iring : irings) {
       for (int i = 0; i < (iring.size() - 1); i++) {
        in.pointlist[counter++] = bg::get<0>(iring[i]);
        in.pointlist[counter++] = bg::get<1>(iring[i]);
+       in.pointattributelist[(counter / 2) - 1] = 0.0;
       }
       Point2d pinside;
       get_point_inside(iring, pinside);
-      std::cout << "pinside: " << bg::wkt(pinside) << std::endl;
+      // std::cout << "pinside: " << bg::wkt(pinside) << std::endl;
       in.holelist[holecount++] = bg::get<0>(pinside);
       in.holelist[holecount++] = bg::get<1>(pinside);
+      in.pointattributelist[(counter / 2) - 1] = 0.0;
     }
   }
-  in.numberofpointattributes = 0;
+  //-- add the lidar points to the CDT, if any
+  for (auto &pt : lidarpts) {
+    in.pointlist[counter++] = bg::get<0>(pt);
+    in.pointlist[counter++] = bg::get<1>(pt); 
+    in.pointattributelist[(counter / 2) - 1] = bg::get<2>(pt);
+  }
   in.pointmarkerlist = NULL;
-  in.numberofsegments = in.numberofpoints;
+  in.numberofsegments = in.numberofpoints - int(lidarpts.size());
   in.numberofregions = 0;
   in.segmentlist = (int *) malloc(in.numberofsegments * 2 * sizeof(int));
   counter = 0;
@@ -82,7 +91,7 @@ bool getCDT(Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Triangle> 
   in.segmentlist[counter++] = i;
   in.segmentlist[counter++] = 0;
   //-- irings
-  int start = (oring.size() - 1);
+  int start = int(oring.size() - 1);
   for (auto iring : irings) {
     int i;
     for (i = 0; i < (iring.size() - 2); i++) {
@@ -106,12 +115,12 @@ bool getCDT(Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Triangle> 
   out.edgelist = (int *) NULL;
   out.edgemarkerlist = (int *) NULL;
   //-- call Triangle
-  triangulate((char *)"pz", &in, &out, NULL);
+  triangulate((char *)"pzQ", &in, &out, NULL);
   //-- free everything from Triangle, and manage myself the output
   if (in.numberofpoints != out.numberofpoints)
     std::cout << "INTERSECTIONS WHILE CDTing." << std::endl;
   for (int i = 0; i < out.numberofpoints; i++) 
-    vertices.push_back(Point3d(out.pointlist[i * 2], out.pointlist[i * 2 + 1], 0));
+    vertices.push_back(Point3d(out.pointlist[i * 2], out.pointlist[i * 2 + 1], out.pointattributelist[i]));
   for (int i = 0; i < out.numberoftriangles; i++) {
     Triangle t;
     t.v0 = out.trianglelist[i * out.numberofcorners + 0];

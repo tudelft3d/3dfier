@@ -38,6 +38,15 @@ std::string Polygon3dBlock::get_lift_type() {
   return _lifttype;
 }
 
+int Polygon3dBlock::get_number_vertices() {
+  // TODO: return floor?
+  return 0;
+}
+
+bool Polygon3dBlock::threeDfy() {
+  return true;
+}
+
 std::string Polygon3dBlock::get_3d_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>";
@@ -70,6 +79,14 @@ std::string Polygon3dBlock::get_3d_csv() {
   std::stringstream ss;
   ss << this->get_id() << ";" << this->get_height() << std::endl;
   return ss.str(); 
+}
+
+std::string Polygon3dBlock::get_obj_v() {
+  return "EMPTY";
+}
+
+std::string Polygon3dBlock::get_obj_f(int offset) {
+  return "EMPTY";
 }
 
 double Polygon3dBlock::get_height() {
@@ -127,6 +144,16 @@ std::string Polygon3dBoundary::get_lift_type() {
   return "BOUNDARY3D";
 }
 
+bool Polygon3dBoundary::threeDfy() {
+  build_CDT();
+  return true;
+}
+
+int Polygon3dBoundary::get_number_vertices() {
+  return _vertices.size();
+}
+
+
 std::string Polygon3dBoundary::get_3d_citygml() {
   build_CDT();
   std::stringstream ss;
@@ -139,6 +166,20 @@ std::string Polygon3dBoundary::get_3d_csv() {
   return "EMPTY"; 
 }
 
+std::string Polygon3dBoundary::get_obj_v() {
+  std::stringstream ss;
+  for (auto& v : _vertices)
+    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
+  return ss.str();
+}
+
+std::string Polygon3dBoundary::get_obj_f(int offset) {
+  std::stringstream ss;
+  for (auto& t : _triangles)
+    ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
+  return ss.str();
+}
+
 
 bool Polygon3dBoundary::add_elevation_point(double x, double y, double z) {
   _lidarpts.push_back(Point3d(x, y, z));
@@ -146,9 +187,71 @@ bool Polygon3dBoundary::add_elevation_point(double x, double y, double z) {
 }
 
 bool Polygon3dBoundary::build_CDT() {
-  std::cout << "is valid? " << (bg::is_valid(*_p2) ? "yes" : "no") << std::endl;
   getCDT(_p2, _vertices, _triangles);
   return true;
 }
 
+//-------------------------------
+//-------------------------------
+
+Polygon3dTin::Polygon3dTin(Polygon2d* p, std::string id, std::string lifttype) : Polygon3d(p, id) 
+{
+  _lifttype = lifttype;
+}
+
+std::string Polygon3dTin::get_lift_type() {
+  return _lifttype;
+}
+
+bool Polygon3dTin::threeDfy() {
+  build_CDT();
+  return true;
+}
+
+int Polygon3dTin::get_number_vertices() {
+  return _vertices.size();
+}
+
+
+std::string Polygon3dTin::get_3d_citygml() {
+  
+  // std::stringstream ss;
+  // std::cout << "-----LIDAR POINTS-----" << std::endl;
+  // for (auto& pt : _lidarpts)
+  //   std::cout << std::setprecision(12) << bg::get<0>(pt) << ", " << bg::get<1>(pt) << ", " << bg::get<2>(pt) << std::endl;
+  // // ss << "# vertices: " << _vertices.size() << std::endl;
+  // // ss << "# triangles: " << _triangles.size() << std::endl;
+  // // return ss.str();
+  build_CDT();
+  return "done.";
+}
+
+std::string Polygon3dTin::get_3d_csv() {
+  return "EMPTY"; 
+}
+
+std::string Polygon3dTin::get_obj_v() {
+  std::stringstream ss;
+  for (auto& v : _vertices)
+    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
+  return ss.str();
+}
+
+std::string Polygon3dTin::get_obj_f(int offset) {
+  std::stringstream ss;
+ for (auto& t : _triangles)
+    ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
+  return ss.str();
+}
+
+
+bool Polygon3dTin::add_elevation_point(double x, double y, double z) {
+  _lidarpts.push_back(Point3d(x, y, z));
+  return true;
+}
+
+bool Polygon3dTin::build_CDT() {
+  getCDT(_p2, _vertices, _triangles, _lidarpts);
+  return true;
+}
 
