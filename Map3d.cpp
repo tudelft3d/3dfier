@@ -37,21 +37,23 @@ std::string Map3d::get_csv() {
   return ss.str();
 }
 
-std::string Map3d::get_obj_v() {
+std::string Map3d::get_obj() {
+  std::vector<int> offsets;
+  offsets.push_back(0);
   std::stringstream ss;
   for (auto& p3 : _lsPolys) {
     ss << p3->get_obj_v();
+    offsets.push_back(p3->get_number_vertices());
+  }
+  int i = 0;
+  int offset = 0;
+  for (auto& p3 : _lsPolys) {
+    offset += offsets[i++];
+    ss << p3->get_obj_f(offset);
   }
   return ss.str();
 }
 
-std::string Map3d::get_obj_f() {
-  std::stringstream ss;
-  for (auto& p3 : _lsPolys) {
-    ss << p3->get_obj_f();
-  }
-  return ss.str();
-}
 
 unsigned long Map3d::get_num_polygons() {
   return _lsPolys.size();

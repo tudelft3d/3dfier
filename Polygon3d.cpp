@@ -38,6 +38,11 @@ std::string Polygon3dBlock::get_lift_type() {
   return _lifttype;
 }
 
+int Polygon3dBlock::get_number_vertices() {
+  // TODO: return floor?
+  return 0;
+}
+
 bool Polygon3dBlock::threeDfy() {
   return true;
 }
@@ -80,7 +85,7 @@ std::string Polygon3dBlock::get_obj_v() {
   return "EMPTY";
 }
 
-std::string Polygon3dBlock::get_obj_f() {
+std::string Polygon3dBlock::get_obj_f(int offset) {
   return "EMPTY";
 }
 
@@ -144,6 +149,11 @@ bool Polygon3dBoundary::threeDfy() {
   return true;
 }
 
+int Polygon3dBoundary::get_number_vertices() {
+  return _vertices.size();
+}
+
+
 std::string Polygon3dBoundary::get_3d_citygml() {
   build_CDT();
   std::stringstream ss;
@@ -159,14 +169,14 @@ std::string Polygon3dBoundary::get_3d_csv() {
 std::string Polygon3dBoundary::get_obj_v() {
   std::stringstream ss;
   for (auto& v : _vertices)
-    ss << "v\t" << bg::get<0>(v) << "\t" << bg::get<1>(v) << "\t" << bg::get<2>(v) << std::endl;
+    ss << std::setprecision(2) << std::fixed << "v\t" << bg::get<0>(v) << "\t" << bg::get<1>(v) << "\t" << bg::get<2>(v) << std::endl;
   return ss.str();
 }
 
-std::string Polygon3dBoundary::get_obj_f() {
+std::string Polygon3dBoundary::get_obj_f(int offset) {
   std::stringstream ss;
- for (auto& t : _triangles)
-    ss << "f\t" << (t.v0 + 1) << "\t" << (t.v1 + 1) << "\t" << (t.v2 + 1) << std::endl;
+  for (auto& t : _triangles)
+    ss << "f\t" << (t.v0 + 1 + offset) << "\t" << (t.v1 + 1 + offset) << "\t" << (t.v2 + 1 + offset) << std::endl;
   return ss.str();
 }
 
@@ -199,6 +209,11 @@ bool Polygon3dTin::threeDfy() {
   return true;
 }
 
+int Polygon3dTin::get_number_vertices() {
+  return _vertices.size();
+}
+
+
 std::string Polygon3dTin::get_3d_citygml() {
   
   // std::stringstream ss;
@@ -219,14 +234,14 @@ std::string Polygon3dTin::get_3d_csv() {
 std::string Polygon3dTin::get_obj_v() {
   std::stringstream ss;
   for (auto& v : _vertices)
-    ss << "v\t" << bg::get<0>(v) << "\t" << bg::get<1>(v) << "\t" << bg::get<2>(v) << std::endl;
+    ss << std::setprecision(2) << std::fixed << "v\t" << bg::get<0>(v) << "\t" << bg::get<1>(v) << "\t" << bg::get<2>(v) << std::endl;
   return ss.str();
 }
 
-std::string Polygon3dTin::get_obj_f() {
+std::string Polygon3dTin::get_obj_f(int offset) {
   std::stringstream ss;
  for (auto& t : _triangles)
-    ss << "f\t" << (t.v0 + 1) << "\t" << (t.v1 + 1) << "\t" << (t.v2 + 1) << std::endl;
+    ss << "f\t" << (t.v0 + 1 + offset) << "\t" << (t.v1 + 1 + offset) << "\t" << (t.v2 + 1 + offset) << std::endl;
   return ss.str();
 }
 

@@ -57,7 +57,7 @@ int main(int argc, const char * argv[]) {
   }
 
   map3d.threeDfy();
-
+  
   n = nodes["output"];
   if (n["format"].as<std::string>() == "CityGML") {
     std::clog << "CityGML output" << std::endl;
@@ -69,8 +69,7 @@ int main(int argc, const char * argv[]) {
   }
   else if (n["format"].as<std::string>() == "OBJ") {
     std::clog << "OBJ output" << std::endl;
-    std::cout << map3d.get_obj_v() << std::endl;
-    std::cout << map3d.get_obj_f() << std::endl;
+    std::cout << map3d.get_obj() << std::endl;
   }
 
   std::clog << "Successfully terminated." << std::endl;

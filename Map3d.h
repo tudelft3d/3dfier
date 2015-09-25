@@ -13,7 +13,6 @@ public:
   Map3d  ();
   ~Map3d ();
 
-
   bool add_polygons_file(std::string ifile, std::string idfield, std::vector<std::pair<std::string, std::string> > &layers);
   bool add_polygons_file(std::string ifile, std::string idfield, std::string lifttype);
 
@@ -29,9 +28,7 @@ public:
   
   std::string get_citygml();
   std::string get_csv();
-  std::string get_obj_v();
-  std::string get_obj_f();
-
+  std::string get_obj();
      
 private:
   std::vector<Polygon3d*>   _lsPolys;

@@ -18,7 +18,8 @@ public:
   virtual std::string   get_3d_citygml() = 0;
   virtual std::string   get_3d_csv() = 0;
   virtual std::string   get_obj_v() = 0;
-  virtual std::string   get_obj_f() = 0;
+  virtual std::string   get_obj_f(int offset) = 0;
+  virtual int           get_number_vertices() = 0;
 
   std::string   get_id();
   Polygon2d*    get_polygon2d();
@@ -43,9 +44,10 @@ public:
   std::string     get_3d_citygml();
   std::string     get_3d_csv();
   std::string     get_obj_v();
-  std::string     get_obj_f();
+  std::string     get_obj_f(int offset);
   double          get_height();
   std::string     get_lift_type();
+  int             get_number_vertices();
 private:
   std::vector<double> _zvalues;
   std::string         _lifttype;
@@ -64,8 +66,9 @@ public:
   std::string     get_3d_citygml();
   std::string     get_3d_csv();
   std::string     get_obj_v();
-  std::string     get_obj_f();
+  std::string     get_obj_f(int offset);
   std::string     get_lift_type();
+  int             get_number_vertices();
 private:
   std::vector<Point3d>  _lidarpts;
   std::vector<Point3d>  _vertices;
@@ -87,8 +90,9 @@ public:
   std::string     get_3d_citygml();
   std::string     get_3d_csv();
   std::string     get_obj_v();
-  std::string     get_obj_f();
+  std::string     get_obj_f(int offset);
   std::string     get_lift_type();
+  int             get_number_vertices();
 private:
   std::string           _lifttype;
   std::vector<Point3d>  _lidarpts;
