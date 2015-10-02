@@ -48,7 +48,8 @@ find_package(LASzip 2.0.1 QUIET NO_MODULE)
 find_package(PkgConfig)
 pkg_check_modules(yaml-cpp REQUIRED yaml-cpp)
 
-include_directories( ${GDAL_INCLUDE_DIR} ${libLAS_INCLUDE_DIRS} ${LASZIP_INCLUDE_DIR} ${yaml-cpp_INCLUDE_DIRS} )
+include_directories( ${GDAL_INCLUDE_DIR} ${libLAS_INCLUDE_DIRS} ${LASZIP_INCLUDE_DIR} ${yaml-cpp_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+link_directories(${yaml-cpp_LIBRARY_DIRS})
 
 # Creating entries for target: 3dfier
 
