@@ -1,5 +1,18 @@
 # 3dfier
 
+To build you'ld normally do (from 3dfier root directory):
+
+```
+mkdir build && cd build
+cmake ..
+make
+```
+
+And on ubuntu systems that come with GDAL 2, make sure the `libgdal1-dev` package is installed and replace `cmake ..` with 
+```
+cmake .. -DGDAL_CONFIG=/bin/gdal-config -DGDAL_LIBRARY=/usr/lib/libgdal.so -DGDAL_INCLUDE_DIR=/usr/include/gdal
+```
+
 To run:
 
 `$ ./3dfier myconfig.yml > output.gml`
