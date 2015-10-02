@@ -48,10 +48,10 @@ find_package(LASzip 2.0.1 QUIET NO_MODULE)
 find_package(PkgConfig)
 pkg_check_modules(yaml-cpp REQUIRED yaml-cpp)
 
-include_directories( ${GDAL_INCLUDE_DIR} ${libLAS_INCLUDE_DIRS} ${LASZIP_INCLUDE_DIR} ${yaml-cpp_INCLUDE_DIRS} , include )
+include_directories( ${GDAL_INCLUDE_DIR} ${libLAS_INCLUDE_DIRS} ${LASZIP_INCLUDE_DIR} ${yaml-cpp_INCLUDE_DIRS} )
 
 # Creating entries for target: 3dfier
 
 add_executable( 3dfier input.cpp main.cpp Polygon3d.cpp Map3d.cpp)
-target_link_libraries(3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${yaml-cpp_LIBRARIES} )
+target_link_libraries( 3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${yaml-cpp_LIBRARIES} )
 
