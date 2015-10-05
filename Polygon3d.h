@@ -49,8 +49,12 @@ public:
   std::string     get_lift_type();
   int             get_number_vertices();
 private:
-  std::vector<double> _zvalues;
-  std::string         _lifttype;
+  std::vector<double>   _zvalues;
+  std::string           _lifttype;
+  std::vector<Point3d>  _vertices;
+  std::vector<Triangle> _triangles;
+  
+  bool build_CDT();
 };
 
 
