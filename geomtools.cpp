@@ -128,6 +128,16 @@ bool getCDT(const Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Tria
     t.v2 = out.trianglelist[i * out.numberofcorners + 2];
     triangles.push_back(t);
   }
+
+  int markersegments = 0;
+  for (int i = 0; i < out.numberofsegments; i++) {
+    if (out.segmentmarkerlist[i] == 1)
+      markersegments++;
+  }
+  std::cout << "# segment: " << out.numberofsegments << std::endl;
+  std::cout << "# boundary segment: " << markersegments << std::endl;
+
+
   free(in.pointlist);
   free(in.pointmarkerlist);
   free(in.segmentlist);
