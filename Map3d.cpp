@@ -41,6 +41,7 @@ std::string Map3d::get_obj() {
   std::vector<int> offsets;
   offsets.push_back(0);
   std::stringstream ss;
+  ss << "mtllib ./3dfier.mtl" << std::endl;
   for (auto& p3 : _lsPolys) {
     ss << p3->get_obj_v();
     offsets.push_back(p3->get_number_vertices());

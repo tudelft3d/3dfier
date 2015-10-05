@@ -86,7 +86,12 @@ std::string Polygon3dBlock::get_obj_v() {
 }
 
 std::string Polygon3dBlock::get_obj_f(int offset) {
-  return "EMPTY";
+  // TODO : OBJ for block
+  std::stringstream ss;
+  ss << "usemtl block" << std::endl;
+  // for (auto& t : _triangles)
+  //   ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
+  return ss.str();
 }
 
 double Polygon3dBlock::get_height() {
@@ -175,6 +180,7 @@ std::string Polygon3dBoundary::get_obj_v() {
 
 std::string Polygon3dBoundary::get_obj_f(int offset) {
   std::stringstream ss;
+  ss << "usemtl boundary3d" << std::endl;
   for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
   return ss.str();
@@ -239,7 +245,8 @@ std::string Polygon3dTin::get_obj_v() {
 
 std::string Polygon3dTin::get_obj_f(int offset) {
   std::stringstream ss;
- for (auto& t : _triangles)
+  ss << "usemtl tin" << std::endl;
+  for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
   return ss.str();
 }
