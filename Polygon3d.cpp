@@ -39,11 +39,11 @@ std::string Polygon3dBlock::get_lift_type() {
 }
 
 int Polygon3dBlock::get_number_vertices() {
-  // TODO: return floor?
-  return 0;
+  return (2* _vertices.size());
 }
 
 bool Polygon3dBlock::threeDfy() {
+  build_CDT();
   return true;
 }
 
@@ -82,11 +82,31 @@ std::string Polygon3dBlock::get_3d_csv() {
 }
 
 std::string Polygon3dBlock::get_obj_v() {
-  return "EMPTY";
+  std::stringstream ss;
+  for (auto& v : _vertices)
+    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_height() << std::endl;
+  for (auto& v : _vertices)
+    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << "0.00" << std::endl;
+  return ss.str();
 }
 
 std::string Polygon3dBlock::get_obj_f(int offset) {
-  return "EMPTY";
+  std::stringstream ss;
+  ss << "usemtl block" << std::endl;
+  //-- roof
+  for (auto& t : _triangles)
+    ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
+  //-- side walls
+  for (auto& s : _segments) {
+    ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
+    ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
+  }
+  // //-- ground floor TODO: ground floor of buildings
+  // if (ground == true) {
+  //   for (auto& t : _triangles)
+  //     ss << "f " << (t.v0 + 1 + offset + _triangles.size() + 2) << " " << (t.v1 + 1 + offset + _triangles.size() + 2) << " " << (t.v2 + 1 + offset + _triangles.size() + 2) << std::endl;  
+  // }
+  return ss.str();
 }
 
 double Polygon3dBlock::get_height() {
@@ -132,6 +152,12 @@ bool Polygon3dBlock::add_elevation_point(double x, double y, double z) {
   return true;
 }
 
+bool Polygon3dBlock::build_CDT() {
+  getCDT(_p2, _vertices, _triangles, _segments);
+  return true;
+}
+
+
 
 //-------------------------------
 //-------------------------------
@@ -175,6 +201,7 @@ std::string Polygon3dBoundary::get_obj_v() {
 
 std::string Polygon3dBoundary::get_obj_f(int offset) {
   std::stringstream ss;
+  ss << "usemtl boundary3d" << std::endl;
   for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
   return ss.str();
@@ -187,7 +214,7 @@ bool Polygon3dBoundary::add_elevation_point(double x, double y, double z) {
 }
 
 bool Polygon3dBoundary::build_CDT() {
-  getCDT(_p2, _vertices, _triangles);
+  getCDT(_p2, _vertices, _triangles, _segments);
   return true;
 }
 
@@ -239,7 +266,8 @@ std::string Polygon3dTin::get_obj_v() {
 
 std::string Polygon3dTin::get_obj_f(int offset) {
   std::stringstream ss;
- for (auto& t : _triangles)
+  ss << "usemtl tin" << std::endl;
+  for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
   return ss.str();
 }
@@ -251,7 +279,7 @@ bool Polygon3dTin::add_elevation_point(double x, double y, double z) {
 }
 
 bool Polygon3dTin::build_CDT() {
-  getCDT(_p2, _vertices, _triangles, _lidarpts);
+  getCDT(_p2, _vertices, _triangles, _segments, _lidarpts);
   return true;
 }
 

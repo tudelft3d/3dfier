@@ -31,7 +31,11 @@ void get_point_inside(Ring2d& ring, Point2d& p) {
 }
 
 
-bool getCDT(const Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Triangle> &triangles, const std::vector<Point3d> &lidarpts) {
+bool getCDT(const Polygon2d* p, 
+            std::vector<Point3d> &vertices, 
+            std::vector<Triangle> &triangles, 
+            std::vector<Segment> &segments, 
+            const std::vector<Point3d> &lidarpts) {
   Ring2d oring = bg::exterior_ring(*p);
   auto irings = bg::interior_rings(*p);
   struct triangulateio in, out;
@@ -128,6 +132,13 @@ bool getCDT(const Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Tria
     t.v2 = out.trianglelist[i * out.numberofcorners + 2];
     triangles.push_back(t);
   }
+  for (int i = 0; i < out.numberofsegments; i++) {
+    Segment s;
+    s.v0 = out.segmentlist[i * 2];
+    s.v1 = out.segmentlist[i * 2 + 1];
+    segments.push_back(s);
+  }
+
   free(in.pointlist);
   free(in.pointmarkerlist);
   free(in.segmentlist);
