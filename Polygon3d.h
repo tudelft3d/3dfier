@@ -53,7 +53,8 @@ private:
   std::string           _lifttype;
   std::vector<Point3d>  _vertices;
   std::vector<Triangle> _triangles;
-  
+  std::vector<Segment>  _segments;
+
   bool build_CDT();
 };
 
@@ -77,6 +78,7 @@ private:
   std::vector<Point3d>  _lidarpts;
   std::vector<Point3d>  _vertices;
   std::vector<Triangle> _triangles;
+  std::vector<Segment>  _segments;
 
   bool build_CDT();
 };
@@ -102,6 +104,7 @@ private:
   std::vector<Point3d>  _lidarpts;
   std::vector<Point3d>  _vertices;
   std::vector<Triangle> _triangles;
+  std::vector<Segment>  _segments;
   bool build_CDT();
 };
 

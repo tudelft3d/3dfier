@@ -21,5 +21,11 @@ extern "C" {
 }
 
 void get_point_inside(Ring2d& ring, Point2d& p);
-bool getCDT(const Polygon2d* p, std::vector<Point3d> &vertices, std::vector<Triangle> &triangles, const std::vector<Point3d> &lidarpts = std::vector<Point3d>());
+bool getCDT(const Polygon2d* p, 
+            std::vector<Point3d> &vertices, 
+            std::vector<Triangle> &triangles, 
+            std::vector<Segment> &segments, 
+            const std::vector<Point3d> &lidarpts = std::vector<Point3d>());
+
+
 #endif /* geomtools_h */

@@ -95,8 +95,14 @@ std::string Polygon3dBlock::get_obj_f(int offset) {
   ss << "usemtl block" << std::endl;
   for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
+  //-- ground floor (if needed TODO)
   for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset + _triangles.size() + 2) << " " << (t.v1 + 1 + offset + _triangles.size() + 2) << " " << (t.v2 + 1 + offset + _triangles.size() + 2) << std::endl;  
+  //-- side walls
+  for (auto& s : _segments) {
+    ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
+    ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
+  }
   return ss.str();
 }
 
@@ -144,7 +150,7 @@ bool Polygon3dBlock::add_elevation_point(double x, double y, double z) {
 }
 
 bool Polygon3dBlock::build_CDT() {
-  getCDT(_p2, _vertices, _triangles);
+  getCDT(_p2, _vertices, _triangles, _segments);
   return true;
 }
 
@@ -205,7 +211,7 @@ bool Polygon3dBoundary::add_elevation_point(double x, double y, double z) {
 }
 
 bool Polygon3dBoundary::build_CDT() {
-  getCDT(_p2, _vertices, _triangles);
+  getCDT(_p2, _vertices, _triangles, _segments);
   return true;
 }
 
@@ -270,7 +276,7 @@ bool Polygon3dTin::add_elevation_point(double x, double y, double z) {
 }
 
 bool Polygon3dTin::build_CDT() {
-  getCDT(_p2, _vertices, _triangles, _lidarpts);
+  getCDT(_p2, _vertices, _triangles, _segments, _lidarpts);
   return true;
 }
 

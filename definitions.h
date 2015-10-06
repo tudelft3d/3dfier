@@ -25,14 +25,17 @@ typedef bg::model::polygon<Point2d, true, true> Polygon2d; //-- cw, first=last
 typedef bg::model::ring<Point2d, true, true> Ring2d; //-- cw, first=last
 typedef bg::model::box<Point2d> Box;
 
+//-- extrusion types
+// BLOCK- {AVG -- MAX -- MIN -- MEDIAN}
+// BOUNDARY3D
+// TIN- {ALL_POINTS -- 50 -- 10}
 
 
-typedef enum
+typedef struct Segment
 {
-  BLOCK            = 10,
-  BOUNDARY3D       = 20, 
-  TIN_ALL_POINTS   = 30,
-} Lift3DType;
+  int v0;
+  int v1;
+} Segment;
 
 typedef struct Triangle
 {
