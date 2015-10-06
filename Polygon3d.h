@@ -28,8 +28,6 @@ public:
 protected:
   Polygon2d*      _p2;
   std::string     _id;
-  
- // vector<Point3d*> _lsPts3d;
 };
 
 //---------------------------------------------

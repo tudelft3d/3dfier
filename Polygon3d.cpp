@@ -93,16 +93,19 @@ std::string Polygon3dBlock::get_obj_v() {
 std::string Polygon3dBlock::get_obj_f(int offset) {
   std::stringstream ss;
   ss << "usemtl block" << std::endl;
+  //-- roof
   for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
-  //-- ground floor (if needed TODO)
-  for (auto& t : _triangles)
-    ss << "f " << (t.v0 + 1 + offset + _triangles.size() + 2) << " " << (t.v1 + 1 + offset + _triangles.size() + 2) << " " << (t.v2 + 1 + offset + _triangles.size() + 2) << std::endl;  
   //-- side walls
   for (auto& s : _segments) {
     ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
     ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
   }
+  // //-- ground floor TODO: ground floor of buildings
+  // if (ground == true) {
+  //   for (auto& t : _triangles)
+  //     ss << "f " << (t.v0 + 1 + offset + _triangles.size() + 2) << " " << (t.v1 + 1 + offset + _triangles.size() + 2) << " " << (t.v2 + 1 + offset + _triangles.size() + 2) << std::endl;  
+  // }
   return ss.str();
 }
 
