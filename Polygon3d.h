@@ -4,6 +4,7 @@
 
 #include "definitions.h"
 #include "geomtools.h"
+#include <random>
 
 
 class Polygon3d
@@ -77,8 +78,6 @@ private:
   std::vector<Point3d>  _vertices;
   std::vector<Triangle> _triangles;
   std::vector<Segment>  _segments;
-
-  bool build_CDT();
 };
 
 
@@ -99,11 +98,11 @@ public:
   int             get_number_vertices();
 private:
   std::string           _lifttype;
+  int                   _thin;
   std::vector<Point3d>  _lidarpts;
   std::vector<Point3d>  _vertices;
   std::vector<Triangle> _triangles;
   std::vector<Segment>  _segments;
-  bool build_CDT();
 };
 
 

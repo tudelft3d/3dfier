@@ -171,7 +171,7 @@ std::string Polygon3dBoundary::get_lift_type() {
 }
 
 bool Polygon3dBoundary::threeDfy() {
-  build_CDT();
+  getCDT(_p2, _vertices, _triangles, _segments);
   return true;
 }
 
@@ -181,7 +181,6 @@ int Polygon3dBoundary::get_number_vertices() {
 
 
 std::string Polygon3dBoundary::get_3d_citygml() {
-  build_CDT();
   std::stringstream ss;
   ss << "# vertices: " << _vertices.size() << std::endl;
   ss << "# triangles: " << _triangles.size() << std::endl;
@@ -213,10 +212,6 @@ bool Polygon3dBoundary::add_elevation_point(double x, double y, double z) {
   return true;
 }
 
-bool Polygon3dBoundary::build_CDT() {
-  getCDT(_p2, _vertices, _triangles, _segments);
-  return true;
-}
 
 //-------------------------------
 //-------------------------------
@@ -224,6 +219,11 @@ bool Polygon3dBoundary::build_CDT() {
 Polygon3dTin::Polygon3dTin(Polygon2d* p, std::string id, std::string lifttype) : Polygon3d(p, id) 
 {
   _lifttype = lifttype;
+  std::string t = lifttype.substr(lifttype.find_first_of("-") + 1);
+  if (t == "ALL")
+    _thin = 0;
+  else 
+    _thin = std::stoi(t);
 }
 
 std::string Polygon3dTin::get_lift_type() {
@@ -231,26 +231,18 @@ std::string Polygon3dTin::get_lift_type() {
 }
 
 bool Polygon3dTin::threeDfy() {
-  build_CDT();
+  getCDT(_p2, _vertices, _triangles, _segments, _lidarpts);
   return true;
 }
 
 int Polygon3dTin::get_number_vertices() {
-  return _vertices.size();
+  return int(_vertices.size());
 }
 
 
 std::string Polygon3dTin::get_3d_citygml() {
-  
-  // std::stringstream ss;
-  // std::cout << "-----LIDAR POINTS-----" << std::endl;
-  // for (auto& pt : _lidarpts)
-  //   std::cout << std::setprecision(12) << bg::get<0>(pt) << ", " << bg::get<1>(pt) << ", " << bg::get<2>(pt) << std::endl;
-  // // ss << "# vertices: " << _vertices.size() << std::endl;
-  // // ss << "# triangles: " << _triangles.size() << std::endl;
-  // // return ss.str();
-  build_CDT();
-  return "done.";
+  //-- TODO: CityGML implementation for TIN type
+  return "EMTPY";
 }
 
 std::string Polygon3dTin::get_3d_csv() {
@@ -274,12 +266,15 @@ std::string Polygon3dTin::get_obj_f(int offset) {
 
 
 bool Polygon3dTin::add_elevation_point(double x, double y, double z) {
-  _lidarpts.push_back(Point3d(x, y, z));
-  return true;
-}
-
-bool Polygon3dTin::build_CDT() {
-  getCDT(_p2, _vertices, _triangles, _segments, _lidarpts);
+  if (_thin == 0)
+    _lidarpts.push_back(Point3d(x, y, z));
+  else {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(1, _thin); 
+    if (dis(gen) == 1)
+      _lidarpts.push_back(Point3d(x, y, z));
+  }
   return true;
 }
 
