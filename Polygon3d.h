@@ -99,10 +99,11 @@ public:
 private:
   std::string           _lifttype;
   int                   _thin;
-  std::vector<Point3>  _lidarpts;
-  std::vector<Point3>  _vertices;
-  std::vector<Triangle> _triangles;
-  std::vector<Segment>  _segments;
+  Polygon3              _p3;
+  std::vector<Point3d>  _lidarpts;
+  std::vector<Point3d>  _vertices;  //-- output of Triangle
+  std::vector<Triangle> _triangles; //-- output of Triangle
+  std::vector<Segment>  _segments;  //-- output of Triangle
 };
 
 

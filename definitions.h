@@ -20,10 +20,11 @@
 namespace bg  = boost::geometry;
 namespace bgi = boost::geometry::index;
 typedef bg::model::d2::point_xy<double> Point2;
-typedef bg::model::point<double, 3, bg::cs::cartesian> Point3;
 typedef bg::model::polygon<Point2, true, true> Polygon2; //-- cw, first=last
 typedef bg::model::ring<Point2, true, true> Ring2; //-- cw, first=last
 typedef bg::model::box<Point2> Box;
+typedef bg::model::point<double, 3, bg::cs::cartesian> Point3;
+typedef bg::model::polygon<Point3d, true, true> Polygon3;
 
 //-- extrusion types
 // BLOCK- {AVG -- MAX -- MIN -- MEDIAN}
