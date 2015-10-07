@@ -20,12 +20,12 @@ extern "C" {
   #include "triangle.h"
 }
 
-void get_point_inside(Ring2d& ring, Point2d& p);
-bool getCDT(const Polygon2d* p, 
-            std::vector<Point3d> &vertices, 
+void get_point_inside(Ring2& ring, Point2& p);
+bool getCDT(const Polygon2* p, 
+            std::vector<Point3> &vertices, 
             std::vector<Triangle> &triangles, 
             std::vector<Segment> &segments, 
-            const std::vector<Point3d> &lidarpts = std::vector<Point3d>());
+            const std::vector<Point3> &lidarpts = std::vector<Point3>());
 
 
 #endif /* geomtools_h */

@@ -1,6 +1,6 @@
 //  std::vector<Polygon3d*> p3s = map3d.get_polygons3d();
 //  Polygon3d* p3 = p3s[0];
-//  Polygon2d* p2 = p3->get_polygon2d();
+//  Polygon2* p2 = p3->get_Polygon2();
 //  std::cout << bg::area(*p2) << std::endl;
 //  bg::reverse(*p2);
 //  std::cout << bg::area(*p2) << std::endl;

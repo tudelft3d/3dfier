@@ -10,7 +10,7 @@
 class Polygon3d
 {
 public:
-  Polygon3d  (Polygon2d* p, std::string id);
+  Polygon3d  (Polygon2* p, std::string id);
   ~Polygon3d ();
 
   virtual bool          threeDfy() = 0;
@@ -23,11 +23,11 @@ public:
   virtual int           get_number_vertices() = 0;
 
   std::string   get_id();
-  Polygon2d*    get_polygon2d();
+  Polygon2*    get_Polygon2();
   Box           get_bbox2d();
 
 protected:
-  Polygon2d*      _p2;
+  Polygon2*      _p2;
   std::string     _id;
 };
 
@@ -36,7 +36,7 @@ protected:
 class Polygon3dBlock : public Polygon3d 
 {
 public:
-  Polygon3dBlock (Polygon2d* p, std::string id, std::string lifttype); 
+  Polygon3dBlock (Polygon2* p, std::string id, std::string lifttype); 
   
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
@@ -50,7 +50,7 @@ public:
 private:
   std::vector<double>   _zvalues;
   std::string           _lifttype;
-  std::vector<Point3d>  _vertices;
+  std::vector<Point3>  _vertices;
   std::vector<Triangle> _triangles;
   std::vector<Segment>  _segments;
 
@@ -63,7 +63,7 @@ private:
 class Polygon3dBoundary : public Polygon3d
 {
 public:
-  Polygon3dBoundary (Polygon2d* p, std::string id);
+  Polygon3dBoundary (Polygon2* p, std::string id);
   
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
@@ -74,8 +74,8 @@ public:
   std::string     get_lift_type();
   int             get_number_vertices();
 private:
-  std::vector<Point3d>  _lidarpts;
-  std::vector<Point3d>  _vertices;
+  std::vector<Point3>  _lidarpts;
+  std::vector<Point3>  _vertices;
   std::vector<Triangle> _triangles;
   std::vector<Segment>  _segments;
 };
@@ -86,7 +86,7 @@ private:
 class Polygon3dTin : public Polygon3d
 {
 public:
-  Polygon3dTin (Polygon2d* p, std::string id, std::string lifttype);
+  Polygon3dTin (Polygon2* p, std::string id, std::string lifttype);
   
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
@@ -99,8 +99,8 @@ public:
 private:
   std::string           _lifttype;
   int                   _thin;
-  std::vector<Point3d>  _lidarpts;
-  std::vector<Point3d>  _vertices;
+  std::vector<Point3>  _lidarpts;
+  std::vector<Point3>  _vertices;
   std::vector<Triangle> _triangles;
   std::vector<Segment>  _segments;
 };

@@ -30,7 +30,7 @@ std::string get_citygml_namespaces() {
   return "<CityModel xmlns:veg=\"http://www.opengis.net/citygml/vegetation/2.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xAL=\"urn:oasis:names:tc:ciq:xsdschema:xAL:2.0\" xmlns:dem=\"http://www.opengis.net/citygml/relief/2.0\" xmlns:gml=\"http://www.opengis.net/gml\" xmlns:fme=\"http://www.safe.com/xml/xmltables\" xmlns:tran=\"http://www.opengis.net/citygml/transportation/2.0\" xmlns:bldg=\"http://www.opengis.net/citygml/building/2.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.opengis.net/citygml/2.0\">";
 }
 
-std::string get_polygon_lifted_gml(Polygon2d* p2, double height, bool reverse) {
+std::string get_polygon_lifted_gml(Polygon2* p2, double height, bool reverse) {
   std::stringstream ss;
   ss << "<gml:surfaceMember>";
   ss << "<gml:Polygon>";
@@ -51,7 +51,7 @@ std::string get_polygon_lifted_gml(Polygon2d* p2, double height, bool reverse) {
   return ss.str();
 }
 
-std::string get_extruded_line_gml(Point2d* a, Point2d* b, double high, double low, bool reverse) {
+std::string get_extruded_line_gml(Point2* a, Point2* b, double high, double low, bool reverse) {
   std::stringstream ss;
   ss << "<gml:surfaceMember>";
   ss << "<gml:Polygon>";
@@ -69,7 +69,7 @@ std::string get_extruded_line_gml(Point2d* a, Point2d* b, double high, double lo
   return ss.str();
 }
 
-std::string get_extruded_lod1_block_gml(Polygon2d* p2, double high, double low) {
+std::string get_extruded_lod1_block_gml(Polygon2* p2, double high, double low) {
   std::stringstream ss;
   //-- get floor
   ss << get_polygon_lifted_gml(p2, low, false);

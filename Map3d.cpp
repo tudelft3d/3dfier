@@ -68,21 +68,21 @@ const std::vector<Polygon3d*>& Map3d::get_polygons3d() {
 
 
 Polygon3d* Map3d::add_point(double x, double y, double z, Polygon3d* trythisone) {
-  Point2d p(x, y);
+  Point2 p(x, y);
   if (trythisone != NULL) {
-    if (bg::within(p, *(trythisone->get_polygon2d())) == true) {
+    if (bg::within(p, *(trythisone->get_Polygon2())) == true) {
       trythisone->add_elevation_point(x, y, z);
       return trythisone;
     }
   }
   std::vector<PairIndexed> re;
-  Point2d minp(x - 0.5, y - 0.5);
-  Point2d maxp(x + 0.5, y + 0.5);
+  Point2 minp(x - 0.5, y - 0.5);
+  Point2 maxp(x + 0.5, y + 0.5);
   Box querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
   for (auto& v : re) {
     Polygon3d* pgn3 = v.second;
-    if (bg::within(p, *(pgn3->get_polygon2d())) == true) {
+    if (bg::within(p, *(pgn3->get_Polygon2())) == true) {
       pgn3->add_elevation_point(x, y, z);
       return pgn3;
     }
@@ -136,7 +136,7 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
         case wkbMultiPolygon: 
         case wkbMultiPolygon25D:
         case wkbPolygon25D: {
-          Polygon2d* p2 = new Polygon2d();
+          Polygon2* p2 = new Polygon2();
           // TODO : WKT surely not best/fastest way, to change
           char *output_wkt;
           f->GetGeometryRef()->flattenTo2D();

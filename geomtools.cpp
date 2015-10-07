@@ -10,12 +10,12 @@
 
 
 //-- TODO: cheap code that randomly generates points if centroid is not inside. to update asap.
-void get_point_inside(Ring2d& ring, Point2d& p) {
+void get_point_inside(Ring2& ring, Point2& p) {
   bg::centroid(ring, p);
   if (bg::within(p, ring) == false) {
     Box bbox;
     bg::envelope(ring, bbox);
-    Point2d genp;
+    Point2 genp;
     std::default_random_engine re;
     while (true) {
       std::uniform_real_distribution<double> unifx(bg::get<0>(bbox.min_corner()), bg::get<0>(bbox.max_corner()));
@@ -31,12 +31,12 @@ void get_point_inside(Ring2d& ring, Point2d& p) {
 }
 
 
-bool getCDT(const Polygon2d* p, 
-            std::vector<Point3d> &vertices, 
+bool getCDT(const Polygon2* p, 
+            std::vector<Point3> &vertices, 
             std::vector<Triangle> &triangles, 
             std::vector<Segment> &segments, 
-            const std::vector<Point3d> &lidarpts) {
-  Ring2d oring = bg::exterior_ring(*p);
+            const std::vector<Point3> &lidarpts) {
+  Ring2 oring = bg::exterior_ring(*p);
   auto irings = bg::interior_rings(*p);
   struct triangulateio in, out;
   in.numberofpointattributes = 1;
@@ -67,7 +67,7 @@ bool getCDT(const Polygon2d* p,
        in.pointlist[counter++] = bg::get<1>(iring[i]);
        in.pointattributelist[(counter / 2) - 1] = 0.0;
       }
-      Point2d pinside;
+      Point2 pinside;
       get_point_inside(iring, pinside);
       // std::cout << "pinside: " << bg::wkt(pinside) << std::endl;
       in.holelist[holecount++] = bg::get<0>(pinside);
@@ -124,7 +124,7 @@ bool getCDT(const Polygon2d* p,
   if (in.numberofpoints != out.numberofpoints)
     std::cout << "INTERSECTIONS WHILE CDTing." << std::endl;
   for (int i = 0; i < out.numberofpoints; i++) 
-    vertices.push_back(Point3d(out.pointlist[i * 2], out.pointlist[i * 2 + 1], out.pointattributelist[i]));
+    vertices.push_back(Point3(out.pointlist[i * 2], out.pointlist[i * 2 + 1], out.pointattributelist[i]));
   for (int i = 0; i < out.numberoftriangles; i++) {
     Triangle t;
     t.v0 = out.trianglelist[i * out.numberofcorners + 0];

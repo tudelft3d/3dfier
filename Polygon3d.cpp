@@ -2,7 +2,7 @@
 #include "Polygon3d.h"
 #include "input.h"
 
-Polygon3d::Polygon3d(Polygon2d* p, std::string id) {
+Polygon3d::Polygon3d(Polygon2* p, std::string id) {
   _id = id;
   _p2 = p;
 }
@@ -20,7 +20,7 @@ std::string Polygon3d::get_id() {
   return _id;
 }
 
-Polygon2d* Polygon3d::get_polygon2d() {
+Polygon2* Polygon3d::get_Polygon2() {
     return _p2;
 }
 
@@ -29,7 +29,7 @@ Polygon2d* Polygon3d::get_polygon2d() {
 //-------------------------------
 //-------------------------------
 
-Polygon3dBlock::Polygon3dBlock(Polygon2d* p, std::string id, std::string lifttype) : Polygon3d(p, id) 
+Polygon3dBlock::Polygon3dBlock(Polygon2* p, std::string id, std::string lifttype) : Polygon3d(p, id) 
 {
   _lifttype = lifttype;
 }
@@ -162,7 +162,7 @@ bool Polygon3dBlock::build_CDT() {
 //-------------------------------
 //-------------------------------
 
-Polygon3dBoundary::Polygon3dBoundary(Polygon2d* p, std::string id) : Polygon3d(p, id) 
+Polygon3dBoundary::Polygon3dBoundary(Polygon2* p, std::string id) : Polygon3d(p, id) 
 {
 }
 
@@ -208,7 +208,7 @@ std::string Polygon3dBoundary::get_obj_f(int offset) {
 
 
 bool Polygon3dBoundary::add_elevation_point(double x, double y, double z) {
-  _lidarpts.push_back(Point3d(x, y, z));
+  _lidarpts.push_back(Point3(x, y, z));
   return true;
 }
 
@@ -216,7 +216,7 @@ bool Polygon3dBoundary::add_elevation_point(double x, double y, double z) {
 //-------------------------------
 //-------------------------------
 
-Polygon3dTin::Polygon3dTin(Polygon2d* p, std::string id, std::string lifttype) : Polygon3d(p, id) 
+Polygon3dTin::Polygon3dTin(Polygon2* p, std::string id, std::string lifttype) : Polygon3d(p, id) 
 {
   _lifttype = lifttype;
   std::string t = lifttype.substr(lifttype.find_first_of("-") + 1);
@@ -267,13 +267,13 @@ std::string Polygon3dTin::get_obj_f(int offset) {
 
 bool Polygon3dTin::add_elevation_point(double x, double y, double z) {
   if (_thin == 0)
-    _lidarpts.push_back(Point3d(x, y, z));
+    _lidarpts.push_back(Point3(x, y, z));
   else {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<int> dis(1, _thin); 
     if (dis(gen) == 1)
-      _lidarpts.push_back(Point3d(x, y, z));
+      _lidarpts.push_back(Point3(x, y, z));
   }
   return true;
 }
