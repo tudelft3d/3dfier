@@ -100,8 +100,8 @@ private:
   std::string           _lifttype;
   int                   _thin;
   Polygon3              _p3;
-  std::vector<Point3d>  _lidarpts;
-  std::vector<Point3d>  _vertices;  //-- output of Triangle
+  std::vector<Point3>   _lidarpts;
+  std::vector<Point3>   _vertices;  //-- output of Triangle
   std::vector<Triangle> _triangles; //-- output of Triangle
   std::vector<Segment>  _segments;  //-- output of Triangle
 };
