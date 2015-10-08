@@ -67,10 +67,10 @@ const std::vector<Polygon3d*>& Map3d::get_polygons3d() {
 }
 
 
-Polygon3d* Map3d::add_point(double x, double y, double z, Polygon3d* trythisone) {
+Polygon3d* Map3d::add_point(double x, double y, double z, double buffer, Polygon3d* trythisone) {
   Point2 p(x, y);
   if (trythisone != NULL) {
-    if (bg::within(p, *(trythisone->get_Polygon2())) == true) {
+    if (bg::distance(p, *(trythisone->get_Polygon2())) < buffer) {
       trythisone->add_elevation_point(x, y, z);
       return trythisone;
     }
@@ -81,10 +81,10 @@ Polygon3d* Map3d::add_point(double x, double y, double z, Polygon3d* trythisone)
   Box querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
   for (auto& v : re) {
-    Polygon3d* pgn3 = v.second;
-    if (bg::within(p, *(pgn3->get_Polygon2())) == true) {
-      pgn3->add_elevation_point(x, y, z);
-      return pgn3;
+    Polygon3d* pgn = v.second;
+    if (bg::distance(p, *(pgn->get_Polygon2())) < buffer) {     
+      pgn->add_elevation_point(x, y, z);
+      return pgn;
     }
   }
   return NULL;
@@ -207,10 +207,10 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
     liblas::Point const& p = reader.GetPoint();
     if (skip != 0) {
       if (i % skip == 0)
-        lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+        lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), 2.0, lastone);
     }
     else {
-      lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+      lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), 2.0, lastone);
     }
     if (i % 100000 == 0) 
       printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
