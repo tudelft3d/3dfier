@@ -67,7 +67,7 @@ const std::vector<Polygon3d*>& Map3d::get_polygons3d() {
 }
 
 
-Polygon3d* Map3d::add_point(double x, double y, double z, double buffer, Polygon3d* trythisone) {
+Polygon3d* Map3d::add_elevation_point(double x, double y, double z, double buffer, Polygon3d* trythisone) {
   Point2 p(x, y);
   if (trythisone != NULL) {
     if (bg::distance(p, *(trythisone->get_Polygon2())) < buffer) {
@@ -207,10 +207,10 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
     liblas::Point const& p = reader.GetPoint();
     if (skip != 0) {
       if (i % skip == 0)
-        lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), 2.0, lastone);
+        lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), 2.0, lastone);
     }
     else {
-      lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), 2.0, lastone);
+      lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), 2.0, lastone);
     }
     if (i % 100000 == 0) 
       printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
