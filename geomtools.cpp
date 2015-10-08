@@ -31,24 +31,22 @@ void get_point_inside(Ring2& ring, Point2& p) {
 }
 
 
-bool getCDT(const Polygon2* p, 
+bool getCDT(const Polygon2* pgn, 
             std::vector<Point3> &vertices, 
             std::vector<Triangle> &triangles, 
             std::vector<Segment> &segments, 
             const std::vector<Point3> &lidarpts) {
-  Ring2 oring = bg::exterior_ring(*p);
-  auto irings = bg::interior_rings(*p);
+  Ring2 oring = bg::exterior_ring(*pgn);
+  auto irings = bg::interior_rings(*pgn);
   struct triangulateio in, out;
   in.numberofpointattributes = 1;
-  in.numberofpoints = int(oring.size() - 1);
-  for (auto iring : irings)
-    in.numberofpoints += (iring.size() - 1);
+  in.numberofpoints = bg::num_points(*pgn);
   in.numberofpoints += lidarpts.size();
   in.pointlist = (REAL *) malloc(in.numberofpoints * 2 * sizeof(REAL));
   in.pointattributelist = (REAL *) malloc(in.numberofpoints * in.numberofpointattributes * sizeof(REAL));
   int counter = 0;
   //-- oring
-  for (int i = 0; i < (oring.size() - 1); i++) {
+  for (int i = 0; i < oring.size(); i++) {
     in.pointlist[counter++] = bg::get<0>(oring[i]);
     in.pointlist[counter++] = bg::get<1>(oring[i]);
     in.pointattributelist[i] = 0.0;
@@ -62,7 +60,7 @@ bool getCDT(const Polygon2* p,
     in.holelist = (REAL *) malloc(in.numberofholes * 2 * sizeof(REAL));
     int holecount = 0;
     for (auto iring : irings) {
-      for (int i = 0; i < (iring.size() - 1); i++) {
+      for (int i = 0; i < iring.size(); i++) {
        in.pointlist[counter++] = bg::get<0>(iring[i]);
        in.pointlist[counter++] = bg::get<1>(iring[i]);
        in.pointattributelist[(counter / 2) - 1] = 0.0;
@@ -88,17 +86,17 @@ bool getCDT(const Polygon2* p,
   counter = 0;
   //-- oring
   int i;
-  for (i = 0; i < (oring.size() - 2); i++) {
+  for (i = 0; i < (oring.size() - 1); i++) {
     in.segmentlist[counter++] = i;
     in.segmentlist[counter++] = (i + 1);
   }
   in.segmentlist[counter++] = i;
   in.segmentlist[counter++] = 0;
   //-- irings
-  int start = int(oring.size() - 1);
+  int start = int(oring.size());
   for (auto iring : irings) {
     int i;
-    for (i = 0; i < (iring.size() - 2); i++) {
+    for (i = 0; i < (iring.size() - 1); i++) {
       in.segmentlist[counter++] = (start + i);
       in.segmentlist[counter++] = (start + i + 1);
     }

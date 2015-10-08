@@ -42,6 +42,7 @@ std::string get_polygon_lifted_gml(Polygon2* p2, double height, bool reverse) {
   auto r = bg::exterior_ring(*p2);
   for (int i = 0; i < r.size(); i++)
     ss << "<gml:pos>" << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << "</gml:pos>";
+  ss << "<gml:pos>" << bg::get<0>(r[r.size() - 1]) << " " << bg::get<1>(r[r.size() - 1]) << " " << height << "</gml:pos>";
   ss << "</gml:LinearRing>";
   ss << "</gml:exterior>";
   ss << "</gml:Polygon>";
