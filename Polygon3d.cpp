@@ -148,7 +148,12 @@ double Polygon3dBlock::get_height() {
 
 
 bool Polygon3dBlock::add_elevation_point(double x, double y, double z) {
-  _zvalues.push_back(z);
+  Point2 p(x, y);
+  //-- 1. assign to polygon is inside
+  if (bg::within(p, *(_p2) == true) 
+    _zvalues.push_back(z);
+  //-- 2. add to the vertices of the pgn to find their heights
+    
   return true;
 }
 
