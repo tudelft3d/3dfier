@@ -10,7 +10,7 @@
 class Polygon3d
 {
 public:
-  Polygon3d  (Polygon2* p, std::string id);
+  Polygon3d  (Polygon2* p, std::string pid);
   ~Polygon3d ();
 
   virtual bool          threeDfy() = 0;
@@ -22,13 +22,13 @@ public:
   virtual std::string   get_obj_f(int offset) = 0;
   virtual int           get_number_vertices() = 0;
 
-  std::string   get_id();
+  std::string  get_id();
   Polygon2*    get_Polygon2();
-  Box           get_bbox2d();
+  Box          get_bbox2d();
 
 protected:
-  Polygon2*      _p2;
-  std::string     _id;
+  Polygon2*    _p2;
+  std::string  _id;
 };
 
 //---------------------------------------------
@@ -36,7 +36,7 @@ protected:
 class Polygon3dBlock : public Polygon3d 
 {
 public:
-  Polygon3dBlock (Polygon2* p, std::string id, std::string lifttype); 
+  Polygon3dBlock (Polygon2* p, std::string pid, std::string lifttype); 
   
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
@@ -44,17 +44,19 @@ public:
   std::string     get_3d_csv();
   std::string     get_obj_v();
   std::string     get_obj_f(int offset);
-  double          get_height();
+  double          get_roof_height();
+  double          get_ground_height();
   std::string     get_lift_type();
   int             get_number_vertices();
 private:
   std::vector<double>   _zvalues;
+  std::vector<double>   _vertexelevations;
   std::string           _lifttype;
-  std::vector<Point3>  _vertices;
+  std::vector<Point3>   _vertices;
   std::vector<Triangle> _triangles;
   std::vector<Segment>  _segments;
-
   bool build_CDT();
+  bool assign_elevation_to_vertex(double x, double y, double z);
 };
 
 
@@ -63,7 +65,7 @@ private:
 class Polygon3dBoundary : public Polygon3d
 {
 public:
-  Polygon3dBoundary (Polygon2* p, std::string id);
+  Polygon3dBoundary (Polygon2* p, std::string pid);
   
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
@@ -74,8 +76,8 @@ public:
   std::string     get_lift_type();
   int             get_number_vertices();
 private:
-  std::vector<Point3>  _lidarpts;
-  std::vector<Point3>  _vertices;
+  std::vector<Point3>   _lidarpts;
+  std::vector<Point3>   _vertices;
   std::vector<Triangle> _triangles;
   std::vector<Segment>  _segments;
 };
@@ -86,7 +88,7 @@ private:
 class Polygon3dTin : public Polygon3d
 {
 public:
-  Polygon3dTin (Polygon2* p, std::string id, std::string lifttype);
+  Polygon3dTin (Polygon2* p, std::string pid, std::string lifttype);
   
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);

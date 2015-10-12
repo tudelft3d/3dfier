@@ -30,7 +30,7 @@ std::string Map3d::get_citygml() {
 
 std::string Map3d::get_csv() {
   std::stringstream ss;
-  ss << "id;3drep" << std::endl;
+  ss << "id;roof;floor" << std::endl;
   for (auto& p3 : _lsPolys) {
     ss << p3->get_3d_csv();
   }
