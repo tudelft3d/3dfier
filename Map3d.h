@@ -30,6 +30,7 @@ public:
   std::string get_csv();
   std::string get_obj();
      
+  bool        _buildingfloor;
 private:
   std::vector<Polygon3d*>   _lsPolys;
   std::vector<std::string>  _allowed_layers;

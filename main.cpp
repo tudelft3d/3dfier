@@ -59,6 +59,8 @@ int main(int argc, const char * argv[]) {
   map3d.threeDfy();
   
   n = nodes["output"];
+  if (n["building_floor"].as<std::string>() == "true") 
+    map3d._buildingfloor = true;
   if (n["format"].as<std::string>() == "CityGML") {
     std::clog << "CityGML output" << std::endl;
     std::cout << map3d.get_citygml() << std::endl;
@@ -75,10 +77,5 @@ int main(int argc, const char * argv[]) {
   std::clog << "Successfully terminated." << std::endl;
   return 1;
 }
-
-
-
-
-
 
 

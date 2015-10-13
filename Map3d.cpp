@@ -6,6 +6,7 @@
 
 Map3d::Map3d() {
   OGRRegisterAll();
+  _buildingfloor = false;
 }
 
 
@@ -50,7 +51,7 @@ std::string Map3d::get_obj() {
   for (auto& p3 : _lsPolys) {
     ss << "o " << p3->get_id() << std::endl;
     offset += offsets[i++];
-    ss << p3->get_obj_f(offset);
+    ss << p3->get_obj_f(offset, _buildingfloor);
   }
   return ss.str();
 }

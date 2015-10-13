@@ -19,7 +19,7 @@ public:
   virtual std::string   get_3d_citygml() = 0;
   virtual std::string   get_3d_csv() = 0;
   virtual std::string   get_obj_v() = 0;
-  virtual std::string   get_obj_f(int offset) = 0;
+  virtual std::string   get_obj_f(int offset, bool floor = false) = 0;
   virtual int           get_number_vertices() = 0;
 
   std::string  get_id();
@@ -43,14 +43,15 @@ public:
   std::string     get_3d_citygml();
   std::string     get_3d_csv();
   std::string     get_obj_v();
-  std::string     get_obj_f(int offset);
+  std::string     get_obj_f(int offset, bool floor = false);
   float           get_roof_height();
   float           get_floor_height();
   std::string     get_lift_type();
   int             get_number_vertices();
 private:
   bool                  _is3d;
-
+  float                 _floorheight;
+  float                 _roofheight;
   std::vector<float>    _zvaluesinside;
   std::vector<float>    _vertexelevations;
   std::string           _lifttype;
@@ -74,7 +75,7 @@ public:
   std::string     get_3d_citygml();
   std::string     get_3d_csv();
   std::string     get_obj_v();
-  std::string     get_obj_f(int offset);
+  std::string     get_obj_f(int offset, bool floor = false);
   std::string     get_lift_type();
   int             get_number_vertices();
 private:
@@ -97,7 +98,7 @@ public:
   std::string     get_3d_citygml();
   std::string     get_3d_csv();
   std::string     get_obj_v();
-  std::string     get_obj_f(int offset);
+  std::string     get_obj_f(int offset, bool floor = false);
   std::string     get_lift_type();
   int             get_number_vertices();
 private:

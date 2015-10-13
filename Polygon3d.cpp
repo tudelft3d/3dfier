@@ -32,6 +32,7 @@ Polygon2* Polygon3d::get_Polygon2() {
 Polygon3dBlock::Polygon3dBlock(Polygon2* p, std::string pid, std::string lifttype) : Polygon3d(p, pid) 
 {
   _lifttype = lifttype;
+  _is3d = false;
   _vertexelevations.assign(bg::num_points(*(_p2)), 9999);
 }
 
@@ -40,11 +41,18 @@ std::string Polygon3dBlock::get_lift_type() {
 }
 
 int Polygon3dBlock::get_number_vertices() {
-  return int(2* _vertices.size());
+  return int(2 * _vertices.size());
 }
 
 bool Polygon3dBlock::threeDfy() {
   build_CDT();
+  _floorheight = this->get_floor_height();
+  _roofheight = this->get_roof_height();
+  _is3d = true;
+  _zvaluesinside.clear();
+  _zvaluesinside.shrink_to_fit();
+  _vertexelevations.clear();
+  _vertexelevations.shrink_to_fit();
   return true;
 }
 
@@ -91,7 +99,7 @@ std::string Polygon3dBlock::get_obj_v() {
   return ss.str();
 }
 
-std::string Polygon3dBlock::get_obj_f(int offset) {
+std::string Polygon3dBlock::get_obj_f(int offset, bool floor) {
   std::stringstream ss;
   ss << "usemtl block" << std::endl;
   //-- roof
@@ -102,16 +110,17 @@ std::string Polygon3dBlock::get_obj_f(int offset) {
     ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
     ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
   }
-  // //-- ground floor TODO: ground floor of buildings?
-  // if (ground == true) {
-  //   for (auto& t : _triangles)
-  //     ss << "f " << (t.v0 + 1 + offset + _triangles.size() + 2) << " " << (t.v1 + 1 + offset + _triangles.size() + 2) << " " << (t.v2 + 1 + offset + _triangles.size() + 2) << std::endl;  
-  // }
+  //-- floor
+  if (floor == true) {
+    for (auto& t : _triangles)
+      ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << std::endl;  
+  }
   return ss.str();
 }
 
 float Polygon3dBlock::get_roof_height() {
-  // TODO : return an error if no points
+  if (_is3d == true)
+    return _roofheight;
   if (_zvaluesinside.size() == 0)
     return -9999;
   std::string t = _lifttype.substr(_lifttype.find_first_of("-") + 1);
@@ -149,6 +158,8 @@ float Polygon3dBlock::get_roof_height() {
 
 
 float Polygon3dBlock::get_floor_height() {
+  if (_is3d == true)
+    return _floorheight;
   return *(std::min_element(std::begin(_vertexelevations), std::end(_vertexelevations)));
 }
 
@@ -232,7 +243,7 @@ std::string Polygon3dBoundary::get_obj_v() {
   return ss.str();
 }
 
-std::string Polygon3dBoundary::get_obj_f(int offset) {
+std::string Polygon3dBoundary::get_obj_f(int offset, bool floor) {
   std::stringstream ss;
   ss << "usemtl boundary3d" << std::endl;
   for (auto& t : _triangles)
@@ -290,7 +301,7 @@ std::string Polygon3dTin::get_obj_v() {
   return ss.str();
 }
 
-std::string Polygon3dTin::get_obj_f(int offset) {
+std::string Polygon3dTin::get_obj_f(int offset, bool floor) {
   std::stringstream ss;
   ss << "usemtl tin" << std::endl;
   for (auto& t : _triangles)
