@@ -276,7 +276,12 @@ std::string Polygon3dTin::get_lift_type() {
 }
 
 bool Polygon3dTin::threeDfy() {
-  getCDT(_p2, _vertices, _triangles, _segments, _lidarpts);
+  //-- convert the Polygon2 to a Polygon3
+  std::stringstream ss;
+  ss << bg::wkt(*(_p2));
+  bg::read_wkt(ss.str(), _p3);
+  getCDT(&_p3, _vertices, _triangles, _segments, _lidarpts);
+  // getCDT(_p2, _vertices, _triangles, _segments, _lidarpts);
   return true;
 }
 
