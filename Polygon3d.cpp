@@ -292,28 +292,37 @@ bool Polygon3dTin::threeDfy() {
 
 
 void Polygon3dTin::add_elevations_to_boundary(Polygon3 &p3) {
-
-  //-- check if errors
+  float avg = 0.0;
+  int count = 0;
   for (int i = 0; i < _vertexelevations.size(); i++) {
-    if (std::get<0>(_vertexelevations[i]) == 0) {
-      std::cout << "ELEVATION MISSING" << std::endl;
-      float before = std::get<0>(_vertexelevations[i - 1]);
-      float after = std::get<0>(_vertexelevations[i + 1]);
-      std::cout << (before + after) / 2 << std::endl;
+    if (std::get<0>(_vertexelevations[i]) != 0) {
+      float z = std::get<1>(_vertexelevations[i]) / (float(std::get<0>(_vertexelevations[i])));
+      avg += z;
+      count++;  
     }
   }
-
+  avg = avg / count;
   Ring3 oring = bg::exterior_ring(p3);
   for (int i = 0; i < oring.size(); i++) {
-    float z = std::get<1>(_vertexelevations[i]) / (float(std::get<0>(_vertexelevations[i])));
-    bg::set<2>(bg::exterior_ring(p3)[i], z);
+    if (std::get<0>(_vertexelevations[i]) != 0) {
+      float z = std::get<1>(_vertexelevations[i]) / (float(std::get<0>(_vertexelevations[i])));
+      bg::set<2>(bg::exterior_ring(p3)[i], z);
+    }
+    else {
+      bg::set<2>(bg::exterior_ring(p3)[i], avg);
+    }
   }
   auto irings = bg::interior_rings(p3);
   std::size_t offset = bg::num_points(p3);
   for (Ring3& iring: irings) {
     for (int i = 0; i < iring.size(); i++) {
-      float z = std::get<1>(_vertexelevations[i + offset]) / (float(std::get<0>(_vertexelevations[i + offset])));
-      bg::set<2>(bg::exterior_ring(p3)[i + offset], z);
+      if (std::get<0>(_vertexelevations[i]) != 0) {
+        float z = std::get<1>(_vertexelevations[i]) / (float(std::get<0>(_vertexelevations[i])));
+        bg::set<2>(bg::exterior_ring(p3)[i], z);
+      }
+      else {
+        bg::set<2>(bg::exterior_ring(p3)[i], avg);
+      }
     }
     offset += bg::num_points(iring);
   }
