@@ -30,12 +30,9 @@ void get_point_inside(Ring2& ring, Point2& p) {
 }
 
 void get_point_inside(Ring3& ring, Point2& p) {
-  // std::vector<Point2> l;
   Ring2 r2;
-  for (auto& v : ring) {
-    // l.push_back(Point2(bg::get<0>(ring), bg::get<1>(ring)));
+  for (auto& v : ring)
     bg::append(r2, Point2(bg::get<0>(v), bg::get<1>(v)));
-  }
   get_point_inside(r2, p);
 }
 
@@ -164,6 +161,7 @@ bool getCDT(const Polygon2* pgn,
   return true;
 }
 
+// 
 bool getCDT(const Polygon3* pgn, 
             std::vector<Point3> &vertices, 
             std::vector<Triangle> &triangles, 

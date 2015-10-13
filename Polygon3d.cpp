@@ -199,7 +199,11 @@ bool Polygon3dBlock::assign_elevation_to_vertex(double x, double y, double z) {
 
 
 bool Polygon3dBlock::build_CDT() {
-  getCDT(_p2, _vertices, _triangles, _segments);
+  std::stringstream ss;
+  ss << bg::wkt(*(_p2));
+  Polygon3 p3;
+  bg::read_wkt(ss.str(), p3);
+  getCDT(&p3, _vertices, _triangles, _segments);
   return true;
 }
 
@@ -226,10 +230,7 @@ int Polygon3dBoundary::get_number_vertices() {
 
 
 std::string Polygon3dBoundary::get_3d_citygml() {
-  std::stringstream ss;
-  ss << "# vertices: " << _vertices.size() << std::endl;
-  ss << "# triangles: " << _triangles.size() << std::endl;
-  return ss.str(); 
+  return "EMPTY"; 
 }
 
 std::string Polygon3dBoundary::get_3d_csv() {
@@ -250,7 +251,6 @@ std::string Polygon3dBoundary::get_obj_f(int offset, bool floor) {
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
   return ss.str();
 }
-
 
 bool Polygon3dBoundary::add_elevation_point(double x, double y, double z) {
   _lidarpts.push_back(Point3(x, y, z));
@@ -276,12 +276,10 @@ std::string Polygon3dTin::get_lift_type() {
 }
 
 bool Polygon3dTin::threeDfy() {
-  //-- convert the Polygon2 to a Polygon3
   std::stringstream ss;
   ss << bg::wkt(*(_p2));
   bg::read_wkt(ss.str(), _p3);
   getCDT(&_p3, _vertices, _triangles, _segments, _lidarpts);
-  // getCDT(_p2, _vertices, _triangles, _segments, _lidarpts);
   return true;
 }
 
