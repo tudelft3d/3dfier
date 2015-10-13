@@ -103,12 +103,15 @@ public:
   int             get_number_vertices();
 private:
   std::string           _lifttype;
-  int                   _thin;
-  Polygon3              _p3;
+  int                   _thin_factor;
   std::vector<Point3>   _lidarpts;
   std::vector<Point3>   _vertices;  //-- output of Triangle
   std::vector<Triangle> _triangles; //-- output of Triangle
   std::vector<Segment>  _segments;  //-- output of Triangle
+
+  std::vector< std::tuple<int, float> > _vertexelevations;
+  bool assign_elevation_to_vertex(double x, double y, double z);
+  void add_elevations_to_boundary(Polygon3 &p3);
 };
 
 

@@ -52,7 +52,7 @@ int main(int argc, const char * argv[]) {
   for (auto it = n.begin(); it != n.end(); ++it) {
     YAML::Node tmp = (*it)["datasets"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-      map3d.add_las_file(it2->as<std::string>(), (*it)["thinning"].as<int>());
+      map3d.add_las_file(it2->as<std::string>(), (*it)["skip"].as<int>());
     }
   }
 
