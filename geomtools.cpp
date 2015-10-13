@@ -8,9 +8,11 @@
 #include "geomtools.h"
 
 
-
 //-- TODO: cheap code that randomly generates points if centroid is not inside. to update asap.
-void get_point_inside(Ring2& ring, Point2& p) {
+void get_point_inside(Ring3& ring3, Point2& p) {
+  Ring2 ring;
+  for (auto& v : ring3)
+    bg::append(ring, Point2(bg::get<0>(v), bg::get<1>(v)));
   bg::centroid(ring, p);
   if (bg::within(p, ring) == false) {
     Box bbox;
@@ -31,25 +33,28 @@ void get_point_inside(Ring2& ring, Point2& p) {
 }
 
 
-bool getCDT(const Polygon2* pgn, 
+
+
+// 
+bool getCDT(const Polygon3* pgn, 
             std::vector<Point3> &vertices, 
             std::vector<Triangle> &triangles, 
             std::vector<Segment> &segments, 
             const std::vector<Point3> &lidarpts) {
-  Ring2 oring = bg::exterior_ring(*pgn);
+  Ring3 oring = bg::exterior_ring(*pgn);
   auto irings = bg::interior_rings(*pgn);
   struct triangulateio in, out;
   in.numberofpointattributes = 1;
-  in.numberofpoints = bg::num_points(*pgn);
+  in.numberofpoints = int(bg::num_points(*pgn));
   in.numberofpoints += lidarpts.size();
   in.pointlist = (REAL *) malloc(in.numberofpoints * 2 * sizeof(REAL));
   in.pointattributelist = (REAL *) malloc(in.numberofpoints * in.numberofpointattributes * sizeof(REAL));
   int counter = 0;
   //-- oring
   for (int i = 0; i < oring.size(); i++) {
-    in.pointlist[counter++] = bg::get<0>(oring[i]);
-    in.pointlist[counter++] = bg::get<1>(oring[i]);
-    in.pointattributelist[i] = 0.0;
+    in.pointlist[counter++]  = bg::get<0>(oring[i]);
+    in.pointlist[counter++]  = bg::get<1>(oring[i]);
+    in.pointattributelist[i] = bg::get<2>(oring[i]);
   }
   //-- irings
   if (irings.size() == 0) {
@@ -63,7 +68,7 @@ bool getCDT(const Polygon2* pgn,
       for (int i = 0; i < iring.size(); i++) {
        in.pointlist[counter++] = bg::get<0>(iring[i]);
        in.pointlist[counter++] = bg::get<1>(iring[i]);
-       in.pointattributelist[(counter / 2) - 1] = 0.0;
+       in.pointattributelist[(counter / 2) - 1] = bg::get<2>(iring[i]);
       }
       Point2 pinside;
       get_point_inside(iring, pinside);

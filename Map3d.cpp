@@ -6,6 +6,7 @@
 
 Map3d::Map3d() {
   OGRRegisterAll();
+  _buildingfloor = false;
 }
 
 
@@ -20,7 +21,6 @@ std::string Map3d::get_citygml() {
   ss << get_xml_header();
   ss << get_citygml_namespaces();
   ss << "<gml:name>my3dmap</gml:name>";
-  // TODO : get bbox of dataset
   for (auto& p3 : _lsPolys) {
     ss << p3->get_3d_citygml();
   }
@@ -30,7 +30,7 @@ std::string Map3d::get_citygml() {
 
 std::string Map3d::get_csv() {
   std::stringstream ss;
-  ss << "id;3drep" << std::endl;
+  ss << "id;roof;floor" << std::endl;
   for (auto& p3 : _lsPolys) {
     ss << p3->get_3d_csv();
   }
@@ -51,7 +51,7 @@ std::string Map3d::get_obj() {
   for (auto& p3 : _lsPolys) {
     ss << "o " << p3->get_id() << std::endl;
     offset += offsets[i++];
-    ss << p3->get_obj_f(offset);
+    ss << p3->get_obj_f(offset, _buildingfloor);
   }
   return ss.str();
 }
@@ -67,28 +67,29 @@ const std::vector<Polygon3d*>& Map3d::get_polygons3d() {
 }
 
 
-Polygon3d* Map3d::add_point(double x, double y, double z, Polygon3d* trythisone) {
+Polygon3d* Map3d::add_elevation_point(double x, double y, double z, double buffer, Polygon3d* trythisone) {
   Point2 p(x, y);
   if (trythisone != NULL) {
-    if (bg::within(p, *(trythisone->get_Polygon2())) == true) {
+    if (bg::distance(p, *(trythisone->get_Polygon2())) < buffer) {
       trythisone->add_elevation_point(x, y, z);
       return trythisone;
     }
   }
   std::vector<PairIndexed> re;
-  Point2 minp(x - 0.5, y - 0.5);
-  Point2 maxp(x + 0.5, y + 0.5);
+  Point2 minp(x - 0.1, y - 0.1);
+  Point2 maxp(x + 0.1, y + 0.1);
   Box querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
   for (auto& v : re) {
-    Polygon3d* pgn3 = v.second;
-    if (bg::within(p, *(pgn3->get_Polygon2())) == true) {
-      pgn3->add_elevation_point(x, y, z);
-      return pgn3;
+    Polygon3d* pgn = v.second;
+    if (bg::distance(p, *(pgn->get_Polygon2())) < buffer) {     
+      pgn->add_elevation_point(x, y, z);
+      return pgn;
     }
   }
   return NULL;
 }
+
 
 bool Map3d::threeDfy() {
   for (auto& p3 : _lsPolys)
@@ -207,16 +208,17 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
     liblas::Point const& p = reader.GetPoint();
     if (skip != 0) {
       if (i % skip == 0)
-        lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+        lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), 2.0, lastone);
     }
     else {
-      lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+      lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), 2.0, lastone);
     }
     if (i % 100000 == 0) 
       printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
     i++;
   }
   std::clog << "done" << std::endl;
+  ifs.close();
   return true;
 }
 

@@ -21,7 +21,7 @@ public:
 
   bool construct_rtree();
   bool threeDfy();
-  Polygon3d* add_point(double x, double y, double z, Polygon3d* trythisone = NULL);
+  Polygon3d* add_elevation_point(double x, double y, double z, double buffer = 2.0, Polygon3d* trythisone = NULL);
 
   unsigned long get_num_polygons();
   const std::vector<Polygon3d*>& get_polygons3d();  
@@ -30,6 +30,7 @@ public:
   std::string get_csv();
   std::string get_obj();
      
+  bool        _buildingfloor;
 private:
   std::vector<Polygon3d*>   _lsPolys;
   std::vector<std::string>  _allowed_layers;
