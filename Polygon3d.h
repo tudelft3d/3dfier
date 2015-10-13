@@ -63,6 +63,12 @@ private:
 };
 
 
+class Building : public Polygon3dBlock
+{
+public:
+  Building (Polygon2* p, std::string pid, std::string lifttype); 
+};
+
 //---------------------------------------------
 
 class Polygon3dBoundary : public Polygon3d

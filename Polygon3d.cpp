@@ -29,6 +29,13 @@ Polygon2* Polygon3d::get_Polygon2() {
 //-------------------------------
 //-------------------------------
 
+Building::Building(Polygon2* p, std::string pid, std::string lifttype) : Polygon3dBlock(p, pid, lifttype)
+{}
+
+//-------------------------------
+//-------------------------------
+
+
 Polygon3dBlock::Polygon3dBlock(Polygon2* p, std::string pid, std::string lifttype) : Polygon3d(p, pid) 
 {
   _lifttype = lifttype;
