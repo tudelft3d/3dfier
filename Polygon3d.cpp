@@ -220,7 +220,11 @@ std::string Polygon3dBoundary::get_lift_type() {
 }
 
 bool Polygon3dBoundary::threeDfy() {
-  getCDT(_p2, _vertices, _triangles, _segments);
+  std::stringstream ss;
+  ss << bg::wkt(*(_p2));
+  Polygon3 p3;
+  bg::read_wkt(ss.str(), p3);
+  getCDT(&p3, _vertices, _triangles, _segments);
   return true;
 }
 
