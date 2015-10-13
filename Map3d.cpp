@@ -218,6 +218,7 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
     i++;
   }
   std::clog << "done" << std::endl;
+  ifs.close();
   return true;
 }
 

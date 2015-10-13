@@ -184,11 +184,11 @@ bool Polygon3dBlock::assign_elevation_to_vertex(double x, double y, double z) {
       if (z < _vertexelevations[i])
         _vertexelevations[i] = z;
   }
+  int offset = int(bg::num_points(oring));
   auto irings = bg::interior_rings(*(_p2));
-  std::size_t offset = bg::num_points(*(_p2));
   for (Ring2& iring: irings) {
     for (int i = 0; i < iring.size(); i++) {
-      if (bg::distance(p, iring[i]) <= 2.0)
+      if (bg::distance(p, iring) <= 2.0)
         if (z < _vertexelevations[i + offset])
         _vertexelevations[i + offset] = z;
     }
@@ -270,9 +270,10 @@ Polygon3dTin::Polygon3dTin(Polygon2* p, std::string pid, std::string lifttype) :
   _lifttype = lifttype;
   std::string t = lifttype.substr(lifttype.find_first_of("-") + 1);
   if (t == "ALL")
-    _thin = 0;
+    _thin_factor = 0;
   else 
-    _thin = std::stoi(t);
+    _thin_factor = std::stoi(t);
+  _vertexelevations.resize(bg::num_points(*(_p2)));
 }
 
 std::string Polygon3dTin::get_lift_type() {
@@ -282,9 +283,40 @@ std::string Polygon3dTin::get_lift_type() {
 bool Polygon3dTin::threeDfy() {
   std::stringstream ss;
   ss << bg::wkt(*(_p2));
-  bg::read_wkt(ss.str(), _p3);
-  getCDT(&_p3, _vertices, _triangles, _segments, _lidarpts);
+  Polygon3 p3;
+  bg::read_wkt(ss.str(), p3);
+  add_elevations_to_boundary(p3);
+  getCDT(&p3, _vertices, _triangles, _segments, _lidarpts);
   return true;
+}
+
+
+void Polygon3dTin::add_elevations_to_boundary(Polygon3 &p3) {
+
+  //-- check if errors
+  for (int i = 0; i < _vertexelevations.size(); i++) {
+    if (std::get<0>(_vertexelevations[i]) == 0) {
+      std::cout << "ELEVATION MISSING" << std::endl;
+      float before = std::get<0>(_vertexelevations[i - 1]);
+      float after = std::get<0>(_vertexelevations[i + 1]);
+      std::cout << (before + after) / 2 << std::endl;
+    }
+  }
+
+  Ring3 oring = bg::exterior_ring(p3);
+  for (int i = 0; i < oring.size(); i++) {
+    float z = std::get<1>(_vertexelevations[i]) / (float(std::get<0>(_vertexelevations[i])));
+    bg::set<2>(bg::exterior_ring(p3)[i], z);
+  }
+  auto irings = bg::interior_rings(p3);
+  std::size_t offset = bg::num_points(p3);
+  for (Ring3& iring: irings) {
+    for (int i = 0; i < iring.size(); i++) {
+      float z = std::get<1>(_vertexelevations[i + offset]) / (float(std::get<0>(_vertexelevations[i + offset])));
+      bg::set<2>(bg::exterior_ring(p3)[i + offset], z);
+    }
+    offset += bg::num_points(iring);
+  }
 }
 
 int Polygon3dTin::get_number_vertices() {
@@ -318,14 +350,46 @@ std::string Polygon3dTin::get_obj_f(int offset, bool floor) {
 
 
 bool Polygon3dTin::add_elevation_point(double x, double y, double z) {
-  if (_thin == 0)
-    _lidarpts.push_back(Point3(x, y, z));
-  else {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> dis(1, _thin); 
-    if (dis(gen) == 1)
+  Point2 p(x, y);
+  //-- 1. add points to surface if inside
+  if (bg::within(p, *(_p2)) == true) {
+    if (_thin_factor == 0)
       _lidarpts.push_back(Point3(x, y, z));
+    else {
+      std::random_device rd;
+      std::mt19937 gen(rd());
+      std::uniform_int_distribution<int> dis(1, _thin_factor); 
+      if (dis(gen) == 1)
+        _lidarpts.push_back(Point3(x, y, z));
+    }
+  }
+  //-- 2. add to the vertices of the pgn to find their heights
+  assign_elevation_to_vertex(x, y, z);
+  return true;
+}
+
+
+//-- TODO: brute-force == not good
+bool Polygon3dTin::assign_elevation_to_vertex(double x, double y, double z) {
+  //-- assign the AVERAGE to each
+  Point2 p(x, y);
+  Ring2 oring = bg::exterior_ring(*(_p2));
+  for (int i = 0; i < oring.size(); i++) {
+    if (bg::distance(p, oring[i]) <= 2.0) {
+      std::get<0>(_vertexelevations[i]) += 1;
+      std::get<1>(_vertexelevations[i]) += z;  
+    }
+  }
+  int offset = int(bg::num_points(oring));
+  auto irings = bg::interior_rings(*(_p2));
+  for (Ring2& iring: irings) {
+    for (int i = 0; i < iring.size(); i++) {
+      if (bg::distance(p, iring) <= 2.0) {
+        std::get<0>(_vertexelevations[i + offset]) += 1;
+        std::get<1>(_vertexelevations[i + offset]) += z;
+      }
+    }
+    offset += bg::num_points(iring);
   }
   return true;
 }
