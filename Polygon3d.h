@@ -44,19 +44,21 @@ public:
   std::string     get_3d_csv();
   std::string     get_obj_v();
   std::string     get_obj_f(int offset);
-  double          get_roof_height();
-  double          get_ground_height();
+  float           get_roof_height();
+  float           get_floor_height();
   std::string     get_lift_type();
   int             get_number_vertices();
 private:
-  std::vector<double>   _zvalues;
-  std::vector<double>   _vertexelevations;
+  bool                  _is3d;
+
+  std::vector<float>    _zvaluesinside;
+  std::vector<float>    _vertexelevations;
   std::string           _lifttype;
   std::vector<Point3>   _vertices;
   std::vector<Triangle> _triangles;
   std::vector<Segment>  _segments;
-  bool build_CDT();
   bool assign_elevation_to_vertex(double x, double y, double z);
+  bool build_CDT();
 };
 
 

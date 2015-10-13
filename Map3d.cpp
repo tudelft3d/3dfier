@@ -20,7 +20,6 @@ std::string Map3d::get_citygml() {
   ss << get_xml_header();
   ss << get_citygml_namespaces();
   ss << "<gml:name>my3dmap</gml:name>";
-  // TODO : get bbox of dataset
   for (auto& p3 : _lsPolys) {
     ss << p3->get_3d_citygml();
   }
@@ -76,8 +75,8 @@ Polygon3d* Map3d::add_elevation_point(double x, double y, double z, double buffe
     }
   }
   std::vector<PairIndexed> re;
-  Point2 minp(x - 0.5, y - 0.5);
-  Point2 maxp(x + 0.5, y + 0.5);
+  Point2 minp(x - 0.1, y - 0.1);
+  Point2 maxp(x + 0.1, y + 0.1);
   Box querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
   for (auto& v : re) {
@@ -89,6 +88,7 @@ Polygon3d* Map3d::add_elevation_point(double x, double y, double z, double buffe
   }
   return NULL;
 }
+
 
 bool Map3d::threeDfy() {
   for (auto& p3 : _lsPolys)

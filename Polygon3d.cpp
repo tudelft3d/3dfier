@@ -60,7 +60,7 @@ std::string Polygon3dBlock::get_3d_citygml() {
   ss << "<gml:exterior>";
   ss << "<gml:CompositeSurface>";
   //-- get floor
-  ss << get_polygon_lifted_gml(this->_p2, 0, false);
+  ss << get_polygon_lifted_gml(this->_p2, this->get_floor_height(), false);
   //-- get roof
   ss << get_polygon_lifted_gml(this->_p2, this->get_roof_height(), true);
   //-- get the walls
@@ -78,7 +78,7 @@ std::string Polygon3dBlock::get_3d_citygml() {
 
 std::string Polygon3dBlock::get_3d_csv() {
   std::stringstream ss;
-  ss << this->get_id() << ";" << this->get_roof_height() << ";" << this->get_ground_height() << std::endl;
+  ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_roof_height() << ";" << this->get_floor_height() << std::endl;
   return ss.str(); 
 }
 
@@ -87,7 +87,7 @@ std::string Polygon3dBlock::get_obj_v() {
   for (auto& v : _vertices)
     ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_roof_height() << std::endl;
   for (auto& v : _vertices)
-    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_ground_height() << std::endl;
+    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_floor_height() << std::endl;
   return ss.str();
 }
 
@@ -110,14 +110,14 @@ std::string Polygon3dBlock::get_obj_f(int offset) {
   return ss.str();
 }
 
-double Polygon3dBlock::get_roof_height() {
+float Polygon3dBlock::get_roof_height() {
   // TODO : return an error if no points
-  if (_zvalues.size() == 0)
+  if (_zvaluesinside.size() == 0)
     return -9999;
   std::string t = _lifttype.substr(_lifttype.find_first_of("-") + 1);
   if (t == "MAX") {
     double v = -9999;
-    for (auto z : _zvalues) {
+    for (auto z : _zvaluesinside) {
       if (z > v)
         v = z;
     }
@@ -125,7 +125,7 @@ double Polygon3dBlock::get_roof_height() {
   }
   else if (t == "MIN") {
     double v = 9999;
-    for (auto z : _zvalues) {
+    for (auto z : _zvaluesinside) {
       if (z < v)
         v = z;
     }
@@ -133,13 +133,13 @@ double Polygon3dBlock::get_roof_height() {
   }
   else if (t == "AVG") {
     double sum = 0.0;
-    for (auto z : _zvalues) 
+    for (auto z : _zvaluesinside) 
       sum += z;
-    return (sum / _zvalues.size());
+    return (sum / _zvaluesinside.size());
   }
   else if (t == "MEDIAN") {
-    std::nth_element(_zvalues.begin(), _zvalues.begin() + (_zvalues.size() / 2), _zvalues.end());
-    return _zvalues[_zvalues.size() / 2];
+    std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() / 2), _zvaluesinside.end());
+    return _zvaluesinside[_zvaluesinside.size() / 2];
   }
   else {
     std::cout << "UNKNOWN HEIGHT" << std::endl;
@@ -148,7 +148,7 @@ double Polygon3dBlock::get_roof_height() {
 }
 
 
-double Polygon3dBlock::get_ground_height() {
+float Polygon3dBlock::get_floor_height() {
   return *(std::min_element(std::begin(_vertexelevations), std::end(_vertexelevations)));
 }
 
@@ -156,7 +156,7 @@ bool Polygon3dBlock::add_elevation_point(double x, double y, double z) {
   Point2 p(x, y);
   //-- 1. assign to polygon if inside
   if (bg::within(p, *(_p2)) == true)
-    _zvalues.push_back(z);
+    _zvaluesinside.push_back(z);
   //-- 2. add to the vertices of the pgn to find their heights
   assign_elevation_to_vertex(x, y, z);
   return true;
@@ -174,7 +174,7 @@ bool Polygon3dBlock::assign_elevation_to_vertex(double x, double y, double z) {
         _vertexelevations[i] = z;
   }
   auto irings = bg::interior_rings(*(_p2));
-  int offset = bg::num_points(*(_p2));
+  std::size_t offset = bg::num_points(*(_p2));
   for (Ring2& iring: irings) {
     for (int i = 0; i < iring.size(); i++) {
       if (bg::distance(p, iring[i]) <= 2.0)
@@ -210,7 +210,7 @@ bool Polygon3dBoundary::threeDfy() {
 }
 
 int Polygon3dBoundary::get_number_vertices() {
-  return _vertices.size();
+  return int(_vertices.size());
 }
 
 

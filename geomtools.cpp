@@ -40,7 +40,7 @@ bool getCDT(const Polygon2* pgn,
   auto irings = bg::interior_rings(*pgn);
   struct triangulateio in, out;
   in.numberofpointattributes = 1;
-  in.numberofpoints = bg::num_points(*pgn);
+  in.numberofpoints = int(bg::num_points(*pgn));
   in.numberofpoints += lidarpts.size();
   in.pointlist = (REAL *) malloc(in.numberofpoints * 2 * sizeof(REAL));
   in.pointattributelist = (REAL *) malloc(in.numberofpoints * in.numberofpointattributes * sizeof(REAL));
