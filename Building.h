@@ -16,6 +16,8 @@ class Building : public Block
 {
 public:
   Building (Polygon2* p, std::string pid, std::string heightref);
+
+  std::string get_citygml();
 };
 
 

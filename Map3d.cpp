@@ -43,7 +43,7 @@ std::string Map3d::get_citygml() {
   ss << get_citygml_namespaces();
   ss << "<gml:name>my3dmap</gml:name>";
   for (auto& p3 : _lsPolys) {
-    ss << p3->get_3d_citygml();
+    ss << p3->get_citygml();
   }
   ss << "</CityModel>";
   return ss.str();
@@ -53,7 +53,7 @@ std::string Map3d::get_csv() {
   std::stringstream ss;
   ss << "id;roof;floor" << std::endl;
   for (auto& p3 : _lsPolys) {
-    ss << p3->get_3d_csv();
+    ss << p3->get_csv();
   }
   return ss.str();
 }
@@ -190,7 +190,7 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
             _lsPolys.push_back(p3);
           }
           else if (l.second == "Terrain") {
-            Terrain* p3 = new Terrain(p2, f->GetFieldAsString(idfield.c_str()), std::stoi(l.second));
+            Terrain* p3 = new Terrain(p2, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
             _lsPolys.push_back(p3);
           }
 

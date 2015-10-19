@@ -59,35 +59,13 @@ bool Block::threeDfy() {
   return true;
 }
 
-std::string Block::get_3d_citygml() {
-  std::stringstream ss;
-  ss << "<cityObjectMember>";
-  ss << "<bldg:Building>";
-  ss << "<bldg:measuredHeight uom=\"#m\">";
-  ss << this->get_roof_height();
-  ss << "</bldg:measuredHeight>";
-  ss << "<bldg:lod1Solid>";
-  ss << "<gml:Solid>";
-  ss << "<gml:exterior>";
-  ss << "<gml:CompositeSurface>";
-  //-- get floor
-  ss << get_polygon_lifted_gml(this->_p2, this->get_floor_height(), false);
-  //-- get roof
-  ss << get_polygon_lifted_gml(this->_p2, this->get_roof_height(), true);
-  //-- get the walls
-  auto r = bg::exterior_ring(*(this->_p2));
-  for (int i = 0; i < (r.size() - 1); i++) 
-    ss << get_extruded_line_gml(&r[i], &r[i + 1], this->get_roof_height(), 0, false);
-  ss << "</gml:CompositeSurface>";
-  ss << "</gml:exterior>";
-  ss << "</gml:Solid>";
-  ss << "</bldg:lod1Solid>";
-  ss << "</bldg:Building>";
-  ss << "</cityObjectMember>";
-  return ss.str(); 
+std::string Block::get_citygml() {
+  //-- TODO: CityGML implementation for TIN type
+  return "EMTPY";
 }
 
-std::string Block::get_3d_csv() {
+
+std::string Block::get_csv() {
   std::stringstream ss;
   ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_roof_height() << ";" << this->get_floor_height() << std::endl;
   return ss.str(); 
@@ -127,7 +105,7 @@ float Block::get_roof_height() {
   if (_zvaluesinside.size() == 0)
     return -9999;
   // std::string t = _heightref.substr(_heightref.find_first_of("-") + 1);
-  if (_heightref == "MAX") {
+  if (_heightref == "max") {
     double v = -9999;
     for (auto z : _zvaluesinside) {
       if (z > v)
@@ -135,7 +113,7 @@ float Block::get_roof_height() {
     }
     return v;
   }
-  else if (_heightref == "MIN") {
+  else if (_heightref == "min") {
     double v = 9999;
     for (auto z : _zvaluesinside) {
       if (z < v)
@@ -143,13 +121,13 @@ float Block::get_roof_height() {
     }
     return v;
   }
-  else if (_heightref == "AVG") {
+  else if (_heightref == "avg") {
     double sum = 0.0;
     for (auto z : _zvaluesinside) 
       sum += z;
     return (sum / _zvaluesinside.size());
   }
-  else if (_heightref == "MEDIAN") {
+  else if (_heightref == "median") {
     std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() / 2), _zvaluesinside.end());
     return _zvaluesinside[_zvaluesinside.size() / 2];
   }
@@ -236,11 +214,11 @@ int Boundary3D::get_number_vertices() {
 }
 
 
-std::string Boundary3D::get_3d_citygml() {
+std::string Boundary3D::get_citygml() {
   return "EMPTY"; 
 }
 
-std::string Boundary3D::get_3d_csv() {
+std::string Boundary3D::get_csv() {
   return "EMPTY"; 
 }
 
@@ -331,12 +309,12 @@ int TIN::get_number_vertices() {
 }
 
 
-std::string TIN::get_3d_citygml() {
+std::string TIN::get_citygml() {
   //-- TODO: CityGML implementation for TIN type
   return "EMTPY";
 }
 
-std::string TIN::get_3d_csv() {
+std::string TIN::get_csv() {
   return "EMPTY"; 
 }
 

@@ -16,8 +16,8 @@ public:
   virtual bool          threeDfy() = 0;
   virtual bool          add_elevation_point(double x, double y, double z) = 0;
   virtual std::string   get_lift_type() = 0;
-  virtual std::string   get_3d_citygml() = 0;
-  virtual std::string   get_3d_csv() = 0;
+  virtual std::string   get_citygml() = 0;
+  virtual std::string   get_csv() = 0;
   virtual std::string   get_obj_v() = 0;
   virtual std::string   get_obj_f(int offset, bool floor = false) = 0;
   virtual int           get_number_vertices() = 0;
@@ -40,8 +40,8 @@ public:
   
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
-  std::string     get_3d_citygml();
-  std::string     get_3d_csv();
+  std::string     get_csv();
+  std::string     get_citygml();
   std::string     get_obj_v();
   std::string     get_obj_f(int offset, bool floor = false);
   float           get_roof_height();
@@ -72,8 +72,8 @@ public:
   
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
-  std::string     get_3d_citygml();
-  std::string     get_3d_csv();
+  std::string     get_citygml();
+  std::string     get_csv();
   std::string     get_obj_v();
   std::string     get_obj_f(int offset, bool floor = false);
   std::string     get_lift_type();
@@ -95,8 +95,8 @@ public:
   
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
-  std::string     get_3d_citygml();
-  std::string     get_3d_csv();
+  std::string     get_citygml();
+  std::string     get_csv();
   std::string     get_obj_v();
   std::string     get_obj_f(int offset, bool floor = false);
   std::string     get_lift_type();
