@@ -6,6 +6,8 @@
 #include "TopoFeature.h"
 #include "Building.h"
 #include "Terrain.h"
+#include "Vegetation.h"
+#include "Water.h"
 
 typedef std::pair<Box, TopoFeature*> PairIndexed;
 

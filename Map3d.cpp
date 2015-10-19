@@ -137,9 +137,9 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::vecto
     std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
     return false;
   }
-  this->extract_and_add_polygon(dataSource, idfield, layers);
+  bool wentgood = this->extract_and_add_polygon(dataSource, idfield, layers);
   OGRDataSource::DestroyDataSource(dataSource);
-  return true;
+  return wentgood;
 }
 
 
@@ -157,13 +157,14 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
     std::pair<std::string, std::string> p(dataLayer->GetName(), lifting);
     layers.push_back(p);
   }
-  this->extract_and_add_polygon(dataSource, idfield, layers);
+  bool wentgood = this->extract_and_add_polygon(dataSource, idfield, layers);
   OGRDataSource::DestroyDataSource(dataSource);
-  return true;
+  return wentgood;
 }
 
 
 bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers) {
+ bool wentgood = true;
  for (auto l : layers) {
     OGRLayer *dataLayer = dataSource->GetLayerByName((l.first).c_str());
     if (dataLayer == NULL) {
@@ -195,15 +196,18 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
             Terrain* p3 = new Terrain(p2, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
             _lsPolys.push_back(p3);
           }
-
-          // else if (t == "BOUNDARY3D") {
-          //   Boundary3D* p3 = new Boundary3D(p2, f->GetFieldAsString(idfield.c_str()));
-          //   _lsPolys.push_back(p3);            
-          // }
-          // else if (t == "TIN") {
-          //   TIN* p3 = new TIN(p2, f->GetFieldAsString(idfield.c_str()), l.second);
-          //   _lsPolys.push_back(p3);
-          // }
+          else if (l.second == "Vegetation") {
+            Vegetation* p3 = new Vegetation(p2, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
+            _lsPolys.push_back(p3);
+          }
+          else if (l.second == "Water") {
+            Water* p3 = new Water(p2, f->GetFieldAsString(idfield.c_str()));
+            _lsPolys.push_back(p3);
+          }
+          else {
+            std::clog << "ERROR: lifting class '" << l.second << "' unknown!" << std::endl;
+            wentgood = false;
+          }
           break;
         }
         default: {
@@ -212,7 +216,7 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
       }
     }
   }
-  return true;
+  return wentgood;
 }
 
 

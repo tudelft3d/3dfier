@@ -36,9 +36,9 @@ int main(int argc, const char * argv[]) {
       map3d.set_terrain_simplification(n["Vegetation"]["simplification"].as<int>());
 
 
- 
   //-- add the polygons
   n = nodes["input_polygons"];
+  bool wentgood = true;
   for (auto it = n.begin(); it != n.end(); ++it) {
     if ((*it)["layers"]) {
       YAML::Node tmp = (*it)["layers"];
@@ -49,20 +49,25 @@ int main(int argc, const char * argv[]) {
       }
       tmp = (*it)["datasets"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-        map3d.add_polygons_file(it2->as<std::string>(),
-                                (*it)["uniqueid"].as<std::string>(),
-                                layers);
+        wentgood = map3d.add_polygons_file(it2->as<std::string>(),
+                                           (*it)["uniqueid"].as<std::string>(),
+                                           layers);
       }
     }
     else if ((*it)["lifting"]) {
       YAML::Node tmp = (*it)["datasets"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-        map3d.add_polygons_file(it2->as<std::string>(),
-                                (*it)["uniqueid"].as<std::string>(),
-                                (*it)["lifting"].as<std::string>());
+        wentgood = map3d.add_polygons_file(it2->as<std::string>(),
+                                           (*it)["uniqueid"].as<std::string>(),
+                                           (*it)["lifting"].as<std::string>());
       }
     }
   }
+  if (wentgood == false) {
+    std::cerr << "Something went bad while reading input polygons. Abort." << std::endl;
+    return 0;
+  }
+
   std::clog << "\nTotal # of polygons: " << map3d.get_num_polygons() << std::endl;
   
   //-- spatially index the polygons
