@@ -1,7 +1,5 @@
-
 #include "Map3d.h"
-#include "input.h"
-
+#include "io.h"
 
 
 Map3d::Map3d() {
@@ -62,12 +60,12 @@ unsigned long Map3d::get_num_polygons() {
 }
 
 
-const std::vector<Polygon3d*>& Map3d::get_polygons3d() {
+const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
   return _lsPolys;
 }
 
 
-Polygon3d* Map3d::add_elevation_point(double x, double y, double z, double buffer, Polygon3d* trythisone) {
+TopoFeature* Map3d::add_elevation_point(double x, double y, double z, double buffer, TopoFeature* trythisone) {
   Point2 p(x, y);
   if (trythisone != NULL) {
     if (bg::distance(p, *(trythisone->get_Polygon2())) < buffer) {
@@ -81,7 +79,7 @@ Polygon3d* Map3d::add_elevation_point(double x, double y, double z, double buffe
   Box querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
   for (auto& v : re) {
-    Polygon3d* pgn = v.second;
+    TopoFeature* pgn = v.second;
     if (bg::distance(p, *(pgn->get_Polygon2())) < buffer) {     
       pgn->add_elevation_point(x, y, z);
       return pgn;
@@ -146,15 +144,15 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
           bg::unique(*p2); //-- remove duplicate vertices
           std::string t = l.second.substr(0, l.second.find_first_of("-"));
           if (t == "BLOCK") {
-            Polygon3dBlock* p3 = new Polygon3dBlock(p2, f->GetFieldAsString(idfield.c_str()), l.second);
+            Block* p3 = new Block(p2, f->GetFieldAsString(idfield.c_str()), l.second);
             _lsPolys.push_back(p3);
           }
           else if (t == "BOUNDARY3D") {
-            Polygon3dBoundary* p3 = new Polygon3dBoundary(p2, f->GetFieldAsString(idfield.c_str()));
+            Boundary3D* p3 = new Boundary3D(p2, f->GetFieldAsString(idfield.c_str()));
             _lsPolys.push_back(p3);            
           }
           else if (t == "TIN") {
-            Polygon3dTin* p3 = new Polygon3dTin(p2, f->GetFieldAsString(idfield.c_str()), l.second);
+            TIN* p3 = new TIN(p2, f->GetFieldAsString(idfield.c_str()), l.second);
             _lsPolys.push_back(p3);
           }
           break;
@@ -203,7 +201,7 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
   liblas::Header const& header = reader.GetHeader();
   std::clog << "\t(" << header.GetPointRecordsCount() << " points)" << std::endl;
   int i = 0;
-  Polygon3d* lastone = NULL;
+  TopoFeature* lastone = NULL;
   while (reader.ReadNextPoint()) {
     liblas::Point const& p = reader.GetPoint();
     if (skip != 0) {

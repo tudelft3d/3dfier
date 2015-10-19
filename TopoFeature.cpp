@@ -1,57 +1,53 @@
 
-#include "Polygon3d.h"
-#include "input.h"
+#include "TopoFeature.h"
+#include "io.h"
 
-Polygon3d::Polygon3d(Polygon2* p, std::string pid) {
+TopoFeature::TopoFeature(Polygon2* p, std::string pid) {
   _id = pid;
   _p2 = p;
 }
 
-Polygon3d::~Polygon3d() {
+TopoFeature::~TopoFeature() {
   // TODO: clear memory properly
   std::cout << "I am dead" << std::endl;
 }
 
-Box Polygon3d::get_bbox2d() {
+Box TopoFeature::get_bbox2d() {
   return bg::return_envelope<Box>(*_p2);
 }
 
-std::string Polygon3d::get_id() {
+std::string TopoFeature::get_id() {
   return _id;
 }
 
-Polygon2* Polygon3d::get_Polygon2() {
+Polygon2* TopoFeature::get_Polygon2() {
     return _p2;
 }
 
 
 
-//-------------------------------
-//-------------------------------
 
-Building::Building(Polygon2* p, std::string pid, std::string lifttype) : Polygon3dBlock(p, pid, lifttype)
-{}
 
 //-------------------------------
 //-------------------------------
 
 
-Polygon3dBlock::Polygon3dBlock(Polygon2* p, std::string pid, std::string lifttype) : Polygon3d(p, pid) 
+Block::Block(Polygon2* p, std::string pid, std::string lifttype) : TopoFeature(p, pid) 
 {
   _lifttype = lifttype;
   _is3d = false;
   _vertexelevations.assign(bg::num_points(*(_p2)), 9999);
 }
 
-std::string Polygon3dBlock::get_lift_type() {
+std::string Block::get_lift_type() {
   return _lifttype;
 }
 
-int Polygon3dBlock::get_number_vertices() {
+int Block::get_number_vertices() {
   return int(2 * _vertices.size());
 }
 
-bool Polygon3dBlock::threeDfy() {
+bool Block::threeDfy() {
   build_CDT();
   _floorheight = this->get_floor_height();
   _roofheight = this->get_roof_height();
@@ -63,7 +59,7 @@ bool Polygon3dBlock::threeDfy() {
   return true;
 }
 
-std::string Polygon3dBlock::get_3d_citygml() {
+std::string Block::get_3d_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>";
   ss << "<bldg:Building>";
@@ -91,13 +87,13 @@ std::string Polygon3dBlock::get_3d_citygml() {
   return ss.str(); 
 }
 
-std::string Polygon3dBlock::get_3d_csv() {
+std::string Block::get_3d_csv() {
   std::stringstream ss;
   ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_roof_height() << ";" << this->get_floor_height() << std::endl;
   return ss.str(); 
 }
 
-std::string Polygon3dBlock::get_obj_v() {
+std::string Block::get_obj_v() {
   std::stringstream ss;
   for (auto& v : _vertices)
     ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_roof_height() << std::endl;
@@ -106,7 +102,7 @@ std::string Polygon3dBlock::get_obj_v() {
   return ss.str();
 }
 
-std::string Polygon3dBlock::get_obj_f(int offset, bool floor) {
+std::string Block::get_obj_f(int offset, bool floor) {
   std::stringstream ss;
   ss << "usemtl block" << std::endl;
   //-- roof
@@ -125,7 +121,7 @@ std::string Polygon3dBlock::get_obj_f(int offset, bool floor) {
   return ss.str();
 }
 
-float Polygon3dBlock::get_roof_height() {
+float Block::get_roof_height() {
   if (_is3d == true)
     return _roofheight;
   if (_zvaluesinside.size() == 0)
@@ -164,13 +160,13 @@ float Polygon3dBlock::get_roof_height() {
 }
 
 
-float Polygon3dBlock::get_floor_height() {
+float Block::get_floor_height() {
   if (_is3d == true)
     return _floorheight;
   return *(std::min_element(std::begin(_vertexelevations), std::end(_vertexelevations)));
 }
 
-bool Polygon3dBlock::add_elevation_point(double x, double y, double z) {
+bool Block::add_elevation_point(double x, double y, double z) {
   Point2 p(x, y);
   //-- 1. assign to polygon if inside
   if (bg::within(p, *(_p2)) == true)
@@ -182,7 +178,7 @@ bool Polygon3dBlock::add_elevation_point(double x, double y, double z) {
 
 
 //-- TODO: okay here brute-force, use of flann is points>200 (to benchmark perhaps?)  
-bool Polygon3dBlock::assign_elevation_to_vertex(double x, double y, double z) {
+bool Block::assign_elevation_to_vertex(double x, double y, double z) {
   //-- assign the MINIMUM to each
   Point2 p(x, y);
   Ring2 oring = bg::exterior_ring(*(_p2));
@@ -205,7 +201,7 @@ bool Polygon3dBlock::assign_elevation_to_vertex(double x, double y, double z) {
 }
 
 
-bool Polygon3dBlock::build_CDT() {
+bool Block::build_CDT() {
   std::stringstream ss;
   ss << bg::wkt(*(_p2));
   Polygon3 p3;
@@ -218,15 +214,15 @@ bool Polygon3dBlock::build_CDT() {
 //-------------------------------
 //-------------------------------
 
-Polygon3dBoundary::Polygon3dBoundary(Polygon2* p, std::string pid) : Polygon3d(p, pid) 
+Boundary3D::Boundary3D(Polygon2* p, std::string pid) : TopoFeature(p, pid) 
 {
 }
 
-std::string Polygon3dBoundary::get_lift_type() {
+std::string Boundary3D::get_lift_type() {
   return "BOUNDARY3D";
 }
 
-bool Polygon3dBoundary::threeDfy() {
+bool Boundary3D::threeDfy() {
   std::stringstream ss;
   ss << bg::wkt(*(_p2));
   Polygon3 p3;
@@ -235,27 +231,27 @@ bool Polygon3dBoundary::threeDfy() {
   return true;
 }
 
-int Polygon3dBoundary::get_number_vertices() {
+int Boundary3D::get_number_vertices() {
   return int(_vertices.size());
 }
 
 
-std::string Polygon3dBoundary::get_3d_citygml() {
+std::string Boundary3D::get_3d_citygml() {
   return "EMPTY"; 
 }
 
-std::string Polygon3dBoundary::get_3d_csv() {
+std::string Boundary3D::get_3d_csv() {
   return "EMPTY"; 
 }
 
-std::string Polygon3dBoundary::get_obj_v() {
+std::string Boundary3D::get_obj_v() {
   std::stringstream ss;
   for (auto& v : _vertices)
     ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
   return ss.str();
 }
 
-std::string Polygon3dBoundary::get_obj_f(int offset, bool floor) {
+std::string Boundary3D::get_obj_f(int offset, bool floor) {
   std::stringstream ss;
   ss << "usemtl boundary3d" << std::endl;
   for (auto& t : _triangles)
@@ -263,7 +259,7 @@ std::string Polygon3dBoundary::get_obj_f(int offset, bool floor) {
   return ss.str();
 }
 
-bool Polygon3dBoundary::add_elevation_point(double x, double y, double z) {
+bool Boundary3D::add_elevation_point(double x, double y, double z) {
   _lidarpts.push_back(Point3(x, y, z));
   return true;
 }
@@ -272,7 +268,7 @@ bool Polygon3dBoundary::add_elevation_point(double x, double y, double z) {
 //-------------------------------
 //-------------------------------
 
-Polygon3dTin::Polygon3dTin(Polygon2* p, std::string pid, std::string lifttype) : Polygon3d(p, pid) 
+TIN::TIN(Polygon2* p, std::string pid, std::string lifttype) : TopoFeature(p, pid) 
 {
   _lifttype = lifttype;
   std::string t = lifttype.substr(lifttype.find_first_of("-") + 1);
@@ -283,11 +279,11 @@ Polygon3dTin::Polygon3dTin(Polygon2* p, std::string pid, std::string lifttype) :
   _vertexelevations.resize(bg::num_points(*(_p2)));
 }
 
-std::string Polygon3dTin::get_lift_type() {
+std::string TIN::get_lift_type() {
   return _lifttype;
 }
 
-bool Polygon3dTin::threeDfy() {
+bool TIN::threeDfy() {
   std::stringstream ss;
   ss << bg::wkt(*(_p2));
   Polygon3 p3;
@@ -298,7 +294,7 @@ bool Polygon3dTin::threeDfy() {
 }
 
 
-void Polygon3dTin::add_elevations_to_boundary(Polygon3 &p3) {
+void TIN::add_elevations_to_boundary(Polygon3 &p3) {
   float avg = 0.0;
   int count = 0;
   for (int i = 0; i < _vertexelevations.size(); i++) {
@@ -335,28 +331,28 @@ void Polygon3dTin::add_elevations_to_boundary(Polygon3 &p3) {
   }
 }
 
-int Polygon3dTin::get_number_vertices() {
+int TIN::get_number_vertices() {
   return int(_vertices.size());
 }
 
 
-std::string Polygon3dTin::get_3d_citygml() {
+std::string TIN::get_3d_citygml() {
   //-- TODO: CityGML implementation for TIN type
   return "EMTPY";
 }
 
-std::string Polygon3dTin::get_3d_csv() {
+std::string TIN::get_3d_csv() {
   return "EMPTY"; 
 }
 
-std::string Polygon3dTin::get_obj_v() {
+std::string TIN::get_obj_v() {
   std::stringstream ss;
   for (auto& v : _vertices)
     ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
   return ss.str();
 }
 
-std::string Polygon3dTin::get_obj_f(int offset, bool floor) {
+std::string TIN::get_obj_f(int offset, bool floor) {
   std::stringstream ss;
   ss << "usemtl tin" << std::endl;
   for (auto& t : _triangles)
@@ -365,7 +361,7 @@ std::string Polygon3dTin::get_obj_f(int offset, bool floor) {
 }
 
 
-bool Polygon3dTin::add_elevation_point(double x, double y, double z) {
+bool TIN::add_elevation_point(double x, double y, double z) {
   Point2 p(x, y);
   //-- 1. add points to surface if inside
   if (bg::within(p, *(_p2)) == true) {
@@ -386,7 +382,7 @@ bool Polygon3dTin::add_elevation_point(double x, double y, double z) {
 
 
 //-- TODO: brute-force == not good
-bool Polygon3dTin::assign_elevation_to_vertex(double x, double y, double z) {
+bool TIN::assign_elevation_to_vertex(double x, double y, double z) {
   //-- assign the AVERAGE to each
   Point2 p(x, y);
   Ring2 oring = bg::exterior_ring(*(_p2));

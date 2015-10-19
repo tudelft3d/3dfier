@@ -1,7 +1,7 @@
 
 #include "definitions.h"
-#include "input.h"
-#include "Polygon3d.h"
+#include "io.h"
+#include "TopoFeature.h"
 #include "Map3d.h"
 #include "yaml-cpp/yaml.h"
 

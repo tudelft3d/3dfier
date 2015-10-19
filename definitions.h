@@ -27,18 +27,13 @@ typedef bg::model::point<double, 3, bg::cs::cartesian> Point3;
 typedef bg::model::polygon<Point3, true, false> Polygon3;
 typedef bg::model::ring<Point3, true, false> Ring3; //-- cw, first!=last
 
-//-- extrusion types
-// BLOCK- {AVG -- MAX -- MIN -- MEDIAN}
-// BOUNDARY3D
-// TIN- {ALL_POINTS -- 50 -- 10}
 
-
+//-- for Shewchuk's Triangle
 typedef struct Segment
 {
   int v0;
   int v1;
 } Segment;
-
 typedef struct Triangle
 {
   int v0;
@@ -46,5 +41,9 @@ typedef struct Triangle
   int v2;
 } Triangle;
 
+//-- extrusion types
+// BLOCK- {AVG -- MAX -- MIN -- MEDIAN}
+// BOUNDARY3D
+// TIN- {ALL_POINTS -- 50 -- 10}
 
 #endif

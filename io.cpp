@@ -1,5 +1,5 @@
 
-#include "input.h"
+#include "io.h"
 
 
 void printProgressBar( int percent ) {

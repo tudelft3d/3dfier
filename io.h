@@ -3,7 +3,7 @@
 
 
 #include "definitions.h"
-#include "Polygon3d.h"
+#include "TopoFeature.h"
 
 void printProgressBar( int percent );
 std::string get_xml_header();

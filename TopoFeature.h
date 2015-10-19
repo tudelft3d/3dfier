@@ -1,17 +1,17 @@
 
-#ifndef __3DFIER__Polygon3D__
-#define __3DFIER__Polygon3D__
+#ifndef __3DFIER__TopoFeature__
+#define __3DFIER__TopoFeature__
 
 #include "definitions.h"
 #include "geomtools.h"
 #include <random>
 
 
-class Polygon3d
+class TopoFeature
 {
 public:
-  Polygon3d  (Polygon2* p, std::string pid);
-  ~Polygon3d ();
+  TopoFeature  (Polygon2* p, std::string pid);
+  ~TopoFeature ();
 
   virtual bool          threeDfy() = 0;
   virtual bool          add_elevation_point(double x, double y, double z) = 0;
@@ -33,10 +33,10 @@ protected:
 
 //---------------------------------------------
 
-class Polygon3dBlock : public Polygon3d 
+class Block : public TopoFeature 
 {
 public:
-  Polygon3dBlock (Polygon2* p, std::string pid, std::string lifttype); 
+  Block           (Polygon2* p, std::string pid, std::string lifttype); 
   
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
@@ -63,18 +63,12 @@ private:
 };
 
 
-class Building : public Polygon3dBlock
-{
-public:
-  Building (Polygon2* p, std::string pid, std::string lifttype); 
-};
-
 //---------------------------------------------
 
-class Polygon3dBoundary : public Polygon3d
+class Boundary3D : public TopoFeature
 {
 public:
-  Polygon3dBoundary (Polygon2* p, std::string pid);
+  Boundary3D      (Polygon2* p, std::string pid);
   
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
@@ -94,10 +88,10 @@ private:
 
 //---------------------------------------------
 
-class Polygon3dTin : public Polygon3d
+class TIN : public TopoFeature
 {
 public:
-  Polygon3dTin (Polygon2* p, std::string pid, std::string lifttype);
+  TIN             (Polygon2* p, std::string pid, std::string lifttype);
   
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);

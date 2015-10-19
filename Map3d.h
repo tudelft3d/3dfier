@@ -3,9 +3,9 @@
 #define __3dfier__Map3d__
 
 #include "definitions.h"
-#include "Polygon3d.h"
+#include "TopoFeature.h"
 
-typedef std::pair<Box, Polygon3d*> PairIndexed;
+typedef std::pair<Box, TopoFeature*> PairIndexed;
 
 class Map3d
 {
@@ -21,10 +21,10 @@ public:
 
   bool construct_rtree();
   bool threeDfy();
-  Polygon3d* add_elevation_point(double x, double y, double z, double buffer = 2.0, Polygon3d* trythisone = NULL);
+  TopoFeature* add_elevation_point(double x, double y, double z, double buffer = 2.0, TopoFeature* trythisone = NULL);
 
   unsigned long get_num_polygons();
-  const std::vector<Polygon3d*>& get_polygons3d();  
+  const std::vector<TopoFeature*>& get_polygons3d();  
   
   std::string get_citygml();
   std::string get_csv();
@@ -32,7 +32,7 @@ public:
      
   bool        _buildingfloor;
 private:
-  std::vector<Polygon3d*>   _lsPolys;
+  std::vector<TopoFeature*>   _lsPolys;
   std::vector<std::string>  _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
 
