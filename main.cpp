@@ -16,8 +16,29 @@ int main(int argc, const char * argv[]) {
   Map3d map3d;
   YAML::Node nodes = YAML::LoadFile(argv[1]);
   
+  //-- store the lifting options in the Map3d
+  YAML::Node n = nodes["lifting_options"];
+  if (n["Building"]) {
+    if (n["Building"]["height"])
+      map3d.set_building_height_reference(n["Building"]["height"].as<std::string>());
+    if (n["Building"]["triangulate"]) {
+      if (n["Building"]["triangulate"].as<std::string>() == "true") 
+        map3d.set_building_triangulate(true);
+      else
+        map3d.set_building_triangulate(false);
+    }
+  }
+  if (n["Terrain"]) 
+    if (n["Terrain"]["simplification"])
+      map3d.set_terrain_simplification(n["Terrain"]["simplification"].as<int>());
+  if (n["Vegetation"]) 
+    if (n["Vegetation"]["simplification"])
+      map3d.set_terrain_simplification(n["Vegetation"]["simplification"].as<int>());
+
+
+ 
   //-- add the polygons
-  YAML::Node n = nodes["input_polygons"];
+  n = nodes["input_polygons"];
   for (auto it = n.begin(); it != n.end(); ++it) {
     if ((*it)["layers"]) {
       YAML::Node tmp = (*it)["layers"];
@@ -60,7 +81,7 @@ int main(int argc, const char * argv[]) {
   
   n = nodes["output"];
   if (n["building_floor"].as<std::string>() == "true") 
-    map3d._buildingfloor = true;
+    map3d.set_building_include_floor(true);
   if (n["format"].as<std::string>() == "CityGML") {
     std::clog << "CityGML output" << std::endl;
     std::cout << map3d.get_citygml() << std::endl;

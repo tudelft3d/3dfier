@@ -8,5 +8,7 @@
 #include "Building.h"
 
 
-Building::Building(Polygon2* p, std::string pid, std::string lifttype) : Block(p, pid, lifttype)
-{}
+Building::Building(Polygon2* p, std::string pid, std::string heightref) : Block(p, pid, "BLOCK-MEDIAN")
+{
+  
+}

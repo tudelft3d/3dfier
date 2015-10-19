@@ -3,27 +3,35 @@ input_polygons:
   - datasets: 
       - /Users/hugo/data/campus/partof.shp
     uniqueid: FACE_ID
-    lifting: BLOCK-AVG
-  
+    lifting: Building
   - datasets: 
       - /Users/hugo/data/campus/another.gml
       - /Users/hugo/data/campus/another2.gml
     uniqueid: fid
     layers:
-      Gebouw: BLOCK-PERCENTILE95
-      Terrain: TIN-ALL_POINTS
-      Waterdeel: BOUNDARY3D
+      Gebouw: Building
+      Terrain: Terrain
+      Waterdeel: Water
   
+lifting_options: 
+  Building:
+    height: median
+  Terrain:
+    simplification: 10
+  Vegetation:
+    simplification: 50
+
 input_elevation:
   - datasets:
       - /Users/hugo/data/temp/potato.laz
       - /Users/hugo/data/campus/coverpartof.laz
       - /Users/hugo/data/temp/*.las
-    thinning: 0 #-- skip every nth point
+    skip: 0 #-- should be 0 for best results, but skipping can help debug for fast results
 
 output: 
-  format: CityGML # or CSV or OBJ
-  verticaltriangles: true
+  format: OBJ # CityGML or CSV
+  building_floor: false
+
 
 
 buildings:

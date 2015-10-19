@@ -32,15 +32,15 @@ Polygon2* TopoFeature::get_Polygon2() {
 //-------------------------------
 
 
-Block::Block(Polygon2* p, std::string pid, std::string lifttype) : TopoFeature(p, pid) 
+Block::Block(Polygon2* p, std::string pid, std::string heightref) : TopoFeature(p, pid) 
 {
-  _lifttype = lifttype;
+  _heightref = heightref;
   _is3d = false;
   _vertexelevations.assign(bg::num_points(*(_p2)), 9999);
 }
 
 std::string Block::get_lift_type() {
-  return _lifttype;
+  return _heightref;
 }
 
 int Block::get_number_vertices() {
@@ -126,8 +126,8 @@ float Block::get_roof_height() {
     return _roofheight;
   if (_zvaluesinside.size() == 0)
     return -9999;
-  std::string t = _lifttype.substr(_lifttype.find_first_of("-") + 1);
-  if (t == "MAX") {
+  // std::string t = _heightref.substr(_heightref.find_first_of("-") + 1);
+  if (_heightref == "MAX") {
     double v = -9999;
     for (auto z : _zvaluesinside) {
       if (z > v)
@@ -135,7 +135,7 @@ float Block::get_roof_height() {
     }
     return v;
   }
-  else if (t == "MIN") {
+  else if (_heightref == "MIN") {
     double v = 9999;
     for (auto z : _zvaluesinside) {
       if (z < v)
@@ -143,13 +143,13 @@ float Block::get_roof_height() {
     }
     return v;
   }
-  else if (t == "AVG") {
+  else if (_heightref == "AVG") {
     double sum = 0.0;
     for (auto z : _zvaluesinside) 
       sum += z;
     return (sum / _zvaluesinside.size());
   }
-  else if (t == "MEDIAN") {
+  else if (_heightref == "MEDIAN") {
     std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() / 2), _zvaluesinside.end());
     return _zvaluesinside[_zvaluesinside.size() / 2];
   }

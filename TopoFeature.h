@@ -50,11 +50,11 @@ public:
   int             get_number_vertices();
 private:
   bool                  _is3d;
+  std::string           _heightref;
   float                 _floorheight;
   float                 _roofheight;
   std::vector<float>    _zvaluesinside;
   std::vector<float>    _vertexelevations;
-  std::string           _lifttype;
   std::vector<Point3>   _vertices;
   std::vector<Triangle> _triangles;
   std::vector<Segment>  _segments;

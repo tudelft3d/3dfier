@@ -15,7 +15,7 @@
 class Building : public Block
 {
 public:
-    Building (Polygon2* p, std::string pid, std::string lifttype);
+  Building (Polygon2* p, std::string pid, std::string heightref);
 };
 
 

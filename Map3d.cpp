@@ -4,7 +4,11 @@
 
 Map3d::Map3d() {
   OGRRegisterAll();
-  _buildingfloor = false;
+  _building_include_floor = false;
+  _building_heightref = 'median';
+  _building_triangulate = true;
+  _terrain_simplification = 0;
+  _vegetation_simplification = 0;
 }
 
 
@@ -13,6 +17,25 @@ Map3d::~Map3d() {
   _lsPolys.clear();
 }
 
+void Map3d::set_building_height_reference(std::string heightref) {
+  _building_heightref = heightref;  
+}
+
+void Map3d::set_building_include_floor(bool include) {
+  _building_include_floor = include;
+}
+
+void Map3d::set_building_triangulate(bool triangulate) {
+  _building_triangulate = triangulate;
+}
+
+void Map3d::set_terrain_simplification(int simplification) {
+  _terrain_simplification = simplification;
+}
+
+void Map3d::set_vegetation_simplification(int simplification) {
+  _vegetation_simplification = simplification;
+}
 
 std::string Map3d::get_citygml() {
   std::stringstream ss;
@@ -49,7 +72,7 @@ std::string Map3d::get_obj() {
   for (auto& p3 : _lsPolys) {
     ss << "o " << p3->get_id() << std::endl;
     offset += offsets[i++];
-    ss << p3->get_obj_f(offset, _buildingfloor);
+    ss << p3->get_obj_f(offset, _building_include_floor);
   }
   return ss.str();
 }
@@ -116,57 +139,9 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::vecto
   OGRDataSource::DestroyDataSource(dataSource);
   return true;
 }
- 
 
-bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers) {
- for (auto l : layers) {
-    OGRLayer *dataLayer = dataSource->GetLayerByName((l.first).c_str());
-    if (dataLayer == NULL) {
-      continue;
-    }
-    dataLayer->ResetReading();
-    unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
-    std::clog << "\tLayer: " << dataLayer->GetName() << std::endl;
-    std::clog << "\t(" << numberOfPolygons << " features)" << std::endl;
-    OGRFeature *f;
-    while ((f = dataLayer->GetNextFeature()) != NULL) {
-      switch(f->GetGeometryRef()->getGeometryType()) {
-        case wkbPolygon:
-        case wkbMultiPolygon: 
-        case wkbMultiPolygon25D:
-        case wkbPolygon25D: {
-          Polygon2* p2 = new Polygon2();
-          // TODO : WKT surely not best/fastest way, to change
-          char *output_wkt;
-          f->GetGeometryRef()->flattenTo2D();
-          f->GetGeometryRef()->exportToWkt(&output_wkt);
-          bg::read_wkt(output_wkt, *p2);
-          bg::unique(*p2); //-- remove duplicate vertices
-          std::string t = l.second.substr(0, l.second.find_first_of("-"));
-          if (t == "BLOCK") {
-            Block* p3 = new Block(p2, f->GetFieldAsString(idfield.c_str()), l.second);
-            _lsPolys.push_back(p3);
-          }
-          else if (t == "BOUNDARY3D") {
-            Boundary3D* p3 = new Boundary3D(p2, f->GetFieldAsString(idfield.c_str()));
-            _lsPolys.push_back(p3);            
-          }
-          else if (t == "TIN") {
-            TIN* p3 = new TIN(p2, f->GetFieldAsString(idfield.c_str()), l.second);
-            _lsPolys.push_back(p3);
-          }
-          break;
-        }
-        default: {
-          continue;
-        }
-      }
-    }
-  }
-  return true;
-}
 
-bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::string lifttype) {
+bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::string lifting) {
   std::clog << "Reading input dataset: " << ifile << std::endl;
   OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
   if (dataSource == NULL) {
@@ -177,11 +152,64 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
   int numberOfLayers = dataSource->GetLayerCount();
   for (int currentLayer = 0; currentLayer < numberOfLayers; currentLayer++) {
     OGRLayer *dataLayer = dataSource->GetLayer(currentLayer);
-    std::pair<std::string, std::string> p(dataLayer->GetName(), lifttype);
+    std::pair<std::string, std::string> p(dataLayer->GetName(), lifting);
     layers.push_back(p);
   }
   this->extract_and_add_polygon(dataSource, idfield, layers);
   OGRDataSource::DestroyDataSource(dataSource);
+  return true;
+}
+
+
+bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers) {
+ for (auto l : layers) {
+    OGRLayer *dataLayer = dataSource->GetLayerByName((l.first).c_str());
+    if (dataLayer == NULL) {
+      continue;
+    }
+    dataLayer->ResetReading();
+    unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
+    std::clog << "\tLayer: " << dataLayer->GetName() << std::endl;
+    std::clog << "\t(" << numberOfPolygons << " features --> " << l.second << ")" << std::endl;
+    OGRFeature *f;
+    while ((f = dataLayer->GetNextFeature()) != NULL) {
+      switch(f->GetGeometryRef()->getGeometryType()) {
+        case wkbPolygon:
+        case wkbMultiPolygon: 
+        case wkbMultiPolygon25D:
+        case wkbPolygon25D: {
+          Polygon2* p2 = new Polygon2();
+          // TODO : WKT surely not best/fastest way, to change. Or is it?
+          char *output_wkt;
+          f->GetGeometryRef()->flattenTo2D();
+          f->GetGeometryRef()->exportToWkt(&output_wkt);
+          bg::read_wkt(output_wkt, *p2);
+          bg::unique(*p2); //-- remove duplicate vertices
+          if (l.second == "Building") {
+            Building* p3 = new Building(p2, f->GetFieldAsString(idfield.c_str()), this->_building_heightref);
+            _lsPolys.push_back(p3);
+          }
+          // else if (l.second == "BLOCK") {
+          //   Block* p3 = new Block(p2, f->GetFieldAsString(idfield.c_str()), l.second);
+          //   _lsPolys.push_back(p3);
+          // }
+
+          // else if (t == "BOUNDARY3D") {
+          //   Boundary3D* p3 = new Boundary3D(p2, f->GetFieldAsString(idfield.c_str()));
+          //   _lsPolys.push_back(p3);            
+          // }
+          // else if (t == "TIN") {
+          //   TIN* p3 = new TIN(p2, f->GetFieldAsString(idfield.c_str()), l.second);
+          //   _lsPolys.push_back(p3);
+          // }
+          break;
+        }
+        default: {
+          continue;
+        }
+      }
+    }
+  }
   return true;
 }
 

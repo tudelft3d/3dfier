@@ -4,6 +4,7 @@
 
 #include "definitions.h"
 #include "TopoFeature.h"
+#include "Building.h"
 
 typedef std::pair<Box, TopoFeature*> PairIndexed;
 
@@ -30,10 +31,20 @@ public:
   std::string get_csv();
   std::string get_obj();
      
-  bool        _buildingfloor;
+  void set_building_height_reference(std::string heightref);
+  void set_building_include_floor(bool include);
+  void set_building_triangulate(bool triangulate);
+  void set_terrain_simplification(int simplification);
+  void set_vegetation_simplification(int simplification);
 private:
+  std::string _building_heightref;
+  bool        _building_triangulate;
+  bool        _building_include_floor;
+  int         _terrain_simplification;
+  int         _vegetation_simplification;
+
   std::vector<TopoFeature*>   _lsPolys;
-  std::vector<std::string>  _allowed_layers;
+  std::vector<std::string>    _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
 
   bool extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers);
