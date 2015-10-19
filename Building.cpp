@@ -40,3 +40,10 @@ std::string Building::get_citygml() {
   ss << "</cityObjectMember>";
   return ss.str(); 
 }
+
+std::string Building::get_csv() {
+  std::stringstream ss;
+  ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_roof_height() << ";" << this->get_floor_height() << std::endl;
+  return ss.str(); 
+}
+

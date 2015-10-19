@@ -5,7 +5,7 @@
 Map3d::Map3d() {
   OGRRegisterAll();
   _building_include_floor = false;
-  _building_heightref = 'median';
+  _building_heightref = "median";
   _building_triangulate = true;
   _terrain_simplification = 0;
   _vegetation_simplification = 0;
@@ -49,32 +49,34 @@ std::string Map3d::get_citygml() {
   return ss.str();
 }
 
-std::string Map3d::get_csv() {
+std::string Map3d::get_csv_buildings() {
   std::stringstream ss;
   ss << "id;roof;floor" << std::endl;
   for (auto& p3 : _lsPolys) {
-    ss << p3->get_csv();
+    Building* b = dynamic_cast<Building*>(p3);
+    if (b != nullptr)
+      ss << b->get_csv();
   }
   return ss.str();
 }
 
 std::string Map3d::get_obj() {
-  std::vector<int> offsets;
-  offsets.push_back(0);
-  std::stringstream ss;
-  ss << "mtllib ./3dfier.mtl" << std::endl;
-  for (auto& p3 : _lsPolys) {
-    ss << p3->get_obj_v();
-    offsets.push_back(p3->get_number_vertices());
-  }
-  int i = 0;
-  int offset = 0;
-  for (auto& p3 : _lsPolys) {
-    ss << "o " << p3->get_id() << std::endl;
-    offset += offsets[i++];
-    ss << p3->get_obj_f(offset, _building_include_floor);
-  }
-  return ss.str();
+ std::vector<int> offsets;
+ offsets.push_back(0);
+ std::stringstream ss;
+ ss << "mtllib ./3dfier.mtl" << std::endl;
+ for (auto& p3 : _lsPolys) {
+   ss << p3->get_obj_v();
+   offsets.push_back(p3->get_number_vertices());
+ }
+ int i = 0;
+ int offset = 0;
+ for (auto& p3 : _lsPolys) {
+   ss << "o " << p3->get_id() << std::endl;
+   offset += offsets[i++];
+   ss << p3->get_obj_f(offset, _building_include_floor);
+ }
+ return ss.str();
 }
 
 

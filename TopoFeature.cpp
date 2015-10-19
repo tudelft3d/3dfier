@@ -65,12 +65,6 @@ std::string Block::get_citygml() {
 }
 
 
-std::string Block::get_csv() {
-  std::stringstream ss;
-  ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_roof_height() << ";" << this->get_floor_height() << std::endl;
-  return ss.str(); 
-}
-
 std::string Block::get_obj_v() {
   std::stringstream ss;
   for (auto& v : _vertices)
@@ -218,9 +212,6 @@ std::string Boundary3D::get_citygml() {
   return "EMPTY"; 
 }
 
-std::string Boundary3D::get_csv() {
-  return "EMPTY"; 
-}
 
 std::string Boundary3D::get_obj_v() {
   std::stringstream ss;
@@ -312,10 +303,6 @@ int TIN::get_number_vertices() {
 std::string TIN::get_citygml() {
   //-- TODO: CityGML implementation for TIN type
   return "EMTPY";
-}
-
-std::string TIN::get_csv() {
-  return "EMPTY"; 
 }
 
 std::string TIN::get_obj_v() {

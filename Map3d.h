@@ -28,7 +28,7 @@ public:
   const std::vector<TopoFeature*>& get_polygons3d();  
   
   std::string get_citygml();
-  std::string get_csv();
+  std::string get_csv_buildings();
   std::string get_obj();
      
   void set_building_height_reference(std::string heightref);

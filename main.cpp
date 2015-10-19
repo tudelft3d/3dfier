@@ -86,13 +86,13 @@ int main(int argc, const char * argv[]) {
     std::clog << "CityGML output" << std::endl;
     std::cout << map3d.get_citygml() << std::endl;
   }
-  else if (n["format"].as<std::string>() == "CSV") {
-    std::clog << "CSV output" << std::endl;
-    std::cout << map3d.get_csv() << std::endl;
-  }
   else if (n["format"].as<std::string>() == "OBJ") {
     std::clog << "OBJ output" << std::endl;
     std::cout << map3d.get_obj() << std::endl;
+  }
+  else if (n["format"].as<std::string>() == "CSV-BUILDINGS") {
+    std::clog << "CSV output (only of the buildings)" << std::endl;
+    std::cout << map3d.get_csv_buildings() << std::endl;
   }
 
   std::clog << "Successfully terminated." << std::endl;
