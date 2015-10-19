@@ -91,7 +91,7 @@ private:
 class TIN : public TopoFeature
 {
 public:
-  TIN             (Polygon2* p, std::string pid, std::string lifttype);
+  TIN             (Polygon2* p, std::string pid, int simplification = 0);
   
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
@@ -102,8 +102,7 @@ public:
   std::string     get_lift_type();
   int             get_number_vertices();
 private:
-  std::string           _lifttype;
-  int                   _thin_factor;
+  int                   _simplification;
   std::vector<Point3>   _lidarpts;
   std::vector<Point3>   _vertices;  //-- output of Triangle
   std::vector<Triangle> _triangles; //-- output of Triangle

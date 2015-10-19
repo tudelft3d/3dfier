@@ -189,10 +189,10 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
             Building* p3 = new Building(p2, f->GetFieldAsString(idfield.c_str()), this->_building_heightref);
             _lsPolys.push_back(p3);
           }
-          // else if (l.second == "BLOCK") {
-          //   Block* p3 = new Block(p2, f->GetFieldAsString(idfield.c_str()), l.second);
-          //   _lsPolys.push_back(p3);
-          // }
+          else if (l.second == "Terrain") {
+            Terrain* p3 = new Terrain(p2, f->GetFieldAsString(idfield.c_str()), std::stoi(l.second));
+            _lsPolys.push_back(p3);
+          }
 
           // else if (t == "BOUNDARY3D") {
           //   Boundary3D* p3 = new Boundary3D(p2, f->GetFieldAsString(idfield.c_str()));

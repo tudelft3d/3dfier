@@ -268,19 +268,14 @@ bool Boundary3D::add_elevation_point(double x, double y, double z) {
 //-------------------------------
 //-------------------------------
 
-TIN::TIN(Polygon2* p, std::string pid, std::string lifttype) : TopoFeature(p, pid) 
+TIN::TIN(Polygon2* p, std::string pid, int simplification) : TopoFeature(p, pid) 
 {
-  _lifttype = lifttype;
-  std::string t = lifttype.substr(lifttype.find_first_of("-") + 1);
-  if (t == "ALL")
-    _thin_factor = 0;
-  else 
-    _thin_factor = std::stoi(t);
+  _simplification = simplification;
   _vertexelevations.resize(bg::num_points(*(_p2)));
 }
 
 std::string TIN::get_lift_type() {
-  return _lifttype;
+  return "TIN";
 }
 
 bool TIN::threeDfy() {
@@ -365,12 +360,12 @@ bool TIN::add_elevation_point(double x, double y, double z) {
   Point2 p(x, y);
   //-- 1. add points to surface if inside
   if (bg::within(p, *(_p2)) == true) {
-    if (_thin_factor == 0)
+    if (_simplification == 0)
       _lidarpts.push_back(Point3(x, y, z));
     else {
       std::random_device rd;
       std::mt19937 gen(rd());
-      std::uniform_int_distribution<int> dis(1, _thin_factor); 
+      std::uniform_int_distribution<int> dis(1, _simplification);
       if (dis(gen) == 1)
         _lidarpts.push_back(Point3(x, y, z));
     }

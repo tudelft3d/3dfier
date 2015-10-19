@@ -5,6 +5,7 @@
 #include "definitions.h"
 #include "TopoFeature.h"
 #include "Building.h"
+#include "Terrain.h"
 
 typedef std::pair<Box, TopoFeature*> PairIndexed;
 
@@ -18,7 +19,6 @@ public:
   bool add_polygons_file(std::string ifile, std::string idfield, std::string lifttype);
 
   bool add_las_file(std::string ifile, int skip = 0);
-//  bool add_point(Point2* q);
 
   bool construct_rtree();
   bool threeDfy();
