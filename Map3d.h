@@ -38,12 +38,14 @@ public:
   void set_building_triangulate(bool triangulate);
   void set_terrain_simplification(int simplification);
   void set_vegetation_simplification(int simplification);
+  void set_radius_vertex_elevation(float radius);
 private:
   std::string _building_heightref;
   bool        _building_triangulate;
   bool        _building_include_floor;
   int         _terrain_simplification;
   int         _vegetation_simplification;
+  float       _radius_vertex_elevation;
 
   std::vector<TopoFeature*>   _lsPolys;
   std::vector<std::string>    _allowed_layers;

@@ -9,6 +9,7 @@ Map3d::Map3d() {
   _building_triangulate = true;
   _terrain_simplification = 0;
   _vegetation_simplification = 0;
+  _radius_vertex_elevation = 2.0;
 }
 
 
@@ -20,6 +21,11 @@ Map3d::~Map3d() {
 void Map3d::set_building_height_reference(std::string heightref) {
   _building_heightref = heightref;  
 }
+
+void Map3d::set_radius_vertex_elevation(float radius) {
+  _radius_vertex_elevation = radius;  
+}
+
 
 void Map3d::set_building_include_floor(bool include) {
   _building_include_floor = include;

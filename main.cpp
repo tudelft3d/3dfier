@@ -30,8 +30,8 @@ int main(int argc, const char * argv[]) {
 //-- store the lifting options in the Map3d
   YAML::Node n = nodes["lifting_options"];
   if (n["Building"]) {
-    if (n["Building"]["height"])
-      map3d.set_building_height_reference(n["Building"]["height"].as<std::string>());
+    if (n["Building"]["floor_height"])
+      map3d.set_building_height_reference(n["Building"]["floor_height"].as<std::string>());
     if (n["Building"]["triangulate"]) {
       if (n["Building"]["triangulate"].as<std::string>() == "true") 
         map3d.set_building_triangulate(true);
