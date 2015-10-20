@@ -76,7 +76,8 @@ public:
   std::string     get_obj_f(int offset, bool floor = false);
   int             get_number_vertices();
 private:
-  std::vector<Point3>   _lidarpts;
+  int                   _simplification;
+  void add_elevations_to_boundary(Polygon3 &p3);
 };
 
 
@@ -86,7 +87,6 @@ class TIN : public TopoFeature
 {
 public:
   TIN             (Polygon2* p, std::string pid, int simplification = 0);
-  
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z, float radius);
   std::string     get_citygml();
@@ -96,8 +96,6 @@ public:
 private:
   int                   _simplification;
   std::vector<Point3>   _lidarpts;
-  std::vector< std::tuple<int, float> > _vertexelevations;
-  bool assign_elevation_to_vertex(double x, double y, double z);
   void add_elevations_to_boundary(Polygon3 &p3);
 };
 

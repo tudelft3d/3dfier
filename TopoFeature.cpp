@@ -200,8 +200,7 @@ bool Block::build_CDT() {
 //-------------------------------
 
 Boundary3D::Boundary3D(Polygon2* p, std::string pid) : TopoFeature(p, pid) 
-{
-}
+{}
 
 
 bool Boundary3D::threeDfy() {
@@ -209,6 +208,7 @@ bool Boundary3D::threeDfy() {
   ss << bg::wkt(*(_p2));
   Polygon3 p3;
   bg::read_wkt(ss.str(), p3);
+  add_elevations_to_boundary(p3);
   getCDT(&p3, _vertices, _triangles, _segments);
   return true;
 }
@@ -239,9 +239,32 @@ std::string Boundary3D::get_obj_f(int offset, bool floor) {
 }
 
 bool Boundary3D::add_elevation_point(double x, double y, double z, float radius) {
-  _lidarpts.push_back(Point3(x, y, z));
+  assign_elevation_to_vertex(x, y, z, radius);
   return true;
 }
+
+void Boundary3D::add_elevations_to_boundary(Polygon3 &p3) {
+  float percentile = 0.1;
+  //-- fetch all elevations for each vertex
+  std::vector<float> elevations;
+  for (auto& v : _velevations) {
+    if (v.size() > 0) {
+      std::nth_element(v.begin(), v.begin() + (v.size() * percentile), v.end());
+      elevations.push_back(v[v.size() * percentile]);
+    }
+  }
+  float elevation = *(std::min_element(std::begin(elevations), std::end(elevations)));
+  //-- assign the value of the Polygon3
+  Ring3 oring = bg::exterior_ring(p3);
+  for (int i = 0; i < oring.size(); i++) 
+    bg::set<2>(bg::exterior_ring(p3)[i], elevation);
+  auto irings = bg::interior_rings(p3);
+  for (int i = 0; i < irings.size(); i++) {
+    for (int j = 0; j < (irings[i]).size(); j++)
+      bg::set<2>(bg::interior_rings(p3)[i][j], elevation);
+  }
+}
+
 
 
 //-------------------------------
@@ -250,7 +273,6 @@ bool Boundary3D::add_elevation_point(double x, double y, double z, float radius)
 TIN::TIN(Polygon2* p, std::string pid, int simplification) : TopoFeature(p, pid) 
 {
   _simplification = simplification;
-  _vertexelevations.resize(bg::num_points(*(_p2)));
 }
 
 
@@ -266,41 +288,37 @@ bool TIN::threeDfy() {
 
 
 void TIN::add_elevations_to_boundary(Polygon3 &p3) {
+  float percentile = 0.5;
+  //-- fetch all medians for each vertex
+  std::vector<float> medians;
   float avg = 0.0;
-  int count = 0;
-  for (int i = 0; i < _vertexelevations.size(); i++) {
-    if (std::get<0>(_vertexelevations[i]) != 0) {
-      float z = std::get<1>(_vertexelevations[i]) / (float(std::get<0>(_vertexelevations[i])));
-      avg += z;
-      count++;  
+  for (auto& v : _velevations) {
+    if (v.size() > 0) {
+      std::nth_element(v.begin(), v.begin() + (v.size() * percentile), v.end());
+      medians.push_back(v[v.size() * percentile]);
+      avg += v[v.size() * percentile];
     }
+    else
+      medians.push_back(-9999);
   }
-  avg = avg / count;
+  avg /= medians.size();
+  //-- replace missing values by the avg of the polygon
+  for (auto& v : medians) 
+    if (v < -9998)
+      v = avg;
+  //-- assign the value of the Polygon3
   Ring3 oring = bg::exterior_ring(p3);
-  for (int i = 0; i < oring.size(); i++) {
-    if (std::get<0>(_vertexelevations[i]) != 0) {
-      float z = std::get<1>(_vertexelevations[i]) / (float(std::get<0>(_vertexelevations[i])));
-      bg::set<2>(bg::exterior_ring(p3)[i], z);
-    }
-    else {
-      bg::set<2>(bg::exterior_ring(p3)[i], avg);
-    }
-  }
+  for (int i = 0; i < oring.size(); i++) 
+    bg::set<2>(bg::exterior_ring(p3)[i], medians[i]);
   auto irings = bg::interior_rings(p3);
-  std::size_t offset = bg::num_points(p3);
-  for (Ring3& iring: irings) {
-    for (int i = 0; i < iring.size(); i++) {
-      if (std::get<0>(_vertexelevations[i]) != 0) {
-        float z = std::get<1>(_vertexelevations[i]) / (float(std::get<0>(_vertexelevations[i])));
-        bg::set<2>(bg::exterior_ring(p3)[i], z);
-      }
-      else {
-        bg::set<2>(bg::exterior_ring(p3)[i], avg);
-      }
-    }
-    offset += bg::num_points(iring);
+  std::size_t offset = bg::num_points(oring);
+  for (int i = 0; i < irings.size(); i++) {
+    for (int j = 0; j < (irings[i]).size(); j++)
+      bg::set<2>(bg::interior_rings(p3)[i][j], medians[j + offset]);
+    offset += bg::num_points(irings[i]);
   }
 }
+
 
 int TIN::get_number_vertices() {
   return int(_vertices.size());
@@ -343,33 +361,9 @@ bool TIN::add_elevation_point(double x, double y, double z, float radius) {
     }
   }
   //-- 2. add to the vertices of the pgn to find their heights
-  assign_elevation_to_vertex(x, y, z);
+  assign_elevation_to_vertex(x, y, z, radius);
   return true;
 }
 
 
-//-- TODO: brute-force == not good
-bool TIN::assign_elevation_to_vertex(double x, double y, double z) {
-  //-- assign the AVERAGE to each
-  Point2 p(x, y);
-  Ring2 oring = bg::exterior_ring(*(_p2));
-  for (int i = 0; i < oring.size(); i++) {
-    if (bg::distance(p, oring[i]) <= 2.0) {
-      std::get<0>(_vertexelevations[i]) += 1;
-      std::get<1>(_vertexelevations[i]) += z;  
-    }
-  }
-  int offset = int(bg::num_points(oring));
-  auto irings = bg::interior_rings(*(_p2));
-  for (Ring2& iring: irings) {
-    for (int i = 0; i < iring.size(); i++) {
-      if (bg::distance(p, iring) <= 2.0) {
-        std::get<0>(_vertexelevations[i + offset]) += 1;
-        std::get<1>(_vertexelevations[i + offset]) += z;
-      }
-    }
-    offset += bg::num_points(iring);
-  }
-  return true;
-}
 
