@@ -93,12 +93,12 @@ std::string Block::get_obj_f(int offset, bool floor) {
   return ss.str();
 }
 
+
 float Block::get_roof_height() {
   if (_is3d == true)
     return _roofheight;
   if (_zvaluesinside.size() == 0)
     return -9999;
-  // std::string t = _heightref.substr(_heightref.find_first_of("-") + 1);
   if (_heightref == "max") {
     double v = -9999;
     for (auto z : _zvaluesinside) {
@@ -125,9 +125,14 @@ float Block::get_roof_height() {
     std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() / 2), _zvaluesinside.end());
     return _zvaluesinside[_zvaluesinside.size() / 2];
   }
-  // TODO : implement percentile-95
   else {
-    std::cout << "UNKNOWN HEIGHT" << std::endl;
+    if (_heightref.substr(0, _heightref.find_first_of("-")) == "percentile") {
+      double p = (std::stod(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100);
+      std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() / p), _zvaluesinside.end());
+      return _zvaluesinside[_zvaluesinside.size() / p];
+    }
+    else
+      std::cerr << "ERROR: height reference '" << _heightref << "' unknown." << std::endl;
   }
   return -9999;
 }
