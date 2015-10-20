@@ -204,10 +204,7 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
             Water* p3 = new Water(p2, f->GetFieldAsString(idfield.c_str()));
             _lsPolys.push_back(p3);
           }
-          else {
-            std::clog << "ERROR: lifting class '" << l.second << "' unknown!" << std::endl;
-            wentgood = false;
-          }
+          // TODO : add other classes
           break;
         }
         default: {

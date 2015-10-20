@@ -8,15 +8,26 @@
 
 int main(int argc, const char * argv[]) {
   
+//-- allowed feature classes
+  std::set<std::string> allowedFeatures;
+  allowedFeatures.insert("Building");
+  allowedFeatures.insert("Water");
+  allowedFeatures.insert("Terrain");
+  allowedFeatures.insert("Road");
+  allowedFeatures.insert("Vegetation");
+  allowedFeatures.insert("Bridge/Overpass");
+
+//-- reading the config file
+    std::clog << "Reading config file: " << argv[1] << std::endl;
   if (argc != 2) {
-    std::cout << "Error: the config file (*.yml) is not defined." << std::endl;
+    std::cerr << "ERROR: the config file (*.yml) is not defined." << std::endl;
     return 0;
   }
   
   Map3d map3d;
   YAML::Node nodes = YAML::LoadFile(argv[1]);
   
-  //-- store the lifting options in the Map3d
+//-- store the lifting options in the Map3d
   YAML::Node n = nodes["lifting_options"];
   if (n["Building"]) {
     if (n["Building"]["height"])
@@ -35,8 +46,7 @@ int main(int argc, const char * argv[]) {
     if (n["Vegetation"]["simplification"])
       map3d.set_terrain_simplification(n["Vegetation"]["simplification"].as<int>());
 
-
-  //-- add the polygons
+//-- add the polygons to the map3d
   n = nodes["input_polygons"];
   bool wentgood = true;
   for (auto it = n.begin(); it != n.end(); ++it) {
@@ -57,9 +67,15 @@ int main(int argc, const char * argv[]) {
     else if ((*it)["lifting"]) {
       YAML::Node tmp = (*it)["datasets"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-        wentgood = map3d.add_polygons_file(it2->as<std::string>(),
-                                           (*it)["uniqueid"].as<std::string>(),
-                                           (*it)["lifting"].as<std::string>());
+        if (allowedFeatures.count((*it)["lifting"].as<std::string>()) == 1) {
+          wentgood = map3d.add_polygons_file(it2->as<std::string>(),
+                                             (*it)["uniqueid"].as<std::string>(),
+                                             (*it)["lifting"].as<std::string>());
+        }
+        else {
+          std::clog << "ERROR: class '" << (*it)["lifting"].as<std::string>() << "' not recognised." << std::endl;
+          wentgood = false;
+        }
       }
     }
   }

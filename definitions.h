@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <fstream>  
 #include <vector>
+#include <set>
 #include <map>
 
 #include <liblas/liblas.hpp>
@@ -41,9 +42,5 @@ typedef struct Triangle
   int v2;
 } Triangle;
 
-//-- extrusion types
-// BLOCK- {AVG -- MAX -- MIN -- MEDIAN}
-// BOUNDARY3D
-// TIN- {ALL_POINTS -- 50 -- 10}
 
 #endif

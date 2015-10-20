@@ -15,7 +15,7 @@ input_polygons:
   
 lifting_options: 
   Building:
-    height: median
+    height: median # max/min/avg/percentile-95
   Terrain:
     simplification: 10
   Vegetation:

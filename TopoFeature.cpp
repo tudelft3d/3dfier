@@ -125,6 +125,7 @@ float Block::get_roof_height() {
     std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() / 2), _zvaluesinside.end());
     return _zvaluesinside[_zvaluesinside.size() / 2];
   }
+  // TODO : implement percentile-95
   else {
     std::cout << "UNKNOWN HEIGHT" << std::endl;
   }
