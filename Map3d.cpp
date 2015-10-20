@@ -170,6 +170,11 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
     if (dataLayer == NULL) {
       continue;
     }
+    if (dataLayer->FindFieldIndex(idfield.c_str(), false) == -1) {
+      std::cerr << "ERROR: field '" << idfield << "' not found." << std::endl;
+      wentgood = false;
+      continue;
+    }
     dataLayer->ResetReading();
     unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
     std::clog << "\tLayer: " << dataLayer->GetName() << std::endl;
