@@ -39,10 +39,6 @@ Block::Block(Polygon2* p, std::string pid, std::string heightref) : TopoFeature(
   _vertexelevations.assign(bg::num_points(*(_p2)), 9999);
 }
 
-std::string Block::get_lift_type() {
-  return _heightref;
-}
-
 int Block::get_number_vertices() {
   return int(2 * _vertices.size());
 }
@@ -150,14 +146,13 @@ bool Block::add_elevation_point(double x, double y, double z) {
   if (bg::within(p, *(_p2)) == true)
     _zvaluesinside.push_back(z);
   //-- 2. add to the vertices of the pgn to find their heights
-  assign_elevation_to_vertex(x, y, z);
+  assign_floor_elevation_to_vertex(x, y, z);
   return true;
 }
 
 
 //-- TODO: okay here brute-force, use of flann is points>200 (to benchmark perhaps?)  
-bool Block::assign_elevation_to_vertex(double x, double y, double z) {
-  //-- assign the MINIMUM to each
+bool Block::assign_floor_elevation_to_vertex(double x, double y, double z) {
   Point2 p(x, y);
   Ring2 oring = bg::exterior_ring(*(_p2));
   for (int i = 0; i < oring.size(); i++) {
@@ -196,9 +191,6 @@ Boundary3D::Boundary3D(Polygon2* p, std::string pid) : TopoFeature(p, pid)
 {
 }
 
-std::string Boundary3D::get_lift_type() {
-  return "BOUNDARY3D";
-}
 
 bool Boundary3D::threeDfy() {
   std::stringstream ss;
@@ -249,9 +241,6 @@ TIN::TIN(Polygon2* p, std::string pid, int simplification) : TopoFeature(p, pid)
   _vertexelevations.resize(bg::num_points(*(_p2)));
 }
 
-std::string TIN::get_lift_type() {
-  return "TIN";
-}
 
 bool TIN::threeDfy() {
   std::stringstream ss;

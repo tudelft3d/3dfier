@@ -15,11 +15,11 @@ public:
 
   virtual bool          threeDfy() = 0;
   virtual bool          add_elevation_point(double x, double y, double z) = 0;
-  virtual std::string   get_lift_type() = 0;
+  
+  virtual int           get_number_vertices() = 0;
   virtual std::string   get_citygml() = 0;
   virtual std::string   get_obj_v() = 0;
   virtual std::string   get_obj_f(int offset, bool floor = false) = 0;
-  virtual int           get_number_vertices() = 0;
 
   std::string  get_id();
   Polygon2*    get_Polygon2();
@@ -44,7 +44,6 @@ public:
   std::string     get_obj_f(int offset, bool floor = false);
   float           get_roof_height();
   float           get_floor_height();
-  std::string     get_lift_type();
   int             get_number_vertices();
 private:
   bool                  _is3d;
@@ -56,7 +55,7 @@ private:
   std::vector<Point3>   _vertices;
   std::vector<Triangle> _triangles;
   std::vector<Segment>  _segments;
-  bool assign_elevation_to_vertex(double x, double y, double z);
+  bool assign_floor_elevation_to_vertex(double x, double y, double z);
   bool build_CDT();
 };
 
@@ -73,7 +72,6 @@ public:
   std::string     get_citygml();
   std::string     get_obj_v();
   std::string     get_obj_f(int offset, bool floor = false);
-  std::string     get_lift_type();
   int             get_number_vertices();
 private:
   std::vector<Point3>   _lidarpts;
@@ -95,7 +93,6 @@ public:
   std::string     get_citygml();
   std::string     get_obj_v();
   std::string     get_obj_f(int offset, bool floor = false);
-  std::string     get_lift_type();
   int             get_number_vertices();
 private:
   int                   _simplification;
