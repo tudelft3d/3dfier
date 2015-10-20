@@ -28,6 +28,10 @@ public:
 protected:
   Polygon2*    _p2;
   std::string  _id;
+  std::vector< std::vector<float> > _velevations;
+  std::vector<Point3>   _vertices;  //-- output of Triangle
+  std::vector<Triangle> _triangles; //-- output of Triangle
+  std::vector<Segment>  _segments;  //-- output of Triangle
 };
 
 
@@ -36,7 +40,7 @@ protected:
 class Block : public TopoFeature 
 {
 public:
-  Block           (Polygon2* p, std::string pid, std::string lifttype); 
+  Block           (Polygon2* p, std::string pid, std::string heightref); 
   
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z);
@@ -53,10 +57,7 @@ private:
   float                 _roofheight;
   std::vector<float>    _zvaluesinside;
   std::vector<float>    _vertexelevations;
-  std::vector<Point3>   _vertices;
-  std::vector<Triangle> _triangles;
-  std::vector<Segment>  _segments;
-  bool assign_floor_elevation_to_vertex(double x, double y, double z);
+  bool assign_elevation_to_vertex(double x, double y, double z);
   bool build_CDT();
 };
 
@@ -76,9 +77,6 @@ public:
   int             get_number_vertices();
 private:
   std::vector<Point3>   _lidarpts;
-  std::vector<Point3>   _vertices;
-  std::vector<Triangle> _triangles;
-  std::vector<Segment>  _segments;
 };
 
 
@@ -98,10 +96,6 @@ public:
 private:
   int                   _simplification;
   std::vector<Point3>   _lidarpts;
-  std::vector<Point3>   _vertices;  //-- output of Triangle
-  std::vector<Triangle> _triangles; //-- output of Triangle
-  std::vector<Segment>  _segments;  //-- output of Triangle
-
   std::vector< std::tuple<int, float> > _vertexelevations;
   bool assign_elevation_to_vertex(double x, double y, double z);
   void add_elevations_to_boundary(Polygon3 &p3);

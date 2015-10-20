@@ -96,10 +96,10 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
 }
 
 
-TopoFeature* Map3d::add_elevation_point(double x, double y, double z, double buffer, TopoFeature* trythisone) {
+TopoFeature* Map3d::add_elevation_point(double x, double y, double z, TopoFeature* trythisone) {
   Point2 p(x, y);
   if (trythisone != NULL) {
-    if (bg::distance(p, *(trythisone->get_Polygon2())) < buffer) {
+    if (bg::distance(p, *(trythisone->get_Polygon2())) < _radius_vertex_elevation) {
       trythisone->add_elevation_point(x, y, z);
       return trythisone;
     }
@@ -111,7 +111,7 @@ TopoFeature* Map3d::add_elevation_point(double x, double y, double z, double buf
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
   for (auto& v : re) {
     TopoFeature* pgn = v.second;
-    if (bg::distance(p, *(pgn->get_Polygon2())) < buffer) {     
+    if (bg::distance(p, *(pgn->get_Polygon2())) < _radius_vertex_elevation) {     
       pgn->add_elevation_point(x, y, z);
       return pgn;
     }

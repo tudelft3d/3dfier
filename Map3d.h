@@ -24,7 +24,7 @@ public:
 
   bool construct_rtree();
   bool threeDfy();
-  TopoFeature* add_elevation_point(double x, double y, double z, double buffer = 2.0, TopoFeature* trythisone = NULL);
+  TopoFeature* add_elevation_point(double x, double y, double z, TopoFeature* trythisone = NULL);
 
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>& get_polygons3d();  

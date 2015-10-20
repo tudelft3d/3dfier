@@ -5,6 +5,7 @@
 TopoFeature::TopoFeature(Polygon2* p, std::string pid) {
   _id = pid;
   _p2 = p;
+  _velevations.resize(bg::num_points(*(_p2)));
 }
 
 TopoFeature::~TopoFeature() {
@@ -23,9 +24,6 @@ std::string TopoFeature::get_id() {
 Polygon2* TopoFeature::get_Polygon2() {
     return _p2;
 }
-
-
-
 
 
 //-------------------------------
@@ -146,32 +144,50 @@ bool Block::add_elevation_point(double x, double y, double z) {
   if (bg::within(p, *(_p2)) == true)
     _zvaluesinside.push_back(z);
   //-- 2. add to the vertices of the pgn to find their heights
-  assign_floor_elevation_to_vertex(x, y, z);
+  assign_elevation_to_vertex(x, y, z);
   return true;
 }
 
 
-//-- TODO: okay here brute-force, use of flann is points>200 (to benchmark perhaps?)  
-bool Block::assign_floor_elevation_to_vertex(double x, double y, double z) {
+bool Block::assign_elevation_to_vertex(double x, double y, double z) {
+  //-- TODO: okay here brute-force, use of flann is points>200 (to benchmark perhaps?)  
   Point2 p(x, y);
   Ring2 oring = bg::exterior_ring(*(_p2));
   for (int i = 0; i < oring.size(); i++) {
     if (bg::distance(p, oring[i]) <= 2.0)
-      if (z < _vertexelevations[i])
-        _vertexelevations[i] = z;
+      _velevations[i] = z;
   }
   int offset = int(bg::num_points(oring));
   auto irings = bg::interior_rings(*(_p2));
   for (Ring2& iring: irings) {
     for (int i = 0; i < iring.size(); i++) {
       if (bg::distance(p, iring) <= 2.0)
-        if (z < _vertexelevations[i + offset])
-        _vertexelevations[i + offset] = z;
+        _velevations[i + offset] = z;
     }
     offset += bg::num_points(iring);
   }
   return true;
 }
+// //-- TODO: okay here brute-force, use of flann is points>200 (to benchmark perhaps?)  
+//   Point2 p(x, y);
+//   Ring2 oring = bg::exterior_ring(*(_p2));
+//   for (int i = 0; i < oring.size(); i++) {
+//     if (bg::distance(p, oring[i]) <= 2.0)
+//       if (z < _vertexelevations[i])
+//         _vertexelevations[i] = z;
+//   }
+//   int offset = int(bg::num_points(oring));
+//   auto irings = bg::interior_rings(*(_p2));
+//   for (Ring2& iring: irings) {
+//     for (int i = 0; i < iring.size(); i++) {
+//       if (bg::distance(p, iring) <= 2.0)
+//         if (z < _vertexelevations[i + offset])
+//         _vertexelevations[i + offset] = z;
+//     }
+//     offset += bg::num_points(iring);
+//   }
+//   return true;
+// }
 
 
 bool Block::build_CDT() {
