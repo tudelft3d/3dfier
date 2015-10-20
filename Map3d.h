@@ -33,14 +33,16 @@ public:
   std::string get_csv_buildings();
   std::string get_obj();
      
-  void set_building_height_reference(std::string heightref);
+  void set_building_height_reference_roof(std::string heightref);
+  void set_building_height_reference_floor(std::string heightref);
   void set_building_include_floor(bool include);
   void set_building_triangulate(bool triangulate);
   void set_terrain_simplification(int simplification);
   void set_vegetation_simplification(int simplification);
   void set_radius_vertex_elevation(float radius);
 private:
-  std::string _building_heightref;
+  std::string _building_heightref_roof;
+  std::string _building_heightref_floor;
   bool        _building_triangulate;
   bool        _building_include_floor;
   int         _terrain_simplification;

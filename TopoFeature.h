@@ -14,7 +14,7 @@ public:
   ~TopoFeature ();
 
   virtual bool          threeDfy() = 0;
-  virtual bool          add_elevation_point(double x, double y, double z) = 0;
+  virtual bool          add_elevation_point(double x, double y, double z, float radius) = 0;
   
   virtual int           get_number_vertices() = 0;
   virtual std::string   get_citygml() = 0;
@@ -32,6 +32,8 @@ protected:
   std::vector<Point3>   _vertices;  //-- output of Triangle
   std::vector<Triangle> _triangles; //-- output of Triangle
   std::vector<Segment>  _segments;  //-- output of Triangle
+
+  bool assign_elevation_to_vertex(double x, double y, double z, float radius);
 };
 
 
@@ -40,24 +42,22 @@ protected:
 class Block : public TopoFeature 
 {
 public:
-  Block           (Polygon2* p, std::string pid, std::string heightref); 
-  
+  Block           (Polygon2* p, std::string pid, std::string heightref_top, std::string heightref_base); 
   bool            threeDfy();
-  bool            add_elevation_point(double x, double y, double z);
+  bool            add_elevation_point(double x, double y, double z, float radius);
   std::string     get_citygml();
   std::string     get_obj_v();
   std::string     get_obj_f(int offset, bool floor = false);
-  float           get_roof_height();
-  float           get_floor_height();
+  float           get_height_top();
+  float           get_height_base();
   int             get_number_vertices();
+  static std::string    _heightref_top;
+  static std::string    _heightref_base;
 private:
   bool                  _is3d;
-  std::string           _heightref;
-  float                 _floorheight;
-  float                 _roofheight;
+  float                 _height_top;
+  float                 _height_base;
   std::vector<float>    _zvaluesinside;
-  std::vector<float>    _vertexelevations;
-  bool assign_elevation_to_vertex(double x, double y, double z);
   bool build_CDT();
 };
 
@@ -70,7 +70,7 @@ public:
   Boundary3D      (Polygon2* p, std::string pid);
   
   bool            threeDfy();
-  bool            add_elevation_point(double x, double y, double z);
+  bool            add_elevation_point(double x, double y, double z, float radius);
   std::string     get_citygml();
   std::string     get_obj_v();
   std::string     get_obj_f(int offset, bool floor = false);
@@ -88,7 +88,7 @@ public:
   TIN             (Polygon2* p, std::string pid, int simplification = 0);
   
   bool            threeDfy();
-  bool            add_elevation_point(double x, double y, double z);
+  bool            add_elevation_point(double x, double y, double z, float radius);
   std::string     get_citygml();
   std::string     get_obj_v();
   std::string     get_obj_f(int offset, bool floor = false);

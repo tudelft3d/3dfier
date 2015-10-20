@@ -5,7 +5,8 @@
 Map3d::Map3d() {
   OGRRegisterAll();
   _building_include_floor = false;
-  _building_heightref = "median";
+  _building_heightref_roof = "median";
+  _building_heightref_floor = "percentile-05";
   _building_triangulate = true;
   _terrain_simplification = 0;
   _vegetation_simplification = 0;
@@ -18,9 +19,14 @@ Map3d::~Map3d() {
   _lsPolys.clear();
 }
 
-void Map3d::set_building_height_reference(std::string heightref) {
-  _building_heightref = heightref;  
+void Map3d::set_building_height_reference_roof(std::string h) {
+  _building_heightref_roof = h;  
 }
+
+void Map3d::set_building_height_reference_floor(std::string h) {
+  _building_heightref_floor = h;  
+}
+
 
 void Map3d::set_radius_vertex_elevation(float radius) {
   _radius_vertex_elevation = radius;  
@@ -100,7 +106,7 @@ TopoFeature* Map3d::add_elevation_point(double x, double y, double z, TopoFeatur
   Point2 p(x, y);
   if (trythisone != NULL) {
     if (bg::distance(p, *(trythisone->get_Polygon2())) < _radius_vertex_elevation) {
-      trythisone->add_elevation_point(x, y, z);
+      trythisone->add_elevation_point(x, y, z, _radius_vertex_elevation);
       return trythisone;
     }
   }
@@ -112,7 +118,7 @@ TopoFeature* Map3d::add_elevation_point(double x, double y, double z, TopoFeatur
   for (auto& v : re) {
     TopoFeature* pgn = v.second;
     if (bg::distance(p, *(pgn->get_Polygon2())) < _radius_vertex_elevation) {     
-      pgn->add_elevation_point(x, y, z);
+      pgn->add_elevation_point(x, y, z, _radius_vertex_elevation);
       return pgn;
     }
   }
@@ -200,7 +206,7 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
           bg::read_wkt(output_wkt, *p2);
           bg::unique(*p2); //-- remove duplicate vertices
           if (l.second == "Building") {
-            Building* p3 = new Building(p2, f->GetFieldAsString(idfield.c_str()), this->_building_heightref);
+            Building* p3 = new Building(p2, f->GetFieldAsString(idfield.c_str()), _building_heightref_roof, _building_heightref_floor);
             _lsPolys.push_back(p3);
           }
           else if (l.second == "Terrain") {
@@ -248,10 +254,10 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
     liblas::Point const& p = reader.GetPoint();
     if (skip != 0) {
       if (i % skip == 0)
-        lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), 2.0, lastone);
+        lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
     }
     else {
-      lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), 2.0, lastone);
+      lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
     }
     if (i % 100000 == 0) 
       printProgressBar(100 * (i / double(header.GetPointRecordsCount())));

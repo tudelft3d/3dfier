@@ -9,7 +9,8 @@
 #include "io.h"
 
 
-Building::Building(Polygon2* p, std::string pid, std::string heightref) : Block(p, pid, heightref)
+Building::Building(Polygon2* p, std::string pid, std::string heightref_top, std::string heightref_base) 
+: Block(p, pid, heightref_top, heightref_base)
 {}
 
 
@@ -18,20 +19,20 @@ std::string Building::get_citygml() {
   ss << "<cityObjectMember>";
   ss << "<bldg:Building>";
   ss << "<bldg:measuredHeight uom=\"#m\">";
-  ss << this->get_roof_height();
+  ss << this->get_height_top();
   ss << "</bldg:measuredHeight>";
   ss << "<bldg:lod1Solid>";
   ss << "<gml:Solid>";
   ss << "<gml:exterior>";
   ss << "<gml:CompositeSurface>";
   //-- get floor
-  ss << get_polygon_lifted_gml(this->_p2, this->get_floor_height(), false);
+  ss << get_polygon_lifted_gml(this->_p2, this->get_height_base(), false);
   //-- get roof
-  ss << get_polygon_lifted_gml(this->_p2, this->get_roof_height(), true);
+  ss << get_polygon_lifted_gml(this->_p2, this->get_height_top(), true);
   //-- get the walls
   auto r = bg::exterior_ring(*(this->_p2));
   for (int i = 0; i < (r.size() - 1); i++) 
-    ss << get_extruded_line_gml(&r[i], &r[i + 1], this->get_roof_height(), 0, false);
+    ss << get_extruded_line_gml(&r[i], &r[i + 1], this->get_height_top(), 0, false);
   ss << "</gml:CompositeSurface>";
   ss << "</gml:exterior>";
   ss << "</gml:Solid>";
@@ -43,7 +44,7 @@ std::string Building::get_citygml() {
 
 std::string Building::get_csv() {
   std::stringstream ss;
-  ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_roof_height() << ";" << this->get_floor_height() << std::endl;
+  ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height_top() << ";" << this->get_height_base() << std::endl;
   return ss.str(); 
 }
 

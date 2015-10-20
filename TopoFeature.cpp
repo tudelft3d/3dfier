@@ -2,6 +2,11 @@
 #include "TopoFeature.h"
 #include "io.h"
 
+
+std::string Block::_heightref_top = "median";
+std::string Block::_heightref_base = "percentile-10";
+
+
 TopoFeature::TopoFeature(Polygon2* p, std::string pid) {
   _id = pid;
   _p2 = p;
@@ -25,33 +30,56 @@ Polygon2* TopoFeature::get_Polygon2() {
     return _p2;
 }
 
+bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float radius) {
+  //-- TODO: okay here brute-force, use of flann is points>200 (to benchmark perhaps?)  
+  Point2 p(x, y);
+  Ring2 oring = bg::exterior_ring(*(_p2));
+  for (int i = 0; i < oring.size(); i++) {
+    if (bg::distance(p, oring[i]) <= radius)
+      (_velevations[i]).push_back(z);
+  }
+  int offset = int(bg::num_points(oring));
+  auto irings = bg::interior_rings(*(_p2));
+  for (Ring2& iring: irings) {
+    for (int i = 0; i < iring.size(); i++) {
+      if (bg::distance(p, iring) <= radius)
+          (_velevations[i + offset]).push_back(z);
+    }
+    offset += bg::num_points(iring);
+  }
+  return true;
+}
+
 
 //-------------------------------
 //-------------------------------
 
 
-Block::Block(Polygon2* p, std::string pid, std::string heightref) : TopoFeature(p, pid) 
+Block::Block(Polygon2* p, std::string pid, std::string heightref_top, std::string heightref_base) : TopoFeature(p, pid) 
 {
-  _heightref = heightref;
   _is3d = false;
-  _vertexelevations.assign(bg::num_points(*(_p2)), 9999);
+  _heightref_top = heightref_top;
+  _heightref_base = heightref_base;
+
+}
+
+
+bool Block::threeDfy() {
+  build_CDT();
+  _height_top  = this->get_height_top();
+  _height_base = this->get_height_base();
+  _is3d = true;
+  _zvaluesinside.clear();
+  _zvaluesinside.shrink_to_fit();
+  _velevations.clear();
+  _velevations.shrink_to_fit();
+  return true;
 }
 
 int Block::get_number_vertices() {
   return int(2 * _vertices.size());
 }
 
-bool Block::threeDfy() {
-  build_CDT();
-  _floorheight = this->get_floor_height();
-  _roofheight = this->get_roof_height();
-  _is3d = true;
-  _zvaluesinside.clear();
-  _zvaluesinside.shrink_to_fit();
-  _vertexelevations.clear();
-  _vertexelevations.shrink_to_fit();
-  return true;
-}
 
 std::string Block::get_citygml() {
   //-- TODO: CityGML implementation for TIN type
@@ -62,9 +90,9 @@ std::string Block::get_citygml() {
 std::string Block::get_obj_v() {
   std::stringstream ss;
   for (auto& v : _vertices)
-    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_roof_height() << std::endl;
+    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_height_top() << std::endl;
   for (auto& v : _vertices)
-    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_floor_height() << std::endl;
+    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_height_base() << std::endl;
   return ss.str();
 }
 
@@ -88,12 +116,12 @@ std::string Block::get_obj_f(int offset, bool floor) {
 }
 
 
-float Block::get_roof_height() {
+float Block::get_height_top() {
   if (_is3d == true)
-    return _roofheight;
+    return _height_top;
   if (_zvaluesinside.size() == 0)
     return -9999;
-  if (_heightref == "max") {
+    if (_heightref_top == "max") {
     double v = -9999;
     for (auto z : _zvaluesinside) {
       if (z > v)
@@ -101,7 +129,7 @@ float Block::get_roof_height() {
     }
     return v;
   }
-  else if (_heightref == "min") {
+  else if (_heightref_top == "min") {
     double v = 9999;
     for (auto z : _zvaluesinside) {
       if (z < v)
@@ -109,85 +137,51 @@ float Block::get_roof_height() {
     }
     return v;
   }
-  else if (_heightref == "avg") {
+  else if (_heightref_top == "avg") {
     double sum = 0.0;
     for (auto z : _zvaluesinside) 
       sum += z;
     return (sum / _zvaluesinside.size());
   }
-  else if (_heightref == "median") {
+  else if (_heightref_top == "median") {
     std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() / 2), _zvaluesinside.end());
     return _zvaluesinside[_zvaluesinside.size() / 2];
   }
   else {
-    if (_heightref.substr(0, _heightref.find_first_of("-")) == "percentile") {
-      double p = (std::stod(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100);
+    if (_heightref_top.substr(0, _heightref_top.find_first_of("-")) == "percentile") {
+      double p = (std::stod(_heightref_top.substr(_heightref_top.find_first_of("-") + 1)) / 100);
       std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() / p), _zvaluesinside.end());
       return _zvaluesinside[_zvaluesinside.size() / p];
     }
     else
-      std::cerr << "ERROR: height reference '" << _heightref << "' unknown." << std::endl;
+      std::cerr << "ERROR: height reference '" << _heightref_top << "' unknown." << std::endl;
   }
   return -9999;
 }
 
 
-float Block::get_floor_height() {
+float Block::get_height_base() {
   if (_is3d == true)
-    return _floorheight;
-  return *(std::min_element(std::begin(_vertexelevations), std::end(_vertexelevations)));
+    return _height_base;
+  double p = (std::stod(_heightref_base.substr(_heightref_base.find_first_of("-") + 1)) / 100);
+  std::vector<float> tmp;
+  for (auto& each : _velevations) {
+    std::nth_element(each.begin(), each.begin() + (each.size() / p), each.end());
+    tmp.push_back(each[each.size() / p]);
+  }
+  return *(std::min_element(std::begin(tmp), std::end(tmp)));
 }
 
-bool Block::add_elevation_point(double x, double y, double z) {
+
+bool Block::add_elevation_point(double x, double y, double z, float radius) {
   Point2 p(x, y);
   //-- 1. assign to polygon if inside
   if (bg::within(p, *(_p2)) == true)
     _zvaluesinside.push_back(z);
   //-- 2. add to the vertices of the pgn to find their heights
-  assign_elevation_to_vertex(x, y, z);
+  assign_elevation_to_vertex(x, y, z, radius);
   return true;
 }
-
-
-bool Block::assign_elevation_to_vertex(double x, double y, double z) {
-  //-- TODO: okay here brute-force, use of flann is points>200 (to benchmark perhaps?)  
-  Point2 p(x, y);
-  Ring2 oring = bg::exterior_ring(*(_p2));
-  for (int i = 0; i < oring.size(); i++) {
-    if (bg::distance(p, oring[i]) <= 2.0)
-      _velevations[i] = z;
-  }
-  int offset = int(bg::num_points(oring));
-  auto irings = bg::interior_rings(*(_p2));
-  for (Ring2& iring: irings) {
-    for (int i = 0; i < iring.size(); i++) {
-      if (bg::distance(p, iring) <= 2.0)
-        _velevations[i + offset] = z;
-    }
-    offset += bg::num_points(iring);
-  }
-  return true;
-}
-// //-- TODO: okay here brute-force, use of flann is points>200 (to benchmark perhaps?)  
-//   Point2 p(x, y);
-//   Ring2 oring = bg::exterior_ring(*(_p2));
-//   for (int i = 0; i < oring.size(); i++) {
-//     if (bg::distance(p, oring[i]) <= 2.0)
-//       if (z < _vertexelevations[i])
-//         _vertexelevations[i] = z;
-//   }
-//   int offset = int(bg::num_points(oring));
-//   auto irings = bg::interior_rings(*(_p2));
-//   for (Ring2& iring: irings) {
-//     for (int i = 0; i < iring.size(); i++) {
-//       if (bg::distance(p, iring) <= 2.0)
-//         if (z < _vertexelevations[i + offset])
-//         _vertexelevations[i + offset] = z;
-//     }
-//     offset += bg::num_points(iring);
-//   }
-//   return true;
-// }
 
 
 bool Block::build_CDT() {
@@ -242,7 +236,7 @@ std::string Boundary3D::get_obj_f(int offset, bool floor) {
   return ss.str();
 }
 
-bool Boundary3D::add_elevation_point(double x, double y, double z) {
+bool Boundary3D::add_elevation_point(double x, double y, double z, float radius) {
   _lidarpts.push_back(Point3(x, y, z));
   return true;
 }
@@ -332,7 +326,7 @@ std::string TIN::get_obj_f(int offset, bool floor) {
 }
 
 
-bool TIN::add_elevation_point(double x, double y, double z) {
+bool TIN::add_elevation_point(double x, double y, double z, float radius) {
   Point2 p(x, y);
   //-- 1. add points to surface if inside
   if (bg::within(p, *(_p2)) == true) {
