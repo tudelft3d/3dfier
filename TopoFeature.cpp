@@ -150,8 +150,8 @@ float Block::get_height_top() {
   else {
     if (_heightref_top.substr(0, _heightref_top.find_first_of("-")) == "percentile") {
       double p = (std::stod(_heightref_top.substr(_heightref_top.find_first_of("-") + 1)) / 100);
-      std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() / p), _zvaluesinside.end());
-      return _zvaluesinside[_zvaluesinside.size() / p];
+      std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * p), _zvaluesinside.end());
+      return _zvaluesinside[_zvaluesinside.size() * p];
     }
     else
       std::cerr << "ERROR: height reference '" << _heightref_top << "' unknown." << std::endl;
@@ -166,8 +166,10 @@ float Block::get_height_base() {
   double p = (std::stod(_heightref_base.substr(_heightref_base.find_first_of("-") + 1)) / 100);
   std::vector<float> tmp;
   for (auto& each : _velevations) {
-    std::nth_element(each.begin(), each.begin() + (each.size() / p), each.end());
-    tmp.push_back(each[each.size() / p]);
+    if (each.size() > 0) {
+      std::nth_element(each.begin(), each.begin() + (each.size() * p), each.end());
+      tmp.push_back(each[each.size() * p]);
+    }
   }
   return *(std::min_element(std::begin(tmp), std::end(tmp)));
 }

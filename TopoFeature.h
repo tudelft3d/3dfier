@@ -102,4 +102,4 @@ private:
 };
 
 
-#endif /* defined(__boo__Polygon3D__) */
+#endif 
