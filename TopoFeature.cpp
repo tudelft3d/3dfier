@@ -30,6 +30,20 @@ Polygon2* TopoFeature::get_Polygon2() {
     return _p2;
 }
 
+std::string TopoFeature::get_obj_v() {
+  std::stringstream ss;
+  for (auto& v : _vertices)
+    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
+  return ss.str();
+}
+
+std::string TopoFeature::get_obj_f(int offset) {
+  std::stringstream ss;
+  for (auto& t : _triangles)
+    ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
+  return ss.str();
+}
+
 bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float radius) {
   //-- TODO: okay here brute-force, use of flann is points>200 (to benchmark perhaps?)  
   Point2 p(x, y);
@@ -60,7 +74,6 @@ Block::Block(Polygon2* p, std::string pid, std::string heightref_top, std::strin
   _is3d = false;
   _heightref_top = heightref_top;
   _heightref_base = heightref_base;
-
 }
 
 
@@ -96,21 +109,15 @@ std::string Block::get_obj_v() {
   return ss.str();
 }
 
-std::string Block::get_obj_f(int offset, bool floor) {
+std::string Block::get_obj_f(int offset) {
   std::stringstream ss;
-  ss << "usemtl block" << std::endl;
-  //-- roof
+  //-- top surface
   for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
-  //-- side walls
+  //-- side surfaces walls
   for (auto& s : _segments) {
     ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
     ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
-  }
-  //-- floor
-  if (floor == true) {
-    for (auto& t : _triangles)
-      ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << std::endl;  
   }
   return ss.str();
 }
@@ -210,6 +217,8 @@ bool Boundary3D::threeDfy() {
   bg::read_wkt(ss.str(), p3);
   add_elevations_to_boundary(p3);
   getCDT(&p3, _vertices, _triangles, _segments);
+  _velevations.clear();
+  _velevations.shrink_to_fit();
   return true;
 }
 
@@ -223,20 +232,6 @@ std::string Boundary3D::get_citygml() {
 }
 
 
-std::string Boundary3D::get_obj_v() {
-  std::stringstream ss;
-  for (auto& v : _vertices)
-    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
-  return ss.str();
-}
-
-std::string Boundary3D::get_obj_f(int offset, bool floor) {
-  std::stringstream ss;
-  ss << "usemtl boundary3d" << std::endl;
-  for (auto& t : _triangles)
-    ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
-  return ss.str();
-}
 
 bool Boundary3D::add_elevation_point(double x, double y, double z, float radius) {
   assign_elevation_to_vertex(x, y, z, radius);
@@ -328,21 +323,6 @@ int TIN::get_number_vertices() {
 std::string TIN::get_citygml() {
   //-- TODO: CityGML implementation for TIN type
   return "EMTPY";
-}
-
-std::string TIN::get_obj_v() {
-  std::stringstream ss;
-  for (auto& v : _vertices)
-    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
-  return ss.str();
-}
-
-std::string TIN::get_obj_f(int offset, bool floor) {
-  std::stringstream ss;
-  ss << "usemtl tin" << std::endl;
-  for (auto& t : _triangles)
-    ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
-  return ss.str();
 }
 
 

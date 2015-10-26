@@ -11,7 +11,6 @@
 #include "TopoFeature.h"
 
 
-
 class Building : public Block
 {
 public:
@@ -19,6 +18,8 @@ public:
 
   std::string get_citygml();
   std::string get_csv();
+  std::string get_obj_f(int offset);
+  std::string get_obj_f_floor(int offset);
 };
 
 

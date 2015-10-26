@@ -18,8 +18,9 @@ public:
   
   virtual int           get_number_vertices() = 0;
   virtual std::string   get_citygml() = 0;
-  virtual std::string   get_obj_v() = 0;
-  virtual std::string   get_obj_f(int offset, bool floor = false) = 0;
+  
+  virtual std::string   get_obj_v();
+  virtual std::string   get_obj_f(int offset);
 
   std::string  get_id();
   Polygon2*    get_Polygon2();
@@ -47,7 +48,7 @@ public:
   bool            add_elevation_point(double x, double y, double z, float radius);
   std::string     get_citygml();
   std::string     get_obj_v();
-  std::string     get_obj_f(int offset, bool floor = false);
+  std::string     get_obj_f(int offset);
   float           get_height_top();
   float           get_height_base();
   int             get_number_vertices();
@@ -68,15 +69,13 @@ class Boundary3D : public TopoFeature
 {
 public:
   Boundary3D      (Polygon2* p, std::string pid);
-  
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z, float radius);
   std::string     get_citygml();
-  std::string     get_obj_v();
-  std::string     get_obj_f(int offset, bool floor = false);
+
   int             get_number_vertices();
 private:
-  int                   _simplification;
+  int             _simplification;
   void add_elevations_to_boundary(Polygon3 &p3);
 };
 
@@ -90,8 +89,7 @@ public:
   bool            threeDfy();
   bool            add_elevation_point(double x, double y, double z, float radius);
   std::string     get_citygml();
-  std::string     get_obj_v();
-  std::string     get_obj_f(int offset, bool floor = false);
+
   int             get_number_vertices();
 private:
   int                   _simplification;

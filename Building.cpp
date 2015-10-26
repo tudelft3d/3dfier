@@ -9,9 +9,31 @@
 #include "io.h"
 
 
+
 Building::Building(Polygon2* p, std::string pid, std::string heightref_top, std::string heightref_base) 
 : Block(p, pid, heightref_top, heightref_base)
 {}
+
+
+std::string Building::get_csv() {
+  std::stringstream ss;
+  ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height_top() << ";" << this->get_height_base() << std::endl;
+  return ss.str(); 
+}
+
+std::string Building::get_obj_f(int offset) {
+  std::stringstream ss;
+  ss << "usemtl Building" << std::endl;
+  ss << Block::get_obj_f(offset);
+  return ss.str();
+}
+
+std::string Building::get_obj_f_floor(int offset) {
+  std::stringstream ss;
+  for (auto& t : _triangles)
+    ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << std::endl;  
+  return ss.str();
+}
 
 
 std::string Building::get_citygml() {
@@ -42,9 +64,4 @@ std::string Building::get_citygml() {
   return ss.str(); 
 }
 
-std::string Building::get_csv() {
-  std::stringstream ss;
-  ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height_top() << ";" << this->get_height_base() << std::endl;
-  return ss.str(); 
-}
 

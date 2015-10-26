@@ -12,3 +12,11 @@ Water::Water (Polygon2* p, std::string pid) : Boundary3D(p, pid)
 {}
 
 
+std::string Water::get_obj_f(int offset) {
+  std::stringstream ss;
+  ss << "usemtl Water" << std::endl;
+  ss << TopoFeature::get_obj_f(offset);
+  return ss.str();
+}
+
+

@@ -73,20 +73,25 @@ std::string Map3d::get_csv_buildings() {
 }
 
 std::string Map3d::get_obj() {
- std::vector<int> offsets;
- offsets.push_back(0);
- std::stringstream ss;
- ss << "mtllib ./3dfier.mtl" << std::endl;
- for (auto& p3 : _lsPolys) {
-   ss << p3->get_obj_v();
-   offsets.push_back(p3->get_number_vertices());
- }
- int i = 0;
- int offset = 0;
- for (auto& p3 : _lsPolys) {
-   ss << "o " << p3->get_id() << std::endl;
-   offset += offsets[i++];
-   ss << p3->get_obj_f(offset, _building_include_floor);
+  std::vector<int> offsets;
+  offsets.push_back(0);
+  std::stringstream ss;
+  ss << "mtllib ./3dfier.mtl" << std::endl;
+  for (auto& p3 : _lsPolys) {
+    ss << p3->get_obj_v();
+    offsets.push_back(p3->get_number_vertices());
+  }
+  int i = 0;
+  int offset = 0;
+  for (auto& p3 : _lsPolys) {
+    ss << "o " << p3->get_id() << std::endl;
+    offset += offsets[i++];
+    ss << p3->get_obj_f(offset);
+    if (_building_include_floor == true) {  
+      Building* b = dynamic_cast<Building*>(p3);
+      if (b != nullptr)
+        ss << b->get_obj_f_floor(offset);
+    }
  }
  return ss.str();
 }

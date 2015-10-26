@@ -11,4 +11,10 @@
 Terrain::Terrain (Polygon2* p, std::string pid, int simplification) : TIN(p, pid, simplification)
 {}
 
+std::string Terrain::get_obj_f(int offset) {
+  std::stringstream ss;
+  ss << "usemtl Terrain" << std::endl;
+  ss << TopoFeature::get_obj_f(offset);
+  return ss.str();
+}
 
