@@ -19,11 +19,11 @@ Map3d::~Map3d() {
   _lsPolys.clear();
 }
 
-void Map3d::set_building_height_reference_roof(std::string h) {
+void Map3d::set_building_heightref_roof(std::string h) {
   _building_heightref_roof = h;  
 }
 
-void Map3d::set_building_height_reference_floor(std::string h) {
+void Map3d::set_building_heightref_floor(std::string h) {
   _building_heightref_floor = h;  
 }
 
@@ -47,6 +47,10 @@ void Map3d::set_terrain_simplification(int simplification) {
 
 void Map3d::set_vegetation_simplification(int simplification) {
   _vegetation_simplification = simplification;
+}
+
+void Map3d::set_water_heightref(std::string h) {
+  _water_heightref = h;  
 }
 
 std::string Map3d::get_citygml() {
@@ -223,7 +227,7 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
             _lsPolys.push_back(p3);
           }
           else if (l.second == "Water") {
-            Water* p3 = new Water(p2, f->GetFieldAsString(idfield.c_str()));
+            Water* p3 = new Water(p2, f->GetFieldAsString(idfield.c_str()), this->_water_heightref);
             _lsPolys.push_back(p3);
           }
           // TODO : add other classes

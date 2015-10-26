@@ -47,6 +47,9 @@ int main(int argc, const char * argv[]) {
   if (n["Vegetation"]) 
     if (n["Vegetation"]["simplification"])
       map3d.set_terrain_simplification(n["Vegetation"]["simplification"].as<int>());
+  if (n["Water"]) 
+    if (n["Water"]["height"])
+      map3d.set_water_heightref(n["Water"]["height"].as<std::string>());
 
 //-- add the polygons to the map3d
   n = nodes["input_polygons"];

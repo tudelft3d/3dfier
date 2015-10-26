@@ -7,9 +7,12 @@
 
 #include "Water.h"
 
+std::string Water::_heightref = "percentile-10";
 
-Water::Water (Polygon2* p, std::string pid) : Boundary3D(p, pid)
-{}
+Water::Water (Polygon2* p, std::string pid, std::string heightref) : Boundary3D(p, pid)
+{
+  _heightref = heightref;
+}
 
 
 std::string Water::get_obj_f(int offset) {

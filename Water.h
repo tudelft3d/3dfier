@@ -14,8 +14,9 @@
 class Water : public Boundary3D
 {
 public:
-  Water (Polygon2* p, std::string pid);
+  Water (Polygon2* p, std::string pid, std::string heightref);
   std::string get_obj_f(int offset);
+  static std::string _heightref;
 };
 
 

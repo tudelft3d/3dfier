@@ -2,10 +2,12 @@
 #include "TopoFeature.h"
 #include "io.h"
 
-
+//-- initialisation of 
 std::string Block::_heightref_top = "median";
 std::string Block::_heightref_base = "percentile-10";
 
+
+//-----------------------------------------------------------------------------
 
 TopoFeature::TopoFeature(Polygon2* p, std::string pid) {
   _id = pid;
@@ -283,6 +285,7 @@ bool TIN::threeDfy() {
 
 
 void TIN::add_elevations_to_boundary(Polygon3 &p3) {
+  // TODO : percentile 0.5 hard-coded, should be exposed to user?
   float percentile = 0.5;
   //-- fetch all medians for each vertex
   std::vector<float> medians;
