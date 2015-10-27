@@ -1,4 +1,5 @@
 
+//-- TODO: filter the noise in the lidar points inside TIN?
 //-- TODO : how to make roads horizontal "in the length"? or do we need to?
 
 #include "definitions.h"
@@ -55,7 +56,7 @@ int main(int argc, const char * argv[]) {
   if (n["Road"]) 
     if (n["Road"]["height"])
       map3d.set_water_heightref(n["Road"]["height"].as<std::string>());
-    
+
 //-- add the polygons to the map3d
   n = nodes["input_polygons"];
   bool wentgood = true;
