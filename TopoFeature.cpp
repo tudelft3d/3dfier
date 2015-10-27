@@ -66,7 +66,7 @@ bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float
   return true;
 }
 
-void TopoFeature::lift_boundary(Polygon3 &p3, float percentile) {
+void TopoFeature::lift_vertices_boundary(Polygon3 &p3, float percentile) {
   //-- fetch one value for each vertex
   std::vector<float> zvertices;
   float avg = 0.0;

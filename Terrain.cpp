@@ -27,7 +27,8 @@ bool Terrain::threeDfy() {
   ss << bg::wkt(*(_p2));
   Polygon3 p3;
   bg::read_wkt(ss.str(), p3);
-  TopoFeature::lift_boundary(p3, 0.5);
+  //-- lift vertices to their median of lidar points
+  TopoFeature::lift_vertices_boundary(p3, 0.5);
   getCDT(&p3, _vertices, _triangles, _segments, _lidarpts);
   return true;
 }

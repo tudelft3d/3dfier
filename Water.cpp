@@ -21,7 +21,7 @@ bool Water::threeDfy() {
   bg::read_wkt(ss.str(), p3);
   //-- assign an elevation to each vertex
   float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
-  lift_boundary(p3, percentile);
+  lift_vertices_boundary(p3, percentile);
   //-- take minimum value for obtaining horizontal value
   make_boundary_horizontal(p3);
   //-- triangulate

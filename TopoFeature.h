@@ -33,7 +33,7 @@ protected:
   std::vector<Segment>  _segments;  //-- output of Triangle
 
   bool assign_elevation_to_vertex(double x, double y, double z, float radius);
-  void lift_boundary(Polygon3 &p3, float percentile);
+  void lift_vertices_boundary(Polygon3 &p3, float percentile);
 };
 
 
