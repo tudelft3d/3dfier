@@ -1,4 +1,7 @@
 
+//-- TODO : how to make roads horizontal "in the length"? or do we need to?
+
+
 #include "definitions.h"
 #include "io.h"
 #include "TopoFeature.h"
