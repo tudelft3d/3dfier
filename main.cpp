@@ -1,7 +1,6 @@
 
 //-- TODO : how to make roads horizontal "in the length"? or do we need to?
 
-
 #include "definitions.h"
 #include "io.h"
 #include "TopoFeature.h"
@@ -53,7 +52,10 @@ int main(int argc, const char * argv[]) {
   if (n["Water"]) 
     if (n["Water"]["height"])
       map3d.set_water_heightref(n["Water"]["height"].as<std::string>());
-
+  if (n["Road"]) 
+    if (n["Road"]["height"])
+      map3d.set_water_heightref(n["Road"]["height"].as<std::string>());
+    
 //-- add the polygons to the map3d
   n = nodes["input_polygons"];
   bool wentgood = true;

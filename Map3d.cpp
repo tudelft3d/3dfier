@@ -53,6 +53,10 @@ void Map3d::set_water_heightref(std::string h) {
   _water_heightref = h;  
 }
 
+void Map3d::set_road_heightref(std::string h) {
+  _road_heightref = h;  
+}
+
 std::string Map3d::get_citygml() {
   std::stringstream ss;
   ss << get_xml_header();
@@ -230,7 +234,10 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
             Water* p3 = new Water(p2, f->GetFieldAsString(idfield.c_str()), this->_water_heightref);
             _lsPolys.push_back(p3);
           }
-          // TODO : add other classes
+          else if (l.second == "Road") {
+            Road* p3 = new Road(p2, f->GetFieldAsString(idfield.c_str()), this->_road_heightref);
+            _lsPolys.push_back(p3);
+          }          
           break;
         }
         default: {

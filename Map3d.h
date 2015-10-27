@@ -8,6 +8,7 @@
 #include "Terrain.h"
 #include "Vegetation.h"
 #include "Water.h"
+#include "Road.h"
 
 typedef std::pair<Box, TopoFeature*> PairIndexed;
 
@@ -40,6 +41,7 @@ public:
   void set_terrain_simplification(int simplification);
   void set_vegetation_simplification(int simplification);
   void set_water_heightref(std::string heightref);
+  void set_road_heightref(std::string heightref);
   void set_radius_vertex_elevation(float radius);
 private:
   std::string _building_heightref_roof;
@@ -49,6 +51,7 @@ private:
   int         _terrain_simplification;
   int         _vegetation_simplification;
   std::string _water_heightref;
+  std::string _road_heightref;
   float       _radius_vertex_elevation;
 
   std::vector<TopoFeature*>   _lsPolys;
