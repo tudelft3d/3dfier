@@ -16,6 +16,7 @@ class Building : public Block
 public:
   Building (Polygon2* p, std::string pid, std::string heightref_top, std::string heightref_base);
 
+  bool        threeDfy();
   std::string get_citygml();
   std::string get_csv();
   std::string get_obj_f(int offset);
@@ -24,3 +25,4 @@ public:
 
 
 #endif /* Building_h */
+

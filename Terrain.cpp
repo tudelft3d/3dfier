@@ -18,3 +18,16 @@ std::string Terrain::get_obj_f(int offset) {
   return ss.str();
 }
 
+std::string Terrain::get_citygml() {
+  return "<EMPTY/>";
+}
+
+bool Terrain::threeDfy() {
+  std::stringstream ss;
+  ss << bg::wkt(*(_p2));
+  Polygon3 p3;
+  bg::read_wkt(ss.str(), p3);
+  TopoFeature::lift_boundary(p3, 0.5);
+  getCDT(&p3, _vertices, _triangles, _segments, _lidarpts);
+  return true;
+}

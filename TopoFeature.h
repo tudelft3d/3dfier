@@ -15,12 +15,10 @@ public:
 
   virtual bool          threeDfy() = 0;
   virtual bool          add_elevation_point(double x, double y, double z, float radius) = 0;
-  
-  virtual int           get_number_vertices() = 0;
   virtual std::string   get_citygml() = 0;
-  
   virtual std::string   get_obj_v();
   virtual std::string   get_obj_f(int offset);
+  virtual int           get_number_vertices() = 0;
 
   std::string  get_id();
   Polygon2*    get_Polygon2();
@@ -35,6 +33,7 @@ protected:
   std::vector<Segment>  _segments;  //-- output of Triangle
 
   bool assign_elevation_to_vertex(double x, double y, double z, float radius);
+  void lift_boundary(Polygon3 &p3, float percentile);
 };
 
 
@@ -44,17 +43,18 @@ class Block : public TopoFeature
 {
 public:
   Block           (Polygon2* p, std::string pid, std::string heightref_top, std::string heightref_base); 
-  bool            threeDfy();
+  virtual bool    threeDfy() = 0;
   bool            add_elevation_point(double x, double y, double z, float radius);
-  std::string     get_citygml();
+  virtual std::string   get_citygml() = 0;
   std::string     get_obj_v();
   std::string     get_obj_f(int offset);
+  int             get_number_vertices();
+  
   float           get_height_top();
   float           get_height_base();
-  int             get_number_vertices();
   static std::string    _heightref_top;
   static std::string    _heightref_base;
-private:
+protected:
   bool                  _is3d;
   float                 _height_top;
   float                 _height_base;
@@ -68,15 +68,14 @@ private:
 class Boundary3D : public TopoFeature
 {
 public:
-  Boundary3D      (Polygon2* p, std::string pid);
-  bool            threeDfy();
-  bool            add_elevation_point(double x, double y, double z, float radius);
-  std::string     get_citygml();
+  Boundary3D    (Polygon2* p, std::string pid);
+  virtual bool  threeDfy() = 0;
+  virtual std::string   get_citygml() = 0;
+  bool          add_elevation_point(double x, double y, double z, float radius);
 
-  int             get_number_vertices();
-private:
-  int             _simplification;
-  void add_elevations_to_boundary(Polygon3 &p3);
+  int           get_number_vertices();
+protected:
+  int           _simplification;
 };
 
 
@@ -86,15 +85,13 @@ class TIN : public TopoFeature
 {
 public:
   TIN             (Polygon2* p, std::string pid, int simplification = 0);
-  bool            threeDfy();
+  virtual bool    threeDfy() = 0;
+  virtual std::string   get_citygml() = 0;
   bool            add_elevation_point(double x, double y, double z, float radius);
-  std::string     get_citygml();
-
   int             get_number_vertices();
-private:
+protected:
   int                   _simplification;
   std::vector<Point3>   _lidarpts;
-  void add_elevations_to_boundary(Polygon3 &p3);
 };
 
 

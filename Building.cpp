@@ -14,6 +14,17 @@ Building::Building(Polygon2* p, std::string pid, std::string heightref_top, std:
 : Block(p, pid, heightref_top, heightref_base)
 {}
 
+bool Building::threeDfy() {
+  build_CDT();
+  _height_top  = this->get_height_top();
+  _height_base = this->get_height_base();
+  _is3d = true;
+  _zvaluesinside.clear();
+  _zvaluesinside.shrink_to_fit();
+  _velevations.clear();
+  _velevations.shrink_to_fit();
+  return true;
+}
 
 std::string Building::get_csv() {
   std::stringstream ss;
@@ -34,7 +45,6 @@ std::string Building::get_obj_f_floor(int offset) {
     ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << std::endl;  
   return ss.str();
 }
-
 
 std::string Building::get_citygml() {
   std::stringstream ss;

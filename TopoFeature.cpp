@@ -66,6 +66,38 @@ bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float
   return true;
 }
 
+void TopoFeature::lift_boundary(Polygon3 &p3, float percentile) {
+  //-- fetch one value for each vertex
+  std::vector<float> zvertices;
+  float avg = 0.0;
+  for (auto& v : _velevations) {
+    if (v.size() > 0) {
+      std::nth_element(v.begin(), v.begin() + (v.size() * percentile), v.end());
+      zvertices.push_back(v[v.size() * percentile]);
+      avg += v[v.size() * percentile];
+    }
+    else
+      zvertices.push_back(-9999);
+  }
+  avg /= zvertices.size();
+  //-- replace missing values by the avg of the polygon TODO : is avg to fix problems the best? I doubt.
+  for (auto& v : zvertices) 
+    if (v < -9998)
+      v = avg;
+  //-- assign the value of the Polygon3
+  Ring3 oring = bg::exterior_ring(p3);
+  for (int i = 0; i < oring.size(); i++) 
+    bg::set<2>(bg::exterior_ring(p3)[i], zvertices[i]);
+  auto irings = bg::interior_rings(p3);
+  std::size_t offset = bg::num_points(oring);
+  for (int i = 0; i < irings.size(); i++) {
+    for (int j = 0; j < (irings[i]).size(); j++)
+      bg::set<2>(bg::interior_rings(p3)[i][j], zvertices[j + offset]);
+    offset += bg::num_points(irings[i]);
+  }
+}  
+
+
 
 //-------------------------------
 //-------------------------------
@@ -79,26 +111,8 @@ Block::Block(Polygon2* p, std::string pid, std::string heightref_top, std::strin
 }
 
 
-bool Block::threeDfy() {
-  build_CDT();
-  _height_top  = this->get_height_top();
-  _height_base = this->get_height_base();
-  _is3d = true;
-  _zvaluesinside.clear();
-  _zvaluesinside.shrink_to_fit();
-  _velevations.clear();
-  _velevations.shrink_to_fit();
-  return true;
-}
-
 int Block::get_number_vertices() {
   return int(2 * _vertices.size());
-}
-
-
-std::string Block::get_citygml() {
-  //-- TODO: CityGML implementation for TIN type
-  return "EMTPY";
 }
 
 
@@ -212,54 +226,14 @@ Boundary3D::Boundary3D(Polygon2* p, std::string pid) : TopoFeature(p, pid)
 {}
 
 
-bool Boundary3D::threeDfy() {
-  std::stringstream ss;
-  ss << bg::wkt(*(_p2));
-  Polygon3 p3;
-  bg::read_wkt(ss.str(), p3);
-  add_elevations_to_boundary(p3);
-  getCDT(&p3, _vertices, _triangles, _segments);
-  _velevations.clear();
-  _velevations.shrink_to_fit();
-  return true;
-}
-
 int Boundary3D::get_number_vertices() {
   return int(_vertices.size());
 }
 
 
-std::string Boundary3D::get_citygml() {
-  return "EMPTY"; 
-}
-
-
-
 bool Boundary3D::add_elevation_point(double x, double y, double z, float radius) {
   assign_elevation_to_vertex(x, y, z, radius);
   return true;
-}
-
-void Boundary3D::add_elevations_to_boundary(Polygon3 &p3) {
-  float percentile = 0.1;
-  //-- fetch all elevations for each vertex
-  std::vector<float> elevations;
-  for (auto& v : _velevations) {
-    if (v.size() > 0) {
-      std::nth_element(v.begin(), v.begin() + (v.size() * percentile), v.end());
-      elevations.push_back(v[v.size() * percentile]);
-    }
-  }
-  float elevation = *(std::min_element(std::begin(elevations), std::end(elevations)));
-  //-- assign the value of the Polygon3
-  Ring3 oring = bg::exterior_ring(p3);
-  for (int i = 0; i < oring.size(); i++) 
-    bg::set<2>(bg::exterior_ring(p3)[i], elevation);
-  auto irings = bg::interior_rings(p3);
-  for (int i = 0; i < irings.size(); i++) {
-    for (int j = 0; j < (irings[i]).size(); j++)
-      bg::set<2>(bg::interior_rings(p3)[i][j], elevation);
-  }
 }
 
 
@@ -273,59 +247,8 @@ TIN::TIN(Polygon2* p, std::string pid, int simplification) : TopoFeature(p, pid)
 }
 
 
-bool TIN::threeDfy() {
-  std::stringstream ss;
-  ss << bg::wkt(*(_p2));
-  Polygon3 p3;
-  bg::read_wkt(ss.str(), p3);
-  add_elevations_to_boundary(p3);
-  getCDT(&p3, _vertices, _triangles, _segments, _lidarpts);
-  return true;
-}
-
-
-void TIN::add_elevations_to_boundary(Polygon3 &p3) {
-  // TODO : percentile 0.5 hard-coded, should be exposed to user?
-  float percentile = 0.5;
-  //-- fetch all medians for each vertex
-  std::vector<float> medians;
-  float avg = 0.0;
-  for (auto& v : _velevations) {
-    if (v.size() > 0) {
-      std::nth_element(v.begin(), v.begin() + (v.size() * percentile), v.end());
-      medians.push_back(v[v.size() * percentile]);
-      avg += v[v.size() * percentile];
-    }
-    else
-      medians.push_back(-9999);
-  }
-  avg /= medians.size();
-  //-- replace missing values by the avg of the polygon
-  for (auto& v : medians) 
-    if (v < -9998)
-      v = avg;
-  //-- assign the value of the Polygon3
-  Ring3 oring = bg::exterior_ring(p3);
-  for (int i = 0; i < oring.size(); i++) 
-    bg::set<2>(bg::exterior_ring(p3)[i], medians[i]);
-  auto irings = bg::interior_rings(p3);
-  std::size_t offset = bg::num_points(oring);
-  for (int i = 0; i < irings.size(); i++) {
-    for (int j = 0; j < (irings[i]).size(); j++)
-      bg::set<2>(bg::interior_rings(p3)[i][j], medians[j + offset]);
-    offset += bg::num_points(irings[i]);
-  }
-}
-
-
 int TIN::get_number_vertices() {
   return int(_vertices.size());
-}
-
-
-std::string TIN::get_citygml() {
-  //-- TODO: CityGML implementation for TIN type
-  return "EMTPY";
 }
 
 
