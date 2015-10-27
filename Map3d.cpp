@@ -10,6 +10,7 @@ Map3d::Map3d() {
   _building_triangulate = true;
   _terrain_simplification = 0;
   _vegetation_simplification = 0;
+  // _water_ = 0;
   _radius_vertex_elevation = 2.0;
 }
 

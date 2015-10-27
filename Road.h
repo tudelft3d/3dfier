@@ -15,12 +15,12 @@ class Road : public Boundary3D
 {
 public:
   Road (Polygon2* p, std::string pid, std::string heightref);
-  bool          threeDfy();
-  std::string   get_citygml();
-  std::string   get_obj_f(int offset);
-  static std::string _heightref;
+  bool                threeDfy();
+  std::string         get_citygml();
+  std::string         get_obj_f(int offset);
+  static std::string  _heightref;
 // protected:
-  // void          make_boundary_horizontal(Polygon3 &p3);
+  // void                smooth_boundary(Polygon3 &p3);
 };
 
 

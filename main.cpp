@@ -49,13 +49,13 @@ int main(int argc, const char * argv[]) {
       map3d.set_terrain_simplification(n["Terrain"]["simplification"].as<int>());
   if (n["Vegetation"]) 
     if (n["Vegetation"]["simplification"])
-      map3d.set_terrain_simplification(n["Vegetation"]["simplification"].as<int>());
+      map3d.set_vegetation_simplification(n["Vegetation"]["simplification"].as<int>());
   if (n["Water"]) 
     if (n["Water"]["height"])
       map3d.set_water_heightref(n["Water"]["height"].as<std::string>());
   if (n["Road"]) 
     if (n["Road"]["height"])
-      map3d.set_water_heightref(n["Road"]["height"].as<std::string>());
+      map3d.set_road_heightref(n["Road"]["height"].as<std::string>());
 
 //-- add the polygons to the map3d
   n = nodes["input_polygons"];

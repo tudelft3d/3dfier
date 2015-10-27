@@ -76,6 +76,8 @@ public:
   int           get_number_vertices();
 protected:
   int           _simplification;
+  void          smooth_boundary(Polygon3 &p3, int passes = 1);
+  void          smooth_ring(Ring3 &r, std::vector<float> &elevs);
 };
 
 

@@ -11,7 +11,8 @@ std::string Water::_heightref = "percentile-10";
 
 Water::Water (Polygon2* p, std::string pid, std::string heightref) : Boundary3D(p, pid)
 {
-  _heightref = heightref;
+  if (heightref != "")
+    _heightref = heightref;
 }
 
 bool Water::threeDfy() {
