@@ -95,6 +95,8 @@ void TopoFeature::lift_boundary(Polygon3 &p3, float percentile) {
       bg::set<2>(bg::interior_rings(p3)[i][j], zvertices[j + offset]);
     offset += bg::num_points(irings[i]);
   }
+  _velevations.clear();
+  _velevations.shrink_to_fit();
 }  
 
 
