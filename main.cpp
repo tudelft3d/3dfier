@@ -100,6 +100,11 @@ int main(int argc, const char * argv[]) {
   //-- spatially index the polygons
   map3d.construct_rtree();
 
+
+  map3d.stitch_lifted_features();
+  return 1;
+
+
   //-- add elevation datasets
   n = nodes["input_elevation"];
   for (auto it = n.begin(); it != n.end(); ++it) {

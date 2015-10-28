@@ -10,7 +10,7 @@
 #include "Water.h"
 #include "Road.h"
 
-typedef std::pair<Box, TopoFeature*> PairIndexed;
+typedef std::pair<Box2, TopoFeature*> PairIndexed;
 
 class Map3d
 {
@@ -23,9 +23,11 @@ public:
 
   bool add_las_file(std::string ifile, int skip = 0);
 
+  void stitch_lifted_features();
   bool construct_rtree();
   bool threeDfy();
   TopoFeature* add_elevation_point(double x, double y, double z, TopoFeature* trythisone = NULL);
+
 
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>& get_polygons3d();  

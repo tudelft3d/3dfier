@@ -7,6 +7,7 @@
 #include <random>
 
 
+
 class TopoFeature
 {
 public:
@@ -21,12 +22,15 @@ public:
   virtual int           get_number_vertices() = 0;
 
   std::string  get_id();
+  int          get_counter(); 
   Polygon2*    get_Polygon2();
-  Box          get_bbox2d();
+  Box2         get_bbox2d();
 
 protected:
   Polygon2*    _p2;
   std::string  _id;
+  int          _counter;
+  static int   _count;
   std::vector< std::vector<float> > _velevations;
   std::vector<Point3>   _vertices;  //-- output of Triangle
   std::vector<Triangle> _triangles; //-- output of Triangle

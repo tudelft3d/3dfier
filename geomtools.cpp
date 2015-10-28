@@ -15,7 +15,7 @@ void get_point_inside(Ring3& ring3, Point2& p) {
     bg::append(ring, Point2(bg::get<0>(v), bg::get<1>(v)));
   bg::centroid(ring, p);
   if (bg::within(p, ring) == false) {
-    Box bbox;
+    Box2 bbox;
     bg::envelope(ring, bbox);
     Point2 genp;
     std::default_random_engine re;

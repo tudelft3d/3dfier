@@ -127,7 +127,7 @@ TopoFeature* Map3d::add_elevation_point(double x, double y, double z, TopoFeatur
   std::vector<PairIndexed> re;
   Point2 minp(x - 0.1, y - 0.1);
   Point2 maxp(x + 0.1, y + 0.1);
-  Box querybox(minp, maxp);
+  Box2 querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
   for (auto& v : re) {
     TopoFeature* pgn = v.second;
@@ -283,5 +283,22 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
   std::clog << "done" << std::endl;
   ifs.close();
   return true;
+}
+
+
+void Map3d::stitch_lifted_features() {
+  std::cout << "==========" << std::endl;
+  TopoFeature* f = _lsPolys[2];
+  std::cout << "#" << f->get_counter() << std::endl;
+  Polygon2* pgn = f->get_Polygon2();
+  std::vector<PairIndexed> re;
+  _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+  for (auto& b : re) {
+    TopoFeature* next = b.second;
+    if ( (next->get_counter() > f->get_counter()) && (bg::touches(*pgn, *(next->get_Polygon2())) == true) ) {
+      std::cout << next->get_id() << std::endl;
+    }
+  }
+  std::cout << "==========" << std::endl;
 }
 

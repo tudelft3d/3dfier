@@ -3,6 +3,7 @@
 #include "io.h"
 
 //-- initialisation of 
+int TopoFeature::_count = 0;
 std::string Block::_heightref_top = "median";
 std::string Block::_heightref_base = "percentile-10";
 
@@ -11,6 +12,7 @@ std::string Block::_heightref_base = "percentile-10";
 
 TopoFeature::TopoFeature(Polygon2* p, std::string pid) {
   _id = pid;
+  _counter = _count++;
   _p2 = p;
   _velevations.resize(bg::num_points(*(_p2)));
 }
@@ -20,12 +22,16 @@ TopoFeature::~TopoFeature() {
   std::cout << "I am dead" << std::endl;
 }
 
-Box TopoFeature::get_bbox2d() {
-  return bg::return_envelope<Box>(*_p2);
+Box2 TopoFeature::get_bbox2d() {
+  return bg::return_envelope<Box2>(*_p2);
 }
 
 std::string TopoFeature::get_id() {
   return _id;
+}
+
+int TopoFeature::get_counter() {
+  return _counter;
 }
 
 Polygon2* TopoFeature::get_Polygon2() {
