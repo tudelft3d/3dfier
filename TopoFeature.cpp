@@ -145,9 +145,9 @@ float Block::get_height_top() {
   if (_is3d == true)
     return _height_top;
   if (_zvaluesinside.size() == 0)
-    return -9999;
-    if (_heightref_top == "max") {
-    double v = -9999;
+    return 0;
+  if (_heightref_top == "max") {
+    double v = 0;
     for (auto z : _zvaluesinside) {
       if (z > v)
         v = z;
@@ -181,7 +181,7 @@ float Block::get_height_top() {
     else
       std::cerr << "ERROR: height reference '" << _heightref_top << "' unknown." << std::endl;
   }
-  return -9999;
+  return 0;
 }
 
 
@@ -196,6 +196,8 @@ float Block::get_height_base() {
       tmp.push_back(each[each.size() * p]);
     }
   }
+  if (tmp.empty())
+    return 0;
   return *(std::min_element(std::begin(tmp), std::end(tmp)));
 }
 
