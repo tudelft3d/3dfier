@@ -10,7 +10,7 @@ input_polygons:
     uniqueid: fid
     layers:
       Gebouw: Building
-      Terrain: Terrain
+      Terrein: Terrain
       Waterdeel: Water
   
 lifting_options: 

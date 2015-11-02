@@ -250,6 +250,7 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
   return wentgood;
 }
 
+
 //-- http://www.liblas.org/tutorial/cpp.html#applying-filters-to-a-reader-to-extract-specified-classes
 bool Map3d::add_las_file(std::string ifile, int skip) {
   std::clog << "Reading LAS/LAZ file: " << ifile << std::endl;
@@ -263,24 +264,12 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
   }
   liblas::ReaderFactory f;
   
-  std::vector<liblas::Classification> toexclude;
-  lasclasses.push_back(liblas::Classification(1)); // unclassified (vegetation)
-//  lasclasses.push_back(liblas::Classification(2)); // ground
-//  lasclasses.push_back(liblas::Classification(6)); // building
-//  lasclasses.push_back(liblas::Classification(9)); // water
-//  lasclasses.push_back(liblas::Classification(26));// kunstwerken
-  std::vector<liblas::FilterPtr> filters;
-  liblas::FilterPtr class_filter = liblas::FilterPtr(new liblas::ClassificationFilter(toexclude));
-  class_filter->SetType(liblas::FilterI::eExclusion);
-  filters.push_back(class_filter);
-  liblas::FilterPtr return_filter = liblas::FilterPtr(new LastReturnFilter());
-  filters.push_back(return_filter);
+  std::vector<int> tmp {1, 6};
+  std::vector<liblas::Classification> lasomits;
+  lasomits.push_back(liblas::Classification(tmp[0]));
+  lasomits.push_back(liblas::Classification(tmp[1]));
   
-  liblas::ReaderFactory f;
-  f.CreateWithStream(ifs);
-  reader.SetFilters(&filters);
-  
-  
+
   liblas::Reader reader = f.CreateWithStream(ifs);
   liblas::Header const& header = reader.GetHeader();
   std::clog << "\t(" << header.GetPointRecordsCount() << " points)" << std::endl;
@@ -288,14 +277,15 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
   TopoFeature* lastone = NULL;
   while (reader.ReadNextPoint()) {
     liblas::Point const& p = reader.GetPoint();
-    
-    std::cout << p.GetClassification() << std::endl;
     if (skip != 0) {
-      if (i % skip == 0)
-        lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+      if (i % skip == 0) {
+        if(std::find(lasomits.begin(), lasomits.end(), p.GetClassification()) != lasomits.end())
+          lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+      }
     }
     else {
-      lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+      if(std::find(lasomits.begin(), lasomits.end(), p.GetClassification()) != lasomits.end())
+        lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
     }
     if (i % 100000 == 0) 
       printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
