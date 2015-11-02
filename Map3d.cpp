@@ -251,16 +251,28 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
 }
 
 
-bool Map3d::add_las_file(std::string ifile, int skip) {
+//-- http://www.liblas.org/tutorial/cpp.html#applying-filters-to-a-reader-to-extract-specified-classes
+bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip) {
   std::clog << "Reading LAS/LAZ file: " << ifile << std::endl;
+  if (lasomits.empty() == false) {
+    std::clog << "\t(omitting LAS classes: ";
+    for (int i : lasomits)
+      std::clog << i << " ";
+    std::clog << ")" << std::endl;
+  }
   if (skip != 0)
-    std::clog << "(only reading every " << skip << "th points)" << std::endl;
+    std::clog << "\t(only reading every " << skip << "th points)" << std::endl;
   std::ifstream ifs;
   ifs.open(ifile.c_str(), std::ios::in | std::ios::binary);
   if (ifs.is_open() == false) {
     std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
     return false;
   }
+  //-- LAS classes to omit
+  std::vector<liblas::Classification> liblasomits;
+  for (int i : lasomits)
+    liblasomits.push_back(liblas::Classification(i));
+  //-- read each point 1-by-1
   liblas::ReaderFactory f;
   liblas::Reader reader = f.CreateWithStream(ifs);
   liblas::Header const& header = reader.GetHeader();
@@ -270,11 +282,14 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
   while (reader.ReadNextPoint()) {
     liblas::Point const& p = reader.GetPoint();
     if (skip != 0) {
-      if (i % skip == 0)
-        lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+      if (i % skip == 0) {
+        if(std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
+          lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+      }
     }
     else {
-      lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+      if(std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
+        lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
     }
     if (i % 100000 == 0) 
       printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
