@@ -268,11 +268,11 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
     std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
     return false;
   }
-  
+  //-- LAS classes to omit
   std::vector<liblas::Classification> liblasomits;
   for (int i : lasomits)
     liblasomits.push_back(liblas::Classification(i));
-
+  //-- read each point 1-by-1
   liblas::ReaderFactory f;
   liblas::Reader reader = f.CreateWithStream(ifs);
   liblas::Header const& header = reader.GetHeader();
