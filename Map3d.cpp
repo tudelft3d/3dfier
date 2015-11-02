@@ -252,24 +252,28 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
 
 
 //-- http://www.liblas.org/tutorial/cpp.html#applying-filters-to-a-reader-to-extract-specified-classes
-bool Map3d::add_las_file(std::string ifile, int skip) {
+bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip) {
   std::clog << "Reading LAS/LAZ file: " << ifile << std::endl;
+  if (lasomits.empty() == false) {
+    std::clog << "\t(omitting LAS classes: ";
+    for (int i : lasomits)
+      std::clog << i << " ";
+    std::clog << ")" << std::endl;
+  }
   if (skip != 0)
-    std::clog << "(only reading every " << skip << "th points)" << std::endl;
+    std::clog << "\t(only reading every " << skip << "th points)" << std::endl;
   std::ifstream ifs;
   ifs.open(ifile.c_str(), std::ios::in | std::ios::binary);
   if (ifs.is_open() == false) {
     std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
     return false;
   }
-  liblas::ReaderFactory f;
   
-  std::vector<int> tmp {1, 6};
-  std::vector<liblas::Classification> lasomits;
-  lasomits.push_back(liblas::Classification(tmp[0]));
-  lasomits.push_back(liblas::Classification(tmp[1]));
-  
+  std::vector<liblas::Classification> liblasomits;
+  for (int i : lasomits)
+    liblasomits.push_back(liblas::Classification(i));
 
+  liblas::ReaderFactory f;
   liblas::Reader reader = f.CreateWithStream(ifs);
   liblas::Header const& header = reader.GetHeader();
   std::clog << "\t(" << header.GetPointRecordsCount() << " points)" << std::endl;
@@ -279,12 +283,12 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
     liblas::Point const& p = reader.GetPoint();
     if (skip != 0) {
       if (i % skip == 0) {
-        if(std::find(lasomits.begin(), lasomits.end(), p.GetClassification()) != lasomits.end())
+        if(std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
           lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
       }
     }
     else {
-      if(std::find(lasomits.begin(), lasomits.end(), p.GetClassification()) != lasomits.end())
+      if(std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
         lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
     }
     if (i % 100000 == 0) 

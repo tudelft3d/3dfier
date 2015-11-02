@@ -104,12 +104,12 @@ int main(int argc, const char * argv[]) {
   n = nodes["input_elevation"];
   for (auto it = n.begin(); it != n.end(); ++it) {
     YAML::Node tmp = (*it)["omit_LAS_classes"];
-    std::set<int> omits;
+    std::vector<int> lasomits;
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) 
-      omits.insert(it2->as<int>());
+      lasomits.push_back(it2->as<int>());
     tmp = (*it)["datasets"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-      map3d.add_las_file(it2->as<std::string>(), (*it)["thinning"].as<int>());
+      map3d.add_las_file(it2->as<std::string>(), lasomits, (*it)["thinning"].as<int>());
     }
   }
 
