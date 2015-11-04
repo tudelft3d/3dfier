@@ -3,6 +3,7 @@
 #define __3dfier__Map3d__
 
 #include "definitions.h"
+#include "geomtools.h"
 #include "TopoFeature.h"
 #include "Building.h"
 #include "Terrain.h"
@@ -62,6 +63,7 @@ private:
 
   bool extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers);
 
+  int contain_pt(Polygon2* pgn, Point2& p);
 };
 
 
