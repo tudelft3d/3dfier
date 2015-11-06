@@ -14,8 +14,7 @@ Building::Building(Polygon2* p, std::string pid, std::string heightref_top, std:
 : Block(p, pid, heightref_top, heightref_base)
 {}
 
-bool Building::threeDfy() {
-  build_CDT();
+bool Building::lift() {
   _height_top  = this->get_height_top();
   _height_base = this->get_height_base();
   _is3d = true;
@@ -23,6 +22,15 @@ bool Building::threeDfy() {
   _zvaluesinside.shrink_to_fit();
   _velevations.clear();
   _velevations.shrink_to_fit();
+  std::stringstream ss;
+  ss << bg::wkt(*(_p2));
+  bg::read_wkt(ss.str(), _p3);
+  return true;
+}
+
+bool Building::buildCDT() {
+
+  getCDT(&_p3, _vertices, _triangles, _segments);
   return true;
 }
 

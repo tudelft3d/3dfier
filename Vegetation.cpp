@@ -12,13 +12,16 @@ Vegetation::Vegetation (Polygon2* p, std::string pid, int simplification) : TIN(
 {}
 
 
-bool Vegetation::threeDfy() {
+bool Vegetation::lift() {
   std::stringstream ss;
   ss << bg::wkt(*(_p2));
-  Polygon3 p3;
-  bg::read_wkt(ss.str(), p3);
-  TopoFeature::lift_vertices_boundary(p3, 0.5);
-  getCDT(&p3, _vertices, _triangles, _segments, _lidarpts);
+  bg::read_wkt(ss.str(), _p3);
+  TopoFeature::lift_vertices_boundary(0.5);
+  return true;
+}
+
+bool Vegetation::buildCDT() {
+  getCDT(&_p3, _vertices, _triangles, _segments, _lidarpts);
   return true;
 }
 

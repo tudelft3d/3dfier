@@ -141,8 +141,16 @@ TopoFeature* Map3d::add_elevation_point(double x, double y, double z, TopoFeatur
 
 
 bool Map3d::threeDfy() {
+/*
+  1. lift
+  2. stitch
+  3. CDT
+*/
   for (auto& p3 : _lsPolys)
-    p3->threeDfy();
+    p3->lift();
+  this->stitch_lifted_features();
+  for (auto& p3 : _lsPolys)
+    p3->buildCDT();
   return true;
 }
 

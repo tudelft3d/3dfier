@@ -118,11 +118,11 @@ Point2& TopoFeature::get_previous_point2(int i, int& index) {
 }
 
 float TopoFeature::get_point_elevation(int i) {
-  Ring3 oring = bg::exterior_ring(*_p3);
+  Ring3 oring = bg::exterior_ring(_p3);
   int offset = int(bg::num_points(oring));
   if (i < offset) 
     return bg::get<2>(oring[i]);
-  for (Ring3& iring: bg::interior_rings(*_p3)) {
+  for (Ring3& iring: bg::interior_rings(_p3)) {
     if (i < (offset + iring.size()))
       return bg::get<2>(iring[i - offset]);
     offset += iring.size();
@@ -131,13 +131,13 @@ float TopoFeature::get_point_elevation(int i) {
 }
 
 void TopoFeature::set_point_elevation(int i, float z) {
-  Ring3 oring = bg::exterior_ring(*_p3);
+  Ring3 oring = bg::exterior_ring(_p3);
   int offset = int(bg::num_points(oring));
   if (i < offset) 
-    bg::set<2>(bg::exterior_ring(*_p3)[i], z);
-  for (Ring3& iring: bg::interior_rings(*_p3)) {
+    bg::set<2>(bg::exterior_ring(_p3)[i], z);
+  for (Ring3& iring: bg::interior_rings(_p3)) {
     if (i < (offset + iring.size()))
-      bg::set<2>(bg::exterior_ring(*_p3)[i - offset], z);
+      bg::set<2>(bg::exterior_ring(_p3)[i - offset], z);
     offset += iring.size();
   }
 }
@@ -163,7 +163,7 @@ bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float
   return true;
 }
 
-void TopoFeature::lift_vertices_boundary(Polygon3 &p3, float percentile) {
+void TopoFeature::lift_vertices_boundary(float percentile) {
   //-- fetch one value for each vertex
   std::vector<float> zvertices;
   float avg = 0.0;
@@ -182,14 +182,14 @@ void TopoFeature::lift_vertices_boundary(Polygon3 &p3, float percentile) {
     if (v < -9998)
       v = avg;
   //-- assign the value of the Polygon3
-  Ring3 oring = bg::exterior_ring(p3);
+  Ring3 oring = bg::exterior_ring(_p3);
   for (int i = 0; i < oring.size(); i++) 
-    bg::set<2>(bg::exterior_ring(p3)[i], zvertices[i]);
-  auto irings = bg::interior_rings(p3);
+    bg::set<2>(bg::exterior_ring(_p3)[i], zvertices[i]);
+  auto irings = bg::interior_rings(_p3);
   std::size_t offset = bg::num_points(oring);
   for (int i = 0; i < irings.size(); i++) {
     for (int j = 0; j < (irings[i]).size(); j++)
-      bg::set<2>(bg::interior_rings(p3)[i][j], zvertices[j + offset]);
+      bg::set<2>(bg::interior_rings(_p3)[i][j], zvertices[j + offset]);
     offset += bg::num_points(irings[i]);
   }
   _velevations.clear();
@@ -293,7 +293,10 @@ float Block::get_height_base() {
       tmp.push_back(each[each.size() * p]);
     }
   }
-  return *(std::min_element(std::begin(tmp), std::end(tmp)));
+  if (tmp.empty())
+    return 0.0;
+  else
+    return *(std::min_element(std::begin(tmp), std::end(tmp)));
 }
 
 
@@ -308,14 +311,7 @@ bool Block::add_elevation_point(double x, double y, double z, float radius) {
 }
 
 
-bool Block::build_CDT() {
-  std::stringstream ss;
-  ss << bg::wkt(*(_p2));
-  Polygon3 p3;
-  bg::read_wkt(ss.str(), p3);
-  getCDT(&p3, _vertices, _triangles, _segments);
-  return true;
-}
+
 
 
 //-------------------------------
@@ -335,19 +331,19 @@ bool Boundary3D::add_elevation_point(double x, double y, double z, float radius)
   return true;
 }
 
-void Boundary3D::smooth_boundary(Polygon3 &p3, int passes) {
+void Boundary3D::smooth_boundary(int passes) {
   for (int p = 0; p < passes; p++) {
-    Ring3 oring = bg::exterior_ring(p3);
+    Ring3 oring = bg::exterior_ring(_p3);
     std::vector<float> elevs(bg::num_points(oring));
     smooth_ring(oring, elevs);
     for (int i = 0; i < oring.size(); i++) 
-      bg::set<2>(bg::exterior_ring(p3)[i], elevs[i]);
-    auto irings = bg::interior_rings(p3);
+      bg::set<2>(bg::exterior_ring(_p3)[i], elevs[i]);
+    auto irings = bg::interior_rings(_p3);
     for (int i = 0; i < irings.size(); i++) {
       elevs.resize(bg::num_points(irings[i]));
       smooth_ring(irings[i], elevs);
       for (int j = 0; j < (irings[i]).size(); j++)
-        bg::set<2>(bg::interior_rings(p3)[i][j], elevs[j]);
+        bg::set<2>(bg::interior_rings(_p3)[i][j], elevs[j]);
     }
   }
 }

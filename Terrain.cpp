@@ -22,13 +22,16 @@ std::string Terrain::get_citygml() {
   return "<EMPTY/>";
 }
 
-bool Terrain::threeDfy() {
+bool Terrain::lift() {
   std::stringstream ss;
   ss << bg::wkt(*(_p2));
-  Polygon3 p3;
-  bg::read_wkt(ss.str(), p3);
+  bg::read_wkt(ss.str(), _p3);
   //-- lift vertices to their median of lidar points
-  TopoFeature::lift_vertices_boundary(p3, 0.5);
-  getCDT(&p3, _vertices, _triangles, _segments, _lidarpts);
+  TopoFeature::lift_vertices_boundary(0.5);
+  return true;
+}
+
+bool Terrain::buildCDT() {
+  getCDT(&_p3, _vertices, _triangles, _segments, _lidarpts);
   return true;
 }
