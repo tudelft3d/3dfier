@@ -288,7 +288,7 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
 
 void Map3d::stitch_lifted_features() {
   std::cout << "==========" << std::endl;
-  TopoFeature* f = _lsPolys[319];
+  TopoFeature* f = _lsPolys[2];
   std::cout << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
   Polygon2* pgn = f->get_Polygon2();
   Ring2 oring = bg::exterior_ring(*pgn);
@@ -301,20 +301,22 @@ void Map3d::stitch_lifted_features() {
     // if ( (adj->get_counter() > f->get_counter()) && (bg::touches(*pgn, *(adj->get_Polygon2())) == true) ) {
     if ( (bg::touches(*pgn, *(adj->get_Polygon2())) == true) ) {
       std::cout << "---" << std::endl;
+      int ia, ib;
       for (int i = 0; i < (oring.size() - 1); i++) {
-        if (polygon2_find_segment(adj->get_Polygon2(), oring[i], oring[i + 1]) == true)
+        if (adj->has_segment(oring[i], oring[i + 1], ia, ib) == true)
           std::cout << adj->get_id() << std::endl;
       }
-      if (polygon2_find_segment(adj->get_Polygon2(), oring.back(), oring.front()) == true)
+      if (adj->has_segment(oring.back(), oring.front(), ia, ib) == true) 
         std::cout << adj->get_id() << std::endl;
-      for (Ring2& iring: bg::interior_rings(*pgn)) {
-        for (int i = 0; i < (iring.size() - 1); i++) {
-          if (polygon2_find_segment(adj->get_Polygon2(), iring[i], iring[i + 1]) == true)
-            std::cout << "IRING" << adj->get_id() << std::endl;
-        }
-        if (polygon2_find_segment(adj->get_Polygon2(), iring.back(), iring.front()) == true)
-          std::cout << "IRING" << adj->get_id() << std::endl;
-      }
+
+      // for (Ring2& iring: bg::interior_rings(*pgn)) {
+      //   for (int i = 0; i < (iring.size() - 1); i++) {
+      //     if (polygon2_find_segment(adj->get_Polygon2(), iring[i], iring[i + 1]) == true)
+      //       std::cout << "IRING" << adj->get_id() << std::endl;
+      //   }
+      //   if (polygon2_find_segment(adj->get_Polygon2(), iring.back(), iring.front()) == true)
+      //     std::cout << "IRING" << adj->get_id() << std::endl;
+      // }
     }
   }
   std::cout << "==========" << std::endl;

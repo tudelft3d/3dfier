@@ -9,25 +9,6 @@
 
 
 
-Point2& polygon2_get_point(Polygon2* pgn, int i) {
-  Ring2 oring = bg::exterior_ring(*pgn);
-  int offset = int(bg::num_points(oring));
-  if (i < offset) 
-    return oring[i];
-  auto irings = bg::interior_rings(*pgn);
-  for (Ring2& iring: irings) {
-    if (i < (offset + iring.size()))
-      return (iring[i - offset]);
-    offset += iring.size();
-  }
-  Point2 tmp;
-  return tmp;
-}
-
-
-
-
-
 //-- TODO: cheap code that randomly generates points if centroid is not inside. to update asap.
 void get_point_inside(Ring3& ring3, Point2& p) {
   Ring2 ring;

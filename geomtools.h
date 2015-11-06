@@ -20,9 +20,6 @@ extern "C" {
   #include "triangle.h"
 }
 
-//-- Polygon2 manipulation
-Point2& polygon2_get_point(Polygon2* pgn, int i);
-
 
 void get_point_inside(Ring3& ring, Point2& p);
 bool getCDT(const Polygon3* p, 

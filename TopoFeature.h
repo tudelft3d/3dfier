@@ -25,6 +25,7 @@ public:
   int          get_counter(); 
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
+  bool         has_segment(Point2& a, Point2& b, int& ia, int& ib);
 
 protected:
   Polygon2*    _p2;
@@ -37,8 +38,12 @@ protected:
   std::vector<Triangle> _triangles; //-- output of Triangle
   std::vector<Segment>  _segments;  //-- output of Triangle
 
-  bool assign_elevation_to_vertex(double x, double y, double z, float radius);
-  void lift_vertices_boundary(Polygon3 &p3, float percentile);
+  int     has_point2(Point2& p);
+  Point2& get_previous_point2(int i, int& index);
+  float   get_point_elevation(int i);
+  void    set_point_elevation(int i, float z);  
+  bool    assign_elevation_to_vertex(double x, double y, double z, float radius);
+  void    lift_vertices_boundary(Polygon3 &p3, float percentile);
 };
 
 

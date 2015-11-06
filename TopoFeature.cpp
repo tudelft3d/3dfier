@@ -53,14 +53,14 @@ std::string TopoFeature::get_obj_f(int offset) {
 }
 
 bool TopoFeature::has_segment(Point2& a, Point2& b, int& ia, int& ib) {
-  int posa = this->has_point(a);
+  int posa = this->has_point2(a);
   if (posa != -1) {
     Point2 tmp;
     int itmp;
     tmp = this->get_previous_point2(posa, itmp);
     if (bg::equals(b, tmp) == true) {
       ia = posa;
-      ib = 
+      ib = itmp;
       return true;
     }
   }
@@ -96,17 +96,20 @@ Point2& TopoFeature::get_previous_point2(int i, int& index) {
       return oring.back();
     }
     else {
-      
+
       return oring[i - 1];
     }
   }
-  auto irings = bg::interior_rings(*_p2);
-  for (Ring2& iring: irings) {
+  for (Ring2& iring: bg::interior_rings(*_p2)) {
     if (i < (offset + iring.size())) {
-      if (i == offset)
+      if (i == offset) {
+        index = i;
         return iring.back();
-      else
-        return (iring[i - offset]);
+      }
+      else {
+        index = (offset + i - 1);
+        return (iring[i - 1 - offset]);
+      }
     }
     offset += iring.size();
   }
@@ -114,21 +117,30 @@ Point2& TopoFeature::get_previous_point2(int i, int& index) {
   return tmp;
 }
 
-Point2& polygon2_get_point(Polygon2* pgn, int i) {
-  Ring2 oring = bg::exterior_ring(*pgn);
+float TopoFeature::get_point_elevation(int i) {
+  Ring3 oring = bg::exterior_ring(*_p3);
   int offset = int(bg::num_points(oring));
   if (i < offset) 
-    return oring[i];
-  auto irings = bg::interior_rings(*pgn);
-  for (Ring2& iring: irings) {
+    return bg::get<2>(oring[i]);
+  for (Ring3& iring: bg::interior_rings(*_p3)) {
     if (i < (offset + iring.size()))
-      return (iring[i - offset]);
+      return bg::get<2>(iring[i - offset]);
     offset += iring.size();
   }
-  Point2 tmp;
-  return tmp;
+  return 0.0;
 }
 
+void TopoFeature::set_point_elevation(int i, float z) {
+  Ring3 oring = bg::exterior_ring(*_p3);
+  int offset = int(bg::num_points(oring));
+  if (i < offset) 
+    bg::set<2>(bg::exterior_ring(*_p3)[i], z);
+  for (Ring3& iring: bg::interior_rings(*_p3)) {
+    if (i < (offset + iring.size()))
+      bg::set<2>(bg::exterior_ring(*_p3)[i - offset], z);
+    offset += iring.size();
+  }
+}
 
 
 bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float radius) {
