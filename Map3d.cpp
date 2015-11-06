@@ -288,8 +288,8 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
 
 void Map3d::stitch_lifted_features() {
   std::cout << "==========" << std::endl;
-  TopoFeature* f = _lsPolys[2];
-  std::cout << "#" << f->get_counter() << std::endl;
+  TopoFeature* f = _lsPolys[0];
+  std::cout << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
   Polygon2* pgn = f->get_Polygon2();
   Ring2 oring = bg::exterior_ring(*pgn);
   std::vector<PairIndexed> re;
@@ -297,33 +297,17 @@ void Map3d::stitch_lifted_features() {
   for (auto& b : re) {
     TopoFeature* adj = b.second;
     if ( (adj->get_counter() > f->get_counter()) && (bg::touches(*pgn, *(adj->get_Polygon2())) == true) ) {
-      for (int i = 0; i < oring.size(); i++) {
-        if (contain_pt(adj->get_Polygon2(), oring[i]) >= 0)
-          std::cout << adj->get_id() << std::endl;
-      }
+      std::cout << "---" << std::endl;
+     for (int i = 0; i < (oring.size() - 1); i++) {
+       if (polygon2_find_segment(adj->get_Polygon2(), oring[i], oring[i + 1]) == true)
+         std::cout << adj->get_id() << std::endl;
+     }
     }
   }
   std::cout << "==========" << std::endl;
 }
 
 
- int Map3d::contain_pt(Polygon2* pgn, Point2& p) {
-   double threshold = 0.001;
-   Ring2 oring = bg::exterior_ring(*pgn);
-   int re = -1;
-   for (int i = 0; i < oring.size(); i++) {
-     if (bg::distance(p, oring[i]) <= threshold)
-       return i;
-   }
-   int offset = int(bg::num_points(oring));
-   auto irings = bg::interior_rings(*pgn);
-   for (Ring2& iring: irings) {
-     for (int i = 0; i < iring.size(); i++) {
-       if (bg::distance(p, iring) <= threshold)
-         return (i + offset);
-     }
-     offset += bg::num_points(iring);
-   }
-   return re;
- }
+
+
 

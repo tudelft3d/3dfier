@@ -8,6 +8,80 @@
 #include "geomtools.h"
 
 
+int polygon2_find_point(Polygon2* pgn, Point2& p) {
+  double threshold = 0.001;
+  Ring2 oring = bg::exterior_ring(*pgn);
+  int re = -1;
+  for (int i = 0; i < oring.size(); i++) {
+    if (bg::distance(p, oring[i]) <= threshold)
+      return i;
+  }
+  int offset = int(bg::num_points(oring));
+  auto irings = bg::interior_rings(*pgn);
+  for (Ring2& iring: irings) {
+    for (int i = 0; i < iring.size(); i++) {
+      if (bg::distance(p, iring) <= threshold)
+        return (i + offset);
+    }
+    offset += bg::num_points(iring);
+  }
+  return re;
+}
+
+
+bool polygon2_find_segment(Polygon2* pgn, Point2& a, Point2& b) {
+  int posa = polygon2_find_point(pgn, a);
+  if (posa != -1) {
+    Point2 tmp;
+    tmp = polygon2_get_point_before(pgn, posa);
+    if (bg::equals(b, tmp) == true)
+      return true;
+  }
+  return false;
+}
+
+
+Point2& polygon2_get_point(Polygon2* pgn, int i) {
+  Ring2 oring = bg::exterior_ring(*pgn);
+  int offset = int(bg::num_points(oring));
+  if (i < offset) 
+    return oring[i];
+  auto irings = bg::interior_rings(*pgn);
+  for (Ring2& iring: irings) {
+    if (i < (offset + iring.size()))
+      return (iring[i - offset]);
+    offset += iring.size();
+  }
+  Point2 tmp;
+  return tmp;
+}
+
+Point2& polygon2_get_point_before(Polygon2* pgn, int i) {
+  Ring2 oring = bg::exterior_ring(*pgn);
+  int offset = int(bg::num_points(oring));
+  if (i < offset) {
+    if (i == 0)
+      return oring.back();
+    else
+      return oring[i - 1];
+  }
+  auto irings = bg::interior_rings(*pgn);
+  for (Ring2& iring: irings) {
+    if (i < (offset + iring.size())) {
+      if (i == offset)
+        return iring.back();
+      else
+        return (iring[i - offset]);
+    }
+    offset += iring.size();
+  }
+  Point2 tmp;
+  return tmp;
+}
+
+
+
+
 //-- TODO: cheap code that randomly generates points if centroid is not inside. to update asap.
 void get_point_inside(Ring3& ring3, Point2& p) {
   Ring2 ring;

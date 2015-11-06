@@ -63,7 +63,6 @@ private:
 
   bool extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers);
 
-  int contain_pt(Polygon2* pgn, Point2& p);
 };
 
 
