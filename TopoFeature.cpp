@@ -52,6 +52,85 @@ std::string TopoFeature::get_obj_f(int offset) {
   return ss.str();
 }
 
+bool TopoFeature::has_segment(Point2& a, Point2& b, int& ia, int& ib) {
+  int posa = this->has_point(a);
+  if (posa != -1) {
+    Point2 tmp;
+    int itmp;
+    tmp = this->get_previous_point2(posa, itmp);
+    if (bg::equals(b, tmp) == true) {
+      ia = posa;
+      ib = 
+      return true;
+    }
+  }
+  return false;
+}
+
+int TopoFeature::has_point2(Point2& p) {
+  double threshold = 0.001;
+  Ring2 oring = bg::exterior_ring(*_p2);
+  int re = -1;
+  for (int i = 0; i < oring.size(); i++) {
+    if (bg::distance(p, oring[i]) <= threshold)
+      return i;
+  }
+  int offset = int(bg::num_points(oring));
+  auto irings = bg::interior_rings(*_p2);
+  for (Ring2& iring: irings) {
+    for (int i = 0; i < iring.size(); i++) {
+      if (bg::distance(p, iring) <= threshold)
+        return (i + offset);
+    }
+    offset += bg::num_points(iring);
+  }
+  return re;
+}
+
+Point2& TopoFeature::get_previous_point2(int i, int& index) {
+  Ring2 oring = bg::exterior_ring(*_p2);
+  int offset = int(bg::num_points(oring));
+  if (i < offset) {
+    if (i == 0) {
+      index = 0;
+      return oring.back();
+    }
+    else {
+      
+      return oring[i - 1];
+    }
+  }
+  auto irings = bg::interior_rings(*_p2);
+  for (Ring2& iring: irings) {
+    if (i < (offset + iring.size())) {
+      if (i == offset)
+        return iring.back();
+      else
+        return (iring[i - offset]);
+    }
+    offset += iring.size();
+  }
+  Point2 tmp;
+  return tmp;
+}
+
+Point2& polygon2_get_point(Polygon2* pgn, int i) {
+  Ring2 oring = bg::exterior_ring(*pgn);
+  int offset = int(bg::num_points(oring));
+  if (i < offset) 
+    return oring[i];
+  auto irings = bg::interior_rings(*pgn);
+  for (Ring2& iring: irings) {
+    if (i < (offset + iring.size()))
+      return (iring[i - offset]);
+    offset += iring.size();
+  }
+  Point2 tmp;
+  return tmp;
+}
+
+
+
 bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float radius) {
   //-- TODO: okay here brute-force, use of flann is points>200 (to benchmark perhaps?)  
   Point2 p(x, y);

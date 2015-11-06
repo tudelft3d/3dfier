@@ -288,20 +288,33 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
 
 void Map3d::stitch_lifted_features() {
   std::cout << "==========" << std::endl;
-  TopoFeature* f = _lsPolys[0];
+  TopoFeature* f = _lsPolys[319];
   std::cout << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
   Polygon2* pgn = f->get_Polygon2();
   Ring2 oring = bg::exterior_ring(*pgn);
   std::vector<PairIndexed> re;
   _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+  std::cout << "r-tree intersects: " << re.size() << std::endl;
   for (auto& b : re) {
     TopoFeature* adj = b.second;
-    if ( (adj->get_counter() > f->get_counter()) && (bg::touches(*pgn, *(adj->get_Polygon2())) == true) ) {
+    // TODO: do not do twice the work, only low_id --> high_id should be stitched
+    // if ( (adj->get_counter() > f->get_counter()) && (bg::touches(*pgn, *(adj->get_Polygon2())) == true) ) {
+    if ( (bg::touches(*pgn, *(adj->get_Polygon2())) == true) ) {
       std::cout << "---" << std::endl;
-     for (int i = 0; i < (oring.size() - 1); i++) {
-       if (polygon2_find_segment(adj->get_Polygon2(), oring[i], oring[i + 1]) == true)
-         std::cout << adj->get_id() << std::endl;
-     }
+      for (int i = 0; i < (oring.size() - 1); i++) {
+        if (polygon2_find_segment(adj->get_Polygon2(), oring[i], oring[i + 1]) == true)
+          std::cout << adj->get_id() << std::endl;
+      }
+      if (polygon2_find_segment(adj->get_Polygon2(), oring.back(), oring.front()) == true)
+        std::cout << adj->get_id() << std::endl;
+      for (Ring2& iring: bg::interior_rings(*pgn)) {
+        for (int i = 0; i < (iring.size() - 1); i++) {
+          if (polygon2_find_segment(adj->get_Polygon2(), iring[i], iring[i + 1]) == true)
+            std::cout << "IRING" << adj->get_id() << std::endl;
+        }
+        if (polygon2_find_segment(adj->get_Polygon2(), iring.back(), iring.front()) == true)
+          std::cout << "IRING" << adj->get_id() << std::endl;
+      }
     }
   }
   std::cout << "==========" << std::endl;

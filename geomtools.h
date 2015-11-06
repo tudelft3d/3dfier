@@ -21,10 +21,7 @@ extern "C" {
 }
 
 //-- Polygon2 manipulation
-int polygon2_find_point(Polygon2* pgn, Point2& p);
-bool polygon2_find_segment(Polygon2* pgn, Point2& a, Point2& b);
 Point2& polygon2_get_point(Polygon2* pgn, int i);
-Point2& polygon2_get_point_before(Polygon2* pgn, int i);
 
 
 void get_point_inside(Ring3& ring, Point2& p);

@@ -28,6 +28,7 @@ public:
 
 protected:
   Polygon2*    _p2;
+  Polygon3*    _p3;
   std::string  _id;
   int          _counter;
   static int   _count;

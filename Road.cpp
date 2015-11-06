@@ -30,7 +30,6 @@ bool Road::threeDfy() {
   return true;
 }
 
-
 std::string Road::get_obj_f(int offset) {
   std::stringstream ss;
   ss << "usemtl Road" << std::endl;
