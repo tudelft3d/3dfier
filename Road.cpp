@@ -27,9 +27,15 @@ bool Road::lift() {
   return true;
 }
 
+
 bool Road::buildCDT() {
   getCDT(&_p3, _vertices, _triangles, _segments);
   return true;
+}
+
+
+TopoClass Road::get_class() {
+  return ROAD;
 }
 
 

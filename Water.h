@@ -19,6 +19,7 @@ public:
   bool          buildCDT();
   std::string   get_citygml();
   std::string   get_obj_f(int offset);
+  TopoClass     get_class();
   static std::string _heightref;
 protected:
   void          make_boundary_horizontal();

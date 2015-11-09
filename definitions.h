@@ -44,5 +44,15 @@ typedef struct Triangle
   int v2;
 } Triangle;
 
+typedef enum
+{
+   BUILDING             = 0,
+   WATER                = 1,
+   TERRAIN              = 2,
+   ROAD                 = 3,
+   VEGETATION           = 4,
+   BRIDGE               = 5,
+} TopoClass;
+
 
 #endif

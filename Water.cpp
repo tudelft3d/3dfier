@@ -32,6 +32,10 @@ bool Water::buildCDT() {
   return true;
 }
 
+TopoClass Water::get_class() {
+  return WATER;
+}
+
 void Water::make_boundary_horizontal() {
   //-- find the mininum value and assign it
   double minimum = 1e9;

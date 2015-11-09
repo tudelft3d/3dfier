@@ -73,10 +73,12 @@ std::string Map3d::get_citygml() {
 std::string Map3d::get_csv_buildings() {
   std::stringstream ss;
   ss << "id;roof;floor" << std::endl;
-  for (auto& p3 : _lsPolys) {
-    Building* b = dynamic_cast<Building*>(p3);
-    if (b != nullptr)
+  for (auto& p : _lsPolys) {
+    if (p->get_class() == BUILDING) {
+      Building* b = dynamic_cast<Building*>(p);
+      // if (b != nullptr)
       ss << b->get_csv();
+    }
   }
   return ss.str();
 }
@@ -146,11 +148,13 @@ bool Map3d::threeDfy() {
   2. stitch
   3. CDT
 */
-  for (auto& p3 : _lsPolys)
-    p3->lift();
+  for (auto& p : _lsPolys)
+    p->lift();
+  for (auto& p : _lsPolys)
+    std::cout << p->get_class() << std::endl;
   this->stitch_lifted_features();
-  for (auto& p3 : _lsPolys)
-    p3->buildCDT();
+  for (auto& p : _lsPolys)
+    p->buildCDT();
   return true;
 }
 
@@ -295,7 +299,7 @@ bool Map3d::add_las_file(std::string ifile, int skip) {
 
 
 void Map3d::stitch_lifted_features() {
-  std::cout << "==========" << std::endl;
+  std::cout << "===== STITCH POLYGONS =====" << std::endl;
   TopoFeature* f = _lsPolys[2];
   std::cout << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
   Polygon2* pgn = f->get_Polygon2();
@@ -312,10 +316,10 @@ void Map3d::stitch_lifted_features() {
       int ia, ib;
       for (int i = 0; i < (oring.size() - 1); i++) {
         if (adj->has_segment(oring[i], oring[i + 1], ia, ib) == true)
-          std::cout << adj->get_id() << std::endl;
+          std::cout << adj->get_id() << " : " << ia << " " << ib << std::endl;
       }
       if (adj->has_segment(oring.back(), oring.front(), ia, ib) == true) 
-        std::cout << adj->get_id() << std::endl;
+        std::cout << adj->get_id() << " : " << ia << " " << ib << std::endl;
 
       // for (Ring2& iring: bg::interior_rings(*pgn)) {
       //   for (int i = 0; i < (iring.size() - 1); i++) {
@@ -327,7 +331,7 @@ void Map3d::stitch_lifted_features() {
       // }
     }
   }
-  std::cout << "==========" << std::endl;
+  std::cout << "===== STITCH POLYGONS =====" << std::endl;
 }
 
 

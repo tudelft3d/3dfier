@@ -18,6 +18,11 @@ std::string Terrain::get_obj_f(int offset) {
   return ss.str();
 }
 
+TopoClass Terrain::get_class() {
+  return TERRAIN;
+}
+
+
 std::string Terrain::get_citygml() {
   return "<EMPTY/>";
 }

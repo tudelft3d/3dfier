@@ -20,6 +20,7 @@ public:
   std::string         get_citygml();
   std::string         get_obj_f(int offset);
   static std::string  _heightref;
+  TopoClass           get_class();
 // protected:
   // void                smooth_boundary(Polygon3 &p3);
 };

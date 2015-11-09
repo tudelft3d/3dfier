@@ -21,6 +21,7 @@ public:
   std::string get_csv();
   std::string get_obj_f(int offset);
   std::string get_obj_f_floor(int offset);
+  TopoClass   get_class();
 };
 
 

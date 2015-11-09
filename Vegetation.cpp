@@ -25,6 +25,11 @@ bool Vegetation::buildCDT() {
   return true;
 }
 
+TopoClass Vegetation::get_class() {
+  return VEGETATION;
+}
+
+
 std::string Vegetation::get_citygml() {
   return "<EMPTY/>";
 }

@@ -29,9 +29,12 @@ bool Building::lift() {
 }
 
 bool Building::buildCDT() {
-
   getCDT(&_p3, _vertices, _triangles, _segments);
   return true;
+}
+
+TopoClass Building::get_class() {
+  return BUILDING;
 }
 
 std::string Building::get_csv() {
