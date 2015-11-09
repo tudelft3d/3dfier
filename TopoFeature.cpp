@@ -92,11 +92,11 @@ Point2& TopoFeature::get_previous_point2(int i, int& index) {
   int offset = int(bg::num_points(oring));
   if (i < offset) {
     if (i == 0) {
-      index = 0;
+      index = (offset - 1);
       return oring.back();
     }
     else {
-
+      index = (i - 1);
       return oring[i - 1];
     }
   }
