@@ -20,6 +20,7 @@ extern "C" {
   #include "triangle.h"
 }
 
+
 void get_point_inside(Ring3& ring, Point2& p);
 bool getCDT(const Polygon3* p, 
             std::vector<Point3> &vertices, 

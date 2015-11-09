@@ -114,7 +114,11 @@ int main(int argc, const char * argv[]) {
   }
 
   map3d.threeDfy();
+  // map3d.stitch_lifted_features();
+  return 1;
+
   
+  //-- output
   n = nodes["output"];
   if (n["building_floor"].as<std::string>() == "true") 
     map3d.set_building_include_floor(true);

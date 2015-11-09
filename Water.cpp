@@ -15,46 +15,51 @@ Water::Water (Polygon2* p, std::string pid, std::string heightref) : Boundary3D(
     _heightref = heightref;
 }
 
-bool Water::threeDfy() {
+bool Water::lift() {
   std::stringstream ss;
   ss << bg::wkt(*(_p2));
-  Polygon3 p3;
-  bg::read_wkt(ss.str(), p3);
+  bg::read_wkt(ss.str(), _p3);
   //-- assign an elevation to each vertex
   float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
-  lift_vertices_boundary(p3, percentile);
+  lift_vertices_boundary(percentile);
   //-- take minimum value for obtaining horizontal value
-  make_boundary_horizontal(p3);
-  //-- triangulate
-  getCDT(&p3, _vertices, _triangles, _segments);
+  this->make_boundary_horizontal();
   return true;
 }
 
+bool Water::buildCDT() {
+  getCDT(&_p3, _vertices, _triangles, _segments);
+  return true;
+}
 
-void Water::make_boundary_horizontal(Polygon3 &p3) {
+TopoClass Water::get_class() {
+  return WATER;
+}
+
+void Water::make_boundary_horizontal() {
   //-- find the mininum value and assign it
   double minimum = 1e9;
-  Ring3 oring = bg::exterior_ring(p3);
+  Ring3 oring = bg::exterior_ring(_p3);
   for (int i = 0; i < oring.size(); i++) 
-    if (bg::get<2>(bg::exterior_ring(p3)[i]) < minimum)
-      minimum = bg::get<2>(bg::exterior_ring(p3)[i]);
-  auto irings = bg::interior_rings(p3);
+    if (bg::get<2>(bg::exterior_ring(_p3)[i]) < minimum)
+      minimum = bg::get<2>(bg::exterior_ring(_p3)[i]);
+  auto irings = bg::interior_rings(_p3);
   std::size_t offset = bg::num_points(oring);
   for (int i = 0; i < irings.size(); i++) {
     for (int j = 0; j < (irings[i]).size(); j++)
-      if (bg::get<2>(bg::interior_rings(p3)[i][j]) < minimum)
-        minimum = bg::get<2>(bg::interior_rings(p3)[i][j]);
+      if (bg::get<2>(bg::interior_rings(_p3)[i][j]) < minimum)
+        minimum = bg::get<2>(bg::interior_rings(_p3)[i][j]);
     offset += bg::num_points(irings[i]);
   }
   //-- assign minimum value
-  oring = bg::exterior_ring(p3);
+  oring = bg::exterior_ring(_p3);
   for (int i = 0; i < oring.size(); i++) 
-    bg::set<2>(bg::exterior_ring(p3)[i], minimum);
-  irings = bg::interior_rings(p3);
+    bg::set<2>(bg::exterior_ring(_p3)[i], minimum);
+  irings = bg::interior_rings(_p3);
   offset = bg::num_points(oring);
   for (int i = 0; i < irings.size(); i++) {
     for (int j = 0; j < (irings[i]).size(); j++)
-      bg::set<2>(bg::interior_rings(p3)[i][j], minimum);
+      bg::set<2>(bg::interior_rings(_p3)[i][j], minimum);
     offset += bg::num_points(irings[i]);
   }
 }

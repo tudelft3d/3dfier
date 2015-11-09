@@ -15,12 +15,14 @@ class Water : public Boundary3D
 {
 public:
   Water (Polygon2* p, std::string pid, std::string heightref);
-  bool          threeDfy();
+  bool          lift();
+  bool          buildCDT();
   std::string   get_citygml();
   std::string   get_obj_f(int offset);
+  TopoClass     get_class();
   static std::string _heightref;
 protected:
-  void          make_boundary_horizontal(Polygon3 &p3);
+  void          make_boundary_horizontal();
 };
 
 

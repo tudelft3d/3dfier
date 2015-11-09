@@ -3,6 +3,7 @@
 #define __3dfier__Map3d__
 
 #include "definitions.h"
+#include "geomtools.h"
 #include "TopoFeature.h"
 #include "Building.h"
 #include "Terrain.h"
@@ -10,7 +11,7 @@
 #include "Water.h"
 #include "Road.h"
 
-typedef std::pair<Box, TopoFeature*> PairIndexed;
+typedef std::pair<Box2, TopoFeature*> PairIndexed;
 
 class Map3d
 {
@@ -23,9 +24,11 @@ public:
 
   bool add_las_file(std::string ifile, std::vector<int> lasomits, int skip = 0);
 
+  void stitch_lifted_features();
   bool construct_rtree();
   bool threeDfy();
   TopoFeature* add_elevation_point(double x, double y, double z, TopoFeature* trythisone = NULL);
+
 
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>& get_polygons3d();  

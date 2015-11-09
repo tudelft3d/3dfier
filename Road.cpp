@@ -15,19 +15,27 @@ Road::Road (Polygon2* p, std::string pid, std::string heightref) : Boundary3D(p,
     _heightref = heightref;
 }
 
-bool Road::threeDfy() {
+bool Road::lift() {
   std::stringstream ss;
   ss << bg::wkt(*(_p2));
-  Polygon3 p3;
-  bg::read_wkt(ss.str(), p3);
+  bg::read_wkt(ss.str(), _p3);
   //-- assign an elevation to each vertex
   float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
-  lift_vertices_boundary(p3, percentile);
+  lift_vertices_boundary(percentile);
   //-- take minimum value for obtaining horizontal value
-  smooth_boundary(p3, 5);
-  //-- triangulate
-  getCDT(&p3, _vertices, _triangles, _segments);
+  smooth_boundary(5);
   return true;
+}
+
+
+bool Road::buildCDT() {
+  getCDT(&_p3, _vertices, _triangles, _segments);
+  return true;
+}
+
+
+TopoClass Road::get_class() {
+  return ROAD;
 }
 
 

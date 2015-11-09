@@ -3,6 +3,7 @@
 #include "io.h"
 
 //-- initialisation of 
+int TopoFeature::_count = 0;
 std::string Block::_heightref_top = "median";
 std::string Block::_heightref_base = "percentile-10";
 
@@ -11,6 +12,7 @@ std::string Block::_heightref_base = "percentile-10";
 
 TopoFeature::TopoFeature(Polygon2* p, std::string pid) {
   _id = pid;
+  _counter = _count++;
   _p2 = p;
   _velevations.resize(bg::num_points(*(_p2)));
 }
@@ -20,12 +22,16 @@ TopoFeature::~TopoFeature() {
   std::cout << "I am dead" << std::endl;
 }
 
-Box TopoFeature::get_bbox2d() {
-  return bg::return_envelope<Box>(*_p2);
+Box2 TopoFeature::get_bbox2d() {
+  return bg::return_envelope<Box2>(*_p2);
 }
 
 std::string TopoFeature::get_id() {
   return _id;
+}
+
+int TopoFeature::get_counter() {
+  return _counter;
 }
 
 Polygon2* TopoFeature::get_Polygon2() {
@@ -45,6 +51,97 @@ std::string TopoFeature::get_obj_f(int offset) {
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
   return ss.str();
 }
+
+bool TopoFeature::has_segment(Point2& a, Point2& b, int& ia, int& ib) {
+  int posa = this->has_point2(a);
+  if (posa != -1) {
+    Point2 tmp;
+    int itmp;
+    tmp = this->get_previous_point2(posa, itmp);
+    if (bg::equals(b, tmp) == true) {
+      ia = posa;
+      ib = itmp;
+      return true;
+    }
+  }
+  return false;
+}
+
+int TopoFeature::has_point2(Point2& p) {
+  double threshold = 0.001;
+  Ring2 oring = bg::exterior_ring(*_p2);
+  int re = -1;
+  for (int i = 0; i < oring.size(); i++) {
+    if (bg::distance(p, oring[i]) <= threshold)
+      return i;
+  }
+  int offset = int(bg::num_points(oring));
+  auto irings = bg::interior_rings(*_p2);
+  for (Ring2& iring: irings) {
+    for (int i = 0; i < iring.size(); i++) {
+      if (bg::distance(p, iring) <= threshold)
+        return (i + offset);
+    }
+    offset += bg::num_points(iring);
+  }
+  return re;
+}
+
+Point2& TopoFeature::get_previous_point2(int i, int& index) {
+  Ring2 oring = bg::exterior_ring(*_p2);
+  int offset = int(bg::num_points(oring));
+  if (i < offset) {
+    if (i == 0) {
+      index = (offset - 1);
+      return oring.back();
+    }
+    else {
+      index = (i - 1);
+      return oring[i - 1];
+    }
+  }
+  for (Ring2& iring: bg::interior_rings(*_p2)) {
+    if (i < (offset + iring.size())) {
+      if (i == offset) {
+        index = i;
+        return iring.back();
+      }
+      else {
+        index = (offset + i - 1);
+        return (iring[i - 1 - offset]);
+      }
+    }
+    offset += iring.size();
+  }
+  Point2 tmp;
+  return tmp;
+}
+
+float TopoFeature::get_point_elevation(int i) {
+  Ring3 oring = bg::exterior_ring(_p3);
+  int offset = int(bg::num_points(oring));
+  if (i < offset) 
+    return bg::get<2>(oring[i]);
+  for (Ring3& iring: bg::interior_rings(_p3)) {
+    if (i < (offset + iring.size()))
+      return bg::get<2>(iring[i - offset]);
+    offset += iring.size();
+  }
+  return 0.0;
+}
+
+void TopoFeature::set_point_elevation(int i, float z) {
+  Ring3 oring = bg::exterior_ring(_p3);
+  int offset = int(bg::num_points(oring));
+  if (i < offset) 
+    bg::set<2>(bg::exterior_ring(_p3)[i], z);
+  for (Ring3& iring: bg::interior_rings(_p3)) {
+    if (i < (offset + iring.size()))
+      bg::set<2>(bg::exterior_ring(_p3)[i - offset], z);
+    offset += iring.size();
+  }
+}
+
 
 bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float radius) {
   //-- TODO: okay here brute-force, use of flann is points>200 (to benchmark perhaps?)  
@@ -66,7 +163,7 @@ bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float
   return true;
 }
 
-void TopoFeature::lift_vertices_boundary(Polygon3 &p3, float percentile) {
+void TopoFeature::lift_vertices_boundary(float percentile) {
   //-- fetch one value for each vertex
   std::vector<float> zvertices;
   float avg = 0.0;
@@ -85,14 +182,14 @@ void TopoFeature::lift_vertices_boundary(Polygon3 &p3, float percentile) {
     if (v < -9998)
       v = avg;
   //-- assign the value of the Polygon3
-  Ring3 oring = bg::exterior_ring(p3);
+  Ring3 oring = bg::exterior_ring(_p3);
   for (int i = 0; i < oring.size(); i++) 
-    bg::set<2>(bg::exterior_ring(p3)[i], zvertices[i]);
-  auto irings = bg::interior_rings(p3);
+    bg::set<2>(bg::exterior_ring(_p3)[i], zvertices[i]);
+  auto irings = bg::interior_rings(_p3);
   std::size_t offset = bg::num_points(oring);
   for (int i = 0; i < irings.size(); i++) {
     for (int j = 0; j < (irings[i]).size(); j++)
-      bg::set<2>(bg::interior_rings(p3)[i][j], zvertices[j + offset]);
+      bg::set<2>(bg::interior_rings(_p3)[i][j], zvertices[j + offset]);
     offset += bg::num_points(irings[i]);
   }
   _velevations.clear();
@@ -197,7 +294,8 @@ float Block::get_height_base() {
     }
   }
   if (tmp.empty())
-    return 0;
+    return 0.0;
+  else
   return *(std::min_element(std::begin(tmp), std::end(tmp)));
 }
 
@@ -213,14 +311,7 @@ bool Block::add_elevation_point(double x, double y, double z, float radius) {
 }
 
 
-bool Block::build_CDT() {
-  std::stringstream ss;
-  ss << bg::wkt(*(_p2));
-  Polygon3 p3;
-  bg::read_wkt(ss.str(), p3);
-  getCDT(&p3, _vertices, _triangles, _segments);
-  return true;
-}
+
 
 
 //-------------------------------
@@ -240,19 +331,19 @@ bool Boundary3D::add_elevation_point(double x, double y, double z, float radius)
   return true;
 }
 
-void Boundary3D::smooth_boundary(Polygon3 &p3, int passes) {
+void Boundary3D::smooth_boundary(int passes) {
   for (int p = 0; p < passes; p++) {
-    Ring3 oring = bg::exterior_ring(p3);
+    Ring3 oring = bg::exterior_ring(_p3);
     std::vector<float> elevs(bg::num_points(oring));
     smooth_ring(oring, elevs);
     for (int i = 0; i < oring.size(); i++) 
-      bg::set<2>(bg::exterior_ring(p3)[i], elevs[i]);
-    auto irings = bg::interior_rings(p3);
+      bg::set<2>(bg::exterior_ring(_p3)[i], elevs[i]);
+    auto irings = bg::interior_rings(_p3);
     for (int i = 0; i < irings.size(); i++) {
       elevs.resize(bg::num_points(irings[i]));
       smooth_ring(irings[i], elevs);
       for (int j = 0; j < (irings[i]).size(); j++)
-        bg::set<2>(bg::interior_rings(p3)[i][j], elevs[j]);
+        bg::set<2>(bg::interior_rings(_p3)[i][j], elevs[j]);
     }
   }
 }
