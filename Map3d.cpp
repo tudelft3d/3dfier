@@ -311,53 +311,88 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
 }
 
 
-void Map3d::stitch_lifted_features() {
-  std::clog << "===== STITCH POLYGONS =====" << std::endl;
-  for (auto& f : _lsFeatures) {
-    if (f->get_class() == WATER) {
-      std::clog << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
-      Polygon2* pgn = f->get_Polygon2();
-      Ring2 oring = bg::exterior_ring(*pgn);
-      std::vector<PairIndexed> re;
-      _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-      std::clog << "r-tree intersects: " << re.size() << std::endl;
-      for (auto& each : re) {
-        TopoFeature* fadj = each.second;
-        if (fadj->get_class() == TERRAIN) {
-          // TODO: do not do twice the work, only low_id --> high_id should be stitched
-          if ( (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
-          // if ( (fadj->get_counter() > f->get_counter()) && (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
-            std::clog << "---" << std::endl;
-            int ia, ib;
-            for (int i = 0; i < (oring.size() - 1); i++) {
-              if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
-                std::clog << fadj->get_id() << " : " << ia << " " << ib << std::endl;
-                float z = f->get_point_elevation(f->has_point2(oring[i]));
-                fadj->set_point_elevation(ia, z);
-                fadj->set_point_elevation(ib, z);  
-              }
-            }
-            if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
-              std::clog << fadj->get_id() << " : " << ia << " " << ib << std::endl;
-              float z = f->get_point_elevation(f->has_point2(oring.front()));
-              fadj->set_point_elevation(ia, z);
-              fadj->set_point_elevation(ib, z);  
-            }
+void Map3d::stitch_water(TopoFeature* f, std::vector<PairIndexed> &re) {
+  std::clog << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
+  Polygon2* pgn = f->get_Polygon2();
+  Ring2 oring = bg::exterior_ring(*pgn);
+  for (auto& each : re) {
+    TopoFeature* fadj = each.second;
+    if (fadj->get_class() == TERRAIN) {
+      if ( (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
+        int ia, ib;
+        for (int i = 0; i < (oring.size() - 1); i++) {
+          if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
+            float z = f->get_point_elevation(f->has_point2(oring[i]));
+            fadj->set_point_elevation(ia, z);
+            fadj->set_point_elevation(ib, z);  
           }
+        }
+        if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
+          float z = f->get_point_elevation(f->has_point2(oring.front()));
+          fadj->set_point_elevation(ia, z);
+          fadj->set_point_elevation(ib, z);  
         }
       }
     }
   }
+}
+
+void Map3d::stitch_road(TopoFeature* f, std::vector<PairIndexed> &re) {
+  std::clog << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
+  Polygon2* pgn = f->get_Polygon2();
+  Ring2 oring = bg::exterior_ring(*pgn);
+  for (auto& each : re) {
+    TopoFeature* fadj = each.second;
+    if (fadj->get_class() == ROAD) {
+      // if ( (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
+      if ( (fadj->get_counter() > f->get_counter()) && (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
+        int ia, ib;
+        for (int i = 0; i < (oring.size() - 1); i++) {
+          if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
+            int j = f->has_point2(oring[i]);
+            float z = f->get_point_elevation(j);
+            float zadj = fadj->get_point_elevation(ia);
+            f->set_point_elevation(j, (z + zadj) / 2);
+            fadj->set_point_elevation(ia, (z + zadj) / 2);
+            j = f->has_point2(oring[i + 1]);
+            z = f->get_point_elevation(j);
+            zadj = fadj->get_point_elevation(ib);
+            f->set_point_elevation(j, (z + zadj) / 2);
+            fadj->set_point_elevation(ib, (z + zadj) / 2);
+          }
+        }
+        // if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
+        //   float z = f->get_point_elevation(f->has_point2(oring.front()));
+        //   float zadj = fadj->get_point_elevation(ia);
+        //   fadj->set_point_elevation(ia, (z + zadj) / 2);
+        //   zadj = fadj->get_point_elevation(ib);
+        //   fadj->set_point_elevation(ib, (z + zadj) / 2);
+        // }
+      }
+    }
+  } 
+}
+
+void Map3d::stitch_lifted_features() {
+  std::clog << "===== STITCH POLYGONS =====" << std::endl;
+  for (auto& f : _lsFeatures) {
+    std::vector<PairIndexed> re;
+    _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+    if (f->get_class() == WATER) 
+      this->stitch_water(f, re);
+    if (f->get_class() == ROAD) 
+      this->stitch_road(f, re);
+  }
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
 }
-          // for (Ring2& iring: bg::interior_rings(*pgn)) {
-          //   for (int i = 0; i < (iring.size() - 1); i++) {
-          //     if (polygon2_find_segment(fadj->get_Polygon2(), iring[i], iring[i + 1]) == true)
-          //       std::clog << "IRING" << fadj->get_id() << std::endl;
-          //   }
-          //   if (polygon2_find_segment(fadj->get_Polygon2(), iring.back(), iring.front()) == true)
-          //     std::clog << "IRING" << fadj->get_id() << std::endl;
-          // }
+// for (Ring2& iring: bg::interior_rings(*pgn)) {
+//   for (int i = 0; i < (iring.size() - 1); i++) {
+//     if (polygon2_find_segment(fadj->get_Polygon2(), iring[i], iring[i + 1]) == true)
+//       std::clog << "IRING" << fadj->get_id() << std::endl;
+//   }
+//   if (polygon2_find_segment(fadj->get_Polygon2(), iring.back(), iring.front()) == true)
+//     std::clog << "IRING" << fadj->get_id() << std::endl;
+// }
 
 
 

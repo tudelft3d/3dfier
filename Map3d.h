@@ -36,6 +36,9 @@ public:
   std::string get_citygml();
   std::string get_csv_buildings();
   std::string get_obj();
+
+  void stitch_water(TopoFeature* f, std::vector<PairIndexed> &re);
+  void stitch_road (TopoFeature* f, std::vector<PairIndexed> &re);
      
   void set_building_heightref_roof(std::string heightref);
   void set_building_heightref_floor(std::string heightref);
