@@ -114,8 +114,7 @@ int main(int argc, const char * argv[]) {
   }
 
   map3d.threeDfy();
-  // map3d.stitch_lifted_features();
-  return 1;
+  // return 1;
 
   
   //-- output

@@ -150,8 +150,6 @@ bool Map3d::threeDfy() {
 */
   for (auto& p : _lsPolys)
     p->lift();
-  for (auto& p : _lsPolys)
-    std::cout << p->get_class() << std::endl;
   this->stitch_lifted_features();
   for (auto& p : _lsPolys)
     p->buildCDT();
@@ -314,39 +312,39 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
 
 
 void Map3d::stitch_lifted_features() {
-  std::cout << "===== STITCH POLYGONS =====" << std::endl;
+  std::clog << "===== STITCH POLYGONS =====" << std::endl;
   TopoFeature* f = _lsPolys[2];
-  std::cout << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
+  std::clog << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
   Polygon2* pgn = f->get_Polygon2();
   Ring2 oring = bg::exterior_ring(*pgn);
   std::vector<PairIndexed> re;
   _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-  std::cout << "r-tree intersects: " << re.size() << std::endl;
+  std::clog << "r-tree intersects: " << re.size() << std::endl;
   for (auto& b : re) {
     TopoFeature* adj = b.second;
     // TODO: do not do twice the work, only low_id --> high_id should be stitched
     // if ( (adj->get_counter() > f->get_counter()) && (bg::touches(*pgn, *(adj->get_Polygon2())) == true) ) {
     if ( (bg::touches(*pgn, *(adj->get_Polygon2())) == true) ) {
-      std::cout << "---" << std::endl;
+      std::clog << "---" << std::endl;
       int ia, ib;
       for (int i = 0; i < (oring.size() - 1); i++) {
         if (adj->has_segment(oring[i], oring[i + 1], ia, ib) == true)
-          std::cout << adj->get_id() << " : " << ia << " " << ib << std::endl;
+          std::clog << adj->get_id() << " : " << ia << " " << ib << std::endl;
       }
       if (adj->has_segment(oring.back(), oring.front(), ia, ib) == true) 
-        std::cout << adj->get_id() << " : " << ia << " " << ib << std::endl;
+        std::clog << adj->get_id() << " : " << ia << " " << ib << std::endl;
 
       // for (Ring2& iring: bg::interior_rings(*pgn)) {
       //   for (int i = 0; i < (iring.size() - 1); i++) {
       //     if (polygon2_find_segment(adj->get_Polygon2(), iring[i], iring[i + 1]) == true)
-      //       std::cout << "IRING" << adj->get_id() << std::endl;
+      //       std::clog << "IRING" << adj->get_id() << std::endl;
       //   }
       //   if (polygon2_find_segment(adj->get_Polygon2(), iring.back(), iring.front()) == true)
-      //     std::cout << "IRING" << adj->get_id() << std::endl;
+      //     std::clog << "IRING" << adj->get_id() << std::endl;
       // }
     }
   }
-  std::cout << "===== STITCH POLYGONS =====" << std::endl;
+  std::clog << "===== STITCH POLYGONS =====" << std::endl;
 }
 
 
