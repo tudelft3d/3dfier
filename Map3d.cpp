@@ -17,7 +17,7 @@ Map3d::Map3d() {
 
 Map3d::~Map3d() {
   // TODO : destructor Map3d
-  _lsPolys.clear();
+  _lsFeatures.clear();
 }
 
 void Map3d::set_building_heightref_roof(std::string h) {
@@ -63,7 +63,7 @@ std::string Map3d::get_citygml() {
   ss << get_xml_header();
   ss << get_citygml_namespaces();
   ss << "<gml:name>my3dmap</gml:name>";
-  for (auto& p3 : _lsPolys) {
+  for (auto& p3 : _lsFeatures) {
     ss << p3->get_citygml();
   }
   ss << "</CityModel>";
@@ -73,7 +73,7 @@ std::string Map3d::get_citygml() {
 std::string Map3d::get_csv_buildings() {
   std::stringstream ss;
   ss << "id;roof;floor" << std::endl;
-  for (auto& p : _lsPolys) {
+  for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
       // if (b != nullptr)
@@ -88,13 +88,13 @@ std::string Map3d::get_obj() {
   offsets.push_back(0);
   std::stringstream ss;
   ss << "mtllib ./3dfier.mtl" << std::endl;
-  for (auto& p3 : _lsPolys) {
+  for (auto& p3 : _lsFeatures) {
     ss << p3->get_obj_v();
     offsets.push_back(p3->get_number_vertices());
   }
   int i = 0;
   int offset = 0;
-  for (auto& p3 : _lsPolys) {
+  for (auto& p3 : _lsFeatures) {
     ss << "o " << p3->get_id() << std::endl;
     offset += offsets[i++];
     ss << p3->get_obj_f(offset);
@@ -109,12 +109,12 @@ std::string Map3d::get_obj() {
 
 
 unsigned long Map3d::get_num_polygons() {
-  return _lsPolys.size();
+  return _lsFeatures.size();
 }
 
 
 const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
-  return _lsPolys;
+  return _lsFeatures;
 }
 
 
@@ -148,10 +148,10 @@ bool Map3d::threeDfy() {
   2. stitch
   3. CDT
 */
-  for (auto& p : _lsPolys)
+  for (auto& p : _lsFeatures)
     p->lift();
   this->stitch_lifted_features();
-  for (auto& p : _lsPolys)
+  for (auto& p : _lsFeatures)
     p->buildCDT();
   return true;
 }
@@ -159,7 +159,7 @@ bool Map3d::threeDfy() {
 
 bool Map3d::construct_rtree() {
   std::clog << "Constructing the R-tree...";
-  for (auto p: _lsPolys) 
+  for (auto p: _lsFeatures) 
     _rtree.insert(std::make_pair(p->get_bbox2d(), p));
   std::clog << " done." << std::endl;
   return true;
@@ -231,23 +231,23 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
           bg::unique(*p2); //-- remove duplicate vertices
           if (l.second == "Building") {
             Building* p3 = new Building(p2, f->GetFieldAsString(idfield.c_str()), _building_heightref_roof, _building_heightref_floor);
-            _lsPolys.push_back(p3);
+            _lsFeatures.push_back(p3);
           }
           else if (l.second == "Terrain") {
             Terrain* p3 = new Terrain(p2, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
-            _lsPolys.push_back(p3);
+            _lsFeatures.push_back(p3);
           }
           else if (l.second == "Vegetation") {
             Vegetation* p3 = new Vegetation(p2, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
-            _lsPolys.push_back(p3);
+            _lsFeatures.push_back(p3);
           }
           else if (l.second == "Water") {
             Water* p3 = new Water(p2, f->GetFieldAsString(idfield.c_str()), this->_water_heightref);
-            _lsPolys.push_back(p3);
+            _lsFeatures.push_back(p3);
           }
           else if (l.second == "Road") {
             Road* p3 = new Road(p2, f->GetFieldAsString(idfield.c_str()), this->_road_heightref);
-            _lsPolys.push_back(p3);
+            _lsFeatures.push_back(p3);
           }          
           break;
         }
@@ -313,39 +313,51 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
 
 void Map3d::stitch_lifted_features() {
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
-  TopoFeature* f = _lsPolys[2];
-  std::clog << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
-  Polygon2* pgn = f->get_Polygon2();
-  Ring2 oring = bg::exterior_ring(*pgn);
-  std::vector<PairIndexed> re;
-  _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-  std::clog << "r-tree intersects: " << re.size() << std::endl;
-  for (auto& b : re) {
-    TopoFeature* adj = b.second;
-    // TODO: do not do twice the work, only low_id --> high_id should be stitched
-    // if ( (adj->get_counter() > f->get_counter()) && (bg::touches(*pgn, *(adj->get_Polygon2())) == true) ) {
-    if ( (bg::touches(*pgn, *(adj->get_Polygon2())) == true) ) {
-      std::clog << "---" << std::endl;
-      int ia, ib;
-      for (int i = 0; i < (oring.size() - 1); i++) {
-        if (adj->has_segment(oring[i], oring[i + 1], ia, ib) == true)
-          std::clog << adj->get_id() << " : " << ia << " " << ib << std::endl;
+  for (auto& f : _lsFeatures) {
+    if (f->get_class() == WATER) {
+      std::clog << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
+      Polygon2* pgn = f->get_Polygon2();
+      Ring2 oring = bg::exterior_ring(*pgn);
+      std::vector<PairIndexed> re;
+      _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+      std::clog << "r-tree intersects: " << re.size() << std::endl;
+      for (auto& each : re) {
+        TopoFeature* fadj = each.second;
+        if (fadj->get_class() == TERRAIN) {
+          // TODO: do not do twice the work, only low_id --> high_id should be stitched
+          if ( (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
+          // if ( (fadj->get_counter() > f->get_counter()) && (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
+            std::clog << "---" << std::endl;
+            int ia, ib;
+            for (int i = 0; i < (oring.size() - 1); i++) {
+              if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
+                std::clog << fadj->get_id() << " : " << ia << " " << ib << std::endl;
+                float z = f->get_point_elevation(f->has_point2(oring[i]));
+                fadj->set_point_elevation(ia, z);
+                fadj->set_point_elevation(ib, z);  
+              }
+            }
+            if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
+              std::clog << fadj->get_id() << " : " << ia << " " << ib << std::endl;
+              float z = f->get_point_elevation(f->has_point2(oring.front()));
+              fadj->set_point_elevation(ia, z);
+              fadj->set_point_elevation(ib, z);  
+            }
+          }
+        }
       }
-      if (adj->has_segment(oring.back(), oring.front(), ia, ib) == true) 
-        std::clog << adj->get_id() << " : " << ia << " " << ib << std::endl;
-
-      // for (Ring2& iring: bg::interior_rings(*pgn)) {
-      //   for (int i = 0; i < (iring.size() - 1); i++) {
-      //     if (polygon2_find_segment(adj->get_Polygon2(), iring[i], iring[i + 1]) == true)
-      //       std::clog << "IRING" << adj->get_id() << std::endl;
-      //   }
-      //   if (polygon2_find_segment(adj->get_Polygon2(), iring.back(), iring.front()) == true)
-      //     std::clog << "IRING" << adj->get_id() << std::endl;
-      // }
     }
   }
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
 }
+          // for (Ring2& iring: bg::interior_rings(*pgn)) {
+          //   for (int i = 0; i < (iring.size() - 1); i++) {
+          //     if (polygon2_find_segment(fadj->get_Polygon2(), iring[i], iring[i + 1]) == true)
+          //       std::clog << "IRING" << fadj->get_id() << std::endl;
+          //   }
+          //   if (polygon2_find_segment(fadj->get_Polygon2(), iring.back(), iring.front()) == true)
+          //     std::clog << "IRING" << fadj->get_id() << std::endl;
+          // }
 
 
 

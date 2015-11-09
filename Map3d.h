@@ -57,7 +57,7 @@ private:
   std::string _road_heightref;
   float       _radius_vertex_elevation;
 
-  std::vector<TopoFeature*>   _lsPolys;
+  std::vector<TopoFeature*>   _lsFeatures;
   std::vector<std::string>    _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
 
