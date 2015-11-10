@@ -1,6 +1,9 @@
 
+//-- TODO: add GDAL2.0 support
 //-- TODO: filter the noise in the lidar points inside TIN?
 //-- TODO : how to make roads horizontal "in the length"? or do we need to?
+
+//-----------------------------------------------------------------------------
 
 #include "definitions.h"
 #include "io.h"
