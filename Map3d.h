@@ -29,7 +29,6 @@ public:
   bool threeDfy();
   TopoFeature* add_elevation_point(double x, double y, double z, TopoFeature* trythisone = NULL);
 
-
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>& get_polygons3d();  
   
@@ -64,6 +63,7 @@ private:
   std::vector<std::string>    _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
 
+  void stitch_one_feature(TopoFeature* f, TopoClass adjclass);
   bool extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers);
 
 };

@@ -402,59 +402,83 @@ void Map3d::stitch_road(TopoFeature* f, std::vector<PairIndexed> &re) {
 // }
 
 
-void Map3d::stitch_lifted_features_2() {
-/*
-  WATER - TERRAIN
-  WATER - ROAD
-*/
+// void Map3d::stitch_lifted_features_2() {
+// /*
+//   WATER - TERRAIN
+//   WATER - ROAD
+// */
 
-  for (auto& f : _lsFeatures) {
-    if (f->get_class() == WATER) {
-    std::vector<PairIndexed> re;
-    _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-    for (auto& each : re) {
-      TopoFeature* fadj = each.second;
+//   for (auto& f : _lsFeatures) {
+//     if (f->get_class() == WATER) {
+//     std::vector<PairIndexed> re;
+//     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+//     for (auto& each : re) {
+//       TopoFeature* fadj = each.second;
   
-}
+// }
 
-void Map3d::stitch_one_feature(TopoFeature* f, TopoClass tc) {
+void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
   std::vector<PairIndexed> re;
   _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
   for (auto& each : re) {
-    TopoFeature* fadj = each.second;
-    // if ( (f->get_class() == WATER) && (fadj->get_class() == TERRAIN) ) {
-
+    // TopoFeature* fadj = each.second;
+    if ( each.second->get_class() == adjclass ) {
+      std::cout << each.second->get_id() << std::endl;
+    }
+  }
 }
 
 void Map3d::stitch_lifted_features() {
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
   for (auto& f : _lsFeatures) {
-    std::vector<PairIndexed> re;
-    _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-    for (auto& each : re) {
-      TopoFeature* fadj = each.second;
-      if ( (f->get_class() == WATER) && (fadj->get_class() == TERRAIN) ) {
-        if ( (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) ) {
-          int ia, ib;
-          Ring2 oring = bg::exterior_ring(*(f->get_Polygon2()));
-          for (int i = 0; i < (oring.size() - 1); i++) {
-            if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
-              float z = f->get_point_elevation(f->has_point2(oring[i]));
-              fadj->set_point_elevation(ia, z);
-              fadj->set_point_elevation(ib, z);  
-            }
-          }
-          if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
-            float z = f->get_point_elevation(f->has_point2(oring.front()));
-            fadj->set_point_elevation(ia, z);
-            fadj->set_point_elevation(ib, z);  
-          }
-        }
-      }
-    }
-  }
+
+    switch(f->get_class()) {
+      case 1: int x = 0; // initialization
+            std::cout << x << '\n';
+            break;
+    default: // compilation error: jump to default: would enter the scope of 'x'
+             // without initializing it
+             std::cout << "default\n";
+             break;
+}
+
+    if (f->get_class() == WATER)
+      stitch_one_feature(f, TERRAIN);
+
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
 }
+
+
+
+// void Map3d::stitch_lifted_features() {
+//   std::clog << "===== STITCH POLYGONS =====" << std::endl;
+//   for (auto& f : _lsFeatures) {
+//     std::vector<PairIndexed> re;
+//     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+//     for (auto& each : re) {
+//       TopoFeature* fadj = each.second;
+//       if ( (f->get_class() == WATER) && (fadj->get_class() == TERRAIN) ) {
+//         if ( (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) ) {
+//           int ia, ib;
+//           Ring2 oring = bg::exterior_ring(*(f->get_Polygon2()));
+//           for (int i = 0; i < (oring.size() - 1); i++) {
+//             if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
+//               float z = f->get_point_elevation(f->has_point2(oring[i]));
+//               fadj->set_point_elevation(ia, z);
+//               fadj->set_point_elevation(ib, z);  
+//             }
+//           }
+//           if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
+//             float z = f->get_point_elevation(f->has_point2(oring.front()));
+//             fadj->set_point_elevation(ia, z);
+//             fadj->set_point_elevation(ib, z);  
+//           }
+//         }
+//       }
+//     }
+//   }
+//   std::clog << "===== STITCH POLYGONS =====" << std::endl;
+// }
 
 // void Map3d::stitch_lifted_features() {
 //   std::clog << "===== STITCH POLYGONS =====" << std::endl;
