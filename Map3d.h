@@ -65,8 +65,8 @@ private:
 
   void stitch_one_feature(TopoFeature* f, TopoClass adjclass);
   bool extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers);
+  void build_nc(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star);
 
 };
-
 
 #endif

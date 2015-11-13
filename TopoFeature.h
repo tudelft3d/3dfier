@@ -31,6 +31,8 @@ public:
   bool         has_segment(Point2& a, Point2& b, int& ia, int& ib);
   void         set_point_elevation(int i, float z);  
   float        get_point_elevation(int i);
+  void         add_nc(int i, float z);
+  std::vector<float>& get_nc(int i);
 
 protected:
   Polygon2*    _p2;

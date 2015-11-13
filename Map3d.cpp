@@ -433,33 +433,72 @@ void Map3d::stitch_lifted_features() {
   for (auto& f : _lsFeatures) {
     std::vector<PairIndexed> re;
     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-    //-- 1. store all touching
+//-- 1. store all touching
     std::vector<TopoFeature*> lstouching;
     for (auto& each : re) {
       TopoFeature* fadj = each.second;
       if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
-        std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
-        lstouching.append(fadj);
+        // std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
+        lstouching.push_back(fadj);
       }
     }
-    //-- 2.     
+//-- 2. build the node-column for each vertex
     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); // TODO: iring needs to be implemented too
     for (int i = 0; i < oring.size(); i++) {
-      std::vector<TopoFeature*> lsincident;  
+      std::vector< std::pair<TopoFeature*, int> > star;  
+      bool toprocess = true;
       for (auto& fadj : lstouching) {
-        if (fadj->has_point2(oring[i]) == true)  {
-          if (f->get_counter() < fadj->get_counter())
-            lsincident.append(fadj);
-          else
+        int index = fadj->has_point2(oring[i]);
+        if (index != -1)  {
+          if (f->get_counter() < fadj->get_counter()) {
+            star.push_back(std::make_pair(fadj, index));
+          }
+          else {
+            toprocess = false;
             break;
+          }
         }
       }
+      if (toprocess == true) {
+        this->build_nc(f, i, star);
+      }
     }
+//-- 3. stitch the edges of current feature
+    std::clog << "stitch the edges of current feature" << std::endl;
+
     break; //-- FIXME: only the first processed, 
   }
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
 }
 
+
+void Map3d::build_nc(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
+  float fz = f->get_point_elevation(pos);
+  if (f->get_class() == WATER) {
+    if (star.size() == 1) {
+      float deltaz = std::abs(fz - star[0].first->get_point_elevation(star[0].second));
+      if (deltaz < 1.0)
+        star[0].first->set_point_elevation(star[0].second, fz);
+      else
+        star[0].first->add_nc(star[0].second, fz);
+    }
+    else if (star.size() > 1) {
+      std::clog << "star size: " << star.size() << std::endl;
+      for (auto& fadj : star) {
+        std::clog << fadj.first->get_class() << " | " 
+        << fadj.first->get_point_elevation(fadj.second) << " | " 
+        << fz 
+        << std::endl;
+      }
+
+
+      // for (auto& fadj : star) {
+      //   fadj.first->set_point_elevation(fadj.second, fz);   
+      //   std::clog << fadj.first->get_point_elevation(fadj.second) << std::endl;
+      // }
+    }
+  }
+}
 
 
 // void Map3d::stitch_lifted_features() {
