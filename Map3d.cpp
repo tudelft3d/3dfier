@@ -1,81 +1,165 @@
-
 #include "Map3d.h"
-#include "input.h"
-
+#include "io.h"
 
 
 Map3d::Map3d() {
   OGRRegisterAll();
+  _building_include_floor = false;
+  _building_heightref_roof = "median";
+  _building_heightref_floor = "percentile-05";
+  _building_triangulate = true;
+  _terrain_simplification = 0;
+  _vegetation_simplification = 0;
+  // _water_ = 0;
+  _radius_vertex_elevation = 2.0;
 }
 
 
 Map3d::~Map3d() {
   // TODO : destructor Map3d
-  _lsPolys.clear();
+  _lsFeatures.clear();
 }
 
+void Map3d::set_building_heightref_roof(std::string h) {
+  _building_heightref_roof = h;  
+}
+
+void Map3d::set_building_heightref_floor(std::string h) {
+  _building_heightref_floor = h;  
+}
+
+
+void Map3d::set_radius_vertex_elevation(float radius) {
+  _radius_vertex_elevation = radius;  
+}
+
+
+void Map3d::set_building_include_floor(bool include) {
+  _building_include_floor = include;
+}
+
+void Map3d::set_building_triangulate(bool triangulate) {
+  _building_triangulate = triangulate;
+}
+
+void Map3d::set_terrain_simplification(int simplification) {
+  _terrain_simplification = simplification;
+}
+
+void Map3d::set_vegetation_simplification(int simplification) {
+  _vegetation_simplification = simplification;
+}
+
+void Map3d::set_water_heightref(std::string h) {
+  _water_heightref = h;  
+}
+
+void Map3d::set_road_heightref(std::string h) {
+  _road_heightref = h;  
+}
 
 std::string Map3d::get_citygml() {
   std::stringstream ss;
   ss << get_xml_header();
   ss << get_citygml_namespaces();
   ss << "<gml:name>my3dmap</gml:name>";
-  // TODO : get bbox of dataset
-  for (auto& p3 : _lsPolys) {
-    ss << p3->get_3d_citygml();
+  for (auto& p3 : _lsFeatures) {
+    ss << p3->get_citygml();
   }
   ss << "</CityModel>";
   return ss.str();
 }
 
-std::string Map3d::get_csv() {
+std::string Map3d::get_csv_buildings() {
   std::stringstream ss;
-  ss << "id;3drep" << std::endl;
-  for (auto& p3 : _lsPolys) {
-    ss << p3->get_3d_csv();
+  ss << "id;roof;floor" << std::endl;
+  for (auto& p : _lsFeatures) {
+    if (p->get_class() == BUILDING) {
+      Building* b = dynamic_cast<Building*>(p);
+      // if (b != nullptr)
+      ss << b->get_csv();
+    }
   }
   return ss.str();
 }
 
+std::string Map3d::get_obj() {
+  std::vector<int> offsets;
+  offsets.push_back(0);
+  std::stringstream ss;
+  ss << "mtllib ./3dfier.mtl" << std::endl;
+  for (auto& p3 : _lsFeatures) {
+    ss << p3->get_obj_v();
+    offsets.push_back(p3->get_number_vertices());
+  }
+  int i = 0;
+  int offset = 0;
+  for (auto& p3 : _lsFeatures) {
+    ss << "o " << p3->get_id() << std::endl;
+    offset += offsets[i++];
+    ss << p3->get_obj_f(offset);
+    if (_building_include_floor == true) {  
+      Building* b = dynamic_cast<Building*>(p3);
+      if (b != nullptr)
+        ss << b->get_obj_f_floor(offset);
+    }
+ }
+ return ss.str();
+}
 
 
 unsigned long Map3d::get_num_polygons() {
-  return _lsPolys.size();
+  return _lsFeatures.size();
 }
 
 
-const std::vector<Polygon3d*>& Map3d::get_polygons3d() {
-  return _lsPolys;
+const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
+  return _lsFeatures;
 }
 
 
-Polygon3d* Map3d::add_point(double x, double y, double z, Polygon3d* trythisone) {
-  Point2d p(x, y);
+TopoFeature* Map3d::add_elevation_point(double x, double y, double z, TopoFeature* trythisone) {
+  Point2 p(x, y);
   if (trythisone != NULL) {
-    if (bg::within(p, *(trythisone->get_polygon2d())) == true) {
-      trythisone->add_elevation_point(x, y, z);
+    if (bg::distance(p, *(trythisone->get_Polygon2())) < _radius_vertex_elevation) {
+      trythisone->add_elevation_point(x, y, z, _radius_vertex_elevation);
       return trythisone;
     }
   }
   std::vector<PairIndexed> re;
-  Point2d minp(x - 0.5, y - 0.5);
-  Point2d maxp(x + 0.5, y + 0.5);
-  Box querybox(minp, maxp);
+  Point2 minp(x - 0.1, y - 0.1);
+  Point2 maxp(x + 0.1, y + 0.1);
+  Box2 querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
   for (auto& v : re) {
-    Polygon3d* pgn3 = v.second;
-    if (bg::within(p, *(pgn3->get_polygon2d())) == true) {
-      pgn3->add_elevation_point(x, y, z);
-      return pgn3;
+    TopoFeature* pgn = v.second;
+    if (bg::distance(p, *(pgn->get_Polygon2())) < _radius_vertex_elevation) {     
+      pgn->add_elevation_point(x, y, z, _radius_vertex_elevation);
+      return pgn;
     }
   }
   return NULL;
 }
 
 
+bool Map3d::threeDfy() {
+/*
+  1. lift
+  2. stitch
+  3. CDT
+*/
+  for (auto& p : _lsFeatures)
+    p->lift();
+  this->stitch_lifted_features();
+  for (auto& p : _lsFeatures)
+    p->buildCDT();
+  return true;
+}
+
+
 bool Map3d::construct_rtree() {
   std::clog << "Constructing the R-tree...";
-  for (auto p: _lsPolys) 
+  for (auto p: _lsFeatures) 
     _rtree.insert(std::make_pair(p->get_bbox2d(), p));
   std::clog << " done." << std::endl;
   return true;
@@ -89,57 +173,13 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::vecto
     std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
     return false;
   }
-  this->extract_and_add_polygon(dataSource, idfield, layers);
+  bool wentgood = this->extract_and_add_polygon(dataSource, idfield, layers);
   OGRDataSource::DestroyDataSource(dataSource);
-  return true;
-}
- 
-
-bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers) {
- for (auto l : layers) {
-    OGRLayer *dataLayer = dataSource->GetLayerByName((l.first).c_str());
-    if (dataLayer == NULL) {
-      continue;
-    }
-    dataLayer->ResetReading();
-    unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
-    std::clog << "\tLayer: " << dataLayer->GetName() << std::endl;
-    std::clog << "\t(" << numberOfPolygons << " features)" << std::endl;
-    OGRFeature *f;
-    while ((f = dataLayer->GetNextFeature()) != NULL) {
-      switch(f->GetGeometryRef()->getGeometryType()) {
-        case wkbPolygon:
-        case wkbMultiPolygon: 
-        case wkbMultiPolygon25D:
-        case wkbPolygon25D: {
-          Polygon2d* p2 = new Polygon2d();
-          // TODO : WKT surely not best/fastest way, to change
-          char *output_wkt;
-          f->GetGeometryRef()->flattenTo2D();
-          f->GetGeometryRef()->exportToWkt(&output_wkt);
-          bg::read_wkt(output_wkt, *p2);
-          bg::unique(*p2); //-- remove duplicate vertices
-          std::string t = l.second.substr(0, l.second.find_first_of("-"));
-          if (t == "BLOCK") {
-            Polygon3dBlock* p3 = new Polygon3dBlock(p2, f->GetFieldAsString(idfield.c_str()), l.second);
-            _lsPolys.push_back(p3);
-          }
-          else if (t == "BOUNDARY3D")
-            std::cout << "BOUNDARY3D NOT IMPLEMENTED YET" << std::endl;
-          else if (t == "TIN")
-            std::cout << "TIN NOT IMPLEMENTED YET" << std::endl;
-          break;
-        }
-        default: {
-          continue;
-        }
-      }
-    }
-  }
-  return true;
+  return wentgood;
 }
 
-bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::string lifttype) {
+
+bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::string lifting) {
   std::clog << "Reading input dataset: " << ifile << std::endl;
   OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
   if (dataSource == NULL) {
@@ -150,45 +190,318 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
   int numberOfLayers = dataSource->GetLayerCount();
   for (int currentLayer = 0; currentLayer < numberOfLayers; currentLayer++) {
     OGRLayer *dataLayer = dataSource->GetLayer(currentLayer);
-    std::pair<std::string, std::string> p(dataLayer->GetName(), lifttype);
+    std::pair<std::string, std::string> p(dataLayer->GetName(), lifting);
     layers.push_back(p);
   }
-  this->extract_and_add_polygon(dataSource, idfield, layers);
+  bool wentgood = this->extract_and_add_polygon(dataSource, idfield, layers);
   OGRDataSource::DestroyDataSource(dataSource);
-  return true;
+  return wentgood;
 }
 
 
-bool Map3d::add_las_file(std::string ifile, int skip) {
+bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers) {
+ bool wentgood = true;
+ for (auto l : layers) {
+    OGRLayer *dataLayer = dataSource->GetLayerByName((l.first).c_str());
+    if (dataLayer == NULL) {
+      continue;
+    }
+    if (dataLayer->FindFieldIndex(idfield.c_str(), false) == -1) {
+      std::cerr << "ERROR: field '" << idfield << "' not found." << std::endl;
+      wentgood = false;
+      continue;
+    }
+    dataLayer->ResetReading();
+    unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
+    std::clog << "\tLayer: " << dataLayer->GetName() << std::endl;
+    std::clog << "\t(" << numberOfPolygons << " features --> " << l.second << ")" << std::endl;
+    OGRFeature *f;
+    while ((f = dataLayer->GetNextFeature()) != NULL) {
+      switch(f->GetGeometryRef()->getGeometryType()) {
+        case wkbPolygon:
+        case wkbMultiPolygon: 
+        case wkbMultiPolygon25D:
+        case wkbPolygon25D: {
+          Polygon2* p2 = new Polygon2();
+          // TODO : WKT surely not best/fastest way, to change. Or is it?
+          char *output_wkt;
+          f->GetGeometryRef()->flattenTo2D();
+          f->GetGeometryRef()->exportToWkt(&output_wkt);
+          bg::read_wkt(output_wkt, *p2);
+          bg::unique(*p2); //-- remove duplicate vertices
+          if (l.second == "Building") {
+            Building* p3 = new Building(p2, f->GetFieldAsString(idfield.c_str()), _building_heightref_roof, _building_heightref_floor);
+            _lsFeatures.push_back(p3);
+          }
+          else if (l.second == "Terrain") {
+            Terrain* p3 = new Terrain(p2, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
+            _lsFeatures.push_back(p3);
+          }
+          else if (l.second == "Vegetation") {
+            Vegetation* p3 = new Vegetation(p2, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
+            _lsFeatures.push_back(p3);
+          }
+          else if (l.second == "Water") {
+            Water* p3 = new Water(p2, f->GetFieldAsString(idfield.c_str()), this->_water_heightref);
+            _lsFeatures.push_back(p3);
+          }
+          else if (l.second == "Road") {
+            Road* p3 = new Road(p2, f->GetFieldAsString(idfield.c_str()), this->_road_heightref);
+            _lsFeatures.push_back(p3);
+          }          
+          break;
+        }
+        default: {
+          continue;
+        }
+      }
+    }
+  }
+  return wentgood;
+}
+
+
+//-- http://www.liblas.org/tutorial/cpp.html#applying-filters-to-a-reader-to-extract-specified-classes
+bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip) {
   std::clog << "Reading LAS/LAZ file: " << ifile << std::endl;
+  if (lasomits.empty() == false) {
+    std::clog << "\t(omitting LAS classes: ";
+    for (int i : lasomits)
+      std::clog << i << " ";
+    std::clog << ")" << std::endl;
+  }
   if (skip != 0)
-    std::clog << "(only reading every " << skip << "th points)" << std::endl;
+    std::clog << "\t(only reading every " << skip << "th points)" << std::endl;
   std::ifstream ifs;
   ifs.open(ifile.c_str(), std::ios::in | std::ios::binary);
   if (ifs.is_open() == false) {
     std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
     return false;
   }
+  //-- LAS classes to omit
+  std::vector<liblas::Classification> liblasomits;
+  for (int i : lasomits)
+    liblasomits.push_back(liblas::Classification(i));
+  //-- read each point 1-by-1
   liblas::ReaderFactory f;
   liblas::Reader reader = f.CreateWithStream(ifs);
   liblas::Header const& header = reader.GetHeader();
   std::clog << "\t(" << header.GetPointRecordsCount() << " points)" << std::endl;
   int i = 0;
-  Polygon3d* lastone = NULL;
+  TopoFeature* lastone = NULL;
   while (reader.ReadNextPoint()) {
     liblas::Point const& p = reader.GetPoint();
     if (skip != 0) {
-      if (i % skip == 0)
-        lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+      if (i % skip == 0) {
+        if(std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
+          lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+      }
     }
     else {
-      lastone = this->add_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+      if(std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
+        lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
     }
     if (i % 100000 == 0) 
       printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
     i++;
   }
   std::clog << "done" << std::endl;
+  ifs.close();
   return true;
 }
+
+
+void Map3d::stitch_water(TopoFeature* f, std::vector<PairIndexed> &re) {
+  std::clog << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
+  Polygon2* pgn = f->get_Polygon2();
+  Ring2 oring = bg::exterior_ring(*pgn);
+  for (auto& each : re) {
+    TopoFeature* fadj = each.second;
+    if (fadj->get_class() == TERRAIN) {
+      if ( (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
+        int ia, ib;
+        for (int i = 0; i < (oring.size() - 1); i++) {
+          if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
+            float z = f->get_point_elevation(f->has_point2(oring[i]));
+            fadj->set_point_elevation(ia, z);
+            fadj->set_point_elevation(ib, z);  
+          }
+        }
+        if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
+          float z = f->get_point_elevation(f->has_point2(oring.front()));
+          fadj->set_point_elevation(ia, z);
+          fadj->set_point_elevation(ib, z);  
+        }
+      }
+    }
+  }
+}
+
+void Map3d::stitch_road(TopoFeature* f, std::vector<PairIndexed> &re) {
+  std::clog << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
+  Polygon2* pgn = f->get_Polygon2();
+  Ring2 oring = bg::exterior_ring(*pgn);
+  for (auto& each : re) {
+    TopoFeature* fadj = each.second;
+    if (fadj->get_class() == ROAD) {
+      // if ( (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
+      if ( (fadj->get_counter() > f->get_counter()) && (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
+        int ia, ib;
+        for (int i = 0; i < (oring.size() - 1); i++) {
+          if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
+            int j = f->has_point2(oring[i]);
+            float z = f->get_point_elevation(j);
+            float zadj = fadj->get_point_elevation(ia);
+            f->set_point_elevation(j, (z + zadj) / 2);
+            fadj->set_point_elevation(ia, (z + zadj) / 2);
+            //--
+            j = f->has_point2(oring[i + 1]);
+            z = f->get_point_elevation(j);
+            zadj = fadj->get_point_elevation(ib);
+            f->set_point_elevation(j, (z + zadj) / 2);
+            fadj->set_point_elevation(ib, (z + zadj) / 2);
+          }
+        }
+        // if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
+        //   float z = f->get_point_elevation(f->has_point2(oring.front()));
+        //   float zadj = fadj->get_point_elevation(ia);
+        //   fadj->set_point_elevation(ia, (z + zadj) / 2);
+        //   zadj = fadj->get_point_elevation(ib);
+        //   fadj->set_point_elevation(ib, (z + zadj) / 2);
+        // }
+      }
+    }
+  } 
+}
+
+
+// void Map3d::stitch_lower(TopoFeature* f, TopoFeature* fafj) {
+//   std::clog << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
+//   Polygon2* pgn = f->get_Polygon2();
+//   Ring2 oring = bg::exterior_ring(*pgn);
+//   for (auto& each : re) {
+//     TopoFeature* fadj = each.second;
+//     if (fadj->get_class() == TERRAIN) {
+//       if ( (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
+//         int ia, ib;
+//         for (int i = 0; i < (oring.size() - 1); i++) {
+//           if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
+//             float z = f->get_point_elevation(f->has_point2(oring[i]));
+//             fadj->set_point_elevation(ia, z);
+//             fadj->set_point_elevation(ib, z);  
+//           }
+//         }
+//         if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
+//           float z = f->get_point_elevation(f->has_point2(oring.front()));
+//           fadj->set_point_elevation(ia, z);
+//           fadj->set_point_elevation(ib, z);  
+//         }
+//       }
+//     }
+//   }
+// }
+
+
+// void Map3d::stitch_lifted_features_2() {
+// /*
+//   WATER - TERRAIN
+//   WATER - ROAD
+// */
+
+//   for (auto& f : _lsFeatures) {
+//     if (f->get_class() == WATER) {
+//     std::vector<PairIndexed> re;
+//     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+//     for (auto& each : re) {
+//       TopoFeature* fadj = each.second;
+  
+// }
+
+void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
+  std::vector<PairIndexed> re;
+  _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+  for (auto& each : re) {
+    // TopoFeature* fadj = each.second;
+    if ( each.second->get_class() == adjclass ) {
+      std::cout << each.second->get_id() << std::endl;
+    }
+  }
+}
+
+void Map3d::stitch_lifted_features() {
+  std::clog << "===== STITCH POLYGONS =====" << std::endl;
+  for (auto& f : _lsFeatures) {
+
+    switch(f->get_class()) {
+      case 1: int x = 0; // initialization
+            std::cout << x << '\n';
+            break;
+    default: // compilation error: jump to default: would enter the scope of 'x'
+             // without initializing it
+             std::cout << "default\n";
+             break;
+}
+
+    if (f->get_class() == WATER)
+      stitch_one_feature(f, TERRAIN);
+
+  std::clog << "===== STITCH POLYGONS =====" << std::endl;
+}
+
+
+
+// void Map3d::stitch_lifted_features() {
+//   std::clog << "===== STITCH POLYGONS =====" << std::endl;
+//   for (auto& f : _lsFeatures) {
+//     std::vector<PairIndexed> re;
+//     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+//     for (auto& each : re) {
+//       TopoFeature* fadj = each.second;
+//       if ( (f->get_class() == WATER) && (fadj->get_class() == TERRAIN) ) {
+//         if ( (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) ) {
+//           int ia, ib;
+//           Ring2 oring = bg::exterior_ring(*(f->get_Polygon2()));
+//           for (int i = 0; i < (oring.size() - 1); i++) {
+//             if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
+//               float z = f->get_point_elevation(f->has_point2(oring[i]));
+//               fadj->set_point_elevation(ia, z);
+//               fadj->set_point_elevation(ib, z);  
+//             }
+//           }
+//           if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
+//             float z = f->get_point_elevation(f->has_point2(oring.front()));
+//             fadj->set_point_elevation(ia, z);
+//             fadj->set_point_elevation(ib, z);  
+//           }
+//         }
+//       }
+//     }
+//   }
+//   std::clog << "===== STITCH POLYGONS =====" << std::endl;
+// }
+
+// void Map3d::stitch_lifted_features() {
+//   std::clog << "===== STITCH POLYGONS =====" << std::endl;
+//   for (auto& f : _lsFeatures) {
+//     std::vector<PairIndexed> re;
+//     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+//     if (f->get_class() == WATER) 
+//       this->stitch_water(f, re);
+//     if (f->get_class() == ROAD) 
+//       this->stitch_road(f, re);
+//   }
+//   std::clog << "===== STITCH POLYGONS =====" << std::endl;
+// }
+// for (Ring2& iring: bg::interior_rings(*pgn)) {
+//   for (int i = 0; i < (iring.size() - 1); i++) {
+//     if (polygon2_find_segment(fadj->get_Polygon2(), iring[i], iring[i + 1]) == true)
+//       std::clog << "IRING" << fadj->get_id() << std::endl;
+//   }
+//   if (polygon2_find_segment(fadj->get_Polygon2(), iring.back(), iring.front()) == true)
+//     std::clog << "IRING" << fadj->get_id() << std::endl;
+// }
+
+
+
+
 
