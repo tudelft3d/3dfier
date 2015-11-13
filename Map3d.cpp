@@ -150,7 +150,7 @@ bool Map3d::threeDfy() {
 */
   for (auto& p : _lsFeatures)
     p->lift();
-  this->stitch_lifted_features();
+  // this->stitch_lifted_features();
   for (auto& p : _lsFeatures)
     p->buildCDT();
   return true;
@@ -430,20 +430,20 @@ void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
 
 void Map3d::stitch_lifted_features() {
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
-  for (auto& f : _lsFeatures) {
-
-    switch(f->get_class()) {
-      case 1: int x = 0; // initialization
-            std::cout << x << '\n';
-            break;
-    default: // compilation error: jump to default: would enter the scope of 'x'
-             // without initializing it
-             std::cout << "default\n";
-             break;
-}
-
-    if (f->get_class() == WATER)
-      stitch_one_feature(f, TERRAIN);
+//  for (auto& f : _lsFeatures) {
+//
+//    switch(f->get_class()) {
+//      case 1: int x = 0; // initialization
+//            std::cout << x << '\n';
+//            break;
+//    default: // compilation error: jump to default: would enter the scope of 'x'
+//             // without initializing it
+//             std::cout << "default\n";
+//             break;
+//}
+//
+//    if (f->get_class() == WATER)
+//      stitch_one_feature(f, TERRAIN);
 
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
 }

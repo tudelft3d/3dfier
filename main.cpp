@@ -14,6 +14,13 @@
 
 int main(int argc, const char * argv[]) {
   
+//-- reading the config file
+  if (argc != 2) {
+    std::cerr << "ERROR: the config file (*.yml) is not defined." << std::endl;
+    return 0;
+  }
+  std::clog << "Reading config file: " << argv[1] << std::endl;
+
 //-- allowed feature classes
   std::set<std::string> allowedFeatures;
   allowedFeatures.insert("Building");
@@ -23,12 +30,6 @@ int main(int argc, const char * argv[]) {
   allowedFeatures.insert("Vegetation");
   allowedFeatures.insert("Bridge/Overpass");
 
-//-- reading the config file
-    std::clog << "Reading config file: " << argv[1] << std::endl;
-  if (argc != 2) {
-    std::cerr << "ERROR: the config file (*.yml) is not defined." << std::endl;
-    return 0;
-  }
   
   Map3d map3d;
   YAML::Node nodes = YAML::LoadFile(argv[1]);
@@ -117,8 +118,6 @@ int main(int argc, const char * argv[]) {
   }
 
   map3d.threeDfy();
-  return 1;
-
   
   //-- output
   n = nodes["output"];

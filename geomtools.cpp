@@ -126,7 +126,7 @@ bool getCDT(const Polygon3* pgn,
   triangulate((char *)"pzQ", &in, &out, NULL);
   //-- free everything from Triangle, and manage myself the output
   if (in.numberofpoints != out.numberofpoints)
-    std::cout << "INTERSECTIONS WHILE CDTing." << std::endl;
+    std::clog << "INTERSECTIONS WHILE CDTing." << std::endl;
   for (int i = 0; i < out.numberofpoints; i++) 
     vertices.push_back(Point3(out.pointlist[i * 2], out.pointlist[i * 2 + 1], out.pointattributelist[i]));
   for (int i = 0; i < out.numberoftriangles; i++) {
