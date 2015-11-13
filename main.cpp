@@ -118,6 +118,7 @@ int main(int argc, const char * argv[]) {
   }
 
   map3d.threeDfy();
+  return 1;
   
   //-- output
   n = nodes["output"];

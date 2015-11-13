@@ -27,10 +27,10 @@ public:
   int          get_counter(); 
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
+  int          has_point2(Point2& p);
   bool         has_segment(Point2& a, Point2& b, int& ia, int& ib);
   void         set_point_elevation(int i, float z);  
   float        get_point_elevation(int i);
-  int          has_point2(Point2& p);
 
 protected:
   Polygon2*    _p2;
@@ -38,6 +38,7 @@ protected:
   std::string  _id;
   int          _counter;
   static int   _count;
+  std::vector< std::vector<float> > _nc; //-- node columns
   std::vector< std::vector<float> > _velevations;
   std::vector<Point3>   _vertices;  //-- output of Triangle
   std::vector<Triangle> _triangles; //-- output of Triangle

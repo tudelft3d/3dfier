@@ -15,6 +15,7 @@ TopoFeature::TopoFeature(Polygon2* p, std::string pid) {
   _counter = _count++;
   _p2 = p;
   _velevations.resize(bg::num_points(*(_p2)));
+  _nc.resize(bg::num_points(*(_p2)));
 }
 
 TopoFeature::~TopoFeature() {

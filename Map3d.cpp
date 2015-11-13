@@ -150,7 +150,7 @@ bool Map3d::threeDfy() {
 */
   for (auto& p : _lsFeatures)
     p->lift();
-  // this->stitch_lifted_features();
+  this->stitch_lifted_features();
   for (auto& p : _lsFeatures)
     p->buildCDT();
   return true;
@@ -430,21 +430,33 @@ void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
 
 void Map3d::stitch_lifted_features() {
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
-//  for (auto& f : _lsFeatures) {
-//
-//    switch(f->get_class()) {
-//      case 1: int x = 0; // initialization
-//            std::cout << x << '\n';
-//            break;
-//    default: // compilation error: jump to default: would enter the scope of 'x'
-//             // without initializing it
-//             std::cout << "default\n";
-//             break;
-//}
-//
-//    if (f->get_class() == WATER)
-//      stitch_one_feature(f, TERRAIN);
-
+  for (auto& f : _lsFeatures) {
+    std::vector<PairIndexed> re;
+    _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+    //-- 1. store all touching
+    std::vector<TopoFeature*> lstouching;
+    for (auto& each : re) {
+      TopoFeature* fadj = each.second;
+      if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
+        std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
+        lstouching.append(fadj);
+      }
+    }
+    //-- 2.     
+    Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); // TODO: iring needs to be implemented too
+    for (int i = 0; i < oring.size(); i++) {
+      std::vector<TopoFeature*> lsincident;  
+      for (auto& fadj : lstouching) {
+        if (fadj->has_point2(oring[i]) == true)  {
+          if (f->get_counter() < fadj->get_counter())
+            lsincident.append(fadj);
+          else
+            break;
+        }
+      }
+    }
+    break; //-- FIXME: only the first processed, 
+  }
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
 }
 
