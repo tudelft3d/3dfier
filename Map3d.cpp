@@ -463,10 +463,8 @@ void Map3d::stitch_lifted_features() {
         this->build_nc(f, i, star);
       }
     }
-//-- 3. stitch the edges of current feature
-    std::clog << "stitch the edges of current feature" << std::endl;
 
-    break; //-- FIXME: only the first processed, 
+    // break; //-- FIXME: only the first processed, 
   }
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
 }
@@ -474,7 +472,7 @@ void Map3d::stitch_lifted_features() {
 
 void Map3d::build_nc(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
   float fz = f->get_point_elevation(pos);
-  if (f->get_class() == WATER) {
+  if (f->get_class() == TERRAIN) {
     if (star.size() == 1) {
       float deltaz = std::abs(fz - star[0].first->get_point_elevation(star[0].second));
       if (deltaz < 1.0)
@@ -489,13 +487,14 @@ void Map3d::build_nc(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature
         << fadj.first->get_point_elevation(fadj.second) << " | " 
         << fz 
         << std::endl;
+        if (fadj.first->get_class() == TERRAIN) {
+          float deltaz = std::abs(fz - fadj.first->get_point_elevation(fadj.second));
+          if (deltaz < 1.0)
+            fadj.first->set_point_elevation(fadj.second, fz);
+          else
+            fadj.first->add_nc(fadj.second, fz);
+        }
       }
-
-
-      // for (auto& fadj : star) {
-      //   fadj.first->set_point_elevation(fadj.second, fz);   
-      //   std::clog << fadj.first->get_point_elevation(fadj.second) << std::endl;
-      // }
     }
   }
 }
