@@ -1,12 +1,12 @@
 
 input_polygons:
   - datasets: 
-      - /Users/hugo/data/campus/partof.shp
+      - /Users/elvis/data/campus/partof.shp
     uniqueid: FACE_ID
     lifting: Building
   - datasets: 
-      - /Users/hugo/data/campus/another.gml
-      - /Users/hugo/data/campus/another2.gml
+      - /Users/elvis/data/campus/another.gml
+      - /Users/elvis/data/campus/another2.gml
     uniqueid: fid
     layers:
       Gebouw: Building
@@ -29,14 +29,13 @@ lifting_options:
 
 input_elevation:
   - datasets:
-      # - /Users/hugo/data/top10nl/schie/ahn2_u.laz
-      # - /Users/hugo/data/top10nl/schie/ahn2_g.laz
-      - /Users/hugo/data/top10nl/schie/ahn3.laz
+      # - /Users/elvis/data/top10nl/schie/ahn2_u.laz
+      # - /Users/elvis/data/top10nl/schie/ahn2_g.laz
+      - /Users/elvis/data/top10nl/schie/ahn3.laz
     omit_LAS_classes:
       - 1 # unclassified
       - 6 # building
     thinning: 10
-
 
 options:
   radius_vertex_elevation: 1.0
@@ -44,7 +43,6 @@ options:
 output: 
   format: OBJ # CityGML or CSV-BUILDINGS
   building_floor: false
-
 
 buildings:
   horizontal_floor: true
