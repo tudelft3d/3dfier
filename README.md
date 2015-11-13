@@ -1,6 +1,20 @@
 # 3dfier
 
-To build you'ld normally do (from 3dfier root directory):
+Takes 2D GIS datasets (eg topographical datasets) and "3dfy" them by lifting every polygon to 3D.
+The elevation is obtained from a point cloud (we support LAS/LAZ at this moment), and the semantics of every polygon is used to perform the lifting.
+That is, water polygons are extruded to horizontal polygons, buildings to LOD1, roads are smoothed, etc.
+Every polygon is triangulated (constrained Delaunay triangulation) and all the lifted polygons are "stitched" so that one DSM is constructed.
+
+The lifting can be configured in the YAML file (`myconfig.yml`) provided.
+
+Output is at this moment in either OBJ or CityGML (and CVS for buildings only, ie their ID and height (ground+roof) are output).
+The ID of each polygon is preserved, and there is a 1-to-1 mapping between the input and the output. 
+
+Observe that this version is *early alpha*, and shouldn't really be used for anything except for testing.
+
+## Compiling
+
+To build you'll normally do (from 3dfier root directory):
 
 ```
 mkdir build && cd build
@@ -15,9 +29,19 @@ cmake .. -DGDAL_CONFIG=/bin/gdal-config -DGDAL_LIBRARY=/usr/lib/libgdal.so -DGDA
 
 To run:
 
-`$ ./3dfier myconfig.yml > output.gml`
+`$ ./3dfier myconfig.yml > output.obj`
 
-- - -
+## Dependencies:
+
+Under Mac OSX they can all be installed with [Homebrew](http://brew.sh).
+
+  1. LIBLAS *with* LASzip support (`brew install liblas --with-laszip`)
+  2. GDAL (`brew install gdal`)
+  3. Boost (`brew install boost`)
+  4. yaml-cpp (`brew install yaml-cpp`)
+  5. [Shewchuk's Triangle](http://www.cs.cmu.edu/%7Equake/triangle.html) (`brew install homebrew/science/triangle`)
+
+## Data
 
 TOP10NL download
 
@@ -25,29 +49,8 @@ TOP10NL download
 
 OGR will not read it properly, it needs to be preprocessed with [nlextract](https://github.com/opengeogroep/NLExtract/tree/top10_v1_2/top10nl/etl) (Below the part was pre-processed with it).
 
-- - -
-
-To test it with a very small area around the TUD campus (8 polygons + AHN2 cropped + config file):
-
-  - https://www.dropbox.com/sh/wdzhixnqqucuc6p/AAAN1ebHZGP374VAr_Zv3BwBa?dl=0
-
-With a (pre-processed )part of top10nl in GML:
-
-  - https://www.dropbox.com/s/9b49oamhyujlqlk/TOP10NL_37W_00.gml?dl=0
-  - http://geodata.nationaalgeoregister.nl/ahn2/extract/ahn2_uitgefilterd/u37bn2.laz.zip
-  - https://www.dropbox.com/s/695nyjhsjl2acgm/top10.yml?dl=0
 
 
-Dependencies:
 
-  1. LIBLAS *with* LASzip support (`brew install liblas --with-laszip`)
-  2. GDAL (`brew install gdal`)
-  3. Boost (`brew install boost`)
-  4. yaml-cpp (`brew install yaml-cpp`)
-
-The plan is to:
-
-  - triangulate each polygon with [Shewchuk's Triangle](http://www.cs.cmu.edu/%7Equake/triangle.html) 
-  - use [ANN](http://www.cs.umd.edu/~mount/ANN/) to index *locally* the points when we're assigning a height to the ones on the boundary for instance.
 
   
