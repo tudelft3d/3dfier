@@ -460,7 +460,7 @@ void Map3d::stitch_lifted_features() {
         }
       }
       if (toprocess == true) {
-        this->build_nc(f, i, star);
+        this->process_star(f, i, star);
       }
     }
 
@@ -470,37 +470,91 @@ void Map3d::stitch_lifted_features() {
 }
 
 
-void Map3d::build_nc(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
+void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
   float fz = f->get_point_elevation(pos);
+//-- WATER  
   if (f->get_class() == WATER) {
     if (star.size() == 1) {
-      float deltaz = std::abs(fz - star[0].first->get_point_elevation(star[0].second));
-      std::clog << "deltaz=" << deltaz << std::endl;
-      if (deltaz < 0.2)
-        star[0].first->set_point_elevation(star[0].second, fz);
-      else{
-        std::clog << "nc added" << std::endl;
-        star[0].first->add_nc(star[0].second, fz);
-      }
+      if (star[0].first->get_class() == WATER)
+        stitch_average(f, pos, star[0].first, star[0].second);
+      else
+        stitch_comply(f, pos, star[0].first, star[0].second, 1.0);
     }
     else if (star.size() > 1) {
       std::clog << "star size: " << star.size() << std::endl;
+      //-- collect all elevations
+      std::vector<float> televs;
+      televs.assign(6, -999.0);
+      televs[f->get_class()] = fz;
       for (auto& fadj : star) {
-        std::clog << fadj.first->get_class() << " | " 
-        << fadj.first->get_point_elevation(fadj.second) << " | " 
-        << fz 
-        << std::endl;
-        if (fadj.first->get_class() == TERRAIN) {
-          float deltaz = std::abs(fz - fadj.first->get_point_elevation(fadj.second));
-          if (deltaz < 1.0)
-            fadj.first->set_point_elevation(fadj.second, fz);
-          else
-            fadj.first->add_nc(fadj.second, fz);
+        // std::clog << fadj.first->get_class() << " | " 
+        // << fadj.first->get_point_elevation(fadj.second) << " | " 
+        // << fz 
+        // << std::endl;
+        if (televs[fadj.first->get_class()] < -998)
+          televs[fadj.first->get_class()] = fadj.first->get_point_elevation(fadj.second);
+        else {
+          float tmp = (televs[fadj.first->get_class()] + fadj.first->get_point_elevation(fadj.second)) / 2;
+          televs[fadj.first->get_class()] = tmp;
         }
+        // if (fadj.first->get_class() == TERRAIN) {
+        //   float deltaz = std::abs(fz - fadj.first->get_point_elevation(fadj.second));
+        //   if (deltaz < 1.0)
+        //     fadj.first->set_point_elevation(fadj.second, fz);
+        //   else
+        //     fadj.first->add_nc(fadj.second, fz);
+        // }
+      }
+
+      process_nc(televs, 1.0);
+      
+      std::clog << "televs: ";
+      for (auto& e : televs) {
+        std::clog << "|" << e;
+      }
+      std::clog << std::endl;
+      
+      // //-- put all the features of same class at same height
+      // for (auto& fadj : star) {
+      //   fadj.first->set_point_elevation(fadj.second, televs[fadj.first->get_class()]);
+      // }
+
+      std::clog << televs[2] << std::endl;
+    }
+  }
+}
+
+
+void Map3d::process_nc(std::vector<float>& televs, float jumpedge) {
+  for (int i = 1; i <= 5; i++) {
+    for (int j = (i + 1); j <= 5; j++) {
+      if ( (televs[i] >= -998) && (televs[j] >= -998) && (std::abs(televs[i] - televs[j]) < jumpedge) ) {
+        televs[j] = televs[i];
       }
     }
   }
 }
+
+
+void Map3d::stitch_comply(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge) {
+  float hardz = hard->get_point_elevation(hardpos);
+  float deltaz = std::abs(hardz - soft->get_point_elevation(softpos));
+  std::clog << "deltaz=" << deltaz << std::endl;
+  if (deltaz < jumpedge) //-- TODO 1m jump-edge?
+    soft->set_point_elevation(softpos, hardz);
+  else {
+    std::clog << "nc added" << std::endl;
+    soft->add_nc(softpos, hardz);
+  }
+}
+
+void Map3d::stitch_average(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos) {
+  float hardz = hard->get_point_elevation(hardpos);
+  float softz = soft->get_point_elevation(softpos);
+  hard->set_point_elevation(hardpos, (hardz + softz) / 2);
+  soft->set_point_elevation(softpos, (hardz + softz) / 2);
+}
+
 
 
 // void Map3d::stitch_lifted_features() {

@@ -49,10 +49,10 @@ typedef enum
 {
    BUILDING             = 0,
    WATER                = 1,
-   TERRAIN              = 2,
+   BRIDGE               = 2,
    ROAD                 = 3,
-   VEGETATION           = 4,
-   BRIDGE               = 5,
+   TERRAIN              = 4,
+   VEGETATION           = 5,
 } TopoClass;
 
 
