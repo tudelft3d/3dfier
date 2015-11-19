@@ -402,20 +402,6 @@ void Map3d::stitch_road(TopoFeature* f, std::vector<PairIndexed> &re) {
 // }
 
 
-// void Map3d::stitch_lifted_features_2() {
-// /*
-//   WATER - TERRAIN
-//   WATER - ROAD
-// */
-
-//   for (auto& f : _lsFeatures) {
-//     if (f->get_class() == WATER) {
-//     std::vector<PairIndexed> re;
-//     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-//     for (auto& each : re) {
-//       TopoFeature* fadj = each.second;
-  
-// }
 
 void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
   std::vector<PairIndexed> re;
@@ -463,8 +449,6 @@ void Map3d::stitch_lifted_features() {
         this->process_star(f, i, star);
       }
     }
-
-    // break; //-- FIXME: only the first processed, 
   }
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
 }
@@ -472,54 +456,33 @@ void Map3d::stitch_lifted_features() {
 
 void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
   float fz = f->get_point_elevation(pos);
-//-- WATER  
-  if (f->get_class() == WATER) {
-    if (star.size() == 1) {
-      if (star[0].first->get_class() == WATER)
-        stitch_average(f, pos, star[0].first, star[0].second);
-      else
-        stitch_comply(f, pos, star[0].first, star[0].second, 1.0);
+  if (star.size() == 1) {
+    if (f->get_class() <= star[0].first->get_class())
+      stitch_average(f, pos, star[0].first, star[0].second);
+    else 
+      stitch_comply(star[0].first, star[0].second, f, pos, 1.0);
+  }
+  else if (star.size() > 1) {
+    //-- collect all elevations
+    std::vector<float> televs;
+    televs.assign(6, -999.0);
+    televs[f->get_class()] = fz;
+    for (auto& fadj : star) {
+      if (televs[fadj.first->get_class()] < -998)
+        televs[fadj.first->get_class()] = fadj.first->get_point_elevation(fadj.second);
+      else {
+        float tmp = (televs[fadj.first->get_class()] + fadj.first->get_point_elevation(fadj.second)) / 2;
+        televs[fadj.first->get_class()] = tmp;
+      }
     }
-    else if (star.size() > 1) {
-      std::clog << "star size: " << star.size() << std::endl;
-      //-- collect all elevations
-      std::vector<float> televs;
-      televs.assign(6, -999.0);
-      televs[f->get_class()] = fz;
-      for (auto& fadj : star) {
-        // std::clog << fadj.first->get_class() << " | " 
-        // << fadj.first->get_point_elevation(fadj.second) << " | " 
-        // << fz 
-        // << std::endl;
-        if (televs[fadj.first->get_class()] < -998)
-          televs[fadj.first->get_class()] = fadj.first->get_point_elevation(fadj.second);
-        else {
-          float tmp = (televs[fadj.first->get_class()] + fadj.first->get_point_elevation(fadj.second)) / 2;
-          televs[fadj.first->get_class()] = tmp;
-        }
-        // if (fadj.first->get_class() == TERRAIN) {
-        //   float deltaz = std::abs(fz - fadj.first->get_point_elevation(fadj.second));
-        //   if (deltaz < 1.0)
-        //     fadj.first->set_point_elevation(fadj.second, fz);
-        //   else
-        //     fadj.first->add_nc(fadj.second, fz);
-        // }
+    process_nc(televs, 1.0);
+    f->set_point_elevation(pos, televs[f->get_class()]);
+    for (auto& fadj : star) {
+      fadj.first->set_point_elevation(fadj.second, televs[fadj.first->get_class()]);
+      for (int i = 0; i <= 5; i++) {
+        if ( (televs[i] > -998) && (i != fadj.first->get_class()) )
+          fadj.first->add_nc(fadj.second, televs[i]);
       }
-
-      process_nc(televs, 1.0);
-      
-      std::clog << "televs: ";
-      for (auto& e : televs) {
-        std::clog << "|" << e;
-      }
-      std::clog << std::endl;
-      
-      // //-- put all the features of same class at same height
-      // for (auto& fadj : star) {
-      //   fadj.first->set_point_elevation(fadj.second, televs[fadj.first->get_class()]);
-      // }
-
-      std::clog << televs[2] << std::endl;
     }
   }
 }
@@ -557,48 +520,6 @@ void Map3d::stitch_average(TopoFeature* hard, int hardpos, TopoFeature* soft, in
 
 
 
-// void Map3d::stitch_lifted_features() {
-//   std::clog << "===== STITCH POLYGONS =====" << std::endl;
-//   for (auto& f : _lsFeatures) {
-//     std::vector<PairIndexed> re;
-//     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-//     for (auto& each : re) {
-//       TopoFeature* fadj = each.second;
-//       if ( (f->get_class() == WATER) && (fadj->get_class() == TERRAIN) ) {
-//         if ( (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) ) {
-//           int ia, ib;
-//           Ring2 oring = bg::exterior_ring(*(f->get_Polygon2()));
-//           for (int i = 0; i < (oring.size() - 1); i++) {
-//             if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
-//               float z = f->get_point_elevation(f->has_point2(oring[i]));
-//               fadj->set_point_elevation(ia, z);
-//               fadj->set_point_elevation(ib, z);  
-//             }
-//           }
-//           if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
-//             float z = f->get_point_elevation(f->has_point2(oring.front()));
-//             fadj->set_point_elevation(ia, z);
-//             fadj->set_point_elevation(ib, z);  
-//           }
-//         }
-//       }
-//     }
-//   }
-//   std::clog << "===== STITCH POLYGONS =====" << std::endl;
-// }
-
-// void Map3d::stitch_lifted_features() {
-//   std::clog << "===== STITCH POLYGONS =====" << std::endl;
-//   for (auto& f : _lsFeatures) {
-//     std::vector<PairIndexed> re;
-//     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-//     if (f->get_class() == WATER) 
-//       this->stitch_water(f, re);
-//     if (f->get_class() == ROAD) 
-//       this->stitch_road(f, re);
-//   }
-//   std::clog << "===== STITCH POLYGONS =====" << std::endl;
-// }
 // for (Ring2& iring: bg::interior_rings(*pgn)) {
 //   for (int i = 0; i < (iring.size() - 1); i++) {
 //     if (polygon2_find_segment(fadj->get_Polygon2(), iring[i], iring[i + 1]) == true)
