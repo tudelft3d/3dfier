@@ -37,6 +37,12 @@ bool Terrain::lift() {
 }
 
 bool Terrain::buildCDT() {
+// std::vector< std::vector<float> > _nc;
+  for (auto& each : _nc) {
+    if (each.empty() == false)
+      std::clog << "--not empty nc--" << each.size() << std::endl;
+  }
+
   getCDT(&_p3, _vertices, _triangles, _segments, _lidarpts);
   return true;
 }

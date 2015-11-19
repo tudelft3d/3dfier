@@ -472,13 +472,16 @@ void Map3d::stitch_lifted_features() {
 
 void Map3d::build_nc(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
   float fz = f->get_point_elevation(pos);
-  if (f->get_class() == TERRAIN) {
+  if (f->get_class() == WATER) {
     if (star.size() == 1) {
       float deltaz = std::abs(fz - star[0].first->get_point_elevation(star[0].second));
-      if (deltaz < 1.0)
+      std::clog << "deltaz=" << deltaz << std::endl;
+      if (deltaz < 0.2)
         star[0].first->set_point_elevation(star[0].second, fz);
-      else
+      else{
+        std::clog << "nc added" << std::endl;
         star[0].first->add_nc(star[0].second, fz);
+      }
     }
     else if (star.size() > 1) {
       std::clog << "star size: " << star.size() << std::endl;
