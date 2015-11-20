@@ -120,8 +120,10 @@ Point2& TopoFeature::get_previous_point2(int i, int& index) {
 
 
 void TopoFeature::add_nc(int i, float z) {
+
   _nc[i].push_back(z);
 }
+
 
 std::vector<float>& TopoFeature::get_nc(int i) {
   return _nc[i];

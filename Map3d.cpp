@@ -414,6 +414,7 @@ void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
   }
 }
 
+
 void Map3d::stitch_lifted_features() {
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
   for (auto& f : _lsFeatures) {
