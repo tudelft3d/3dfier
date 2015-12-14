@@ -53,6 +53,6 @@ link_directories(${yaml-cpp_LIBRARY_DIRS})
 
 # Creating entries for target: 3dfier
 
-add_executable( 3dfier input.cpp main.cpp Polygon3d.cpp Map3d.cpp)
-target_link_libraries( 3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${yaml-cpp_LIBRARIES} )
+add_executable( 3dfier main.cpp io.cpp Map3d.cpp Building.cpp Road.cpp Terrain.cpp TopoFeature.cpp Vegetation.cpp Water.cpp geomtools.cpp)
+target_link_libraries( 3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${yaml-cpp_LIBRARIES} /usr/local/Cellar/triangle/1.6/lib/libtriangle.a )
 
