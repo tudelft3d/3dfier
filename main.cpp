@@ -139,10 +139,17 @@ int main(int argc, const char * argv[]) {
     }
   }
 
-  map3d.threeDfy();
+
+  n = nodes["output"];
+  std::clog << "Lifting all input polygons to 3D..." << std::endl;
+  if (n["format"].as<std::string>() == "CSV-BUILDINGS")
+    map3d.threeDfy(false);
+  else
+    map3d.threeDfy();
+  std::clog << "done." << std::endl;
+  
   
   //-- output
-  n = nodes["output"];
   if (n["building_floor"].as<std::string>() == "true") 
     map3d.set_building_include_floor(true);
   if (n["format"].as<std::string>() == "CityGML") {
@@ -157,7 +164,12 @@ int main(int argc, const char * argv[]) {
     std::clog << "CSV output (only of the buildings)" << std::endl;
     std::cout << map3d.get_csv_buildings() << std::endl;
   }
+  else {
+    std::cerr << "Error: Output format not recognised. Outputting OBJ." << std::endl;
+    std::cout << map3d.get_obj() << std::endl;
+  }
 
+  //-- bye-bye
   std::clog << "Successfully terminated." << std::endl;
   return 1;
 }

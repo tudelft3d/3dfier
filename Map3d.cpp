@@ -33,7 +33,7 @@ Map3d::Map3d() {
   _terrain_simplification = 0;
   _vegetation_simplification = 0;
   // _water_ = 0;
-  _radius_vertex_elevation = 2.0;
+  _radius_vertex_elevation = 1.0;
 }
 
 
@@ -164,7 +164,7 @@ TopoFeature* Map3d::add_elevation_point(double x, double y, double z, TopoFeatur
 }
 
 
-bool Map3d::threeDfy() {
+bool Map3d::threeDfy(bool triangulate) {
 /*
   1. lift
   2. stitch
@@ -172,9 +172,11 @@ bool Map3d::threeDfy() {
 */
   for (auto& p : _lsFeatures)
     p->lift();
-  // this->stitch_lifted_features();
-  for (auto& p : _lsFeatures)
-    p->buildCDT();
+  if (triangulate == true) {
+    // this->stitch_lifted_features();
+    for (auto& p : _lsFeatures)
+      p->buildCDT();
+  }
   return true;
 }
 
