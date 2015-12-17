@@ -80,6 +80,8 @@ private:
   std::string _water_heightref;
   std::string _road_heightref;
   float       _radius_vertex_elevation;
+  double      _minx;
+  double      _miny;
 
   std::vector<TopoFeature*>   _lsFeatures;
   std::vector<std::string>    _allowed_layers;

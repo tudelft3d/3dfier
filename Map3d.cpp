@@ -34,6 +34,8 @@ Map3d::Map3d() {
   _vegetation_simplification = 0;
   // _water_ = 0;
   _radius_vertex_elevation = 1.0;
+  _minx = 1e8;
+  _miny = 1e8;
 }
 
 
@@ -170,12 +172,16 @@ bool Map3d::threeDfy(bool triangulate) {
   2. stitch
   3. CDT
 */
+  std::clog << "MinX: " << _minx << std::endl;
+  std::clog << "MinY: " << _miny << std::endl;
   for (auto& p : _lsFeatures)
     p->lift();
   if (triangulate == true) {
     // this->stitch_lifted_features();
-    for (auto& p : _lsFeatures)
+    for (auto& p : _lsFeatures) {
+      std::clog << p->get_id() << std::endl;
       p->buildCDT();
+    }
   }
   return true;
 }
@@ -218,6 +224,20 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
     layers.push_back(p);
   }
   bool wentgood = this->extract_and_add_polygon(dataSource, idfield, layers);
+  //-- find minx/miny of all datasets
+  // TODO : also find minx/miny for the method above with GML
+  OGREnvelope bbox;
+  for (auto l : layers) {
+    OGRLayer *dataLayer = dataSource->GetLayerByName((l.first).c_str());
+    if (dataLayer == NULL) {
+      continue;
+    }
+    dataLayer->GetExtent(&bbox);
+    if (bbox.MinX < _minx)
+      _minx = bbox.MinX;
+    if (bbox.MinY < _miny)
+      _miny = bbox.MinY;
+  }
   OGRDataSource::DestroyDataSource(dataSource);
   return wentgood;
 }
