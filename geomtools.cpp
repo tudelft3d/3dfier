@@ -74,6 +74,7 @@ bool getCDT(const Polygon3* pgn,
     in.pointlist[counter++]  = bg::get<0>(oring[i]);
     in.pointlist[counter++]  = bg::get<1>(oring[i]);
     in.pointattributelist[i] = bg::get<2>(oring[i]);
+    std::cout << std::setprecision(3) << std::fixed << bg::get<0>(oring[i]) << " | " << bg::get<1>(oring[i]) << " | " << bg::get<2>(oring[i]) << std::endl;
   }
   //-- irings
   if (irings.size() == 0) {
