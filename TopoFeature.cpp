@@ -64,7 +64,7 @@ Polygon2* TopoFeature::get_Polygon2() {
 std::string TopoFeature::get_obj_v() {
   std::stringstream ss;
   for (auto& v : _vertices)
-    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
   return ss.str();
 }
 
@@ -242,9 +242,9 @@ int Block::get_number_vertices() {
 std::string Block::get_obj_v() {
   std::stringstream ss;
   for (auto& v : _vertices)
-    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_height_top() << std::endl;
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_height_top() << std::endl;
   for (auto& v : _vertices)
-    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_height_base() << std::endl;
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_height_base() << std::endl;
   return ss.str();
 }
 

@@ -58,10 +58,6 @@ bool getCDT(const Polygon3* pgn,
   Ring3 oring = bg::exterior_ring(*pgn);
   auto irings = bg::interior_rings(*pgn);
   
-  if (irings.size() > 0)
-    std::clog << "--iring(s)--" << std::endl;
-//    return false;
-  
   struct triangulateio in, out;
   in.numberofpointattributes = 1;
   in.numberofpoints = int(bg::num_points(*pgn));
@@ -74,7 +70,7 @@ bool getCDT(const Polygon3* pgn,
     in.pointlist[counter++]  = bg::get<0>(oring[i]);
     in.pointlist[counter++]  = bg::get<1>(oring[i]);
     in.pointattributelist[i] = bg::get<2>(oring[i]);
-    std::cout << std::setprecision(3) << std::fixed << bg::get<0>(oring[i]) << " | " << bg::get<1>(oring[i]) << " | " << bg::get<2>(oring[i]) << std::endl;
+    // std::cout << std::setprecision(3) << std::fixed << bg::get<0>(oring[i]) << " | " << bg::get<1>(oring[i]) << " | " << bg::get<2>(oring[i]) << std::endl;
   }
   //-- irings
   if (irings.size() == 0) {

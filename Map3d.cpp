@@ -271,13 +271,6 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
           char *wkt;
           f->GetGeometryRef()->flattenTo2D();
           f->GetGeometryRef()->exportToWkt(&wkt);
-          
-          // bg::read_wkt(output_wkt, *p2);
-          
-          // std::cout << output_wkt << std::endl;
-          // Ring2 ttt = bg::exterior_ring(*p2);
-          // std::cout << std::setprecision(4) << std::fixed << bg::get<0>(ttt[0]) << std::endl;
-          // std::cout << std::setprecision(4) << std::fixed << bg::get<1>(ttt[0]) << std::endl;
 
           bg::unique(*p2); //-- remove duplicate vertices
           if (l.second == "Building") {
