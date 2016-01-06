@@ -88,7 +88,7 @@ bool getCDT(const Polygon3* pgn,
       }
       Point2 pinside;
       get_point_inside(iring, pinside);
-      std::clog << "pinside: " << bg::wkt(pinside) << std::endl;
+      // std::clog << "pinside: " << bg::wkt(pinside) << std::endl;
       in.holelist[holecount++] = bg::get<0>(pinside);
       in.holelist[holecount++] = bg::get<1>(pinside);
 //      in.pointattibutelist[(counter / 2) - 1] = 0.0;

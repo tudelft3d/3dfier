@@ -172,14 +172,14 @@ bool Map3d::threeDfy(bool triangulate) {
   2. stitch
   3. CDT
 */
-  std::clog << "MinX: " << _minx << std::endl;
-  std::clog << "MinY: " << _miny << std::endl;
+  // std::clog << "MinX: " << _minx << std::endl;
+  // std::clog << "MinY: " << _miny << std::endl;
   for (auto& p : _lsFeatures)
     p->lift();
   if (triangulate == true) {
     // this->stitch_lifted_features();
     for (auto& p : _lsFeatures) {
-      std::clog << p->get_id() << std::endl;
+      // std::clog << p->get_id() << std::endl;
       p->buildCDT();
     }
   }
