@@ -28,7 +28,7 @@
 class Terrain : public TIN
 {
 public:
-  Terrain (Polygon2* p, std::string pid, int simplification);
+  Terrain (char *wkt, std::string pid, int simplification);
   bool        lift();
   bool        buildCDT();
   std::string get_citygml();

@@ -30,7 +30,7 @@
 class Water : public Boundary3D
 {
 public:
-  Water (Polygon2* p, std::string pid, std::string heightref);
+  Water (char *wkt, std::string pid, std::string heightref);
   bool          lift();
   bool          buildCDT();
   std::string   get_citygml();

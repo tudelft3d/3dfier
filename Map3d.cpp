@@ -268,35 +268,36 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
         case wkbPolygon25D: {
           Polygon2* p2 = new Polygon2();
           // TODO : WKT surely not best/fastest way, to change. Or is it?
-          char *output_wkt;
+          char *wkt;
           f->GetGeometryRef()->flattenTo2D();
-          f->GetGeometryRef()->exportToWkt(&output_wkt);
-          bg::read_wkt(output_wkt, *p2);
+          f->GetGeometryRef()->exportToWkt(&wkt);
           
-          std::cout << output_wkt << std::endl;
-          Ring2 ttt = bg::exterior_ring(*p2);
-          std::cout << std::setprecision(4) << std::fixed << bg::get<0>(ttt[0]) << std::endl;
-          std::cout << std::setprecision(4) << std::fixed << bg::get<1>(ttt[0]) << std::endl;
+          // bg::read_wkt(output_wkt, *p2);
+          
+          // std::cout << output_wkt << std::endl;
+          // Ring2 ttt = bg::exterior_ring(*p2);
+          // std::cout << std::setprecision(4) << std::fixed << bg::get<0>(ttt[0]) << std::endl;
+          // std::cout << std::setprecision(4) << std::fixed << bg::get<1>(ttt[0]) << std::endl;
 
           bg::unique(*p2); //-- remove duplicate vertices
           if (l.second == "Building") {
-            Building* p3 = new Building(p2, f->GetFieldAsString(idfield.c_str()), _building_heightref_roof, _building_heightref_floor);
+            Building* p3 = new Building(wkt, f->GetFieldAsString(idfield.c_str()), _building_heightref_roof, _building_heightref_floor);
             _lsFeatures.push_back(p3);
           }
           else if (l.second == "Terrain") {
-            Terrain* p3 = new Terrain(p2, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
+            Terrain* p3 = new Terrain(wkt, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
             _lsFeatures.push_back(p3);
           }
           else if (l.second == "Vegetation") {
-            Vegetation* p3 = new Vegetation(p2, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
+            Vegetation* p3 = new Vegetation(wkt, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
             _lsFeatures.push_back(p3);
           }
           else if (l.second == "Water") {
-            Water* p3 = new Water(p2, f->GetFieldAsString(idfield.c_str()), this->_water_heightref);
+            Water* p3 = new Water(wkt, f->GetFieldAsString(idfield.c_str()), this->_water_heightref);
             _lsFeatures.push_back(p3);
           }
           else if (l.second == "Road") {
-            Road* p3 = new Road(p2, f->GetFieldAsString(idfield.c_str()), this->_road_heightref);
+            Road* p3 = new Road(wkt, f->GetFieldAsString(idfield.c_str()), this->_road_heightref);
             _lsFeatures.push_back(p3);
           }          
           break;

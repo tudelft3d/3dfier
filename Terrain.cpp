@@ -23,7 +23,7 @@
 #include "Terrain.h"
 
 
-Terrain::Terrain (Polygon2* p, std::string pid, int simplification) : TIN(p, pid, simplification)
+Terrain::Terrain (char *wkt, std::string pid, int simplification) : TIN(wkt, pid, simplification)
 {}
 
 std::string Terrain::get_obj_f(int offset) {

@@ -33,7 +33,7 @@
 class TopoFeature
 {
 public:
-  TopoFeature  (Polygon2* p, std::string pid);
+  TopoFeature  (char *wkt, std::string pid);
   ~TopoFeature ();
 
   virtual bool          lift() = 0;
@@ -76,7 +76,7 @@ protected:
 class Block : public TopoFeature 
 {
 public:
-  Block           (Polygon2* p, std::string pid, std::string heightref_top, std::string heightref_base); 
+  Block           (char *wkt, std::string pid, std::string heightref_top, std::string heightref_base); 
   virtual bool    lift() = 0;
   bool            add_elevation_point(double x, double y, double z, float radius);
   virtual std::string   get_citygml() = 0;
@@ -103,7 +103,7 @@ protected:
 class Boundary3D : public TopoFeature
 {
 public:
-  Boundary3D    (Polygon2* p, std::string pid);
+  Boundary3D    (char *wkt, std::string pid);
   virtual bool  lift() = 0;
   virtual bool  buildCDT() = 0;
   virtual std::string   get_citygml() = 0;
@@ -122,7 +122,7 @@ protected:
 class TIN : public TopoFeature
 {
 public:
-  TIN             (Polygon2* p, std::string pid, int simplification = 0);
+  TIN             (char *wkt, std::string pid, int simplification = 0);
   virtual bool    lift() = 0;
   virtual bool    buildCDT() = 0;
   virtual std::string   get_citygml() = 0;
