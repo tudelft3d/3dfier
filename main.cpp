@@ -33,7 +33,7 @@
 #include "Map3d.h"
 #include "yaml-cpp/yaml.h"
 
-bool validate_yaml(YAML::Node& nodes, std::set<std::string>& allowedFeatures); 
+bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 
 
 
@@ -44,7 +44,7 @@ int main(int argc, const char * argv[]) {
     std::cerr << "ERROR: the config file (*.yml) is not defined." << std::endl;
     return 0;
   }
-  std::clog << "Reading config file: " << argv[1] << std::endl;
+  std::clog << "Reading and validating config file: " << argv[1] << std::endl;
 
 //-- allowed feature classes
   std::set<std::string> allowedFeatures;
@@ -55,20 +55,23 @@ int main(int argc, const char * argv[]) {
   allowedFeatures.insert("Vegetation");
   allowedFeatures.insert("Bridge/Overpass");
 
+  std::cout << "start" << std::endl;
+//-- validate the YAML file right now, nicer for the user
+ if (validate_yaml(argv[1], allowedFeatures) == false) {
+   std::cerr << "ERROR: config file (*.yml) is not valid. Aborting." << std::endl;
+   return 0;
+ }
+  std::cout << "end" << std::endl;
   
   Map3d map3d;
   YAML::Node nodes = YAML::LoadFile(argv[1]);
-
-//-- validate the YAML file right now, nicer for the user
-  validate_yaml(nodes, allowedFeatures);
-  
 //-- store the lifting options in the Map3d
   YAML::Node n = nodes["lifting_options"];
   if (n["Building"]) {
     if (n["Building"]["height_roof"])
       map3d.set_building_heightref_roof(n["Building"]["height_roof"].as<std::string>());
-    if (n["Building"]["height_floor"])
-      map3d.set_building_heightref_floor(n["Building"]["height_floor"].as<std::string>());
+    if (n["Building"]["height_ground"])
+      map3d.set_building_heightref_floor(n["Building"]["height_ground"].as<std::string>());
     if (n["Building"]["triangulate"]) {
       if (n["Building"]["triangulate"].as<std::string>() == "true") 
         map3d.set_building_triangulate(true);
@@ -91,6 +94,7 @@ int main(int argc, const char * argv[]) {
 
 //-- add the polygons to the map3d
   n = nodes["input_polygons"];
+  std::cout << n.Type() << std::endl;
   bool wentgood = true;
   for (auto it = n.begin(); it != n.end(); ++it) {
     if ((*it)["lifting_per_layer"]) {
@@ -110,15 +114,9 @@ int main(int argc, const char * argv[]) {
     else if ((*it)["lifting"]) {
       YAML::Node tmp = (*it)["datasets"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-        if (allowedFeatures.count((*it)["lifting"].as<std::string>()) == 1) {
-          wentgood = map3d.add_polygons_file(it2->as<std::string>(),
-                                             (*it)["uniqueid"].as<std::string>(),
-                                             (*it)["lifting"].as<std::string>());
-        }
-        else {
-          std::clog << "ERROR: class '" << (*it)["lifting"].as<std::string>() << "' not recognised." << std::endl;
-          wentgood = false;
-        }
+        wentgood = map3d.add_polygons_file(it2->as<std::string>(),
+                                           (*it)["uniqueid"].as<std::string>(),
+                                           (*it)["lifting"].as<std::string>());
       }
     }
   }
@@ -187,40 +185,94 @@ int main(int argc, const char * argv[]) {
 }
 
 
-bool validate_yaml(YAML::Node& nodes, std::set<std::string>& allowedFeatures) {
+bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
+  YAML::Node nodes = YAML::LoadFile(arg);
+  bool wentgood = true;
+//-- 1. input polygons classes
   YAML::Node n = nodes["input_polygons"];
   for (auto it = n.begin(); it != n.end(); ++it) {
     if ((*it)["lifting_per_layer"]) {
       YAML::Node tmp = (*it)["lifting_per_layer"];
-      std::vector<std::pair<std::string, std::string> > layers;
-      // for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-      //   std::pair<std::string, std::string> onepair( (it2->first).as<std::string>(), (it2->second).as<std::string>() );
-      //   layers.push_back(onepair);
-      // }
-      // tmp = (*it)["datasets"];
-      // for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-      //   wentgood = map3d.add_polygons_file(it2->as<std::string>(),
-      //                                      (*it)["uniqueid"].as<std::string>(),
-      //                                      layers);
-      // }
+      // std::vector<std::pair<std::string, std::string> > layers;
+      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+        if (allowedFeatures.count((it2->second).as<std::string>()) == 0) {
+          std::cerr << "\tLifting class '" << (it2->second).as<std::string>() << "' unknown." << std::endl;
+          wentgood = false;
+        }
+      }
     }
     else if ((*it)["lifting"]) {
       YAML::Node tmp = (*it)["datasets"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-        if (allowedFeatures.count((*it)["lifting"].as<std::string>()) == 1) {
-          std::cout << "allowed" << std::endl;
-          // wentgood = map3d.add_polygons_file(it2->as<std::string>(),
-                                             // (*it)["uniqueid"].as<std::string>(),
-                                             // (*it)["lifting"].as<std::string>());
-        }
-        else {
-          std::clog << "ERROR: class '" << (*it)["lifting"].as<std::string>() << "' not recognised." << std::endl;
-          // wentgood = false;
+        if (allowedFeatures.count((*it)["lifting"].as<std::string>()) == 0) {
+          std::cerr << "\tLifting class '" << (*it)["lifting"].as<std::string>() << "' unknown." << std::endl;
+          wentgood = false;
         }
       }
     }
   }  
-  return true;
+ //-- 2. lifting_options
+  n = nodes["lifting_options"];
+  if (n["Building"]) {
+    if (n["Building"]["height_roof"]) {
+      std::string s = n["Building"]["height_roof"].as<std::string>();
+      if ( (s.substr(0, s.find_first_of("-")) != "percentile") ||
+           ( std::stoi(s.substr(s.find_first_of("-") + 1)) <= 0) ||
+           ( std::stoi(s.substr(s.find_first_of("-") + 1)) >= 100) ) {
+        wentgood = false;
+        std::cerr << "\tOption 'Building.height_roof' invalid; must be 'percentile-XX'." << std::endl;
+      }
+    }
+    if (n["Building"]["height_ground"]) {
+      std::string s = n["Building"]["height_ground"].as<std::string>();
+      if ( (s.substr(0, s.find_first_of("-")) != "percentile") ||
+           (std::stoi(s.substr(s.find_first_of("-") + 1)) <= 0) ||
+           (std::stoi(s.substr(s.find_first_of("-") + 1)) >= 100) ) {
+        wentgood = false;
+        std::cerr << "\tOption 'Building.height_ground' invalid; must be 'percentile-XX'." << std::endl;
+      }
+    }
+    if (n["Building"]["triangulate"]) {
+      std::string s = n["Building"]["triangulate"].as<std::string>();
+      if ( (s != "true") && (s != "false") ) {
+        wentgood = false;
+        std::cerr << "\tOption 'Building.triangulate' invalid; must be 'true' or 'false'." << std::endl;
+      }
+    }
+  }
+  if (n["Water"]) {
+    if (n["Water"]["height"]) {
+      std::string s = n["Water"]["height"].as<std::string>();
+      if ( (s.substr(0, s.find_first_of("-")) != "percentile") ||
+          (std::stoi(s.substr(s.find_first_of("-") + 1)) <= 0) ||
+          (std::stoi(s.substr(s.find_first_of("-") + 1)) >= 100) ) {
+        wentgood = false;
+        std::cerr << "\tOption 'Water.height' invalid; must be 'percentile-XX'." << std::endl;
+      }
+    }
+  }
+  if (n["Road"]) {
+    if (n["Road"]["height"]) {
+      std::string s = n["Road"]["height"].as<std::string>();
+      if ( (s.substr(0, s.find_first_of("-")) != "percentile") ||
+          (std::stoi(s.substr(s.find_first_of("-") + 1)) <= 0) ||
+          (std::stoi(s.substr(s.find_first_of("-") + 1)) >= 100) ) {
+        wentgood = false;
+        std::cerr << "\tOption 'Road.height' invalid; must be 'percentile-XX'." << std::endl;
+      }
+    }
+  }
+  if (n["Terrain"]) {
+    if (n["Terrain"]["simplification"]) {
+      std::string s = n["Terrain"]["simplification"].as<std::string>();
+      if (std::stoi(s) <= 0)  {
+        wentgood = false;
+        std::cerr << "\tOption 'Terrain.simplification' invalid; must be an integer." << std::endl;
+      }
+    }
+  }
+
+  return wentgood;
 }
 
 
