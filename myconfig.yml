@@ -8,7 +8,7 @@ input_polygons:
       - /Users/elvis/data/campus/another.gml
       - /Users/elvis/data/campus/another2.gml
     uniqueid: fid
-    layers:
+    lifting_per_layer:
       Gebouw: Building
       Terrein: Terrain
       Waterdeel: Water

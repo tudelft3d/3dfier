@@ -33,6 +33,9 @@
 #include "Map3d.h"
 #include "yaml-cpp/yaml.h"
 
+bool validate_yaml(YAML::Node& nodes, std::set<std::string>& allowedFeatures); 
+
+
 
 int main(int argc, const char * argv[]) {
   
@@ -55,6 +58,9 @@ int main(int argc, const char * argv[]) {
   
   Map3d map3d;
   YAML::Node nodes = YAML::LoadFile(argv[1]);
+
+//-- validate the YAML file right now, nicer for the user
+  validate_yaml(nodes, allowedFeatures);
   
 //-- store the lifting options in the Map3d
   YAML::Node n = nodes["lifting_options"];
@@ -87,8 +93,8 @@ int main(int argc, const char * argv[]) {
   n = nodes["input_polygons"];
   bool wentgood = true;
   for (auto it = n.begin(); it != n.end(); ++it) {
-    if ((*it)["layers"]) {
-      YAML::Node tmp = (*it)["layers"];
+    if ((*it)["lifting_per_layer"]) {
+      YAML::Node tmp = (*it)["lifting_per_layer"];
       std::vector<std::pair<std::string, std::string> > layers;
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
         std::pair<std::string, std::string> onepair( (it2->first).as<std::string>(), (it2->second).as<std::string>() );
@@ -117,7 +123,7 @@ int main(int argc, const char * argv[]) {
     }
   }
   if (wentgood == false) {
-    std::cerr << "Something went bad while reading input polygons. Abort." << std::endl;
+    std::cerr << "ERROR: Something went bad while reading input polygons. Aborting." << std::endl;
     return 0;
   }
 
@@ -128,6 +134,7 @@ int main(int argc, const char * argv[]) {
 
   //-- add elevation datasets
   n = nodes["input_elevation"];
+  bool bElevData = false;
   for (auto it = n.begin(); it != n.end(); ++it) {
     YAML::Node tmp = (*it)["omit_LAS_classes"];
     std::vector<int> lasomits;
@@ -135,10 +142,15 @@ int main(int argc, const char * argv[]) {
       lasomits.push_back(it2->as<int>());
     tmp = (*it)["datasets"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+      bElevData = true;
       map3d.add_las_file(it2->as<std::string>(), lasomits, (*it)["thinning"].as<int>());
     }
   }
 
+  if (bElevData == false) {
+    std::cerr << "ERROR: No elevation dataset given, cannot 3dfy the dataset. Aborting." << std::endl;
+    return 0;
+  }
 
   n = nodes["output"];
   std::clog << "Lifting all input polygons to 3D..." << std::endl;
@@ -165,13 +177,50 @@ int main(int argc, const char * argv[]) {
     std::cout << map3d.get_csv_buildings() << std::endl;
   }
   else {
-    std::cerr << "Error: Output format not recognised. Outputting OBJ." << std::endl;
+    std::cerr << "ERROR: Output format " << n["format"].as<std::string>() << " not recognised. Outputting OBJ." << std::endl;
     std::cout << map3d.get_obj() << std::endl;
   }
 
   //-- bye-bye
   std::clog << "Successfully terminated." << std::endl;
   return 1;
+}
+
+
+bool validate_yaml(YAML::Node& nodes, std::set<std::string>& allowedFeatures) {
+  YAML::Node n = nodes["input_polygons"];
+  for (auto it = n.begin(); it != n.end(); ++it) {
+    if ((*it)["lifting_per_layer"]) {
+      YAML::Node tmp = (*it)["lifting_per_layer"];
+      std::vector<std::pair<std::string, std::string> > layers;
+      // for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+      //   std::pair<std::string, std::string> onepair( (it2->first).as<std::string>(), (it2->second).as<std::string>() );
+      //   layers.push_back(onepair);
+      // }
+      // tmp = (*it)["datasets"];
+      // for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+      //   wentgood = map3d.add_polygons_file(it2->as<std::string>(),
+      //                                      (*it)["uniqueid"].as<std::string>(),
+      //                                      layers);
+      // }
+    }
+    else if ((*it)["lifting"]) {
+      YAML::Node tmp = (*it)["datasets"];
+      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+        if (allowedFeatures.count((*it)["lifting"].as<std::string>()) == 1) {
+          std::cout << "allowed" << std::endl;
+          // wentgood = map3d.add_polygons_file(it2->as<std::string>(),
+                                             // (*it)["uniqueid"].as<std::string>(),
+                                             // (*it)["lifting"].as<std::string>());
+        }
+        else {
+          std::clog << "ERROR: class '" << (*it)["lifting"].as<std::string>() << "' not recognised." << std::endl;
+          // wentgood = false;
+        }
+      }
+    }
+  }  
+  return true;
 }
 
 
