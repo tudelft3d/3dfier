@@ -55,13 +55,11 @@ int main(int argc, const char * argv[]) {
   allowedFeatures.insert("Vegetation");
   allowedFeatures.insert("Bridge/Overpass");
 
-  std::cout << "start" << std::endl;
 //-- validate the YAML file right now, nicer for the user
  if (validate_yaml(argv[1], allowedFeatures) == false) {
    std::cerr << "ERROR: config file (*.yml) is not valid. Aborting." << std::endl;
    return 0;
  }
-  std::cout << "end" << std::endl;
   
   Map3d map3d;
   YAML::Node nodes = YAML::LoadFile(argv[1]);
@@ -302,8 +300,8 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
   }
 //-- 5. output
   n = nodes["output"];
-  if ( (n["format"].as<std::string>() != "OBJ") ||
-       (n["format"].as<std::string>() != "CityGML") ||
+  if ( (n["format"].as<std::string>() != "OBJ") &&
+       (n["format"].as<std::string>() != "CityGML") &&
        (n["format"].as<std::string>() != "CSV-BUILDINGS") ) {
     wentgood = false;
     std::cerr << "\tOption 'output.format' invalid (OBJ | CityGML | CSV-BUILDINGS)" << std::endl;
