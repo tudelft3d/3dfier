@@ -34,6 +34,8 @@ Map3d::Map3d() {
   _vegetation_simplification = 0;
   // _water_ = 0;
   _radius_vertex_elevation = 1.0;
+  _minx = 1e8;
+  _miny = 1e8;
 }
 
 
@@ -170,12 +172,16 @@ bool Map3d::threeDfy(bool triangulate) {
   2. stitch
   3. CDT
 */
+  // std::clog << "MinX: " << _minx << std::endl;
+  // std::clog << "MinY: " << _miny << std::endl;
   for (auto& p : _lsFeatures)
     p->lift();
   if (triangulate == true) {
     // this->stitch_lifted_features();
-    for (auto& p : _lsFeatures)
+    for (auto& p : _lsFeatures) {
+      // std::clog << p->get_id() << std::endl;
       p->buildCDT();
+    }
   }
   return true;
 }
@@ -218,6 +224,20 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
     layers.push_back(p);
   }
   bool wentgood = this->extract_and_add_polygon(dataSource, idfield, layers);
+  //-- find minx/miny of all datasets
+  // TODO : also find minx/miny for the method above with GML
+  OGREnvelope bbox;
+  for (auto l : layers) {
+    OGRLayer *dataLayer = dataSource->GetLayerByName((l.first).c_str());
+    if (dataLayer == NULL) {
+      continue;
+    }
+    dataLayer->GetExtent(&bbox);
+    if (bbox.MinX < _minx)
+      _minx = bbox.MinX;
+    if (bbox.MinY < _miny)
+      _miny = bbox.MinY;
+  }
   OGRDataSource::DestroyDataSource(dataSource);
   return wentgood;
 }
@@ -248,29 +268,29 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
         case wkbPolygon25D: {
           Polygon2* p2 = new Polygon2();
           // TODO : WKT surely not best/fastest way, to change. Or is it?
-          char *output_wkt;
+          char *wkt;
           f->GetGeometryRef()->flattenTo2D();
-          f->GetGeometryRef()->exportToWkt(&output_wkt);
-          bg::read_wkt(output_wkt, *p2);
+          f->GetGeometryRef()->exportToWkt(&wkt);
+
           bg::unique(*p2); //-- remove duplicate vertices
           if (l.second == "Building") {
-            Building* p3 = new Building(p2, f->GetFieldAsString(idfield.c_str()), _building_heightref_roof, _building_heightref_floor);
+            Building* p3 = new Building(wkt, f->GetFieldAsString(idfield.c_str()), _building_heightref_roof, _building_heightref_floor);
             _lsFeatures.push_back(p3);
           }
           else if (l.second == "Terrain") {
-            Terrain* p3 = new Terrain(p2, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
+            Terrain* p3 = new Terrain(wkt, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
             _lsFeatures.push_back(p3);
           }
           else if (l.second == "Vegetation") {
-            Vegetation* p3 = new Vegetation(p2, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
+            Vegetation* p3 = new Vegetation(wkt, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
             _lsFeatures.push_back(p3);
           }
           else if (l.second == "Water") {
-            Water* p3 = new Water(p2, f->GetFieldAsString(idfield.c_str()), this->_water_heightref);
+            Water* p3 = new Water(wkt, f->GetFieldAsString(idfield.c_str()), this->_water_heightref);
             _lsFeatures.push_back(p3);
           }
           else if (l.second == "Road") {
-            Road* p3 = new Road(p2, f->GetFieldAsString(idfield.c_str()), this->_road_heightref);
+            Road* p3 = new Road(wkt, f->GetFieldAsString(idfield.c_str()), this->_road_heightref);
             _lsFeatures.push_back(p3);
           }          
           break;

@@ -24,7 +24,7 @@
 #include "Vegetation.h"
 
 
-Vegetation::Vegetation (Polygon2* p, std::string pid, int simplification) : TIN(p, pid, simplification)
+Vegetation::Vegetation (char *wkt, std::string pid, int simplification) : TIN(wkt, pid, simplification)
 {}
 
 

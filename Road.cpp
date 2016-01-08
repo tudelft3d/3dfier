@@ -24,7 +24,8 @@
 
 std::string Road::_heightref = "percentile-10";
 
-Road::Road (Polygon2* p, std::string pid, std::string heightref) : Boundary3D(p, pid)
+Road::Road (char *wkt, std::string pid, std::string heightref) 
+: Boundary3D(wkt, pid)
 {
   if (heightref != "")
     _heightref = heightref;

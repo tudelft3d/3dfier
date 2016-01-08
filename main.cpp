@@ -33,6 +33,9 @@
 #include "Map3d.h"
 #include "yaml-cpp/yaml.h"
 
+bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
+
+
 
 int main(int argc, const char * argv[]) {
   
@@ -41,7 +44,7 @@ int main(int argc, const char * argv[]) {
     std::cerr << "ERROR: the config file (*.yml) is not defined." << std::endl;
     return 0;
   }
-  std::clog << "Reading config file: " << argv[1] << std::endl;
+  std::clog << "Reading and validating config file: " << argv[1] << std::endl;
 
 //-- allowed feature classes
   std::set<std::string> allowedFeatures;
@@ -52,17 +55,21 @@ int main(int argc, const char * argv[]) {
   allowedFeatures.insert("Vegetation");
   allowedFeatures.insert("Bridge/Overpass");
 
+//-- validate the YAML file right now, nicer for the user
+ if (validate_yaml(argv[1], allowedFeatures) == false) {
+   std::cerr << "ERROR: config file (*.yml) is not valid. Aborting." << std::endl;
+   return 0;
+ }
   
   Map3d map3d;
   YAML::Node nodes = YAML::LoadFile(argv[1]);
-  
 //-- store the lifting options in the Map3d
   YAML::Node n = nodes["lifting_options"];
   if (n["Building"]) {
     if (n["Building"]["height_roof"])
       map3d.set_building_heightref_roof(n["Building"]["height_roof"].as<std::string>());
-    if (n["Building"]["height_floor"])
-      map3d.set_building_heightref_floor(n["Building"]["height_floor"].as<std::string>());
+    if (n["Building"]["height_ground"])
+      map3d.set_building_heightref_floor(n["Building"]["height_ground"].as<std::string>());
     if (n["Building"]["triangulate"]) {
       if (n["Building"]["triangulate"].as<std::string>() == "true") 
         map3d.set_building_triangulate(true);
@@ -87,8 +94,8 @@ int main(int argc, const char * argv[]) {
   n = nodes["input_polygons"];
   bool wentgood = true;
   for (auto it = n.begin(); it != n.end(); ++it) {
-    if ((*it)["layers"]) {
-      YAML::Node tmp = (*it)["layers"];
+    if ((*it)["lifting_per_layer"]) {
+      YAML::Node tmp = (*it)["lifting_per_layer"];
       std::vector<std::pair<std::string, std::string> > layers;
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
         std::pair<std::string, std::string> onepair( (it2->first).as<std::string>(), (it2->second).as<std::string>() );
@@ -104,20 +111,14 @@ int main(int argc, const char * argv[]) {
     else if ((*it)["lifting"]) {
       YAML::Node tmp = (*it)["datasets"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-        if (allowedFeatures.count((*it)["lifting"].as<std::string>()) == 1) {
-          wentgood = map3d.add_polygons_file(it2->as<std::string>(),
-                                             (*it)["uniqueid"].as<std::string>(),
-                                             (*it)["lifting"].as<std::string>());
-        }
-        else {
-          std::clog << "ERROR: class '" << (*it)["lifting"].as<std::string>() << "' not recognised." << std::endl;
-          wentgood = false;
-        }
+        wentgood = map3d.add_polygons_file(it2->as<std::string>(),
+                                           (*it)["uniqueid"].as<std::string>(),
+                                           (*it)["lifting"].as<std::string>());
       }
     }
   }
   if (wentgood == false) {
-    std::cerr << "Something went bad while reading input polygons. Abort." << std::endl;
+    std::cerr << "ERROR: Something went bad while reading input polygons. Aborting." << std::endl;
     return 0;
   }
 
@@ -128,6 +129,7 @@ int main(int argc, const char * argv[]) {
 
   //-- add elevation datasets
   n = nodes["input_elevation"];
+  bool bElevData = false;
   for (auto it = n.begin(); it != n.end(); ++it) {
     YAML::Node tmp = (*it)["omit_LAS_classes"];
     std::vector<int> lasomits;
@@ -135,10 +137,15 @@ int main(int argc, const char * argv[]) {
       lasomits.push_back(it2->as<int>());
     tmp = (*it)["datasets"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+      bElevData = true;
       map3d.add_las_file(it2->as<std::string>(), lasomits, (*it)["thinning"].as<int>());
     }
   }
 
+  if (bElevData == false) {
+    std::cerr << "ERROR: No elevation dataset given, cannot 3dfy the dataset. Aborting." << std::endl;
+    return 0;
+  }
 
   n = nodes["output"];
   std::clog << "Lifting all input polygons to 3D..." << std::endl;
@@ -165,13 +172,141 @@ int main(int argc, const char * argv[]) {
     std::cout << map3d.get_csv_buildings() << std::endl;
   }
   else {
-    std::cerr << "Error: Output format not recognised. Outputting OBJ." << std::endl;
+    std::cerr << "ERROR: Output format " << n["format"].as<std::string>() << " not recognised. Outputting OBJ." << std::endl;
     std::cout << map3d.get_obj() << std::endl;
   }
 
   //-- bye-bye
   std::clog << "Successfully terminated." << std::endl;
   return 1;
+}
+
+
+bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
+  YAML::Node nodes = YAML::LoadFile(arg);
+  bool wentgood = true;
+//-- 1. input polygons classes
+  YAML::Node n = nodes["input_polygons"];
+  for (auto it = n.begin(); it != n.end(); ++it) {
+    if ((*it)["lifting_per_layer"]) {
+      YAML::Node tmp = (*it)["lifting_per_layer"];
+      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+        if (allowedFeatures.count((it2->second).as<std::string>()) == 0) {
+          std::cerr << "\tLifting class '" << (it2->second).as<std::string>() << "' unknown." << std::endl;
+          wentgood = false;
+        }
+      }
+    }
+    else if ((*it)["lifting"]) {
+      YAML::Node tmp = (*it)["datasets"];
+      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+        if (allowedFeatures.count((*it)["lifting"].as<std::string>()) == 0) {
+          std::cerr << "\tLifting class '" << (*it)["lifting"].as<std::string>() << "' unknown." << std::endl;
+          wentgood = false;
+        }
+      }
+    }
+  }  
+//-- 2. lifting_options
+  n = nodes["lifting_options"];
+  if (n["Building"]) {
+    if (n["Building"]["height_roof"]) {
+      std::string s = n["Building"]["height_roof"].as<std::string>();
+      if ( (s.substr(0, s.find_first_of("-")) != "percentile") ||
+          (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false) ) {
+        wentgood = false;
+        std::cerr << "\tOption 'Building.height_roof' invalid; must be 'percentile-XX'." << std::endl;
+      }
+    }
+    if (n["Building"]["height_ground"]) {
+      std::string s = n["Building"]["height_ground"].as<std::string>();
+      if ( (s.substr(0, s.find_first_of("-")) != "percentile") ||
+          (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false) ) {
+        wentgood = false;
+        std::cerr << "\tOption 'Building.height_ground' invalid; must be 'percentile-XX'." << std::endl;
+      }
+    }
+    if (n["Building"]["triangulate"]) {
+      std::string s = n["Building"]["triangulate"].as<std::string>();
+      if ( (s != "true") && (s != "false") ) {
+        wentgood = false;
+        std::cerr << "\tOption 'Building.triangulate' invalid; must be 'true' or 'false'." << std::endl;
+      }
+    }
+  }
+  if (n["Water"]) {
+    if (n["Water"]["height"]) {
+      std::string s = n["Water"]["height"].as<std::string>();
+      if ( (s.substr(0, s.find_first_of("-")) != "percentile") ||
+          (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false) ) {
+        wentgood = false;
+        std::cerr << "\tOption 'Water.height' invalid; must be 'percentile-XX'." << std::endl;
+      }
+    }
+  }  
+  if (n["Road"]) {
+    if (n["Road"]["height"]) {
+      std::string s = n["Road"]["height"].as<std::string>();
+      if ( (s.substr(0, s.find_first_of("-")) != "percentile") ||
+          (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false) ) {
+        wentgood = false;
+        std::cerr << "\tOption 'Road.height' invalid; must be 'percentile-XX'." << std::endl;
+      }
+    }
+  }
+  if (n["Terrain"]) {
+    if (n["Terrain"]["simplification"]) {
+      if (is_string_integer(n["Terrain"]["simplification"].as<std::string>()) == false) {
+        wentgood = false;
+        std::cerr << "\tOption 'Terrain.simplification' invalid; must be an integer." << std::endl;
+      }
+    }
+  }  
+  if (n["Vegetation"]) {
+    if (n["Vegetation"]["simplification"]) {
+      if (is_string_integer(n["Vegetation"]["simplification"].as<std::string>()) == false) {
+        wentgood = false;
+        std::cerr << "\tOption 'Vegetation.simplification' invalid; must be an integer." << std::endl;
+      }
+    }
+  }
+//-- 3. input_elevation
+  n = nodes["input_elevation"];
+  for (auto it = n.begin(); it != n.end(); ++it) {
+    YAML::Node tmp = (*it)["omit_LAS_classes"];
+    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+      if (is_string_integer(it2->as<std::string>()) == false) {
+        wentgood = false;
+        std::cerr << "\tOption 'input_elevation.omit_LAS_class' invalid; must be an integer." << std::endl;
+      }
+    }
+    if ((*it)["thinning"]) {
+      if (is_string_integer((*it)["thinning"].as<std::string>()) == false) {
+        wentgood = false;
+        std::cerr << "\tOption 'input_elevation.thinning' invalid; must be an integer." << std::endl;
+      }
+    }
+  }
+//-- 4. options
+  n = nodes["options"];
+  if (n["radius_vertex_elevation"]) {
+    try {
+      boost::lexical_cast<float>(n["radius_vertex_elevation"].as<std::string>());
+    }
+    catch(boost::bad_lexical_cast& e) {
+      wentgood = false;
+      std::cerr << "\tOption 'options.radius_vertex_elevation' invalid." << std::endl;
+    }
+  }
+//-- 5. output
+  n = nodes["output"];
+  if ( (n["format"].as<std::string>() != "OBJ") &&
+       (n["format"].as<std::string>() != "CityGML") &&
+       (n["format"].as<std::string>() != "CSV-BUILDINGS") ) {
+    wentgood = false;
+    std::cerr << "\tOption 'output.format' invalid (OBJ | CityGML | CSV-BUILDINGS)" << std::endl;
+  }
+  return wentgood;
 }
 
 

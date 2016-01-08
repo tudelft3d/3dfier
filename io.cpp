@@ -103,3 +103,18 @@ std::string get_extruded_lod1_block_gml(Polygon2* p2, double high, double low) {
     ss << get_extruded_line_gml(&r[i], &r[i + 1], high, low, false);
   return ss.str();
 }
+
+
+bool is_string_integer(std::string s, int min, int max) {
+  try {
+    int number = boost::lexical_cast<int>(s);
+    if ( (number < min) || (number > max) ) 
+      return false;
+  }
+  catch(boost::bad_lexical_cast& e) {
+    return false;
+  }
+  return true;
+}
+
+

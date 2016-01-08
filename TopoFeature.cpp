@@ -31,10 +31,12 @@ std::string Block::_heightref_base = "percentile-10";
 
 //-----------------------------------------------------------------------------
 
-TopoFeature::TopoFeature(Polygon2* p, std::string pid) {
+TopoFeature::TopoFeature(char *wkt, std::string pid) {
   _id = pid;
   _counter = _count++;
-  _p2 = p;
+  _p2 = new Polygon2();
+  bg::read_wkt(wkt, *(_p2));
+  bg::read_wkt(wkt, _p3);
   _velevations.resize(bg::num_points(*(_p2)));
 }
 
@@ -62,7 +64,7 @@ Polygon2* TopoFeature::get_Polygon2() {
 std::string TopoFeature::get_obj_v() {
   std::stringstream ss;
   for (auto& v : _vertices)
-    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
   return ss.str();
 }
 
@@ -223,7 +225,8 @@ void TopoFeature::lift_vertices_boundary(float percentile) {
 //-------------------------------
 
 
-Block::Block(Polygon2* p, std::string pid, std::string heightref_top, std::string heightref_base) : TopoFeature(p, pid) 
+Block::Block(char *wkt, std::string pid, std::string heightref_top, std::string heightref_base) 
+: TopoFeature(wkt, pid) 
 {
   _is3d = false;
   _heightref_top = heightref_top;
@@ -239,9 +242,9 @@ int Block::get_number_vertices() {
 std::string Block::get_obj_v() {
   std::stringstream ss;
   for (auto& v : _vertices)
-    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_height_top() << std::endl;
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_height_top() << std::endl;
   for (auto& v : _vertices)
-    ss << std::setprecision(2) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_height_base() << std::endl;
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_height_base() << std::endl;
   return ss.str();
 }
 
@@ -338,7 +341,8 @@ bool Block::add_elevation_point(double x, double y, double z, float radius) {
 //-------------------------------
 //-------------------------------
 
-Boundary3D::Boundary3D(Polygon2* p, std::string pid) : TopoFeature(p, pid) 
+Boundary3D::Boundary3D(char *wkt, std::string pid) 
+: TopoFeature(wkt, pid) 
 {}
 
 
@@ -383,7 +387,8 @@ void Boundary3D::smooth_ring(Ring3 &r, std::vector<float> &elevs) {
 //-------------------------------
 //-------------------------------
 
-TIN::TIN(Polygon2* p, std::string pid, int simplification) : TopoFeature(p, pid) 
+TIN::TIN(char *wkt, std::string pid, int simplification) 
+: TopoFeature(wkt, pid) 
 {
   _simplification = simplification;
 }

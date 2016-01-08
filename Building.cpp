@@ -25,8 +25,8 @@
 
 
 
-Building::Building(Polygon2* p, std::string pid, std::string heightref_top, std::string heightref_base) 
-: Block(p, pid, heightref_top, heightref_base)
+Building::Building(char *wkt, std::string pid, std::string heightref_top, std::string heightref_base) 
+: Block(wkt, pid, heightref_top, heightref_base)
 {}
 
 bool Building::lift() {
@@ -37,9 +37,9 @@ bool Building::lift() {
   _zvaluesinside.shrink_to_fit();
   _velevations.clear();
   _velevations.shrink_to_fit();
-  std::stringstream ss;
-  ss << bg::wkt(*(_p2));
-  bg::read_wkt(ss.str(), _p3);
+  // std::stringstream ss;
+  // ss << bg::wkt(*(_p2));
+  // bg::read_wkt(ss.str(), _p3);
   return true;
 }
 

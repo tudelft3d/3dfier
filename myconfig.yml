@@ -8,7 +8,7 @@ input_polygons:
       - /Users/elvis/data/campus/another.gml
       - /Users/elvis/data/campus/another2.gml
     uniqueid: fid
-    layers:
+    lifting_per_layer:
       Gebouw: Building
       Terrein: Terrain
       Waterdeel: Water
@@ -18,14 +18,14 @@ lifting_options:
     height_roof: percentile-95 #median
     height_floor: percentile-10 #median
     triangulate: true
-  Terrain:
-    simplification: 100
-  Vegetation:
-    simplification: 10
   Water:
     height: percentile-10
   Road:
     height: percentile-50
+  Terrain:
+    simplification: 100
+  Vegetation:
+    simplification: 10
 
 input_elevation:
   - datasets:

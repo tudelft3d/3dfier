@@ -27,7 +27,7 @@
 class Vegetation : public TIN
 {
 public:
-  Vegetation (Polygon2* p, std::string pid, int simplification);
+  Vegetation (char *wkt, std::string pid, int simplification);
   bool          lift();
   bool          buildCDT();
   std::string   get_citygml();
