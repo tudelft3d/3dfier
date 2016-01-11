@@ -27,11 +27,11 @@
 
 //-----------------------------------------------------------------------------
 
+#include "yaml-cpp/yaml.h"
 #include "definitions.h"
 #include "io.h"
 #include "TopoFeature.h"
 #include "Map3d.h"
-#include "yaml-cpp/yaml.h"
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 
