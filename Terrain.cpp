@@ -22,6 +22,10 @@ TopoClass Terrain::get_class() {
   return TERRAIN;
 }
 
+bool Terrain::is_hard() {
+  return false;
+}
+
 
 std::string Terrain::get_citygml() {
   return "<EMPTY/>";

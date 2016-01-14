@@ -20,6 +20,7 @@ public:
   std::string   get_citygml();
   std::string   get_obj_f(int offset);
   TopoClass     get_class();
+  bool          is_hard();
   static std::string _heightref;
 protected:
   void          make_boundary_horizontal();

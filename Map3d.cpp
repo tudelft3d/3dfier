@@ -420,7 +420,7 @@ void Map3d::stitch_lifted_features() {
   for (auto& f : _lsFeatures) {
     std::vector<PairIndexed> re;
     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-//-- 1. store all touching
+//-- 1. store all touching (adjacent + incident)
     std::vector<TopoFeature*> lstouching;
     for (auto& each : re) {
       TopoFeature* fadj = each.second;
@@ -437,7 +437,7 @@ void Map3d::stitch_lifted_features() {
       for (auto& fadj : lstouching) {
         int index = fadj->has_point2(oring[i]);
         if (index != -1)  {
-          if (f->get_counter() < fadj->get_counter()) {
+          if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
             star.push_back(std::make_pair(fadj, index));
           }
           else {
@@ -458,10 +458,22 @@ void Map3d::stitch_lifted_features() {
 void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
   float fz = f->get_point_elevation(pos);
   if (star.size() == 1) {
-    if (f->get_class() <= star[0].first->get_class())
-      stitch_average(f, pos, star[0].first, star[0].second);
-    else 
-      stitch_comply(star[0].first, star[0].second, f, pos, 1.0);
+    if (f->is_hard() == true) {
+      if (star[0].first->is_hard() == true)  {
+        stitch_2_hard(f, pos, star[0].first, star[0].second, 1.0); // TODO : order to check, vertical added to soft/2nd passed
+      }
+      else {
+        stitch_comply(f, pos, star[0].first, star[0].second, 1.0);
+      }
+    }
+    else { //-- f is soft
+      if (star[0].first->is_hard() == true)  {
+        stitch_comply(star[0].first, star[0].second, f, pos, 1.0);
+      }
+      else {
+        stitch_average(f, pos, star[0].first, star[0].second);
+      }
+    }
   }
   else if (star.size() > 1) {
     //-- collect all elevations
@@ -517,6 +529,11 @@ void Map3d::stitch_average(TopoFeature* hard, int hardpos, TopoFeature* soft, in
   float softz = soft->get_point_elevation(softpos);
   hard->set_point_elevation(hardpos, (hardz + softz) / 2);
   soft->set_point_elevation(softpos, (hardz + softz) / 2);
+}
+
+void Map3d::stitch_2_hard(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge) {
+  std::clog << "stitch_2_hard" << std::endl;
+  soft->add_nc(softpos, hard->get_point_elevation(hardpos));
 }
 
 

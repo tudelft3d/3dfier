@@ -22,6 +22,7 @@ public:
   virtual std::string   get_obj_f(int offset);
   virtual int           get_number_vertices() = 0;
   virtual TopoClass     get_class() = 0;
+  virtual bool          is_hard() = 0;
 
   std::string  get_id();
   int          get_counter(); 
@@ -65,6 +66,7 @@ public:
   std::string     get_obj_f(int offset);
   int             get_number_vertices();
   virtual TopoClass     get_class() = 0;
+  virtual bool          is_hard() = 0;
   
   float           get_height_top();
   float           get_height_base();
@@ -91,6 +93,7 @@ public:
   bool          add_elevation_point(double x, double y, double z, float radius);
   int           get_number_vertices();
   virtual TopoClass     get_class() = 0;
+  virtual bool          is_hard() = 0;
 protected:
   int           _simplification;
   void          smooth_boundary(int passes = 1);
@@ -110,6 +113,7 @@ public:
   bool            add_elevation_point(double x, double y, double z, float radius);
   int             get_number_vertices();
   virtual TopoClass     get_class() = 0;
+  virtual bool          is_hard() = 0;
 protected:
   int                   _simplification;
   std::vector<Point3>   _lidarpts;

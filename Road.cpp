@@ -38,6 +38,10 @@ TopoClass Road::get_class() {
   return ROAD;
 }
 
+bool Road::is_hard() {
+  return true;
+}
+
 
 std::string Road::get_obj_f(int offset) {
   std::stringstream ss;

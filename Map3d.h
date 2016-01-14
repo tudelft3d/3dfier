@@ -67,6 +67,7 @@ private:
   bool extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers);
   void process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star);
   void stitch_comply(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge);
+  void stitch_2_hard(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge);
   void stitch_average(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos);
   void process_nc(std::vector<float>& televs, float jumpedge);
 
