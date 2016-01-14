@@ -478,17 +478,26 @@ void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFea
   else if (star.size() > 1) {
     //-- collect all elevations
     std::vector<float> televs;
+    std::vector<int> c;
     televs.assign(6, -999.0);
+    c.assign(6, 0);
     televs[f->get_class()] = fz;
     for (auto& fadj : star) {
-      if (televs[fadj.first->get_class()] < -998)
+      if (c[fadj.first->get_class()] == 0) {
         televs[fadj.first->get_class()] = fadj.first->get_point_elevation(fadj.second);
+        c[fadj.first->get_class()]++;
+      }
       else {
-        float tmp = (televs[fadj.first->get_class()] + fadj.first->get_point_elevation(fadj.second)) / 2;
-        televs[fadj.first->get_class()] = tmp;
+        televs[fadj.first->get_class()] += fadj.first->get_point_elevation(fadj.second);
+        c[fadj.first->get_class()]++;
+        // float tmp = (televs[fadj.first->get_class()] + fadj.first->get_point_elevation(fadj.second)) / 2;
       }
     }
-    process_nc(televs, 1.0);
+    for (int i = 0; i < 6; i++) {
+      if (c[i] != 0)
+        televs[i] /= c[i];
+    }
+    adjust_nc(televs, 1.0);
     f->set_point_elevation(pos, televs[f->get_class()]);
     for (auto& fadj : star) {
       fadj.first->set_point_elevation(fadj.second, televs[fadj.first->get_class()]);
@@ -501,12 +510,13 @@ void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFea
 }
 
 
-void Map3d::process_nc(std::vector<float>& televs, float jumpedge) {
+void Map3d::adjust_nc(std::vector<float>& televs, float jumpedge) {
   for (int i = 1; i <= 5; i++) {
     for (int j = (i + 1); j <= 5; j++) {
       if ( (televs[i] >= -998) && (televs[j] >= -998) && (std::abs(televs[i] - televs[j]) < jumpedge) ) {
         televs[j] = televs[i];
       }
+      // TODO : hard classes shouldn't be adjusted: can make unvertical water eg
     }
   }
 }
