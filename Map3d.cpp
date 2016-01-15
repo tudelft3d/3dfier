@@ -430,7 +430,8 @@ void Map3d::stitch_lifted_features() {
       }
     }
 //-- 2. build the node-column for each vertex
-    Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); // TODO: iring needs to be implemented too
+    Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); 
+    // TODO: iring needs to be implemented too
     for (int i = 0; i < oring.size(); i++) {
       std::vector< std::pair<TopoFeature*, int> > star;  
       bool toprocess = true;
@@ -456,22 +457,30 @@ void Map3d::stitch_lifted_features() {
 
 
 void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
+  double toljumpedge = 0.5;
   float fz = f->get_point_elevation(pos);
+  //-- degree of vertex == 2
   if (star.size() == 1) {
-    if (f->is_hard() == true) {
-      if (star[0].first->is_hard() == true)  {
-        stitch_2_hard(f, pos, star[0].first, star[0].second, 1.0); // TODO : order to check, vertical added to soft/2nd passed
-      }
-      else {
-        stitch_comply(f, pos, star[0].first, star[0].second, 1.0);
-      }
-    }
-    else { //-- f is soft
-      if (star[0].first->is_hard() == true)  {
-        stitch_comply(star[0].first, star[0].second, f, pos, 1.0);
-      }
-      else {
+    //-- if same class, then average. TODO: always, also for water?
+    if (f->get_class() == star[0].first->get_class())
         stitch_average(f, pos, star[0].first, star[0].second);
+    else {
+      if (f->is_hard() == true) {
+        if (star[0].first->is_hard() == true)  {
+          // TODO : order to check, vertical added to soft/2nd passed
+          stitch_2_hard(f, pos, star[0].first, star[0].second, toljumpedge); 
+        }
+        else {
+          stitch_jumpedge(f, pos, star[0].first, star[0].second, toljumpedge);
+        }
+      }
+      else { //-- f is soft
+        if (star[0].first->is_hard() == true)  {
+          stitch_jumpedge(star[0].first, star[0].second, f, pos, toljumpedge);
+        }
+        else {
+          stitch_average(f, pos, star[0].first, star[0].second);
+        }
       }
     }
   }
@@ -490,7 +499,6 @@ void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFea
       else {
         televs[fadj.first->get_class()] += fadj.first->get_point_elevation(fadj.second);
         c[fadj.first->get_class()]++;
-        // float tmp = (televs[fadj.first->get_class()] + fadj.first->get_point_elevation(fadj.second)) / 2;
       }
     }
     for (int i = 0; i < 6; i++) {
@@ -510,26 +518,26 @@ void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFea
 }
 
 
+// TODO : hard classes shouldn't be adjusted: can make unvertical water eg
 void Map3d::adjust_nc(std::vector<float>& televs, float jumpedge) {
   for (int i = 1; i <= 5; i++) {
     for (int j = (i + 1); j <= 5; j++) {
       if ( (televs[i] >= -998) && (televs[j] >= -998) && (std::abs(televs[i] - televs[j]) < jumpedge) ) {
         televs[j] = televs[i];
       }
-      // TODO : hard classes shouldn't be adjusted: can make unvertical water eg
     }
   }
 }
 
 
-void Map3d::stitch_comply(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge) {
+void Map3d::stitch_jumpedge(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge) {
   float hardz = hard->get_point_elevation(hardpos);
   float deltaz = std::abs(hardz - soft->get_point_elevation(softpos));
   std::clog << "deltaz=" << deltaz << std::endl;
   if (deltaz < jumpedge) //-- TODO 1m jump-edge?
     soft->set_point_elevation(softpos, hardz);
   else {
-    std::clog << "nc added" << std::endl;
+    std::clog << "nc added: " << hardz << " | " << soft->get_point_elevation(softpos) << std::endl;
     soft->add_nc(softpos, hardz);
   }
 }
@@ -542,7 +550,7 @@ void Map3d::stitch_average(TopoFeature* hard, int hardpos, TopoFeature* soft, in
 }
 
 void Map3d::stitch_2_hard(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge) {
-  std::clog << "stitch_2_hard" << std::endl;
+  std::clog << "STITCH_2_HARD: " << hard->get_class() << " --- " << soft->get_class() << std::endl;
   soft->add_nc(softpos, hard->get_point_elevation(hardpos));
 }
 

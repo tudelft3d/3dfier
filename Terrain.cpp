@@ -41,10 +41,15 @@ bool Terrain::lift() {
 }
 
 bool Terrain::buildCDT() {
+  getCDT(&_p3, _vertices, _triangles, _segments, _lidarpts);
+
+  //-- add those evil vertical walls
   int i = 0;
   for (auto& each : _nc) {
+    if (each == _nc.back())
+      std::cout << "last oneeeee" << std::endl;
     if (each.empty() == false) {
-      std::clog << "--not empty nc-- " << this->get_point_elevation(i) << std::endl;
+      std::clog << "**not empty nc** " << this->get_point_elevation(i) << std::endl;
       for (auto& n : each)
         std::clog << "|" << n;
       std::clog << std::endl;
@@ -53,6 +58,5 @@ bool Terrain::buildCDT() {
     i++;
   }
 
-  getCDT(&_p3, _vertices, _triangles, _segments, _lidarpts);
   return true;
 }
