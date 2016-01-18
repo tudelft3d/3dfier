@@ -43,17 +43,41 @@ bool Terrain::lift() {
 bool Terrain::buildCDT() {
   getCDT(&_p3, _vertices, _triangles, _segments, _lidarpts);
 
+  // std::cout << "llllllll" << std::endl;
+  // std::cout << std::setprecision(3) << std::fixed << bg::wkt(*(_p2)) << std::endl;
+  // std::cout << std::setprecision(3) << std::fixed << this->get_point_x(0) << std::endl;
+  // // std::cout << std::setprecision(3) << std::fixed << bg::wkt(_p3) << std::endl;
+  // std::cout << "llllllll" << std::endl;
+
   //-- add those evil vertical walls
   int i = 0;
-  for (auto& each : _nc) {
-    if (each == _nc.back())
-      std::cout << "last oneeeee" << std::endl;
-    if (each.empty() == false) {
-      std::clog << "**not empty nc** " << this->get_point_elevation(i) << std::endl;
-      for (auto& n : each)
-        std::clog << "|" << n;
-      std::clog << std::endl;
+  int ni;
+  for (auto& curnc : _nc) {
+    this->get_next_point2_in_ring(i, ni); //-- index of next in ring
+    std::vector<float> nnc = _nc[ni];
 
+    if ( (curnc.size() == 0) && (nnc.size() == 0))
+      std::clog << "both nc empty" << std::endl;
+    else {
+      std::clog << "vertical wall to add." << std::endl;
+      for (auto& v : nnc) {
+        _vertices.push_back(Point3(this->get_point_x(i), this->get_point_y(i), this->get_point_elevation(i)));
+        Triangle t;
+        // t.v0 = out.trianglelist[i * out.numberofcorners + 0];
+        // t.v1 = out.trianglelist[i * out.numberofcorners + 1];
+        // t.v2 = out.trianglelist[i * out.numberofcorners + 2];
+        // triangles.push_back(t);
+      }
+    }
+    
+
+    if (curnc.size() > 0) {
+      std::clog << "**nc** " << this->get_point_elevation(i) << std::endl;
+      for (auto& n : curnc) {
+        std::clog << "|" << n;
+      }
+      std::clog << "( " << _nc[ni].size() << " ) ";
+      std::clog << std::endl;
     }
     i++;
   }

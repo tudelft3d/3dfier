@@ -484,37 +484,37 @@ void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFea
       }
     }
   }
-  else if (star.size() > 1) {
-    //-- collect all elevations
-    std::vector<float> televs;
-    std::vector<int> c;
-    televs.assign(6, -999.0);
-    c.assign(6, 0);
-    televs[f->get_class()] = fz;
-    for (auto& fadj : star) {
-      if (c[fadj.first->get_class()] == 0) {
-        televs[fadj.first->get_class()] = fadj.first->get_point_elevation(fadj.second);
-        c[fadj.first->get_class()]++;
-      }
-      else {
-        televs[fadj.first->get_class()] += fadj.first->get_point_elevation(fadj.second);
-        c[fadj.first->get_class()]++;
-      }
-    }
-    for (int i = 0; i < 6; i++) {
-      if (c[i] != 0)
-        televs[i] /= c[i];
-    }
-    adjust_nc(televs, 1.0);
-    f->set_point_elevation(pos, televs[f->get_class()]);
-    for (auto& fadj : star) {
-      fadj.first->set_point_elevation(fadj.second, televs[fadj.first->get_class()]);
-      for (int i = 0; i <= 5; i++) {
-        if ( (televs[i] > -998) && (i != fadj.first->get_class()) )
-          fadj.first->add_nc(fadj.second, televs[i]);
-      }
-    }
-  }
+  // else if (star.size() > 1) {
+  //   //-- collect all elevations
+  //   std::vector<float> televs;
+  //   std::vector<int> c;
+  //   televs.assign(6, -999.0);
+  //   c.assign(6, 0);
+  //   televs[f->get_class()] = fz;
+  //   for (auto& fadj : star) {
+  //     if (c[fadj.first->get_class()] == 0) {
+  //       televs[fadj.first->get_class()] = fadj.first->get_point_elevation(fadj.second);
+  //       c[fadj.first->get_class()]++;
+  //     }
+  //     else {
+  //       televs[fadj.first->get_class()] += fadj.first->get_point_elevation(fadj.second);
+  //       c[fadj.first->get_class()]++;
+  //     }
+  //   }
+  //   for (int i = 0; i < 6; i++) {
+  //     if (c[i] != 0)
+  //       televs[i] /= c[i];
+  //   }
+  //   adjust_nc(televs, 1.0);
+  //   f->set_point_elevation(pos, televs[f->get_class()]);
+  //   for (auto& fadj : star) {
+  //     fadj.first->set_point_elevation(fadj.second, televs[fadj.first->get_class()]);
+  //     for (int i = 0; i <= 5; i++) {
+  //       if ( (televs[i] > -998) && (i != fadj.first->get_class()) )
+  //         fadj.first->add_nc(fadj.second, televs[i]);
+  //     }
+  //   }
+  // }
 }
 
 
@@ -537,8 +537,8 @@ void Map3d::stitch_jumpedge(TopoFeature* hard, int hardpos, TopoFeature* soft, i
   if (deltaz < jumpedge) //-- TODO 1m jump-edge?
     soft->set_point_elevation(softpos, hardz);
   else {
-    std::clog << "nc added: " << hardz << " | " << soft->get_point_elevation(softpos) << std::endl;
     soft->add_nc(softpos, hardz);
+    std::clog << "nc added: " << hardz << " (" << soft->get_point_elevation(softpos) << ")" << std::endl;
   }
 }
 
