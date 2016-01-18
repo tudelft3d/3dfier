@@ -31,6 +31,8 @@ public:
   int          has_point2(Point2& p);
   bool         has_segment(Point2& a, Point2& b, int& ia, int& ib);
   void         set_point_elevation(int i, float z);  
+  double       get_point_x(int i);
+  double       get_point_y(int i);
   float        get_point_elevation(int i);
   void         add_nc(int i, float z);
   std::vector<float>& get_nc(int i);
@@ -47,7 +49,8 @@ protected:
   std::vector<Triangle> _triangles; //-- output of Triangle
   std::vector<Segment>  _segments;  //-- output of Triangle
 
-  Point2& get_previous_point2(int i, int& index);
+  Point2& get_previous_point2_in_ring(int i, int& index);
+  Point2& get_next_point2_in_ring(int i, int& index);
   bool    assign_elevation_to_vertex(double x, double y, double z, float radius);
   void    lift_vertices_boundary(float percentile);
 };
