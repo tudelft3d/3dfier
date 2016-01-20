@@ -36,6 +36,7 @@ public:
   std::string         get_obj_f(int offset);
   static std::string  _heightref;
   TopoClass           get_class();
+  bool                is_hard();
 // protected:
   // void                smooth_boundary(Polygon3 &p3);
 };

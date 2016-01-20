@@ -49,6 +49,11 @@ TopoClass Building::get_class() {
   return BUILDING;
 }
 
+bool Building::is_hard() {
+  return true;
+}
+
+
 std::string Building::get_csv() {
   std::stringstream ss;
   ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height_top() << ";" << this->get_height_base() << std::endl;

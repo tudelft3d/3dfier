@@ -50,6 +50,11 @@ TopoClass Water::get_class() {
   return WATER;
 }
 
+bool Water::is_hard() {
+  return true;
+}
+
+
 void Water::make_boundary_horizontal() {
   //-- find the mininum value and assign it
   double minimum = 1e9;

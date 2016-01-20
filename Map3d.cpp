@@ -177,7 +177,7 @@ bool Map3d::threeDfy(bool triangulate) {
   for (auto& p : _lsFeatures)
     p->lift();
   if (triangulate == true) {
-    // this->stitch_lifted_features();
+    this->stitch_lifted_features();
     for (auto& p : _lsFeatures) {
       // std::clog << p->get_id() << std::endl;
       p->buildCDT();
@@ -446,20 +446,6 @@ void Map3d::stitch_road(TopoFeature* f, std::vector<PairIndexed> &re) {
 // }
 
 
-// void Map3d::stitch_lifted_features_2() {
-// /*
-//   WATER - TERRAIN
-//   WATER - ROAD
-// */
-
-//   for (auto& f : _lsFeatures) {
-//     if (f->get_class() == WATER) {
-//     std::vector<PairIndexed> re;
-//     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-//     for (auto& each : re) {
-//       TopoFeature* fadj = each.second;
-  
-// }
 
 void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
   std::vector<PairIndexed> re;
@@ -472,70 +458,148 @@ void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
   }
 }
 
+
 void Map3d::stitch_lifted_features() {
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
-//  for (auto& f : _lsFeatures) {
-//
-//    switch(f->get_class()) {
-//      case 1: int x = 0; // initialization
-//            std::cout << x << '\n';
-//            break;
-//    default: // compilation error: jump to default: would enter the scope of 'x'
-//             // without initializing it
-//             std::cout << "default\n";
-//             break;
-//}
-//
-//    if (f->get_class() == WATER)
-//      stitch_one_feature(f, TERRAIN);
-
+  for (auto& f : _lsFeatures) {
+    std::vector<PairIndexed> re;
+    _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+//-- 1. store all touching (adjacent + incident)
+    std::vector<TopoFeature*> lstouching;
+    for (auto& each : re) {
+      TopoFeature* fadj = each.second;
+      if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
+        // std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
+        lstouching.push_back(fadj);
+      }
+    }
+//-- 2. build the node-column for each vertex
+    Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); 
+    // TODO: iring needs to be implemented too
+    for (int i = 0; i < oring.size(); i++) {
+      std::vector< std::pair<TopoFeature*, int> > star;  
+      bool toprocess = true;
+      for (auto& fadj : lstouching) {
+        int index = fadj->has_point2(oring[i]);
+        if (index != -1)  {
+          if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
+            star.push_back(std::make_pair(fadj, index));
+          }
+          else {
+            toprocess = false;
+            break;
+          }
+        }
+      }
+      if (toprocess == true) {
+        this->process_star(f, i, star);
+      }
+    }
+  }
   std::clog << "===== STITCH POLYGONS =====" << std::endl;
 }
 
 
-
-// void Map3d::stitch_lifted_features() {
-//   std::clog << "===== STITCH POLYGONS =====" << std::endl;
-//   for (auto& f : _lsFeatures) {
-//     std::vector<PairIndexed> re;
-//     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-//     for (auto& each : re) {
-//       TopoFeature* fadj = each.second;
-//       if ( (f->get_class() == WATER) && (fadj->get_class() == TERRAIN) ) {
-//         if ( (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) ) {
-//           int ia, ib;
-//           Ring2 oring = bg::exterior_ring(*(f->get_Polygon2()));
-//           for (int i = 0; i < (oring.size() - 1); i++) {
-//             if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
-//               float z = f->get_point_elevation(f->has_point2(oring[i]));
-//               fadj->set_point_elevation(ia, z);
-//               fadj->set_point_elevation(ib, z);  
-//             }
-//           }
-//           if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
-//             float z = f->get_point_elevation(f->has_point2(oring.front()));
-//             fadj->set_point_elevation(ia, z);
-//             fadj->set_point_elevation(ib, z);  
-//           }
-//         }
-//       }
+void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
+  double toljumpedge = 0.5;
+  float fz = f->get_point_elevation(pos);
+  //-- degree of vertex == 2
+  if (star.size() == 1) {
+    //-- if same class, then average. TODO: always, also for water?
+    if (f->get_class() == star[0].first->get_class())
+        stitch_average(f, pos, star[0].first, star[0].second);
+    else {
+      if (f->is_hard() == true) {
+        if (star[0].first->is_hard() == true)  {
+          // TODO : order to check, vertical added to soft/2nd passed
+          stitch_2_hard(f, pos, star[0].first, star[0].second, toljumpedge); 
+        }
+        else {
+          stitch_jumpedge(f, pos, star[0].first, star[0].second, toljumpedge);
+        }
+      }
+      else { //-- f is soft
+        if (star[0].first->is_hard() == true)  {
+          stitch_jumpedge(star[0].first, star[0].second, f, pos, toljumpedge);
+        }
+        else {
+          stitch_average(f, pos, star[0].first, star[0].second);
+        }
+      }
+    }
+  }
+  // else if (star.size() > 1) {
+  //   //-- collect all elevations
+  //   std::vector<float> televs;
+  //   std::vector<int> c;
+  //   televs.assign(6, -999.0);
+  //   c.assign(6, 0);
+  //   televs[f->get_class()] = fz;
+  //   for (auto& fadj : star) {
+  //     if (c[fadj.first->get_class()] == 0) {
+  //       televs[fadj.first->get_class()] = fadj.first->get_point_elevation(fadj.second);
+  //       c[fadj.first->get_class()]++;
+  //     }
+  //     else {
+  //       televs[fadj.first->get_class()] += fadj.first->get_point_elevation(fadj.second);
+  //       c[fadj.first->get_class()]++;
+  //     }
+  //   }
+  //   for (int i = 0; i < 6; i++) {
+  //     if (c[i] != 0)
+  //       televs[i] /= c[i];
+  //   }
+  //   adjust_nc(televs, 1.0);
+  //   f->set_point_elevation(pos, televs[f->get_class()]);
+  //   for (auto& fadj : star) {
+  //     fadj.first->set_point_elevation(fadj.second, televs[fadj.first->get_class()]);
+  //     for (int i = 0; i <= 5; i++) {
+  //       if ( (televs[i] > -998) && (i != fadj.first->get_class()) )
+  //         fadj.first->add_nc(fadj.second, televs[i]);
 //     }
 //   }
-//   std::clog << "===== STITCH POLYGONS =====" << std::endl;
 // }
+}
 
-// void Map3d::stitch_lifted_features() {
-//   std::clog << "===== STITCH POLYGONS =====" << std::endl;
-//   for (auto& f : _lsFeatures) {
-//     std::vector<PairIndexed> re;
-//     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-//     if (f->get_class() == WATER) 
-//       this->stitch_water(f, re);
-//     if (f->get_class() == ROAD) 
-//       this->stitch_road(f, re);
-//   }
-//   std::clog << "===== STITCH POLYGONS =====" << std::endl;
-// }
+// TODO : hard classes shouldn't be adjusted: can make unvertical water eg
+
+void Map3d::adjust_nc(std::vector<float>& televs, float jumpedge) {
+  for (int i = 1; i <= 5; i++) {
+    for (int j = (i + 1); j <= 5; j++) {
+      if ( (televs[i] >= -998) && (televs[j] >= -998) && (std::abs(televs[i] - televs[j]) < jumpedge) ) {
+        televs[j] = televs[i];
+      }
+    }
+  }
+}
+
+
+void Map3d::stitch_jumpedge(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge) {
+  float hardz = hard->get_point_elevation(hardpos);
+  float deltaz = std::abs(hardz - soft->get_point_elevation(softpos));
+  std::clog << "deltaz=" << deltaz << std::endl;
+  if (deltaz < jumpedge) //-- TODO 1m jump-edge?
+    soft->set_point_elevation(softpos, hardz);
+  else {
+    soft->add_nc(softpos, hardz);
+    std::clog << "nc added: " << hardz << " (" << soft->get_point_elevation(softpos) << ")" << std::endl;
+  }
+}
+
+void Map3d::stitch_average(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos) {
+  float hardz = hard->get_point_elevation(hardpos);
+  float softz = soft->get_point_elevation(softpos);
+  hard->set_point_elevation(hardpos, (hardz + softz) / 2);
+  soft->set_point_elevation(softpos, (hardz + softz) / 2);
+}
+
+void Map3d::stitch_2_hard(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge) {
+  std::clog << "STITCH_2_HARD: " << hard->get_class() << " --- " << soft->get_class() << std::endl;
+  soft->add_nc(softpos, hard->get_point_elevation(hardpos));
+}
+
+
+
 // for (Ring2& iring: bg::interior_rings(*pgn)) {
 //   for (int i = 0; i < (iring.size() - 1); i++) {
 //     if (polygon2_find_segment(fadj->get_Polygon2(), iring[i], iring[i + 1]) == true)

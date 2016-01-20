@@ -38,6 +38,7 @@ TopoFeature::TopoFeature(char *wkt, std::string pid) {
   bg::read_wkt(wkt, *(_p2));
   bg::read_wkt(wkt, _p3);
   _velevations.resize(bg::num_points(*(_p2)));
+  _nc.resize(bg::num_points(*(_p2)));
 }
 
 TopoFeature::~TopoFeature() {
@@ -80,7 +81,7 @@ bool TopoFeature::has_segment(Point2& a, Point2& b, int& ia, int& ib) {
   if (posa != -1) {
     Point2 tmp;
     int itmp;
-    tmp = this->get_previous_point2(posa, itmp);
+    tmp = this->get_previous_point2_in_ring(posa, itmp);
     if (bg::equals(b, tmp) == true) {
       ia = posa;
       ib = itmp;
@@ -110,7 +111,7 @@ int TopoFeature::has_point2(Point2& p) {
   return re;
 }
 
-Point2& TopoFeature::get_previous_point2(int i, int& index) {
+Point2& TopoFeature::get_previous_point2_in_ring(int i, int& index) {
   Ring2 oring = bg::exterior_ring(*_p2);
   int offset = int(bg::num_points(oring));
   if (i < offset) {
@@ -139,6 +140,77 @@ Point2& TopoFeature::get_previous_point2(int i, int& index) {
   Point2 tmp;
   return tmp;
 }
+
+
+Point2& TopoFeature::get_next_point2_in_ring(int i, int& index) {
+  Ring2 oring = bg::exterior_ring(*_p2);
+  int offset = int(bg::num_points(oring));
+  if (i < offset) {
+    if (i == (offset - 1)) {
+      index = 0;
+      return oring.front();
+    }
+    else {
+      index = (i + 1);
+      return oring[i + 1];
+    }
+  }
+  for (Ring2& iring: bg::interior_rings(*_p2)) {
+    if (i < (offset + iring.size())) {
+      if (i == (offset + iring.size())) {
+        index = offset;
+        return iring.front();
+      }
+      else {
+        index = (offset + i + 1);
+        return (iring[i + 1 - offset]);
+      }
+    }
+    offset += iring.size();
+  }
+  Point2 tmp;
+  return tmp;
+}
+
+
+void TopoFeature::add_nc(int i, float z) {
+
+  _nc[i].push_back(z);
+}
+
+
+std::vector<float>& TopoFeature::get_nc(int i) {
+  return _nc[i];
+}
+
+
+double TopoFeature::get_point_x(int i) {
+  Ring2 oring = bg::exterior_ring(*(_p2));
+  int offset = int(bg::num_points(oring));
+  if (i < offset) 
+    return bg::get<0>(oring[i]);
+  for (Ring2& iring: bg::interior_rings(*(_p2))) {
+    if (i < (offset + iring.size()))
+      return bg::get<0>(iring[i - offset]);
+    offset += iring.size();
+  }
+  return 0.0;
+}
+
+
+double TopoFeature::get_point_y(int i) {
+  Ring2 oring = bg::exterior_ring(*(_p2));
+  int offset = int(bg::num_points(oring));
+  if (i < offset) 
+    return bg::get<1>(oring[i]);
+  for (Ring2& iring: bg::interior_rings(*(_p2))) {
+    if (i < (offset + iring.size()))
+      return bg::get<1>(iring[i - offset]);
+    offset += iring.size();
+  }
+  return 0.0;
+}
+
 
 float TopoFeature::get_point_elevation(int i) {
   Ring3 oring = bg::exterior_ring(_p3);

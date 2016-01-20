@@ -44,15 +44,20 @@ public:
   virtual std::string   get_obj_f(int offset);
   virtual int           get_number_vertices() = 0;
   virtual TopoClass     get_class() = 0;
+  virtual bool          is_hard() = 0;
 
   std::string  get_id();
   int          get_counter(); 
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
+  int          has_point2(Point2& p);
   bool         has_segment(Point2& a, Point2& b, int& ia, int& ib);
   void         set_point_elevation(int i, float z);  
+  double       get_point_x(int i);
+  double       get_point_y(int i);
   float        get_point_elevation(int i);
-  int          has_point2(Point2& p);
+  void         add_nc(int i, float z);
+  std::vector<float>& get_nc(int i);
 
 protected:
   Polygon2*    _p2;
@@ -60,12 +65,14 @@ protected:
   std::string  _id;
   int          _counter;
   static int   _count;
+  std::vector< std::vector<float> > _nc; //-- node columns
   std::vector< std::vector<float> > _velevations;
   std::vector<Point3>   _vertices;  //-- output of Triangle
   std::vector<Triangle> _triangles; //-- output of Triangle
   std::vector<Segment>  _segments;  //-- output of Triangle
 
-  Point2& get_previous_point2(int i, int& index);
+  Point2& get_previous_point2_in_ring(int i, int& index);
+  Point2& get_next_point2_in_ring(int i, int& index);
   bool    assign_elevation_to_vertex(double x, double y, double z, float radius);
   void    lift_vertices_boundary(float percentile);
 };
@@ -84,6 +91,7 @@ public:
   std::string     get_obj_f(int offset);
   int             get_number_vertices();
   virtual TopoClass     get_class() = 0;
+  virtual bool          is_hard() = 0;
   
   float           get_height_top();
   float           get_height_base();
@@ -110,6 +118,7 @@ public:
   bool          add_elevation_point(double x, double y, double z, float radius);
   int           get_number_vertices();
   virtual TopoClass     get_class() = 0;
+  virtual bool          is_hard() = 0;
 protected:
   int           _simplification;
   void          smooth_boundary(int passes = 1);
@@ -129,6 +138,7 @@ public:
   bool            add_elevation_point(double x, double y, double z, float radius);
   int             get_number_vertices();
   virtual TopoClass     get_class() = 0;
+  virtual bool          is_hard() = 0;
 protected:
   int                   _simplification;
   std::vector<Point3>   _lidarpts;

@@ -42,6 +42,9 @@ TopoClass Vegetation::get_class() {
   return VEGETATION;
 }
 
+bool Vegetation::is_hard() {
+  return false;
+}
 
 std::string Vegetation::get_citygml() {
   return "<EMPTY/>";
