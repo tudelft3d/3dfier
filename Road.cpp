@@ -32,9 +32,6 @@ Road::Road (char *wkt, std::string pid, std::string heightref)
 }
 
 bool Road::lift() {
-  std::stringstream ss;
-  ss << bg::wkt(*(_p2));
-  bg::read_wkt(ss.str(), _p3);
   //-- assign an elevation to each vertex
   float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
   lift_vertices_boundary(percentile);

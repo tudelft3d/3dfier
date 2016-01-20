@@ -29,9 +29,6 @@ Vegetation::Vegetation (char *wkt, std::string pid, int simplification) : TIN(wk
 
 
 bool Vegetation::lift() {
-  std::stringstream ss;
-  ss << bg::wkt(*(_p2));
-  bg::read_wkt(ss.str(), _p3);
   TopoFeature::lift_vertices_boundary(0.5);
   return true;
 }

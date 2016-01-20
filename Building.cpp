@@ -37,9 +37,6 @@ bool Building::lift() {
   _zvaluesinside.shrink_to_fit();
   _velevations.clear();
   _velevations.shrink_to_fit();
-  // std::stringstream ss;
-  // ss << bg::wkt(*(_p2));
-  // bg::read_wkt(ss.str(), _p3);
   return true;
 }
 
