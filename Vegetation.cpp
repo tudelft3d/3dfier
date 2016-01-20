@@ -50,10 +50,11 @@ std::string Vegetation::get_citygml() {
   return "<EMPTY/>";
 }
 
-std::string Vegetation::get_obj_f(int offset) {
+std::string Vegetation::get_obj_f(int offset, bool usemtl) {
   std::stringstream ss;
-  ss << "usemtl Vegetation" << std::endl;
-  ss << TopoFeature::get_obj_f(offset);
+  if (usemtl == true)
+    ss << "usemtl Vegetation" << std::endl;
+  ss << TopoFeature::get_obj_f(offset, usemtl);
   return ss.str();
 }
 

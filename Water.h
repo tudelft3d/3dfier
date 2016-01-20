@@ -34,7 +34,7 @@ public:
   bool          lift();
   bool          buildCDT();
   std::string   get_citygml();
-  std::string   get_obj_f(int offset);
+  std::string   get_obj_f(int offset, bool usemtl);
   TopoClass     get_class();
   bool          is_hard();
   static std::string _heightref;

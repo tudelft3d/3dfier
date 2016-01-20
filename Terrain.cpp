@@ -26,10 +26,11 @@
 Terrain::Terrain (char *wkt, std::string pid, int simplification) : TIN(wkt, pid, simplification)
 {}
 
-std::string Terrain::get_obj_f(int offset) {
+std::string Terrain::get_obj_f(int offset, bool usemtl) {
   std::stringstream ss;
-  ss << "usemtl Terrain" << std::endl;
-  ss << TopoFeature::get_obj_f(offset);
+  if (usemtl == true)
+    ss << "usemtl Terrain" << std::endl;
+  ss << TopoFeature::get_obj_f(offset, usemtl);
   return ss.str();
 }
 

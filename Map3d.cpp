@@ -107,7 +107,7 @@ std::string Map3d::get_csv_buildings() {
   return ss.str();
 }
 
-std::string Map3d::get_obj() {
+std::string Map3d::get_obj_per_feature() {
   std::vector<int> offsets;
   offsets.push_back(0);
   std::stringstream ss;
@@ -121,7 +121,7 @@ std::string Map3d::get_obj() {
   for (auto& p3 : _lsFeatures) {
     ss << "o " << p3->get_id() << std::endl;
     offset += offsets[i++];
-    ss << p3->get_obj_f(offset);
+    ss << p3->get_obj_f(offset, true);
     if (_building_include_floor == true) {  
       Building* b = dynamic_cast<Building*>(p3);
       if (b != nullptr)
@@ -131,6 +131,38 @@ std::string Map3d::get_obj() {
  return ss.str();
 }
 
+std::string Map3d::get_obj_per_class() {
+  std::vector<int> offsets;
+  offsets.push_back(0);
+  std::stringstream ss;
+  ss << "mtllib ./3dfier.mtl" << std::endl;
+  //-- go class by class sequentially
+  for (int c = 0; c < 6; c++) {
+    for (auto& p3 : _lsFeatures) {
+      if (p3->get_class() == c) {
+        ss << p3->get_obj_v();
+        offsets.push_back(p3->get_number_vertices());
+      }
+    }
+  }
+  int i = 0;
+  int offset = 0;
+  for (int c = 0; c < 6; c++) {
+    ss << "o " << c << std::endl;
+    for (auto& p3 : _lsFeatures) {
+      if (p3->get_class() == c) {
+        offset += offsets[i++];
+        ss << p3->get_obj_f(offset, false);
+        if (_building_include_floor == true) {  
+          Building* b = dynamic_cast<Building*>(p3);
+          if (b != nullptr)
+            ss << b->get_obj_f_floor(offset);
+        }
+      }
+    }
+  }
+  return ss.str();
+}
 
 unsigned long Map3d::get_num_polygons() {
   return _lsFeatures.size();

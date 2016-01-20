@@ -166,7 +166,7 @@ int main(int argc, const char * argv[]) {
   }
   else if (n["format"].as<std::string>() == "OBJ") {
     std::clog << "OBJ output" << std::endl;
-    std::cout << map3d.get_obj() << std::endl;
+    std::cout << map3d.get_obj_per_class() << std::endl;
   }
   else if (n["format"].as<std::string>() == "CSV-BUILDINGS") {
     std::clog << "CSV output (only of the buildings)" << std::endl;
@@ -174,7 +174,7 @@ int main(int argc, const char * argv[]) {
   }
   else {
     std::cerr << "ERROR: Output format " << n["format"].as<std::string>() << " not recognised. Outputting OBJ." << std::endl;
-    std::cout << map3d.get_obj() << std::endl;
+    std::cout << map3d.get_obj_per_feature() << std::endl;
   }
 
   //-- bye-bye

@@ -69,7 +69,7 @@ std::string TopoFeature::get_obj_v() {
   return ss.str();
 }
 
-std::string TopoFeature::get_obj_f(int offset) {
+std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
   std::stringstream ss;
   for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
@@ -320,7 +320,7 @@ std::string Block::get_obj_v() {
   return ss.str();
 }
 
-std::string Block::get_obj_f(int offset) {
+std::string Block::get_obj_f(int offset, bool usemtl) {
   std::stringstream ss;
   //-- top surface
   for (auto& t : _triangles)

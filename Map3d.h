@@ -56,7 +56,8 @@ public:
   
   std::string get_citygml();
   std::string get_csv_buildings();
-  std::string get_obj();
+  std::string get_obj_per_feature();
+  std::string get_obj_per_class();
 
   void stitch_water(TopoFeature* f, std::vector<PairIndexed> &re);
   void stitch_road (TopoFeature* f, std::vector<PairIndexed> &re);

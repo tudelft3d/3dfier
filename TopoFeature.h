@@ -41,7 +41,7 @@ public:
   virtual bool          add_elevation_point(double x, double y, double z, float radius) = 0;
   virtual std::string   get_citygml() = 0;
   virtual std::string   get_obj_v();
-  virtual std::string   get_obj_f(int offset);
+  virtual std::string   get_obj_f(int offset, bool usemtl);
   virtual int           get_number_vertices() = 0;
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
@@ -88,7 +88,7 @@ public:
   bool            add_elevation_point(double x, double y, double z, float radius);
   virtual std::string   get_citygml() = 0;
   std::string     get_obj_v();
-  std::string     get_obj_f(int offset);
+  std::string     get_obj_f(int offset, bool usemtl);
   int             get_number_vertices();
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;

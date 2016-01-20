@@ -60,10 +60,11 @@ std::string Building::get_csv() {
   return ss.str(); 
 }
 
-std::string Building::get_obj_f(int offset) {
+std::string Building::get_obj_f(int offset, bool usemtl) {
   std::stringstream ss;
-  ss << "usemtl Building" << std::endl;
-  ss << Block::get_obj_f(offset);
+  if (usemtl == true)
+    ss << "usemtl Building" << std::endl;
+  ss << Block::get_obj_f(offset, usemtl);
   return ss.str();
 }
 
