@@ -166,15 +166,15 @@ int main(int argc, const char * argv[]) {
   }
   else if (n["format"].as<std::string>() == "OBJ") {
     std::clog << "OBJ output" << std::endl;
+    std::cout << map3d.get_obj_per_feature() << std::endl;
+  }
+  else if (n["format"].as<std::string>() == "OBJ-NoID") {
+    std::clog << "OBJ (without IDs) output" << std::endl;
     std::cout << map3d.get_obj_per_class() << std::endl;
   }
   else if (n["format"].as<std::string>() == "CSV-BUILDINGS") {
     std::clog << "CSV output (only of the buildings)" << std::endl;
     std::cout << map3d.get_csv_buildings() << std::endl;
-  }
-  else {
-    std::cerr << "ERROR: Output format " << n["format"].as<std::string>() << " not recognised. Outputting OBJ." << std::endl;
-    std::cout << map3d.get_obj_per_feature() << std::endl;
   }
 
   //-- bye-bye
@@ -302,10 +302,11 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
 //-- 5. output
   n = nodes["output"];
   if ( (n["format"].as<std::string>() != "OBJ") &&
+       (n["format"].as<std::string>() != "OBJ-NoID") &&
        (n["format"].as<std::string>() != "CityGML") &&
        (n["format"].as<std::string>() != "CSV-BUILDINGS") ) {
     wentgood = false;
-    std::cerr << "\tOption 'output.format' invalid (OBJ | CityGML | CSV-BUILDINGS)" << std::endl;
+    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CSV-BUILDINGS)" << std::endl;
   }
   return wentgood;
 }
