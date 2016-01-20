@@ -25,7 +25,7 @@
 
 //-- initialisation of 
 int TopoFeature::_count = 0;
-std::string Block::_heightref_top = "median";
+std::string Block::_heightref_top = "percentile-50";
 std::string Block::_heightref_base = "percentile-10";
 
 
