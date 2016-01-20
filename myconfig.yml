@@ -41,7 +41,7 @@ options:
   radius_vertex_elevation: 1.0
 
 output: 
-  format: OBJ # CityGML or CSV-BUILDINGS
+  format: OBJ # OBJ-NoID or CityGML or CSV-BUILDINGS
   building_floor: false
 
 buildings:
