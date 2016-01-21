@@ -49,16 +49,22 @@ TopoClass Building::get_class() {
   return BUILDING;
 }
 
+bool Building::is_hard() {
+  return true;
+}
+
+
 std::string Building::get_csv() {
   std::stringstream ss;
   ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height_top() << ";" << this->get_height_base() << std::endl;
   return ss.str(); 
 }
 
-std::string Building::get_obj_f(int offset) {
+std::string Building::get_obj_f(int offset, bool usemtl) {
   std::stringstream ss;
-  ss << "usemtl Building" << std::endl;
-  ss << Block::get_obj_f(offset);
+  if (usemtl == true)
+    ss << "usemtl Building" << std::endl;
+  ss << Block::get_obj_f(offset, usemtl);
   return ss.str();
 }
 

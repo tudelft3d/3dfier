@@ -50,6 +50,11 @@ TopoClass Water::get_class() {
   return WATER;
 }
 
+bool Water::is_hard() {
+  return true;
+}
+
+
 void Water::make_boundary_horizontal() {
   //-- find the mininum value and assign it
   double minimum = 1e9;
@@ -79,10 +84,11 @@ void Water::make_boundary_horizontal() {
 }
 
 
-std::string Water::get_obj_f(int offset) {
+std::string Water::get_obj_f(int offset, bool usemtl) {
   std::stringstream ss;
-  ss << "usemtl Water" << std::endl;
-  ss << TopoFeature::get_obj_f(offset);
+  if (usemtl == true)
+    ss << "usemtl Water" << std::endl;
+  ss << TopoFeature::get_obj_f(offset, usemtl);
   return ss.str();
 }
 

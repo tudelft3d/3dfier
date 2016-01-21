@@ -51,11 +51,16 @@ TopoClass Road::get_class() {
   return ROAD;
 }
 
+bool Road::is_hard() {
+  return true;
+}
 
-std::string Road::get_obj_f(int offset) {
+
+std::string Road::get_obj_f(int offset, bool usemtl) {
   std::stringstream ss;
-  ss << "usemtl Road" << std::endl;
-  ss << TopoFeature::get_obj_f(offset);
+  if (usemtl == true)
+    ss << "usemtl Road" << std::endl;
+  ss << TopoFeature::get_obj_f(offset, usemtl);
   return ss.str();
 }
 
