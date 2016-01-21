@@ -209,7 +209,7 @@ bool Map3d::threeDfy(bool triangulate) {
   for (auto& p : _lsFeatures)
     p->lift();
   if (triangulate == true) {
-    this->stitch_lifted_features();
+    // this->stitch_lifted_features();
     for (auto& p : _lsFeatures) {
       // std::clog << p->get_id() << std::endl;
       p->buildCDT();
