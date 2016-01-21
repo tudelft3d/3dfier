@@ -346,7 +346,7 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
       std::clog << i << " ";
     std::clog << ")" << std::endl;
   }
-  if (skip != 0)
+  if ( (skip != 0) && (skip != 1) ) 
     std::clog << "\t(only reading every " << skip << "th points)" << std::endl;
   std::ifstream ifs;
   ifs.open(ifile.c_str(), std::ios::in | std::ios::binary);
@@ -367,7 +367,7 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
   TopoFeature* lastone = NULL;
   while (reader.ReadNextPoint()) {
     liblas::Point const& p = reader.GetPoint();
-    if (skip != 0) {
+    if ( (skip != 0) && (skip != 1) ) {
       if (i % skip == 0) {
         if(std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
           lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);

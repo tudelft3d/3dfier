@@ -139,7 +139,11 @@ int main(int argc, const char * argv[]) {
     tmp = (*it)["datasets"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
       bElevData = true;
-      map3d.add_las_file(it2->as<std::string>(), lasomits, (*it)["thinning"].as<int>());
+      if ((*it)["thinning"]) 
+        map3d.add_las_file(it2->as<std::string>(), lasomits, (*it)["thinning"].as<int>());
+      else
+        map3d.add_las_file(it2->as<std::string>(), lasomits, 1);
+
     }
   }
 
