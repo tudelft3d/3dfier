@@ -583,10 +583,18 @@ void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFea
     }
     adjust_nc(televs, 1.0);
     f->set_point_elevation(pos, televs[f->get_class()]);
+    for (int i = 0; i <= 5; i++) {
+      if ( (televs[i] > -998) && (i != f->get_class()) && (televs[i] < televs[f->get_class()]) )
+        f->add_nc(pos, televs[i]);
+    }
+
     for (auto& fadj : star) {
+      // 1. set the elevation adjusted with the nc
       fadj.first->set_point_elevation(fadj.second, televs[fadj.first->get_class()]);
+      // 2. if type ROAD/TERRAIN/VEGETATION && others are lower
+      // TODO : can vertical wall
       for (int i = 0; i <= 5; i++) {
-        if ( (televs[i] > -998) && (i != fadj.first->get_class()) )
+        if ( (televs[i] > -998) && (i != fadj.first->get_class()) && (televs[i] < televs[fadj.first->get_class()]) )
           fadj.first->add_nc(fadj.second, televs[i]);
       }
     }

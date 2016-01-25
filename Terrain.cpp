@@ -21,6 +21,7 @@
 */
 
 #include "Terrain.h"
+#include <algorithm>
 
 
 Terrain::Terrain (char *wkt, std::string pid, int simplification) : TIN(wkt, pid, simplification)
@@ -56,44 +57,50 @@ bool Terrain::lift() {
 bool Terrain::buildCDT() {
   getCDT(&_p3, _vertices, _triangles, _segments, _lidarpts);
 
-  // std::cout << "llllllll" << std::endl;
-  // std::cout << std::setprecision(3) << std::fixed << bg::wkt(*(_p2)) << std::endl;
-  // std::cout << std::setprecision(3) << std::fixed << this->get_point_x(0) << std::endl;
-  // // std::cout << std::setprecision(3) << std::fixed << bg::wkt(_p3) << std::endl;
-  // std::cout << "llllllll" << std::endl;
-
-  // //-- add those evil vertical walls
   int i = 0;
-  int ni;
   for (auto& curnc : _nc) {
-    // this->get_next_point2_in_ring(i, ni); //-- index of next in ring
-    // std::vector<float> nnc = _nc[ni];
-
-    // if ( (curnc.size() == 0) && (nnc.size() == 0))
-    //   std::clog << "both nc empty" << std::endl;
-    // else {
-    //   std::clog << "vertical wall to add." << std::endl;
-    //   for (auto& v : nnc) {
-    //     _vertices.push_back(Point3(this->get_point_x(i), this->get_point_y(i), this->get_point_elevation(i)));
-    //     Triangle t;
-    //     // t.v0 = out.trianglelist[i * out.numberofcorners + 0];
-    //     // t.v1 = out.trianglelist[i * out.numberofcorners + 1];
-    //     // t.v2 = out.trianglelist[i * out.numberofcorners + 2];
-    //     // triangles.push_back(t);
-    //   }
-    // }
-    
-
-    if (curnc.size() > 0) {
-      std::clog << "**nc** " << this->get_point_elevation(i) << std::endl;
-      for (auto& n : curnc) {
-        std::clog << "|" << n;
-      }
-      // std::clog << "( " << _nc[ni].size() << " ) ";
-      std::clog << std::endl;
+    if (curnc.empty() == false) {
+      curnc.push_back(this->get_point_elevation(i));
+      std::sort(curnc.begin(), curnc.end());
     }
     i++;
   }
+  //-- add those evil vertical walls
+  i = 0;
+  int ni;
+  for (auto& curnc : _nc) {
+    this->get_next_point2_in_ring(i, ni); //-- index of next in ring
+    std::vector<float> nnc = _nc[ni];
 
+    if (nnc.size() > 0) {
+      for (int j = 0; j < (nnc.size() - 1); j++) {
+        _vertices.push_back(Point3(this->get_point_x(i), this->get_point_y(i), this->get_point_elevation(i)));
+        _vertices.push_back(Point3(this->get_point_x(ni), this->get_point_y(ni), nnc[j]));
+        _vertices.push_back(Point3(this->get_point_x(ni), this->get_point_y(ni), nnc[j + 1]));
+        Triangle t;
+        t.v0 = int(_vertices.size()) - 3;
+        t.v1 = int(_vertices.size()) - 2;
+        t.v2 = int(_vertices.size()) - 1;
+        _triangles.push_back(t);
+      }
+    }
+
+    if (curnc.size() > 0) {
+      for (int j = 0; j < (curnc.size() - 1); j++) {
+        if (nnc.size() == 0)
+          _vertices.push_back(Point3(this->get_point_x(ni), this->get_point_y(ni), this->get_point_elevation(ni)));
+        else
+          _vertices.push_back(Point3(this->get_point_x(ni), this->get_point_y(ni), nnc.front()));
+        _vertices.push_back(Point3(this->get_point_x(i), this->get_point_y(i), curnc[j]));
+        _vertices.push_back(Point3(this->get_point_x(i), this->get_point_y(i), curnc[j + 1]));
+        Triangle t;
+        t.v0 = int(_vertices.size()) - 3;
+        t.v1 = int(_vertices.size()) - 2;
+        t.v2 = int(_vertices.size()) - 1;
+        _triangles.push_back(t);
+      }
+    }
+    i++;
+  }
   return true;
 }
