@@ -79,8 +79,8 @@ bool Terrain::buildCDT() {
         _vertices.push_back(Point3(this->get_point_x(ni), this->get_point_y(ni), nnc[j + 1]));
         Triangle t;
         t.v0 = int(_vertices.size()) - 3;
-        t.v1 = int(_vertices.size()) - 2;
-        t.v2 = int(_vertices.size()) - 1;
+        t.v1 = int(_vertices.size()) - 1;
+        t.v2 = int(_vertices.size()) - 2;
         _triangles.push_back(t);
       }
     }
