@@ -303,6 +303,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       std::cerr << "\tOption 'options.radius_vertex_elevation' invalid." << std::endl;
     }
   }
+  if (n["threshold_jump_edges"]) {
+    try {
+      boost::lexical_cast<float>(n["threshold_jump_edges"].as<std::string>());
+    }
+    catch(boost::bad_lexical_cast& e) {
+      wentgood = false;
+      std::cerr << "\tOption 'options.threshold_jump_edges' invalid." << std::endl;
+    }
+  }
 //-- 5. output
   n = nodes["output"];
   if ( (n["format"].as<std::string>() != "OBJ") &&

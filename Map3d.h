@@ -59,8 +59,6 @@ public:
   std::string get_obj_per_feature();
   std::string get_obj_per_class();
 
-  void stitch_water(TopoFeature* f, std::vector<PairIndexed> &re);
-  void stitch_road (TopoFeature* f, std::vector<PairIndexed> &re);
      
   void set_building_heightref_roof(std::string heightref);
   void set_building_heightref_floor(std::string heightref);
@@ -71,6 +69,7 @@ public:
   void set_water_heightref(std::string heightref);
   void set_road_heightref(std::string heightref);
   void set_radius_vertex_elevation(float radius);
+  void set_threshold_jump_edges(float threshold);
 private:
   std::string _building_heightref_roof;
   std::string _building_heightref_floor;
@@ -81,6 +80,7 @@ private:
   std::string _water_heightref;
   std::string _road_heightref;
   float       _radius_vertex_elevation;
+  float       _threshold_jump_edges;
   double      _minx;
   double      _miny;
 

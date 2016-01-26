@@ -39,6 +39,7 @@ input_elevation:
 
 options:
   radius_vertex_elevation: 1.0
+  threshold_jump_edges: 0.25
 
 output: 
   format: OBJ # OBJ-NoID or CityGML or CSV-BUILDINGS

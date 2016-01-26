@@ -32,8 +32,8 @@ Map3d::Map3d() {
   _building_triangulate = true;
   _terrain_simplification = 0;
   _vegetation_simplification = 0;
-  // _water_ = 0;
   _radius_vertex_elevation = 1.0;
+  _threshold_jump_edges = 0.5;
   _minx = 1e8;
   _miny = 1e8;
 }
@@ -57,6 +57,9 @@ void Map3d::set_radius_vertex_elevation(float radius) {
   _radius_vertex_elevation = radius;  
 }
 
+void Map3d::set_threshold_jump_edges(float threshold) {
+  _threshold_jump_edges = threshold;  
+}
 
 void Map3d::set_building_include_floor(bool include) {
   _building_include_floor = include;
@@ -387,98 +390,6 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
 }
 
 
-void Map3d::stitch_water(TopoFeature* f, std::vector<PairIndexed> &re) {
-  std::clog << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
-  Polygon2* pgn = f->get_Polygon2();
-  Ring2 oring = bg::exterior_ring(*pgn);
-  for (auto& each : re) {
-    TopoFeature* fadj = each.second;
-    if (fadj->get_class() == TERRAIN) {
-      if ( (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
-        int ia, ib;
-        for (int i = 0; i < (oring.size() - 1); i++) {
-          if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
-            float z = f->get_point_elevation(f->has_point2(oring[i]));
-            fadj->set_point_elevation(ia, z);
-            fadj->set_point_elevation(ib, z);  
-          }
-        }
-        if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
-          float z = f->get_point_elevation(f->has_point2(oring.front()));
-          fadj->set_point_elevation(ia, z);
-          fadj->set_point_elevation(ib, z);  
-        }
-      }
-    }
-  }
-}
-
-void Map3d::stitch_road(TopoFeature* f, std::vector<PairIndexed> &re) {
-  std::clog << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
-  Polygon2* pgn = f->get_Polygon2();
-  Ring2 oring = bg::exterior_ring(*pgn);
-  for (auto& each : re) {
-    TopoFeature* fadj = each.second;
-    if (fadj->get_class() == ROAD) {
-      // if ( (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
-      if ( (fadj->get_counter() > f->get_counter()) && (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
-        int ia, ib;
-        for (int i = 0; i < (oring.size() - 1); i++) {
-          if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
-            int j = f->has_point2(oring[i]);
-            float z = f->get_point_elevation(j);
-            float zadj = fadj->get_point_elevation(ia);
-            f->set_point_elevation(j, (z + zadj) / 2);
-            fadj->set_point_elevation(ia, (z + zadj) / 2);
-            //--
-            j = f->has_point2(oring[i + 1]);
-            z = f->get_point_elevation(j);
-            zadj = fadj->get_point_elevation(ib);
-            f->set_point_elevation(j, (z + zadj) / 2);
-            fadj->set_point_elevation(ib, (z + zadj) / 2);
-          }
-        }
-        // if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
-        //   float z = f->get_point_elevation(f->has_point2(oring.front()));
-        //   float zadj = fadj->get_point_elevation(ia);
-        //   fadj->set_point_elevation(ia, (z + zadj) / 2);
-        //   zadj = fadj->get_point_elevation(ib);
-        //   fadj->set_point_elevation(ib, (z + zadj) / 2);
-        // }
-      }
-    }
-  } 
-}
-
-
-// void Map3d::stitch_lower(TopoFeature* f, TopoFeature* fafj) {
-//   std::clog << "#" << f->get_counter() << " : " << f->get_id() << std::endl;
-//   Polygon2* pgn = f->get_Polygon2();
-//   Ring2 oring = bg::exterior_ring(*pgn);
-//   for (auto& each : re) {
-//     TopoFeature* fadj = each.second;
-//     if (fadj->get_class() == TERRAIN) {
-//       if ( (bg::touches(*pgn, *(fadj->get_Polygon2())) == true) ) {
-//         int ia, ib;
-//         for (int i = 0; i < (oring.size() - 1); i++) {
-//           if (fadj->has_segment(oring[i], oring[i + 1], ia, ib) == true) {
-//             float z = f->get_point_elevation(f->has_point2(oring[i]));
-//             fadj->set_point_elevation(ia, z);
-//             fadj->set_point_elevation(ib, z);  
-//           }
-//         }
-//         if (fadj->has_segment(oring.back(), oring.front(), ia, ib) == true) {
-//           float z = f->get_point_elevation(f->has_point2(oring.front()));
-//           fadj->set_point_elevation(ia, z);
-//           fadj->set_point_elevation(ib, z);  
-//         }
-//       }
-//     }
-//   }
-// }
-
-
-
 void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
   std::vector<PairIndexed> re;
   _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
@@ -533,7 +444,6 @@ void Map3d::stitch_lifted_features() {
 
 
 void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
-  double toljumpedge = 0.5;
   float fz = f->get_point_elevation(pos);
   //-- degree of vertex == 2
   if (star.size() == 1) {
@@ -544,15 +454,15 @@ void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFea
       if (f->is_hard() == true) {
         if (star[0].first->is_hard() == true)  {
           // TODO : order to check, vertical added to soft/2nd passed
-          stitch_2_hard(f, pos, star[0].first, star[0].second, toljumpedge); 
+          stitch_2_hard(f, pos, star[0].first, star[0].second, _threshold_jump_edges); 
         }
         else {
-          stitch_jumpedge(f, pos, star[0].first, star[0].second, toljumpedge);
+          stitch_jumpedge(f, pos, star[0].first, star[0].second, _threshold_jump_edges);
         }
       }
       else { //-- f is soft
         if (star[0].first->is_hard() == true)  {
-          stitch_jumpedge(star[0].first, star[0].second, f, pos, toljumpedge);
+          stitch_jumpedge(star[0].first, star[0].second, f, pos, _threshold_jump_edges);
         }
         else {
           stitch_average(f, pos, star[0].first, star[0].second);
@@ -617,7 +527,7 @@ void Map3d::stitch_jumpedge(TopoFeature* hard, int hardpos, TopoFeature* soft, i
   float hardz = hard->get_point_elevation(hardpos);
   float deltaz = std::abs(hardz - soft->get_point_elevation(softpos));
   std::clog << "deltaz=" << deltaz << std::endl;
-  if (deltaz < jumpedge) //-- TODO 1m jump-edge?
+  if (deltaz < jumpedge) 
     soft->set_point_elevation(softpos, hardz);
   else {
     soft->add_nc(softpos, hardz);
