@@ -502,7 +502,6 @@ void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFea
       // 1. set the elevation adjusted with the nc
       fadj.first->set_point_elevation(fadj.second, televs[fadj.first->get_class()]);
       // 2. if type ROAD/TERRAIN/VEGETATION && others are lower
-      // TODO : can vertical wall
       for (int i = 0; i <= 5; i++) {
         if ( (televs[i] > -998) && (i != fadj.first->get_class()) && (televs[i] < televs[fadj.first->get_class()]) )
           fadj.first->add_nc(fadj.second, televs[i]);
@@ -543,8 +542,15 @@ void Map3d::stitch_average(TopoFeature* hard, int hardpos, TopoFeature* soft, in
 }
 
 void Map3d::stitch_2_hard(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge) {
-  std::clog << "STITCH_2_HARD: " << hard->get_class() << " --- " << soft->get_class() << std::endl;
-  soft->add_nc(softpos, hard->get_point_elevation(hardpos));
+  // TODO: how to stitch 2 hard classes? Add VW for Road/Building?
+  if (hard->get_class() == ROAD)
+    hard->add_nc(hardpos, soft->get_point_elevation(softpos));
+  else if (soft->get_class() == ROAD)
+    soft->add_nc(softpos, hard->get_point_elevation(hardpos));
+  else {
+    std::clog << "STITCH_2_HARD: " << hard->get_class() << " --- " << soft->get_class() << std::endl;
+    std::clog << "\t no ROAD involved, only WATER and BUILDING." << std::endl;
+  }
 }
 
 
