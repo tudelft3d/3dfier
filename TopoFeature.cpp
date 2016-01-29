@@ -259,7 +259,8 @@ bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float
 }
 
 void TopoFeature::lift_vertices_boundary(float percentile) {
-  //-- fetch one value for each vertex
+  //-- fetch one average value to assign to missing ones
+  // TODO : is avg to fix problems the best? I doubt.
   std::vector<float> zvertices;
   float avg = 0.0;
   for (auto& v : _velevations) {
@@ -272,7 +273,6 @@ void TopoFeature::lift_vertices_boundary(float percentile) {
       zvertices.push_back(-9999);
   }
   avg /= zvertices.size();
-  //-- replace missing values by the avg of the polygon TODO : is avg to fix problems the best? I doubt.
   for (auto& v : zvertices) 
     if (v < -9998)
       v = avg;

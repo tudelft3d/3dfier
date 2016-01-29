@@ -22,7 +22,7 @@
  
 #include "Road.h"
 
-std::string Road::_heightref = "percentile-10";
+std::string Road::_heightref = "percentile-50";
 
 Road::Road (char *wkt, std::string pid, std::string heightref) 
 : Boundary3D(wkt, pid)
