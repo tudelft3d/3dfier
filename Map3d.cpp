@@ -209,14 +209,23 @@ bool Map3d::threeDfy(bool triangulate) {
 */
   // std::clog << "MinX: " << _minx << std::endl;
   // std::clog << "MinY: " << _miny << std::endl;
+  std::clog << "===== /LIFTING =====" << std::endl;
   for (auto& p : _lsFeatures)
     p->lift();
+  std::clog << "===== LIFTING/ =====" << std::endl;
   if (triangulate == true) {
+    std::clog << "=====  /STITCHING =====" << std::endl;
     this->stitch_lifted_features();
+    std::clog << "=====  STITCHING/ =====" << std::endl;
+    std::clog << "=====  /CDT =====" << std::endl;
     for (auto& p : _lsFeatures) {
-      // std::clog << p->get_id() << std::endl;
-      p->buildCDT();
+      std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
+      if (p->get_id() == "116739970")
+        p->buildCDT();
+      else
+        p->buildCDT();
     }
+    std::clog << "=====  CDT/ =====" << std::endl;
   }
   return true;
 }
@@ -403,7 +412,6 @@ void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
 
 
 void Map3d::stitch_lifted_features() {
-  std::clog << "===== STITCH POLYGONS =====" << std::endl;
   for (auto& f : _lsFeatures) {
     std::vector<PairIndexed> re;
     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
@@ -439,8 +447,15 @@ void Map3d::stitch_lifted_features() {
       }
     }
   }
-  std::clog << "===== STITCH POLYGONS =====" << std::endl;
 }
+// for (Ring2& iring: bg::interior_rings(*pgn)) {
+//   for (int i = 0; i < (iring.size() - 1); i++) {
+//     if (polygon2_find_segment(fadj->get_Polygon2(), iring[i], iring[i + 1]) == true)
+//       std::clog << "IRING" << fadj->get_id() << std::endl;
+//   }
+//   if (polygon2_find_segment(fadj->get_Polygon2(), iring.back(), iring.front()) == true)
+//     std::clog << "IRING" << fadj->get_id() << std::endl;
+// }
 
 
 void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
@@ -552,19 +567,5 @@ void Map3d::stitch_2_hard(TopoFeature* hard, int hardpos, TopoFeature* soft, int
     std::clog << "\t no ROAD involved, only WATER and BUILDING." << std::endl;
   }
 }
-
-
-
-// for (Ring2& iring: bg::interior_rings(*pgn)) {
-//   for (int i = 0; i < (iring.size() - 1); i++) {
-//     if (polygon2_find_segment(fadj->get_Polygon2(), iring[i], iring[i + 1]) == true)
-//       std::clog << "IRING" << fadj->get_id() << std::endl;
-//   }
-//   if (polygon2_find_segment(fadj->get_Polygon2(), iring.back(), iring.front()) == true)
-//     std::clog << "IRING" << fadj->get_id() << std::endl;
-// }
-
-
-
 
 
