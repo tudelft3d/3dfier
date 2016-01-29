@@ -56,51 +56,6 @@ bool Terrain::lift() {
 
 bool Terrain::buildCDT() {
   getCDT(&_p3, _vertices, _triangles, _segments, _lidarpts);
-
-  int i = 0;
-  for (auto& curnc : _nc) {
-    if (curnc.empty() == false) {
-      curnc.push_back(this->get_point_elevation(i));
-      std::sort(curnc.begin(), curnc.end());
-    }
-    i++;
-  }
-  //-- add those evil vertical walls
-  i = 0;
-  int ni;
-  for (auto& curnc : _nc) {
-    this->get_next_point2_in_ring(i, ni); //-- index of next in ring
-    std::vector<float> nnc = _nc[ni];
-
-    if (nnc.size() > 0) {
-      for (int j = 0; j < (nnc.size() - 1); j++) {
-        _vertices.push_back(Point3(this->get_point_x(i), this->get_point_y(i), this->get_point_elevation(i)));
-        _vertices.push_back(Point3(this->get_point_x(ni), this->get_point_y(ni), nnc[j]));
-        _vertices.push_back(Point3(this->get_point_x(ni), this->get_point_y(ni), nnc[j + 1]));
-        Triangle t;
-        t.v0 = int(_vertices.size()) - 3;
-        t.v1 = int(_vertices.size()) - 1;
-        t.v2 = int(_vertices.size()) - 2;
-        _triangles.push_back(t);
-      }
-    }
-
-    if (curnc.size() > 0) {
-      for (int j = 0; j < (curnc.size() - 1); j++) {
-        if (nnc.size() == 0)
-          _vertices.push_back(Point3(this->get_point_x(ni), this->get_point_y(ni), this->get_point_elevation(ni)));
-        else
-          _vertices.push_back(Point3(this->get_point_x(ni), this->get_point_y(ni), nnc.front()));
-        _vertices.push_back(Point3(this->get_point_x(i), this->get_point_y(i), curnc[j]));
-        _vertices.push_back(Point3(this->get_point_x(i), this->get_point_y(i), curnc[j + 1]));
-        Triangle t;
-        t.v0 = int(_vertices.size()) - 3;
-        t.v1 = int(_vertices.size()) - 2;
-        t.v2 = int(_vertices.size()) - 1;
-        _triangles.push_back(t);
-      }
-    }
-    i++;
-  }
+  construct_vertical_walls();
   return true;
 }

@@ -35,6 +35,7 @@ bool Vegetation::lift() {
 
 bool Vegetation::buildCDT() {
   getCDT(&_p3, _vertices, _triangles, _segments, _lidarpts);
+  construct_vertical_walls();
   return true;
 }
 
