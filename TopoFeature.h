@@ -70,11 +70,14 @@ protected:
   std::vector<Point3>   _vertices;  //-- output of Triangle
   std::vector<Triangle> _triangles; //-- output of Triangle
   std::vector<Segment>  _segments;  //-- output of Triangle
+  std::vector<Point3>   _vertices_vw;  //-- for vertical walls
+  std::vector<Triangle> _triangles_vw; //-- for vertical walls
 
   Point2& get_previous_point2_in_ring(int i, int& index);
   Point2& get_next_point2_in_ring(int i, int& index);
   bool    assign_elevation_to_vertex(double x, double y, double z, float radius);
   void    lift_vertices_boundary(float percentile);
+  void    construct_vertical_walls();
 };
 
 
@@ -84,24 +87,24 @@ class Block : public TopoFeature
 {
 public:
   Block           (char *wkt, std::string pid, std::string heightref_top, std::string heightref_base); 
-  virtual bool    lift() = 0;
-  bool            add_elevation_point(double x, double y, double z, float radius);
-  virtual std::string   get_citygml() = 0;
-  std::string     get_obj_v();
-  std::string     get_obj_f(int offset, bool usemtl);
-  int             get_number_vertices();
-  virtual TopoClass     get_class() = 0;
-  virtual bool          is_hard() = 0;
+  virtual bool        lift() = 0;
+  bool                add_elevation_point(double x, double y, double z, float radius);
+  virtual std::string get_citygml() = 0;
+  std::string         get_obj_v();
+  std::string         get_obj_f(int offset, bool usemtl);
+  int                 get_number_vertices();
+  virtual TopoClass   get_class() = 0;
+  virtual bool        is_hard() = 0;
   
-  float           get_height_top();
-  float           get_height_base();
-  static std::string    _heightref_top;
-  static std::string    _heightref_base;
+  float               get_height_top();
+  float               get_height_base();
+  static std::string  _heightref_top;
+  static std::string  _heightref_base;
 protected:
-  bool                  _is3d;
-  float                 _height_top;
-  float                 _height_base;
-  std::vector<float>    _zvaluesinside;
+  bool                _is3d;
+  float               _height_top;
+  float               _height_base;
+  std::vector<float>  _zvaluesinside;
   bool build_CDT();
 };
 

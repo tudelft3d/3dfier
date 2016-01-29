@@ -66,6 +66,8 @@ std::string TopoFeature::get_obj_v() {
   std::stringstream ss;
   for (auto& v : _vertices)
     ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
+  for (auto& v : _vertices_vw)
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
   return ss.str();
 }
 
@@ -73,8 +75,61 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
   std::stringstream ss;
   for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
+  int k = _vertices.size();
+  if (usemtl == true)
+    ss << "usemtl VerticalWalls" << std::endl;
+  for (auto& t : _triangles_vw)
+    ss << "f " << (t.v0 + 1 + offset + k) << " " << (t.v1 + 1 + offset + k) << " " << (t.v2 + 1 + offset + k) << std::endl;
   return ss.str();
 }
+
+
+void TopoFeature::construct_vertical_walls() {
+  int i = 0;
+  for (auto& curnc : _nc) {
+    if (curnc.empty() == false) {
+      curnc.push_back(this->get_point_elevation(i));
+      std::sort(curnc.begin(), curnc.end());
+    }
+    i++;
+  }
+  //-- add those evil vertical walls
+  i = 0;
+  int ni;
+  for (auto& curnc : _nc) {
+    this->get_next_point2_in_ring(i, ni); //-- index of next in ring
+    std::vector<float> nnc = _nc[ni];
+    if (nnc.size() > 0) {
+      for (int j = 0; j < (nnc.size() - 1); j++) {
+        _vertices_vw.push_back(Point3(this->get_point_x(i), this->get_point_y(i), this->get_point_elevation(i)));
+        _vertices_vw.push_back(Point3(this->get_point_x(ni), this->get_point_y(ni), nnc[j]));
+        _vertices_vw.push_back(Point3(this->get_point_x(ni), this->get_point_y(ni), nnc[j + 1]));
+        Triangle t;
+        t.v0 = int(_vertices_vw.size()) - 3;
+        t.v1 = int(_vertices_vw.size()) - 1;
+        t.v2 = int(_vertices_vw.size()) - 2;
+        _triangles_vw.push_back(t);
+      }
+    }
+    if (curnc.size() > 0) {
+      for (int j = 0; j < (curnc.size() - 1); j++) {
+        if (nnc.size() == 0)
+          _vertices_vw.push_back(Point3(this->get_point_x(ni), this->get_point_y(ni), this->get_point_elevation(ni)));
+        else
+          _vertices_vw.push_back(Point3(this->get_point_x(ni), this->get_point_y(ni), nnc.front()));
+        _vertices_vw.push_back(Point3(this->get_point_x(i), this->get_point_y(i), curnc[j]));
+        _vertices_vw.push_back(Point3(this->get_point_x(i), this->get_point_y(i), curnc[j + 1]));
+        Triangle t;
+        t.v0 = int(_vertices_vw.size()) - 3;
+        t.v1 = int(_vertices_vw.size()) - 2;
+        t.v2 = int(_vertices_vw.size()) - 1;
+        _triangles_vw.push_back(t);
+      }
+    }
+    i++;
+  }
+}
+
 
 bool TopoFeature::has_segment(Point2& a, Point2& b, int& ia, int& ib) {
   int posa = this->has_point2(a);
@@ -419,7 +474,7 @@ Boundary3D::Boundary3D(char *wkt, std::string pid)
 
 
 int Boundary3D::get_number_vertices() {
-  return int(_vertices.size());
+  return ( int(_vertices.size()) + int(_vertices_vw.size()) );
 }
 
 
@@ -467,7 +522,7 @@ TIN::TIN(char *wkt, std::string pid, int simplification)
 
 
 int TIN::get_number_vertices() {
-  return int(_vertices.size());
+  return ( int(_vertices.size()) + int(_vertices_vw.size()) );
 }
 
 
