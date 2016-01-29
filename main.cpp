@@ -21,10 +21,10 @@
  */
 
 
+//-- TODO: create the topo DS locally? to prevent cases where nodes on only in one polygon. Or pprepair before?
 //-- TODO: add GDAL2.0 support
 //-- TODO: write output all polygons once the tile completely containing is closed?
-//-- TODO: filter the noise in the lidar points inside TIN?
-//-- TODO : how to make roads horizontal "in the length"? or do we need to?
+//-- TODO : how to make roads horizontal "in the width"? 
 
 //-----------------------------------------------------------------------------
 
