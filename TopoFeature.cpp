@@ -329,8 +329,10 @@ void TopoFeature::lift_vertices_boundary(float percentile) {
   }
   avg /= zvertices.size();
   for (auto& v : zvertices) 
-    if (v < -9998)
+    if (v < -9998) {
       v = avg;
+      std::clog << "** interpolation vertex ** " << this->get_class() << std::endl;
+    }
   //-- assign the value of the Polygon3
   Ring3 oring = bg::exterior_ring(_p3);
   for (int i = 0; i < oring.size(); i++) 
