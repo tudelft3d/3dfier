@@ -40,7 +40,7 @@ public:
   virtual bool          buildCDT() = 0;
   virtual bool          add_elevation_point(double x, double y, double z, float radius) = 0;
   virtual std::string   get_citygml() = 0;
-  virtual std::string   get_obj_v();
+  virtual std::string   get_obj_v(int z_exaggeration);
   virtual std::string   get_obj_f(int offset, bool usemtl);
   virtual int           get_number_vertices() = 0;
   virtual TopoClass     get_class() = 0;
@@ -90,7 +90,7 @@ public:
   virtual bool        lift() = 0;
   bool                add_elevation_point(double x, double y, double z, float radius);
   virtual std::string get_citygml() = 0;
-  std::string         get_obj_v();
+  std::string         get_obj_v(int z_exaggeration);
   std::string         get_obj_f(int offset, bool usemtl);
   int                 get_number_vertices();
   virtual TopoClass   get_class() = 0;

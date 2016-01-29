@@ -110,13 +110,13 @@ std::string Map3d::get_csv_buildings() {
   return ss.str();
 }
 
-std::string Map3d::get_obj_per_feature() {
+std::string Map3d::get_obj_per_feature(int z_exaggeration) {
   std::vector<int> offsets;
   offsets.push_back(0);
   std::stringstream ss;
   ss << "mtllib ./3dfier.mtl" << std::endl;
   for (auto& p3 : _lsFeatures) {
-    ss << p3->get_obj_v();
+    ss << p3->get_obj_v(z_exaggeration);
     offsets.push_back(p3->get_number_vertices());
   }
   int i = 0;
@@ -134,7 +134,7 @@ std::string Map3d::get_obj_per_feature() {
  return ss.str();
 }
 
-std::string Map3d::get_obj_per_class() {
+std::string Map3d::get_obj_per_class(int z_exaggeration) {
   std::vector<int> offsets;
   offsets.push_back(0);
   std::stringstream ss;
@@ -143,7 +143,7 @@ std::string Map3d::get_obj_per_class() {
   for (int c = 0; c < 6; c++) {
     for (auto& p3 : _lsFeatures) {
       if (p3->get_class() == c) {
-        ss << p3->get_obj_v();
+        ss << p3->get_obj_v(z_exaggeration);
         offsets.push_back(p3->get_number_vertices());
       }
     }

@@ -164,17 +164,20 @@ int main(int argc, const char * argv[]) {
   //-- output
   if (n["building_floor"].as<std::string>() == "true") 
     map3d.set_building_include_floor(true);
+  int z_exaggeration = 0;
+  if (n["vertical_exaggeration"]) 
+    z_exaggeration = n["vertical_exaggeration"].as<int>();
   if (n["format"].as<std::string>() == "CityGML") {
     std::clog << "CityGML output" << std::endl;
     std::cout << map3d.get_citygml() << std::endl;
   }
   else if (n["format"].as<std::string>() == "OBJ") {
     std::clog << "OBJ output" << std::endl;
-    std::cout << map3d.get_obj_per_feature() << std::endl;
+    std::cout << map3d.get_obj_per_feature(z_exaggeration) << std::endl;
   }
   else if (n["format"].as<std::string>() == "OBJ-NoID") {
     std::clog << "OBJ (without IDs) output" << std::endl;
-    std::cout << map3d.get_obj_per_class() << std::endl;
+    std::cout << map3d.get_obj_per_class(z_exaggeration) << std::endl;
   }
   else if (n["format"].as<std::string>() == "CSV-BUILDINGS") {
     std::clog << "CSV output (only of the buildings)" << std::endl;

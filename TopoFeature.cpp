@@ -62,12 +62,12 @@ Polygon2* TopoFeature::get_Polygon2() {
     return _p2;
 }
 
-std::string TopoFeature::get_obj_v() {
+std::string TopoFeature::get_obj_v(int z_exaggeration) {
   std::stringstream ss;
   for (auto& v : _vertices)
-    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)) << std::endl;
   for (auto& v : _vertices_vw)
-    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << bg::get<2>(v) << std::endl;
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)) << std::endl;
   return ss.str();
 }
 
@@ -200,7 +200,8 @@ Point2& TopoFeature::get_previous_point2_in_ring(int i, int& index) {
 Point2& TopoFeature::get_next_point2_in_ring(int i, int& index) {
   Ring2 oring = bg::exterior_ring(*_p2);
   int offset = int(bg::num_points(oring));
-  if (i < offset) {
+  //-- on the oring
+  if (i < offset) { 
     if (i == (offset - 1)) {
       index = 0;
       return oring.front();
@@ -210,14 +211,15 @@ Point2& TopoFeature::get_next_point2_in_ring(int i, int& index) {
       return oring[i + 1];
     }
   }
+  //-- not on the oring: search irings
   for (Ring2& iring: bg::interior_rings(*_p2)) {
     if (i < (offset + iring.size())) {
-      if (i == (offset + iring.size())) {
+      if (i == (offset - 1 + iring.size())) {
         index = offset;
         return iring.front();
       }
       else {
-        index = (offset + i + 1);
+        index = (i + 1);
         return (iring[i + 1 - offset]);
       }
     }
@@ -368,12 +370,12 @@ int Block::get_number_vertices() {
 }
 
 
-std::string Block::get_obj_v() {
+std::string Block::get_obj_v(int z_exaggeration) {
   std::stringstream ss;
   for (auto& v : _vertices)
-    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_height_top() << std::endl;
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * this->get_height_top()) : this->get_height_top()) << std::endl;
   for (auto& v : _vertices)
-    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << this->get_height_base() << std::endl;
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * this->get_height_base()) : this->get_height_base()) << std::endl;
   return ss.str();
 }
 

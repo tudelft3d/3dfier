@@ -44,6 +44,7 @@ options:
 output: 
   format: OBJ # OBJ-NoID or CityGML or CSV-BUILDINGS
   building_floor: false
+  vertical_exaggeration: 3
 
 buildings:
   horizontal_floor: true
