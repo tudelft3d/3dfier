@@ -76,6 +76,8 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
   for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
   int k = _vertices.size();
+  if (usemtl == true)
+    ss << "usemtl VerticalWalls" << std::endl;
   for (auto& t : _triangles_vw)
     ss << "f " << (t.v0 + 1 + offset + k) << " " << (t.v1 + 1 + offset + k) << " " << (t.v2 + 1 + offset + k) << std::endl;
   return ss.str();
