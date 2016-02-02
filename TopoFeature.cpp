@@ -158,7 +158,7 @@ int TopoFeature::has_point2(Point2& p) {
   auto irings = bg::interior_rings(*_p2);
   for (Ring2& iring: irings) {
     for (int i = 0; i < iring.size(); i++) {
-      if (bg::distance(p, iring) <= threshold)
+      if (bg::distance(p, iring[i]) <= threshold)
         return (i + offset);
     }
     offset += bg::num_points(iring);
