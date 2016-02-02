@@ -214,9 +214,9 @@ bool Map3d::threeDfy(bool triangulate) {
     p->lift();
   std::clog << "===== LIFTING/ =====" << std::endl;
   if (triangulate == true) {
-    // std::clog << "=====  /STITCHING =====" << std::endl;
-    // this->stitch_lifted_features();
-    // std::clog << "=====  STITCHING/ =====" << std::endl;
+    std::clog << "=====  /STITCHING =====" << std::endl;
+    this->stitch_lifted_features();
+    std::clog << "=====  STITCHING/ =====" << std::endl;
     std::clog << "=====  /CDT =====" << std::endl;
     for (auto& p : _lsFeatures) {
       std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
@@ -559,12 +559,12 @@ void Map3d::adjust_nc(std::vector<float>& televs, float jumpedge) {
 void Map3d::stitch_jumpedge(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge) {
   float hardz = hard->get_point_elevation(hardpos);
   float deltaz = std::abs(hardz - soft->get_point_elevation(softpos));
-  std::clog << "deltaz=" << deltaz << std::endl;
+  // std::clog << "deltaz=" << deltaz << std::endl;
   if (deltaz < jumpedge) 
     soft->set_point_elevation(softpos, hardz);
   else {
     soft->add_nc(softpos, hardz);
-    std::clog << "nc added: " << hardz << " (" << soft->get_point_elevation(softpos) << ")" << std::endl;
+    // std::clog << "nc added: " << hardz << " (" << soft->get_point_elevation(softpos) << ")" << std::endl;
   }
 }
 
