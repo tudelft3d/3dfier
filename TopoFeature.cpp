@@ -158,7 +158,7 @@ int TopoFeature::has_point2(Point2& p) {
   auto irings = bg::interior_rings(*_p2);
   for (Ring2& iring: irings) {
     for (int i = 0; i < iring.size(); i++) {
-      if (bg::distance(p, iring) <= threshold)
+      if (bg::distance(p, iring[i]) <= threshold)
         return (i + offset);
     }
     offset += bg::num_points(iring);
@@ -285,14 +285,18 @@ float TopoFeature::get_point_elevation(int i) {
 void TopoFeature::set_point_elevation(int i, float z) {
   Ring3 oring = bg::exterior_ring(_p3);
   int offset = int(bg::num_points(oring));
-  if (i < offset) 
+  if (i < offset) {
     bg::set<2>(bg::exterior_ring(_p3)[i], z);
-  for (Ring3& iring: bg::interior_rings(_p3)) {
-    if (i < (offset + iring.size()))
-      bg::set<2>(bg::exterior_ring(_p3)[i - offset], z);
-    offset += iring.size();
+    return;
   }
+  auto irings = bg::interior_rings(_p3);
+  for (int j = 0; j < irings.size(); j++) {
+    if (i < (offset + irings[j].size()))
+      bg::set<2>(bg::interior_rings(_p3)[j][i - offset], z);
+    offset += irings[j].size();
+  }    
 }
+
 
 
 bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float radius) {
@@ -307,8 +311,9 @@ bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float
   auto irings = bg::interior_rings(*(_p2));
   for (Ring2& iring: irings) {
     for (int i = 0; i < iring.size(); i++) {
-      if (bg::distance(p, iring) <= radius)
-          (_velevations[i + offset]).push_back(z);
+      if (bg::distance(p, iring) <= radius) {
+        (_velevations[i + offset]).push_back(z);
+      }
     }
     offset += bg::num_points(iring);
   }

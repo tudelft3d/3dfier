@@ -40,7 +40,6 @@ bool Water::lift() {
     //-- assign an elevation to each vertex
     z = _zvaluesinside[_zvaluesinside.size() * percentile];
   }
-  std::clog << "Z VALUE: " << z << std::endl;
   //-- assign minimum value
   Ring3 oring = bg::exterior_ring(_p3);
   for (int i = 0; i < oring.size(); i++) 

@@ -220,7 +220,7 @@ bool Map3d::threeDfy(bool triangulate) {
     std::clog << "=====  /CDT =====" << std::endl;
     for (auto& p : _lsFeatures) {
       std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
-      if (p->get_id() == "116739970")
+      if (p->get_id() == "107734797")
         p->buildCDT();
       else
         p->buildCDT();
@@ -413,6 +413,8 @@ void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
 
 void Map3d::stitch_lifted_features() {
   for (auto& f : _lsFeatures) {
+    if (f->get_id() == "32")
+      std::clog << "32" << std::endl;
     std::vector<PairIndexed> re;
     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
 //-- 1. store all touching (adjacent + incident)
@@ -425,12 +427,12 @@ void Map3d::stitch_lifted_features() {
       }
     }
 //-- 2. build the node-column for each vertex
+    // oring
     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); 
-    // TODO: iring needs to be implemented too
     for (int i = 0; i < oring.size(); i++) {
       std::vector< std::pair<TopoFeature*, int> > star;  
       bool toprocess = true;
-      for (auto& fadj : lstouching) {
+      for (auto& fadj : lstouching) { 
         int index = fadj->has_point2(oring[i]);
         if (index != -1)  {
           if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
@@ -446,16 +448,33 @@ void Map3d::stitch_lifted_features() {
         this->process_star(f, i, star);
       }
     }
+    // irings
+    int offset = int(bg::num_points(oring));
+    for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
+      std::clog << f->get_id() << " irings " << std::endl;
+      for (int i = 0; i < iring.size(); i++) {
+        std::vector< std::pair<TopoFeature*, int> > star;  
+        bool toprocess = true;
+        for (auto& fadj : lstouching) {
+          int index = fadj->has_point2(iring[i]);
+          if (index != -1)  {
+            if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
+              star.push_back(std::make_pair(fadj, index));
+            }
+            else {
+              toprocess = false;
+              break;
+            }
+          }
+        }
+        if (toprocess == true) {
+          this->process_star(f, (i + offset), star);
+        }
+      }
+      offset += bg::num_points(iring);
+    }
   }
 }
-// for (Ring2& iring: bg::interior_rings(*pgn)) {
-//   for (int i = 0; i < (iring.size() - 1); i++) {
-//     if (polygon2_find_segment(fadj->get_Polygon2(), iring[i], iring[i + 1]) == true)
-//       std::clog << "IRING" << fadj->get_id() << std::endl;
-//   }
-//   if (polygon2_find_segment(fadj->get_Polygon2(), iring.back(), iring.front()) == true)
-//     std::clog << "IRING" << fadj->get_id() << std::endl;
-// }
 
 
 void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
@@ -540,12 +559,12 @@ void Map3d::adjust_nc(std::vector<float>& televs, float jumpedge) {
 void Map3d::stitch_jumpedge(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge) {
   float hardz = hard->get_point_elevation(hardpos);
   float deltaz = std::abs(hardz - soft->get_point_elevation(softpos));
-  std::clog << "deltaz=" << deltaz << std::endl;
+  // std::clog << "deltaz=" << deltaz << std::endl;
   if (deltaz < jumpedge) 
     soft->set_point_elevation(softpos, hardz);
   else {
     soft->add_nc(softpos, hardz);
-    std::clog << "nc added: " << hardz << " (" << soft->get_point_elevation(softpos) << ")" << std::endl;
+    // std::clog << "nc added: " << hardz << " (" << soft->get_point_elevation(softpos) << ")" << std::endl;
   }
 }
 
