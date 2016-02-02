@@ -53,7 +53,7 @@ int main(int argc, const char * argv[]) {
   allowedFeatures.insert("Water");
   allowedFeatures.insert("Terrain");
   allowedFeatures.insert("Road");
-  allowedFeatures.insert("Vegetation");
+  allowedFeatures.insert("Forest");
   allowedFeatures.insert("Bridge/Overpass");
 
 //-- validate the YAML file right now, nicer for the user
@@ -81,9 +81,9 @@ int main(int argc, const char * argv[]) {
   if (n["Terrain"]) 
     if (n["Terrain"]["simplification"])
       map3d.set_terrain_simplification(n["Terrain"]["simplification"].as<int>());
-  if (n["Vegetation"]) 
-    if (n["Vegetation"]["simplification"])
-      map3d.set_vegetation_simplification(n["Vegetation"]["simplification"].as<int>());
+  if (n["Forest"]) 
+    if (n["Forest"]["simplification"])
+      map3d.set_forest_simplification(n["Forest"]["simplification"].as<int>());
   if (n["Water"]) 
     if (n["Water"]["height"])
       map3d.set_water_heightref(n["Water"]["height"].as<std::string>());
@@ -276,11 +276,11 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       }
     }
   }  
-  if (n["Vegetation"]) {
-    if (n["Vegetation"]["simplification"]) {
-      if (is_string_integer(n["Vegetation"]["simplification"].as<std::string>()) == false) {
+  if (n["Forest"]) {
+    if (n["Forest"]["simplification"]) {
+      if (is_string_integer(n["Forest"]["simplification"].as<std::string>()) == false) {
         wentgood = false;
-        std::cerr << "\tOption 'Vegetation.simplification' invalid; must be an integer." << std::endl;
+        std::cerr << "\tOption 'Forest.simplification' invalid; must be an integer." << std::endl;
       }
     }
   }

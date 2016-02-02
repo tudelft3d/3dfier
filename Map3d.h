@@ -29,7 +29,7 @@
 #include "TopoFeature.h"
 #include "Building.h"
 #include "Terrain.h"
-#include "Vegetation.h"
+#include "Forest.h"
 #include "Water.h"
 #include "Road.h"
 
@@ -65,7 +65,7 @@ public:
   void set_building_include_floor(bool include);
   void set_building_triangulate(bool triangulate);
   void set_terrain_simplification(int simplification);
-  void set_vegetation_simplification(int simplification);
+  void set_forest_simplification(int simplification);
   void set_water_heightref(std::string heightref);
   void set_road_heightref(std::string heightref);
   void set_radius_vertex_elevation(float radius);
@@ -76,7 +76,7 @@ private:
   bool        _building_triangulate;
   bool        _building_include_floor;
   int         _terrain_simplification;
-  int         _vegetation_simplification;
+  int         _forest_simplification;
   std::string _water_heightref;
   std::string _road_heightref;
   float       _radius_vertex_elevation;

@@ -31,7 +31,7 @@ Map3d::Map3d() {
   _building_heightref_floor = "percentile-05";
   _building_triangulate = true;
   _terrain_simplification = 0;
-  _vegetation_simplification = 0;
+  _forest_simplification = 0;
   _radius_vertex_elevation = 1.0;
   _threshold_jump_edges = 0.5;
   _minx = 1e8;
@@ -73,8 +73,8 @@ void Map3d::set_terrain_simplification(int simplification) {
   _terrain_simplification = simplification;
 }
 
-void Map3d::set_vegetation_simplification(int simplification) {
-  _vegetation_simplification = simplification;
+void Map3d::set_forest_simplification(int simplification) {
+  _forest_simplification = simplification;
 }
 
 void Map3d::set_water_heightref(std::string h) {
@@ -325,8 +325,8 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
             Terrain* p3 = new Terrain(wkt, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
             _lsFeatures.push_back(p3);
           }
-          else if (l.second == "Vegetation") {
-            Vegetation* p3 = new Vegetation(wkt, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
+          else if (l.second == "Forest") {
+            Forest* p3 = new Forest(wkt, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
             _lsFeatures.push_back(p3);
           }
           else if (l.second == "Water") {
@@ -413,8 +413,6 @@ void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
 
 void Map3d::stitch_lifted_features() {
   for (auto& f : _lsFeatures) {
-    if (f->get_id() == "32")
-      std::clog << "32" << std::endl;
     std::vector<PairIndexed> re;
     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
 //-- 1. store all touching (adjacent + incident)
@@ -535,7 +533,7 @@ void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFea
     for (auto& fadj : star) {
       // 1. set the elevation adjusted with the nc
       fadj.first->set_point_elevation(fadj.second, televs[fadj.first->get_class()]);
-      // 2. if type ROAD/TERRAIN/VEGETATION && others are lower
+      // 2. if type ROAD/TERRAIN/FOREST && others are lower
       for (int i = 0; i <= 5; i++) {
         if ( (televs[i] > -998) && (i != fadj.first->get_class()) && (televs[i] < televs[fadj.first->get_class()]) )
           fadj.first->add_nc(fadj.second, televs[i]);

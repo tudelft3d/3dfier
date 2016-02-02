@@ -26,7 +26,7 @@ Ks 0.0000 0.1000 0.9000
 illum 2
 Ns 60.0000
 
-newmtl Vegetation
+newmtl Forest
 Ka 0.0000 0.9000 0.0000
 Kd 0.0000 0.9000 0.0000
 Ks 0.0000 0.9000 0.0000
