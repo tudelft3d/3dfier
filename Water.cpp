@@ -26,24 +26,52 @@
 std::string Water::_heightref = "percentile-10";
 
 Water::Water (char *wkt, std::string pid, std::string heightref) 
-: Boundary3D(wkt, pid)
+: TopoFeature(wkt, pid)
 {
   if (heightref != "")
     _heightref = heightref;
 }
 
 bool Water::lift() {
-  //-- assign an elevation to each vertex
-  float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
-  lift_vertices_boundary(percentile);
-  //-- take minimum value for obtaining horizontal value
-  this->make_boundary_horizontal();
+  float z = 0.0;
+  if (_zvaluesinside.empty() == false) {
+    float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
+    std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
+    //-- assign an elevation to each vertex
+    z = _zvaluesinside[_zvaluesinside.size() * percentile];
+  }
+  std::clog << "Z VALUE: " << z << std::endl;
+  //-- assign minimum value
+  Ring3 oring = bg::exterior_ring(_p3);
+  for (int i = 0; i < oring.size(); i++) 
+    bg::set<2>(bg::exterior_ring(_p3)[i], z);
+  auto irings = bg::interior_rings(_p3);
+  std::size_t offset = bg::num_points(oring);
+  for (int i = 0; i < irings.size(); i++) {
+    for (int j = 0; j < (irings[i]).size(); j++)
+      bg::set<2>(bg::interior_rings(_p3)[i][j], z);
+    offset += bg::num_points(irings[i]);
+  }
+  return true;
+}
+
+bool Water::add_elevation_point(double x, double y, double z, float radius)
+{
+  Point2 p(x, y);
+  //-- 1. assign to polygon if inside
+  if (bg::within(p, *(_p2)) == true)
+    _zvaluesinside.push_back(z);
   return true;
 }
 
 bool Water::buildCDT() {
   getCDT(&_p3, _vertices, _triangles, _segments);
   return true;
+}
+
+
+int Water::get_number_vertices() {
+  return int(_vertices.size());
 }
 
 TopoClass Water::get_class() {
@@ -53,36 +81,6 @@ TopoClass Water::get_class() {
 bool Water::is_hard() {
   return true;
 }
-
-
-void Water::make_boundary_horizontal() {
-  //-- find the mininum value and assign it
-  double minimum = 1e9;
-  Ring3 oring = bg::exterior_ring(_p3);
-  for (int i = 0; i < oring.size(); i++) 
-    if (bg::get<2>(bg::exterior_ring(_p3)[i]) < minimum)
-      minimum = bg::get<2>(bg::exterior_ring(_p3)[i]);
-  auto irings = bg::interior_rings(_p3);
-  std::size_t offset = bg::num_points(oring);
-  for (int i = 0; i < irings.size(); i++) {
-    for (int j = 0; j < (irings[i]).size(); j++)
-      if (bg::get<2>(bg::interior_rings(_p3)[i][j]) < minimum)
-        minimum = bg::get<2>(bg::interior_rings(_p3)[i][j]);
-    offset += bg::num_points(irings[i]);
-  }
-  //-- assign minimum value
-  oring = bg::exterior_ring(_p3);
-  for (int i = 0; i < oring.size(); i++) 
-    bg::set<2>(bg::exterior_ring(_p3)[i], minimum);
-  irings = bg::interior_rings(_p3);
-  offset = bg::num_points(oring);
-  for (int i = 0; i < irings.size(); i++) {
-    for (int j = 0; j < (irings[i]).size(); j++)
-      bg::set<2>(bg::interior_rings(_p3)[i][j], minimum);
-    offset += bg::num_points(irings[i]);
-  }
-}
-
 
 std::string Water::get_obj_f(int offset, bool usemtl) {
   std::stringstream ss;
