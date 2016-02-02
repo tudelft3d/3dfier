@@ -27,7 +27,7 @@
 #include "TopoFeature.h"
 
 
-class Water : public Boundary3D
+class Water : public TopoFeature
 {
 public:
   Water (char *wkt, std::string pid, std::string heightref);
@@ -37,9 +37,11 @@ public:
   std::string   get_obj_f(int offset, bool usemtl);
   TopoClass     get_class();
   bool          is_hard();
+  int           get_number_vertices();
+  bool          add_elevation_point(double x, double y, double z, float radius);
   static std::string _heightref;
 protected:
-  void          make_boundary_horizontal();
+  std::vector<float>  _zvaluesinside;
 };
 
 
