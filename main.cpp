@@ -152,6 +152,12 @@ int main(int argc, const char * argv[]) {
     return 0;
   }
 
+  n = nodes["options"];
+  if (n["radius_vertex_elevation"])
+    map3d.set_radius_vertex_elevation(n["radius_vertex_elevation"].as<float>());
+  if (n["threshold_jump_edges"])
+    map3d.set_threshold_jump_edges(n["threshold_jump_edges"].as<float>());
+
   n = nodes["output"];
   std::clog << "Lifting all input polygons to 3D..." << std::endl;
   if (n["format"].as<std::string>() == "CSV-BUILDINGS")
