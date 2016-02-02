@@ -214,13 +214,13 @@ bool Map3d::threeDfy(bool triangulate) {
     p->lift();
   std::clog << "===== LIFTING/ =====" << std::endl;
   if (triangulate == true) {
-    std::clog << "=====  /STITCHING =====" << std::endl;
-    this->stitch_lifted_features();
-    std::clog << "=====  STITCHING/ =====" << std::endl;
+    // std::clog << "=====  /STITCHING =====" << std::endl;
+    // this->stitch_lifted_features();
+    // std::clog << "=====  STITCHING/ =====" << std::endl;
     std::clog << "=====  /CDT =====" << std::endl;
     for (auto& p : _lsFeatures) {
       std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
-      if (p->get_id() == "116739970")
+      if (p->get_id() == "107734797")
         p->buildCDT();
       else
         p->buildCDT();
@@ -413,6 +413,8 @@ void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
 
 void Map3d::stitch_lifted_features() {
   for (auto& f : _lsFeatures) {
+    if (f->get_id() == "32")
+      std::clog << "32" << std::endl;
     std::vector<PairIndexed> re;
     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
 //-- 1. store all touching (adjacent + incident)
@@ -447,39 +449,32 @@ void Map3d::stitch_lifted_features() {
       }
     }
     // irings
-    for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
-      std::clog << "irings" << std::endl;
-      for (int i = 0; i < iring.size(); i++) {
-        std::vector< std::pair<TopoFeature*, int> > star;  
-        bool toprocess = true;
-        for (auto& fadj : lstouching) {
-          int index = fadj->has_point2(iring[i]);
-          if (index != -1)  {
-            if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
-              star.push_back(std::make_pair(fadj, index));
-            }
-            else {
-              toprocess = false;
-              break;
-            }
-          }
-        }
-        if (toprocess == true) {
-          this->process_star(f, i, star);
-        }
-      }
-    }
+//    int offset = int(bg::num_points(oring));
+//    for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
+//      std::clog << f->get_id() << " irings " << std::endl;
+//      for (int i = 0; i < iring.size(); i++) {
+//        std::vector< std::pair<TopoFeature*, int> > star;  
+//        bool toprocess = true;
+//        for (auto& fadj : lstouching) {
+//          int index = fadj->has_point2(iring[i]);
+//          if (index != -1)  {
+//            if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
+//              star.push_back(std::make_pair(fadj, index));
+//            }
+//            else {
+//              toprocess = false;
+//              break;
+//            }
+//          }
+//        }
+//        if (toprocess == true) {
+//          this->process_star(f, (i + offset), star);
+//        }
+//      }
+//      offset += bg::num_points(iring);
+//    }
   }
 }
-
-// for (Ring2& iring: bg::interior_rings(*pgn)) {
-//   for (int i = 0; i < (iring.size() - 1); i++) {
-//     if (polygon2_find_segment(fadj->get_Polygon2(), iring[i], iring[i + 1]) == true)
-//       std::clog << "IRING" << fadj->get_id() << std::endl;
-//   }
-//   if (polygon2_find_segment(fadj->get_Polygon2(), iring.back(), iring.front()) == true)
-//     std::clog << "IRING" << fadj->get_id() << std::endl;
-// }
 
 
 void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
