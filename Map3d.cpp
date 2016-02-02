@@ -432,7 +432,7 @@ void Map3d::stitch_lifted_features() {
     for (int i = 0; i < oring.size(); i++) {
       std::vector< std::pair<TopoFeature*, int> > star;  
       bool toprocess = true;
-      for (auto& fadj : lstouching) {
+      for (auto& fadj : lstouching) { 
         int index = fadj->has_point2(oring[i]);
         if (index != -1)  {
           if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
@@ -449,30 +449,30 @@ void Map3d::stitch_lifted_features() {
       }
     }
     // irings
-//    int offset = int(bg::num_points(oring));
-//    for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
-//      std::clog << f->get_id() << " irings " << std::endl;
-//      for (int i = 0; i < iring.size(); i++) {
-//        std::vector< std::pair<TopoFeature*, int> > star;  
-//        bool toprocess = true;
-//        for (auto& fadj : lstouching) {
-//          int index = fadj->has_point2(iring[i]);
-//          if (index != -1)  {
-//            if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
-//              star.push_back(std::make_pair(fadj, index));
-//            }
-//            else {
-//              toprocess = false;
-//              break;
-//            }
-//          }
-//        }
-//        if (toprocess == true) {
-//          this->process_star(f, (i + offset), star);
-//        }
-//      }
-//      offset += bg::num_points(iring);
-//    }
+    int offset = int(bg::num_points(oring));
+    for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
+      std::clog << f->get_id() << " irings " << std::endl;
+      for (int i = 0; i < iring.size(); i++) {
+        std::vector< std::pair<TopoFeature*, int> > star;  
+        bool toprocess = true;
+        for (auto& fadj : lstouching) {
+          int index = fadj->has_point2(iring[i]);
+          if (index != -1)  {
+            if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
+              star.push_back(std::make_pair(fadj, index));
+            }
+            else {
+              toprocess = false;
+              break;
+            }
+          }
+        }
+        if (toprocess == true) {
+          this->process_star(f, (i + offset), star);
+        }
+      }
+      offset += bg::num_points(iring);
+    }
   }
 }
 
