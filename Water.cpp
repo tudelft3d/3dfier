@@ -33,10 +33,13 @@ Water::Water (char *wkt, std::string pid, std::string heightref)
 }
 
 bool Water::lift() {
-  float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
-  std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
-  //-- assign an elevation to each vertex
-  float z = _zvaluesinside[_zvaluesinside.size() * percentile];
+  float z = 0.0;
+  if (_zvaluesinside.empty() == false) {
+    float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
+    std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
+    //-- assign an elevation to each vertex
+    z = _zvaluesinside[_zvaluesinside.size() * percentile];
+  }
   std::clog << "Z VALUE: " << z << std::endl;
   //-- assign minimum value
   Ring3 oring = bg::exterior_ring(_p3);
