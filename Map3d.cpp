@@ -425,8 +425,8 @@ void Map3d::stitch_lifted_features() {
       }
     }
 //-- 2. build the node-column for each vertex
+    // oring
     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); 
-    // TODO: iring needs to be implemented too
     for (int i = 0; i < oring.size(); i++) {
       std::vector< std::pair<TopoFeature*, int> > star;  
       bool toprocess = true;
@@ -446,8 +446,32 @@ void Map3d::stitch_lifted_features() {
         this->process_star(f, i, star);
       }
     }
+    // irings
+    for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
+      std::clog << "irings" << std::endl;
+      for (int i = 0; i < iring.size(); i++) {
+        std::vector< std::pair<TopoFeature*, int> > star;  
+        bool toprocess = true;
+        for (auto& fadj : lstouching) {
+          int index = fadj->has_point2(iring[i]);
+          if (index != -1)  {
+            if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
+              star.push_back(std::make_pair(fadj, index));
+            }
+            else {
+              toprocess = false;
+              break;
+            }
+          }
+        }
+        if (toprocess == true) {
+          this->process_star(f, i, star);
+        }
+      }
+    }
   }
 }
+
 // for (Ring2& iring: bg::interior_rings(*pgn)) {
 //   for (int i = 0; i < (iring.size() - 1); i++) {
 //     if (polygon2_find_segment(fadj->get_Polygon2(), iring[i], iring[i + 1]) == true)
