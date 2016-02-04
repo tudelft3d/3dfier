@@ -177,27 +177,19 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
 }
 
 
-TopoFeature* Map3d::add_elevation_point(double x, double y, double z, TopoFeature* trythisone) {
+void Map3d::add_elevation_point(double x, double y, double z, int returnno, liblas::Classification lasclass) {
   Point2 p(x, y);
-  if (trythisone != NULL) {
-    if (bg::distance(p, *(trythisone->get_Polygon2())) < _radius_vertex_elevation) {
-      trythisone->add_elevation_point(x, y, z, _radius_vertex_elevation);
-      return trythisone;
-    }
-  }
   std::vector<PairIndexed> re;
   Point2 minp(x - 0.1, y - 0.1);
   Point2 maxp(x + 0.1, y + 0.1);
   Box2 querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
   for (auto& v : re) {
-    TopoFeature* pgn = v.second;
-    if (bg::distance(p, *(pgn->get_Polygon2())) < _radius_vertex_elevation) {     
-      pgn->add_elevation_point(x, y, z, _radius_vertex_elevation);
-      return pgn;
+    TopoFeature* f = v.second;
+    if (bg::distance(p, *(f->get_Polygon2())) < _radius_vertex_elevation) {     
+      f->add_elevation_point(x, y, z, _radius_vertex_elevation);
     }
   }
-  return NULL;
 }
 
 
@@ -376,18 +368,17 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
   liblas::Header const& header = reader.GetHeader();
   std::clog << "\t(" << header.GetPointRecordsCount() << " points)" << std::endl;
   int i = 0;
-  TopoFeature* lastone = NULL;
   while (reader.ReadNextPoint()) {
     liblas::Point const& p = reader.GetPoint();
     if ( (skip != 0) && (skip != 1) ) {
       if (i % skip == 0) {
         if(std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
-          lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+          this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), p.GetReturnNumber(), p.GetClassification());
       }
     }
     else {
       if(std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
-        lastone = this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), lastone);
+        this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), p.GetReturnNumber(), p.GetClassification());
     }
     if (i % 100000 == 0) 
       printProgressBar(100 * (i / double(header.GetPointRecordsCount())));

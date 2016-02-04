@@ -49,7 +49,7 @@ public:
   void stitch_lifted_features();
   bool construct_rtree();
   bool threeDfy(bool triangulate = true);
-  TopoFeature* add_elevation_point(double x, double y, double z, TopoFeature* trythisone = NULL);
+  void add_elevation_point(double x, double y, double z, int returnno, liblas::Classification lasclass);
 
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>& get_polygons3d();  
