@@ -430,7 +430,7 @@ void Map3d::stitch_lifted_features() {
     for (int i = 0; i < oring.size(); i++) {
       std::vector< std::pair<TopoFeature*, int> > star;  
       bool toprocess = true;
-      for (auto& fadj : lstouching) { 
+      for (auto& fadj : lstouching) {
         int index = fadj->has_point2(oring[i]);
         if (index != -1)  {
           if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
