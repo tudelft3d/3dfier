@@ -53,6 +53,8 @@ public:
   int          has_point2(Point2& p);
   bool         has_segment(Point2& a, Point2& b, int& ia, int& ib);
   void         set_point_elevation(int i, float z);  
+  bool         get_top_level();
+  void         set_top_level(bool toplevel);
   double       get_point_x(int i);
   double       get_point_y(int i);
   float        get_point_elevation(int i);
@@ -65,6 +67,7 @@ protected:
   std::string  _id;
   int          _counter;
   static int   _count;
+  bool         _toplevel; 
   std::vector< std::vector<float> > _nc; //-- node columns
   std::vector< std::vector<float> > _velevations;
   std::vector<Point3>   _vertices;  //-- output of Triangle

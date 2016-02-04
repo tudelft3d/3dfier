@@ -34,6 +34,7 @@ std::string Block::_heightref_base = "percentile-10";
 TopoFeature::TopoFeature(char *wkt, std::string pid) {
   _id = pid;
   _counter = _count++;
+  _toplevel = true;
   _p2 = new Polygon2();
   bg::read_wkt(wkt, *(_p2));
   bg::read_wkt(wkt, _p3);
@@ -56,6 +57,14 @@ std::string TopoFeature::get_id() {
 
 int TopoFeature::get_counter() {
   return _counter;
+}
+
+bool TopoFeature::get_top_level() {
+  return _toplevel;
+}
+
+void TopoFeature::set_top_level(bool toplevel) {
+  _toplevel = toplevel;
 }
 
 Polygon2* TopoFeature::get_Polygon2() {

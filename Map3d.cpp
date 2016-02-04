@@ -211,8 +211,13 @@ bool Map3d::threeDfy(bool triangulate) {
   // std::clog << "MinX: " << _minx << std::endl;
   // std::clog << "MinY: " << _miny << std::endl;
   std::clog << "===== /LIFTING =====" << std::endl;
-  for (auto& p : _lsFeatures)
-    p->lift();
+  for (auto& p : _lsFeatures) {
+    if (p->get_top_level() == true) {
+      p->lift();
+    }
+    else
+      std::clog << "niveau-1 " << p->get_id() << std::endl;
+  }
   std::clog << "===== LIFTING/ =====" << std::endl;
   if (triangulate == true) {
     std::clog << "=====  /STITCHING =====" << std::endl;
@@ -220,10 +225,10 @@ bool Map3d::threeDfy(bool triangulate) {
     std::clog << "=====  STITCHING/ =====" << std::endl;
     std::clog << "=====  /CDT =====" << std::endl;
     for (auto& p : _lsFeatures) {
-      std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
-      if (p->get_id() == "107734797")
-        p->buildCDT();
-      else
+      // std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
+      // if (p->get_id() == "107734797")
+        // p->buildCDT();
+      // else
         p->buildCDT();
     }
     std::clog << "=====  CDT/ =====" << std::endl;
@@ -306,6 +311,8 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
     std::clog << "\t(" << numberOfPolygons << " features --> " << l.second << ")" << std::endl;
     OGRFeature *f;
     while ((f = dataLayer->GetNextFeature()) != NULL) {
+      if (f->GetFieldAsInteger("hoogtenive") < 0)
+        continue;
       switch(f->GetGeometryRef()->getGeometryType()) {
         case wkbPolygon:
         case wkbMultiPolygon: 
@@ -316,7 +323,6 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
           char *wkt;
           f->GetGeometryRef()->flattenTo2D();
           f->GetGeometryRef()->exportToWkt(&wkt);
-
           bg::unique(*p2); //-- remove duplicate vertices
           if (l.second == "Building") {
             Building* p3 = new Building(wkt, f->GetFieldAsString(idfield.c_str()), _building_heightref_roof, _building_heightref_floor);
@@ -338,6 +344,11 @@ bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfie
             Road* p3 = new Road(wkt, f->GetFieldAsString(idfield.c_str()), this->_road_heightref);
             _lsFeatures.push_back(p3);
           }          
+          //-- flag all polygons at (niveau < 0) for top10nl
+          if (f->GetFieldAsInteger("hoogtenive") < 0) {
+            // std::clog << "niveau=-1: " << f->GetFieldAsString(idfield.c_str()) << std::endl;
+            (_lsFeatures.back())->set_top_level(false);
+          }
           break;
         }
         default: {
