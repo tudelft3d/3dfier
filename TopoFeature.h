@@ -38,7 +38,7 @@ public:
 
   virtual bool          lift() = 0;
   virtual bool          buildCDT() = 0;
-  virtual bool          add_elevation_point(double x, double y, double z, float radius) = 0;
+  virtual bool          add_elevation_point(double x, double y, double z, float radius, bool lastreturn = true) = 0;
   virtual std::string   get_citygml() = 0;
   virtual std::string   get_obj_v(int z_exaggeration);
   virtual std::string   get_obj_f(int offset, bool usemtl);
@@ -88,7 +88,7 @@ class Block : public TopoFeature
 public:
   Block           (char *wkt, std::string pid, std::string heightref_top, std::string heightref_base); 
   virtual bool        lift() = 0;
-  bool                add_elevation_point(double x, double y, double z, float radius);
+  bool                add_elevation_point(double x, double y, double z, float radius, bool lastreturn);
   virtual std::string get_citygml() = 0;
   std::string         get_obj_v(int z_exaggeration);
   std::string         get_obj_f(int offset, bool usemtl);
@@ -118,7 +118,7 @@ public:
   virtual bool  lift() = 0;
   virtual bool  buildCDT() = 0;
   virtual std::string   get_citygml() = 0;
-  bool          add_elevation_point(double x, double y, double z, float radius);
+  bool          add_elevation_point(double x, double y, double z, float radius, bool lastreturn = true);
   int           get_number_vertices();
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
@@ -138,7 +138,7 @@ public:
   virtual bool    lift() = 0;
   virtual bool    buildCDT() = 0;
   virtual std::string   get_citygml() = 0;
-  bool            add_elevation_point(double x, double y, double z, float radius);
+  bool            add_elevation_point(double x, double y, double z, float radius, bool lastreturn = true);
   int             get_number_vertices();
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;

@@ -177,17 +177,26 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
 }
 
 
-void Map3d::add_elevation_point(double x, double y, double z, int returnno, liblas::Classification lasclass) {
-  Point2 p(x, y);
+// void Map3d::add_elevation_point(double x, double y, double z, int returnno, liblas::Classification lasclass) {
+void Map3d::add_elevation_point(liblas::Point const& laspt) {
+  if ( (laspt.GetClassification() == liblas::Classification(1)) && (laspt.GetReturnNumber() != 1) )
+    return;
+  Point2 p(laspt.GetX(), laspt.GetY());
   std::vector<PairIndexed> re;
-  Point2 minp(x - 0.1, y - 0.1);
-  Point2 maxp(x + 0.1, y + 0.1);
+  // p.GetX(), p.GetY(), p.GetZ(), p.GetReturnNumber(), p.GetClassification()
+  Point2 minp(laspt.GetX() - 0.1, laspt.GetY() - 0.1);
+  Point2 maxp(laspt.GetX() + 0.1, laspt.GetY() + 0.1);
   Box2 querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
   for (auto& v : re) {
     TopoFeature* f = v.second;
     if (bg::distance(p, *(f->get_Polygon2())) < _radius_vertex_elevation) {     
-      f->add_elevation_point(x, y, z, _radius_vertex_elevation);
+      if (laspt.GetClassification() == liblas::Classification(1)) {
+        if (f->get_class() == FOREST)
+          f->add_elevation_point(laspt.GetX(), laspt.GetY(), laspt.GetZ(), _radius_vertex_elevation, false);
+      }
+      else
+        f->add_elevation_point(laspt.GetX(), laspt.GetY(), laspt.GetZ(), _radius_vertex_elevation);
     }
   }
 }
@@ -373,12 +382,12 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
     if ( (skip != 0) && (skip != 1) ) {
       if (i % skip == 0) {
         if(std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
-          this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), p.GetReturnNumber(), p.GetClassification());
+          this->add_elevation_point(p);
       }
     }
     else {
       if(std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
-        this->add_elevation_point(p.GetX(), p.GetY(), p.GetZ(), p.GetReturnNumber(), p.GetClassification());
+        this->add_elevation_point(p);
     }
     if (i % 100000 == 0) 
       printProgressBar(100 * (i / double(header.GetPointRecordsCount())));

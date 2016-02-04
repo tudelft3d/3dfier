@@ -460,7 +460,7 @@ float Block::get_height_base() {
 }
 
 
-bool Block::add_elevation_point(double x, double y, double z, float radius) {
+bool Block::add_elevation_point(double x, double y, double z, float radius, bool lastreturn) {
   Point2 p(x, y);
   //-- 1. assign to polygon if inside
   if (bg::within(p, *(_p2)) == true)
@@ -487,7 +487,7 @@ int Boundary3D::get_number_vertices() {
 }
 
 
-bool Boundary3D::add_elevation_point(double x, double y, double z, float radius) {
+bool Boundary3D::add_elevation_point(double x, double y, double z, float radius, bool lastreturn) {
   assign_elevation_to_vertex(x, y, z, radius);
   return true;
 }
@@ -535,7 +535,7 @@ int TIN::get_number_vertices() {
 }
 
 
-bool TIN::add_elevation_point(double x, double y, double z, float radius) {
+bool TIN::add_elevation_point(double x, double y, double z, float radius, bool lastreturn) {
   Point2 p(x, y);
   //-- 1. add points to surface if inside
   if (bg::within(p, *(_p2)) == true) {
@@ -550,7 +550,8 @@ bool TIN::add_elevation_point(double x, double y, double z, float radius) {
     }
   }
   //-- 2. add to the vertices of the pgn to find their heights
-  assign_elevation_to_vertex(x, y, z, radius);
+  if (lastreturn == true)
+    assign_elevation_to_vertex(x, y, z, radius);
   return true;
 }
 
