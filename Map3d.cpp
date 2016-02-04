@@ -534,7 +534,10 @@ void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFea
       if (c[i] != 0)
         televs[i] /= c[i];
     }
-    adjust_nc(televs, 1.0);
+    if (f->get_id() == "111113638") {
+      std::clog << televs[1] << std::endl;
+    }
+    adjust_nc(televs, _threshold_jump_edges);
     f->set_point_elevation(pos, televs[f->get_class()]);
     for (int i = 0; i <= 5; i++) {
       if ( (televs[i] > -998) && (i != f->get_class()) && (televs[i] < televs[f->get_class()]) )
