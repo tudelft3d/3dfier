@@ -38,7 +38,7 @@ public:
   TopoClass     get_class();
   bool          is_hard();
   int           get_number_vertices();
-  bool          add_elevation_point(double x, double y, double z, float radius);
+  bool          add_elevation_point(double x, double y, double z, float radius, bool lastreturn = true);
   static std::string _heightref;
 protected:
   std::vector<float>  _zvaluesinside;

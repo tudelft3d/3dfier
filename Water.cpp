@@ -54,7 +54,7 @@ bool Water::lift() {
   return true;
 }
 
-bool Water::add_elevation_point(double x, double y, double z, float radius)
+bool Water::add_elevation_point(double x, double y, double z, float radius, bool lastreturn)
 {
   Point2 p(x, y);
   //-- 1. assign to polygon if inside
