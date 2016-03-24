@@ -248,20 +248,36 @@ bool Map3d::construct_rtree() {
 
 bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers) {
   std::clog << "Reading input dataset: " << ifile << std::endl;
-  OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
+
+  #if GDAL_VERSION_MAJOR < 2
+    OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
+  #else
+    GDALDataset *dataSource = (GDALDataset*) GDALOpenEx(ifile.c_str(), GDAL_OF_READONLY, NULL, NULL, NULL);
+  #endif
+
   if (dataSource == NULL) {
     std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
     return false;
   }
   bool wentgood = this->extract_and_add_polygon(dataSource, idfield, layers);
-  OGRDataSource::DestroyDataSource(dataSource);
+  #if GDAL_VERSION_MAJOR < 2
+    OGRDataSource::DestroyDataSource(dataSource);
+  #else
+    GDALClose(dataSource);
+  #endif
   return wentgood;
 }
 
 
 bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::string lifting) {
   std::clog << "Reading input dataset: " << ifile << std::endl;
-  OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
+
+  #if GDAL_VERSION_MAJOR < 2
+    OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
+  #else
+    GDALDataset *dataSource = (GDALDataset*) GDALOpenEx(ifile.c_str(), GDAL_OF_READONLY, NULL, NULL, NULL);
+  #endif
+
   if (dataSource == NULL) {
     std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
     return false;
@@ -288,7 +304,11 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
     if (bbox.MinY < _miny)
       _miny = bbox.MinY;
   }
-  OGRDataSource::DestroyDataSource(dataSource);
+  #if GDAL_VERSION_MAJOR < 2
+    OGRDataSource::DestroyDataSource(dataSource);
+  #else
+    GDALClose(dataSource);
+  #endif
   return wentgood;
 }
 
