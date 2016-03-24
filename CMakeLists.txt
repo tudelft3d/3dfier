@@ -51,7 +51,7 @@ find_package(PkgConfig)
 pkg_check_modules(yaml-cpp REQUIRED yaml-cpp)
 
 # triangle
-SET(TRIANGLE_LIBRARIES "/usr/local/Cellar/triangle/1.6/lib/libtriangle.a" CACHE STRING "filepath to triangle library")
+SET(TRIANGLE_LIBRARIES "/usr/local/lib/libtriangle.a" CACHE STRING "filepath to triangle library")
 
 include_directories( ${GDAL_INCLUDE_DIR} ${libLAS_INCLUDE_DIRS} ${LASZIP_INCLUDE_DIR} ${yaml-cpp_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 link_directories(${yaml-cpp_LIBRARY_DIRS})
