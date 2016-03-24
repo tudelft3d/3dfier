@@ -312,18 +312,23 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
     if (bbox.MinY < _miny)
       _miny = bbox.MinY;
   }
-  #if GDAL_VERSION_MAJOR < 2
-    OGRDataSource::DestroyDataSource(dataSource);
-  #else
-    GDALClose(dataSource);
-  #endif
+#if GDAL_VERSION_MAJOR < 2
+  OGRDataSource::DestroyDataSource(dataSource);
+#else
+  GDALClose(dataSource);
+#endif
   return wentgood;
 }
 
 
-bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers) {
- bool wentgood = true;
- for (auto l : layers) {
+#if GDAL_VERSION_MAJOR < 2
+  bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers)
+#else
+  bool Map3d::extract_and_add_polygon(GDALDataset *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers) 
+#endif
+{
+  bool wentgood = true;
+  for (auto l : layers) {
     OGRLayer *dataLayer = dataSource->GetLayerByName((l.first).c_str());
     if (dataLayer == NULL) {
       continue;

@@ -89,8 +89,13 @@ private:
   std::vector<std::string>    _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
 
-  void stitch_one_feature(TopoFeature* f, TopoClass adjclass);
+#if GDAL_VERSION_MAJOR < 2
   bool extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers);
+#else
+  bool extract_and_add_polygon(GDALDataset *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers);
+#endif
+  void stitch_one_feature(TopoFeature* f, TopoClass adjclass);
+  bool read_one_gdal_layer(OGRLayer* dataLayer, std::string idfield, std::pair<std::string, std::string> &l);
   void process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star);
   void stitch_jumpedge(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge);
   void stitch_2_hard(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge);
