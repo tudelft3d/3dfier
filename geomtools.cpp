@@ -48,6 +48,15 @@ void get_point_inside(Ring3& ring3, Point2& p) {
   }
 }
 
+bool triangle_contains_segment(Triangle t, int a, int b) {
+  if ( (t.v0 == a) && (t.v1 == b) )
+    return true;
+  if ( (t.v1 == a) && (t.v2 == b) )
+    return true;
+  if ( (t.v2 == a) && (t.v0 == b) )
+    return true;
+  return false;
+}
 
 
 bool getCDT(const Polygon3* pgn, 
@@ -101,6 +110,7 @@ bool getCDT(const Polygon3* pgn,
     in.pointattributelist[(counter / 2) - 1] = bg::get<2>(pt);
   }
   in.pointmarkerlist = NULL;
+  //-- segments to store too
   in.numberofsegments = in.numberofpoints - int(lidarpts.size());
   in.numberofregions = 0;
   in.segmentlist = (int *) malloc(in.numberofsegments * 2 * sizeof(int));
@@ -156,12 +166,33 @@ bool getCDT(const Polygon3* pgn,
     t.v2 = out.trianglelist[i * out.numberofcorners + 2];
     triangles.push_back(t);
   }
-  for (int i = 0; i < out.numberofsegments; i++) {
-    Segment s;
-    s.v0 = out.segmentlist[i * 2];
-    s.v1 = out.segmentlist[i * 2 + 1];
-    segments.push_back(s);
-  }
+  // for (int i = 0; i < in.numberofsegments; i++) {
+  //   Segment s;
+  //   s.v0 = in.segmentlist[i * 2];
+  //   s.v1 = in.segmentlist[i * 2 + 1];
+  //   segments.push_back(s);
+  // }
+
+  // int lastid = 0;
+  // if (irings.size() > 0)
+  //   std::clog << "irings: YES" << std::endl;
+  // for (int i = 0; i < out.numberofsegments; i++) {
+  //   Segment s;
+  //   int a = out.segmentlist[i * 2];
+  //   int b = out.segmentlist[i * 2 + 1];
+  //   if (a == lastid) {
+  //     s.v0 = a;
+  //     s.v1 = b;
+  //     lastid = b;
+  //   }
+  //   else {
+  //     s.v0 = b;
+  //     s.v1 = a;
+  //     lastid = a;
+  //   }
+  //   segments.push_back(s);
+  // }
+
 
   free(in.pointlist);
   free(in.pointattributelist);

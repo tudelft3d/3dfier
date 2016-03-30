@@ -398,8 +398,52 @@ std::string Block::get_obj_f(int offset, bool usemtl) {
   //-- top surface
   for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
+  
+//-- extract segments
+  std::vector<Segment> allsegments;
+  for (auto& curt : _triangles) {
+    bool issegment = false;
+    for (auto& t : _triangles) {
+      if (triangle_contains_segment(t, curt.v1, curt.v0) == true) {
+        issegment = true;
+        break;
+      }
+    }
+    if (issegment == false) {
+      Segment s;
+      s.v0 = curt.v0;
+      s.v1 = curt.v1;
+      allsegments.push_back(s);
+    }
+    issegment = false;
+    for (auto& t : _triangles) {
+      if (triangle_contains_segment(t, curt.v2, curt.v1) == true) {
+        issegment = true;
+        break;
+      }
+    }
+    if (issegment == false) {
+      Segment s;
+      s.v0 = curt.v1;
+      s.v1 = curt.v2;
+      allsegments.push_back(s);
+    }
+    issegment = false;
+    for (auto& t : _triangles) {
+      if (triangle_contains_segment(t, curt.v0, curt.v2) == true) {
+        issegment = true;
+        break;
+      }
+    }
+    if (issegment == false) {
+      Segment s;
+      s.v0 = curt.v2;
+      s.v1 = curt.v0;
+      allsegments.push_back(s);
+    }
+  }
   //-- side surfaces walls
-  for (auto& s : _segments) {
+  for (auto& s : allsegments) {
     ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
     ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
   }
