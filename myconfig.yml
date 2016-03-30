@@ -15,8 +15,8 @@ input_polygons:
   
 lifting_options: 
   Building:
-    height_roof: percentile-95 #median
-    height_floor: percentile-10 #median
+    height_roof: percentile-95 
+    height_floor: percentile-10 
     triangulate: true
   Water:
     height: percentile-10
