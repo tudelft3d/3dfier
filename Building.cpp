@@ -71,7 +71,7 @@ std::string Building::get_obj_f(int offset, bool usemtl) {
 std::string Building::get_obj_f_floor(int offset) {
   std::stringstream ss;
   for (auto& t : _triangles)
-    ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << std::endl;  
+    ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << std::endl;  
   return ss.str();
 }
 
