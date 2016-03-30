@@ -344,8 +344,8 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
     std::clog << "\t(" << numberOfPolygons << " features --> " << l.second << ")" << std::endl;
     OGRFeature *f;
     while ((f = dataLayer->GetNextFeature()) != NULL) {
-      if (f->GetFieldAsInteger("hoogtenive") < 0)
-        continue;
+      if ( (f->GetFieldIndex("hoogtenive") != -1) && (f->GetFieldAsInteger("hoogtenive") < 0) )
+          continue;
       switch(f->GetGeometryRef()->getGeometryType()) {
         case wkbPolygon:
         case wkbMultiPolygon: 
@@ -378,7 +378,7 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
             _lsFeatures.push_back(p3);
           }          
           //-- flag all polygons at (niveau < 0) for top10nl
-          if (f->GetFieldAsInteger("hoogtenive") < 0) {
+          if ( (f->GetFieldIndex("hoogtenive") != -1) && (f->GetFieldAsInteger("hoogtenive") < 0) ) {
             // std::clog << "niveau=-1: " << f->GetFieldAsString(idfield.c_str()) << std::endl;
             (_lsFeatures.back())->set_top_level(false);
           }
