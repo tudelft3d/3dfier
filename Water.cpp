@@ -64,7 +64,7 @@ bool Water::add_elevation_point(double x, double y, double z, float radius, bool
 }
 
 bool Water::buildCDT() {
-  getCDT(&_p3, _vertices, _triangles, _segments);
+  getCDT(&_p3, _vertices, _triangles);
   return true;
 }
 

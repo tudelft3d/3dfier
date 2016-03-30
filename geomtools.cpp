@@ -62,7 +62,6 @@ bool triangle_contains_segment(Triangle t, int a, int b) {
 bool getCDT(const Polygon3* pgn, 
             std::vector<Point3> &vertices, 
             std::vector<Triangle> &triangles, 
-            std::vector<Segment> &segments, 
             const std::vector<Point3> &lidarpts) {
   Ring3 oring = bg::exterior_ring(*pgn);
   auto irings = bg::interior_rings(*pgn);
@@ -166,33 +165,6 @@ bool getCDT(const Polygon3* pgn,
     t.v2 = out.trianglelist[i * out.numberofcorners + 2];
     triangles.push_back(t);
   }
-  // for (int i = 0; i < in.numberofsegments; i++) {
-  //   Segment s;
-  //   s.v0 = in.segmentlist[i * 2];
-  //   s.v1 = in.segmentlist[i * 2 + 1];
-  //   segments.push_back(s);
-  // }
-
-  // int lastid = 0;
-  // if (irings.size() > 0)
-  //   std::clog << "irings: YES" << std::endl;
-  // for (int i = 0; i < out.numberofsegments; i++) {
-  //   Segment s;
-  //   int a = out.segmentlist[i * 2];
-  //   int b = out.segmentlist[i * 2 + 1];
-  //   if (a == lastid) {
-  //     s.v0 = a;
-  //     s.v1 = b;
-  //     lastid = b;
-  //   }
-  //   else {
-  //     s.v0 = b;
-  //     s.v1 = a;
-  //     lastid = a;
-  //   }
-  //   segments.push_back(s);
-  // }
-
 
   free(in.pointlist);
   free(in.pointattributelist);

@@ -55,7 +55,7 @@ bool Terrain::lift() {
 }
 
 bool Terrain::buildCDT() {
-  getCDT(&_p3, _vertices, _triangles, _segments, _lidarpts);
+  getCDT(&_p3, _vertices, _triangles, _lidarpts);
   construct_vertical_walls();
   return true;
 }

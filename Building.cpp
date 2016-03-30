@@ -41,7 +41,7 @@ bool Building::lift() {
 }
 
 bool Building::buildCDT() {
-  getCDT(&_p3, _vertices, _triangles, _segments);
+  getCDT(&_p3, _vertices, _triangles);
   return true;
 }
 

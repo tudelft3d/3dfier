@@ -72,7 +72,6 @@ protected:
   std::vector< std::vector<float> > _velevations;
   std::vector<Point3>   _vertices;  //-- output of Triangle
   std::vector<Triangle> _triangles; //-- output of Triangle
-  std::vector<Segment>  _segments;  //-- output of Triangle
   std::vector<Point3>   _vertices_vw;  //-- for vertical walls
   std::vector<Triangle> _triangles_vw; //-- for vertical walls
 

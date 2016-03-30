@@ -41,7 +41,6 @@ bool triangle_contains_segment(Triangle t, int a, int b);
 bool getCDT(const Polygon3* p, 
             std::vector<Point3> &vertices, 
             std::vector<Triangle> &triangles, 
-            std::vector<Segment> &segments, 
             const std::vector<Point3> &lidarpts = std::vector<Point3>());
 
 
