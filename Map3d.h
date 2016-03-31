@@ -51,7 +51,6 @@ public:
   bool threeDfy(bool triangulate = true);
   void add_elevation_point(liblas::Point const& laspt);
   // void add_elevation_point(double x, double y, double z, int returnno, liblas::Classification lasclass);
-  std::vector<TopoFeature*> get_adjacent_features(TopoFeature* f);
 
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>& get_polygons3d();  
@@ -94,6 +93,7 @@ private:
 #else
   bool extract_and_add_polygon(GDALDataset *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers);
 #endif
+
   void stitch_one_feature(TopoFeature* f, TopoClass adjclass);
   bool read_one_gdal_layer(OGRLayer* dataLayer, std::string idfield, std::pair<std::string, std::string> &l);
   void build_nodecolumn(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star);
@@ -101,6 +101,7 @@ private:
   void stitch_2_hard(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge);
   void stitch_average(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos);
   void adjust_nc(std::vector<float>& televs, float jumpedge);
+  std::vector<TopoFeature*> get_adjacent_features(TopoFeature* f);
 
 };
 

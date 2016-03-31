@@ -221,6 +221,16 @@ bool Map3d::threeDfy(bool triangulate) {
     std::clog << "=====  /STITCHING =====" << std::endl;
     this->stitch_lifted_features();
     std::clog << "=====  STITCHING/ =====" << std::endl;
+    std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
+    for (auto& p : _lsFeatures) {
+      if ( (p->get_class() == TERRAIN) ||
+           (p->get_class() == ROAD) ||
+           (p->get_class() == FOREST) ) {
+        std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
+        p->construct_vertical_walls(lsAdj);
+      }
+    }
+    std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
     std::clog << "=====  /CDT =====" << std::endl;
     for (auto& p : _lsFeatures) {
       // std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
@@ -466,6 +476,8 @@ void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
     }
   }
 }
+
+
 
 
 void Map3d::stitch_lifted_features() {

@@ -93,7 +93,7 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
 }
 
 
-void TopoFeature::construct_vertical_walls() {
+void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
   int i = 0;
   for (auto& curnc : _nc) {
     if (curnc.empty() == false) {
@@ -109,10 +109,10 @@ void TopoFeature::construct_vertical_walls() {
     this->get_next_point2_in_ring(i, ni); //-- index of next in the ring (oring or iring)
     std::vector<float> nnc = _nc[ni];
 
-    if ( (curnc.size() > 0) || (nnc.size() > 0) ) {
-      std::vector<TopoFeature*> lsAdj = 
+    // if ( (curnc.size() > 0) || (nnc.size() > 0) ) {
+    //   std::vector<TopoFeature*> lsAdj = 
 
-    }
+    // }
 
     
     if (nnc.size() > 0) {
@@ -145,6 +145,7 @@ void TopoFeature::construct_vertical_walls() {
     i++;
   }
 }
+
 
 
 bool TopoFeature::has_segment(Point2& a, Point2& b, int& ia, int& ib) {

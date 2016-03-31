@@ -46,7 +46,9 @@ public:
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
 
+
   std::string  get_id();
+  void         construct_vertical_walls(std::vector<TopoFeature*> lsAdj);
   int          get_counter(); 
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
@@ -79,7 +81,6 @@ protected:
   Point2& get_next_point2_in_ring(int i, int& index);
   bool    assign_elevation_to_vertex(double x, double y, double z, float radius);
   void    lift_vertices_boundary(float percentile);
-  void    construct_vertical_walls();
 };
 
 

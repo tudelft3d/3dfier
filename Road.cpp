@@ -43,7 +43,6 @@ bool Road::lift() {
 
 bool Road::buildCDT() {
   getCDT(&_p3, _vertices, _triangles);
-  construct_vertical_walls();
   return true;
 }
 

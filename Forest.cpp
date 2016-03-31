@@ -35,7 +35,6 @@ bool Forest::lift() {
 
 bool Forest::buildCDT() {
   getCDT(&_p3, _vertices, _triangles, _lidarpts);
-  construct_vertical_walls();
   return true;
 }
 
