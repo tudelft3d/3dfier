@@ -208,8 +208,6 @@ bool Map3d::threeDfy(bool triangulate) {
   2. stitch
   3. CDT
 */
-  // std::clog << "MinX: " << _minx << std::endl;
-  // std::clog << "MinY: " << _miny << std::endl;
   std::clog << "===== /LIFTING =====" << std::endl;
   for (auto& p : _lsFeatures) {
     if (p->get_top_level() == true) {
@@ -443,6 +441,21 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
 }
 
 
+std::vector<TopoFeature*> Map3d::get_adjacent_features(TopoFeature* f) {
+  std::vector<PairIndexed> re;
+  _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+  std::vector<TopoFeature*> lsAdjacent;
+  for (auto& each : re) {
+    TopoFeature* fadj = each.second;
+    if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
+      // std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
+      lsAdjacent.push_back(fadj);
+    }
+  }
+  return lsAdjacent;
+}
+
+
 void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
   std::vector<PairIndexed> re;
   _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
@@ -487,7 +500,7 @@ void Map3d::stitch_lifted_features() {
         }
       }
       if (toprocess == true) {
-        this->process_star(f, i, star);
+        this->build_nodecolumn(f, i, star);
       }
     }
     // irings
@@ -510,7 +523,7 @@ void Map3d::stitch_lifted_features() {
           }
         }
         if (toprocess == true) {
-          this->process_star(f, (i + offset), star);
+          this->build_nodecolumn(f, (i + offset), star);
         }
       }
       offset += bg::num_points(iring);
@@ -519,7 +532,7 @@ void Map3d::stitch_lifted_features() {
 }
 
 
-void Map3d::process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
+void Map3d::build_nodecolumn(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
   float fz = f->get_point_elevation(pos);
   //-- degree of vertex == 2
   if (star.size() == 1) {

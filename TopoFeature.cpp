@@ -106,8 +106,15 @@ void TopoFeature::construct_vertical_walls() {
   i = 0;
   int ni;
   for (auto& curnc : _nc) {
-    this->get_next_point2_in_ring(i, ni); //-- index of next in ring
+    this->get_next_point2_in_ring(i, ni); //-- index of next in the ring (oring or iring)
     std::vector<float> nnc = _nc[ni];
+
+    if ( (curnc.size() > 0) || (nnc.size() > 0) ) {
+      std::vector<TopoFeature*> lsAdj = 
+
+    }
+
+    
     if (nnc.size() > 0) {
       for (int j = 0; j < (nnc.size() - 1); j++) {
         _vertices_vw.push_back(Point3(this->get_point_x(i), this->get_point_y(i), this->get_point_elevation(i)));

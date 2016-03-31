@@ -49,8 +49,9 @@ public:
   void stitch_lifted_features();
   bool construct_rtree();
   bool threeDfy(bool triangulate = true);
-  // void add_elevation_point(double x, double y, double z, int returnno, liblas::Classification lasclass);
   void add_elevation_point(liblas::Point const& laspt);
+  // void add_elevation_point(double x, double y, double z, int returnno, liblas::Classification lasclass);
+  std::vector<TopoFeature*> get_adjacent_features(TopoFeature* f);
 
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>& get_polygons3d();  
@@ -59,7 +60,6 @@ public:
   std::string get_csv_buildings();
   std::string get_obj_per_feature(int z_exaggeration = 0);
   std::string get_obj_per_class(int z_exaggeration = 0);
-
      
   void set_building_heightref_roof(std::string heightref);
   void set_building_heightref_floor(std::string heightref);
@@ -96,7 +96,7 @@ private:
 #endif
   void stitch_one_feature(TopoFeature* f, TopoClass adjclass);
   bool read_one_gdal_layer(OGRLayer* dataLayer, std::string idfield, std::pair<std::string, std::string> &l);
-  void process_star(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star);
+  void build_nodecolumn(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star);
   void stitch_jumpedge(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge);
   void stitch_2_hard(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge);
   void stitch_average(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos);
