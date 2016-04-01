@@ -94,7 +94,7 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
 
 
 void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
-  if (this->get_id() == "116730159")
+  if (this->get_id() == "116721434")
     std::clog << "116730159" << std::endl;
   int i = 0;
   for (auto& curnc : _nc) {
@@ -109,8 +109,9 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
   int bi;
   Point2 a;
   Point2 b;
-  TopoFeature* fadj = nullptr;
+  TopoFeature* fadj;
   for (auto& curnc : _nc) {
+    fadj = nullptr;
     b = this->get_next_point2_in_ring(ai, bi);
     std::vector<float> nnc = _nc[bi];
     if ( (curnc.size() > 0) || (nnc.size() > 0) ) {
@@ -126,8 +127,8 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
       }
       if (fadj != nullptr) {
         std::clog << "found: " << fadj->get_id() << std::endl;
-        if ( (this->get_point_elevation(ai) != fadj->get_point_elevation(fadj->has_point2(a))) ||
-             (this->get_point_elevation(bi) != fadj->get_point_elevation(fadj->has_point2(b))) )
+        if ( (std::abs(this->get_point_elevation(ai) - fadj->get_point_elevation(fadj->has_point2(a))) > 0.01) ||
+             (std::abs(this->get_point_elevation(bi) - fadj->get_point_elevation(fadj->has_point2(b))) > 0.01) )
         {
           std::clog << "diff elevation" << std::endl;
           //-- then add those walls   
