@@ -53,14 +53,16 @@ public:
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
   int          has_point2(Point2& p);
-  bool         has_segment(Point2& a, Point2& b, int& ia, int& ib);
-  void         set_point_elevation(int i, float z);  
+  void         get_point2(int i, Point2& p);
+  bool         has_segment(Point2& a, Point2& b);
   bool         get_top_level();
   void         set_top_level(bool toplevel);
   double       get_point_x(int i);
   double       get_point_y(int i);
   float        get_point_elevation(int i);
+  void         set_point_elevation(int i, float z);  
   void         add_nc(int i, float z);
+  bool         has_vertical_walls(); 
   std::vector<float>& get_nc(int i);
 
 protected:

@@ -225,9 +225,12 @@ bool Map3d::threeDfy(bool triangulate) {
     for (auto& p : _lsFeatures) {
       if ( (p->get_class() == TERRAIN) ||
            (p->get_class() == ROAD) ||
-           (p->get_class() == FOREST) ) {
-        std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
-        p->construct_vertical_walls(lsAdj);
+           (p->get_class() == FOREST) ) 
+      {
+        if (p->has_vertical_walls() == true) {
+          std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
+          p->construct_vertical_walls(lsAdj);
+        }
       }
     }
     std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
