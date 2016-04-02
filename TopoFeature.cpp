@@ -81,10 +81,15 @@ std::string TopoFeature::get_obj_v(int z_exaggeration) {
 }
 
 std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
+  if (this->get_id() == "116727828") {
+    std::clog << "116727828" << std::endl;
+    std::clog << _vertices_vw.size() << std::endl;
+    std::clog << _triangles_vw.size() << std::endl;
+  }
   std::stringstream ss;
   for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
-  int k = _vertices.size();
+  unsigned long k = _vertices.size();
   if (usemtl == true)
     ss << "usemtl VerticalWalls" << std::endl;
   for (auto& t : _triangles_vw)
@@ -94,8 +99,8 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
 
 
 void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
-  if (this->get_id() == "116721434")
-    std::clog << "116730159" << std::endl;
+  if (this->get_id() == "116727828")
+    std::clog << "selected one" << std::endl;
   int i = 0;
   for (auto& curnc : _nc) {
     if (curnc.empty() == false) {
