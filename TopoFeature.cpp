@@ -206,7 +206,7 @@ int TopoFeature::has_point2(Point2& p) {
   return re;
 }
 
-Point2& TopoFeature::get_previous_point2_in_ring(int i, int& index) {
+Point2 TopoFeature::get_previous_point2_in_ring(int i, int& index) {
   Ring2 oring = bg::exterior_ring(*_p2);
   int offset = int(bg::num_points(oring));
   if (i < offset) {
@@ -237,7 +237,7 @@ Point2& TopoFeature::get_previous_point2_in_ring(int i, int& index) {
 }
 
 
-Point2& TopoFeature::get_next_point2_in_ring(int i, int& index) {
+Point2 TopoFeature::get_next_point2_in_ring(int i, int& index) {
   Ring2 oring = bg::exterior_ring(*_p2);
   int offset = int(bg::num_points(oring));
   //-- on the oring

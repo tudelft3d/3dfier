@@ -79,8 +79,8 @@ protected:
   std::vector<Point3>   _vertices_vw;  //-- for vertical walls
   std::vector<Triangle> _triangles_vw; //-- for vertical walls
 
-  Point2& get_previous_point2_in_ring(int i, int& index);
-  Point2& get_next_point2_in_ring(int i, int& index);
+  Point2  get_previous_point2_in_ring(int i, int& index);
+  Point2  get_next_point2_in_ring(int i, int& index);
   bool    assign_elevation_to_vertex(double x, double y, double z, float radius);
   void    lift_vertices_boundary(float percentile);
 };
