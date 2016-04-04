@@ -206,7 +206,8 @@ bool Map3d::threeDfy(bool triangulate) {
 /*
   1. lift
   2. stitch
-  3. CDT
+  3. process vertical walls
+  4. CDT
 */
   std::clog << "===== /LIFTING =====" << std::endl;
   for (auto& p : _lsFeatures) {
