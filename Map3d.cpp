@@ -497,6 +497,8 @@ void Map3d::stitch_lifted_features() {
         lstouching.push_back(fadj);
       }
     }
+    if (f->get_id() == "111114973")
+      std::clog << "yo" << std::endl;
 //-- 2. build the node-column for each vertex
     // oring
     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); 
@@ -504,7 +506,7 @@ void Map3d::stitch_lifted_features() {
       std::vector< std::pair<TopoFeature*, int> > star;  
       bool toprocess = true;
       for (auto& fadj : lstouching) {
-        int index = fadj->has_point2(oring[i]);
+        int index = fadj->has_point2(oring[i]); //-- TODO: more than one point can be touching!
         if (index != -1)  {
           if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
             star.push_back(std::make_pair(fadj, index));
@@ -595,9 +597,6 @@ void Map3d::build_nodecolumn(TopoFeature* f, int pos, std::vector< std::pair<Top
     for (int i = 0; i < 6; i++) {
       if (c[i] != 0)
         televs[i] /= c[i];
-    }
-    if (f->get_id() == "111113638") {
-      std::clog << televs[1] << std::endl;
     }
     adjust_nc(televs, _threshold_jump_edges);
     f->set_point_elevation(pos, televs[f->get_class()]);
