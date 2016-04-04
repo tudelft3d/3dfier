@@ -162,6 +162,9 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
               t.v1 = int(_vertices_vw.size()) - 2;
               t.v2 = int(_vertices_vw.size()) - 1;
               _triangles_vw.push_back(t);
+              if (this->get_id() == "111114973")
+                std::clog << "vw added" << std::endl;
+
             }
           }
         }
@@ -169,18 +172,23 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
     }
     ai++;
   }
+  if (this->get_id() == "111114973")
+    std::clog << "-- 111114973 --" << std::endl;
+
 }
     
 
 bool TopoFeature::has_segment(Point2& a, Point2& b) {
+  double threshold = 0.001;
   int posa = this->has_point2(a);
   if (posa != -1) {
     Point2 tmp;
     int itmp;
     tmp = this->get_next_point2_in_ring(posa, itmp);
-    if (bg::equals(b, tmp) == true) {
+    // if (bg::equals(b, tmp) == true) {
+    std::clog << bg::distance(b, tmp) << std::endl;
+    if (bg::distance(b, tmp) <= threshold)
       return true;
-    }
   }
   return false;
 }
