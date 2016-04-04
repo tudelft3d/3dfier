@@ -83,8 +83,9 @@ std::string TopoFeature::get_obj_v(int z_exaggeration) {
 std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
   if (this->get_id() == "116727828") {
     std::clog << "116727828" << std::endl;
-    std::clog << _vertices_vw.size() << std::endl;
-    std::clog << _triangles_vw.size() << std::endl;
+    std::clog << "nc size: " << _nc.size() << std::endl;
+    std::clog << "_vertices_vw: " << _vertices_vw.size() << std::endl;
+    std::clog << "_triangles_vw: " <<_triangles_vw.size() << std::endl;
   }
   std::stringstream ss;
   for (auto& t : _triangles)
@@ -99,8 +100,13 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
 
 
 void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
-  if (this->get_id() == "116727828")
-    std::clog << "selected one" << std::endl;
+  if (this->get_id() == "111114973") {
+    std::clog << "-- 111114973 --" << std::endl;
+    std::clog << "lsAdj: " << lsAdj.size() << std::endl;
+    for (auto& f : lsAdj) 
+      std::clog << f->get_id() << " " << std::endl;
+    std::clog << std::endl;
+  }
   int i = 0;
   for (auto& curnc : _nc) {
     if (curnc.empty() == false) {
@@ -121,21 +127,29 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
     std::vector<float> nnc = _nc[bi];
     if ( (curnc.size() > 0) || (nnc.size() > 0) ) {
       get_point2(ai, a);
-      std::clog << "a: " << bg::get<0>(a) << " " << bg::get<1>(a) << std::endl;
-      std::clog << "b: " << bg::get<0>(b) << " " << bg::get<1>(b) << std::endl;
+      // std::clog << "a: " << bg::get<0>(a) << " " << bg::get<1>(a) << std::endl;
+      // std::clog << "b: " << bg::get<0>(b) << " " << bg::get<1>(b) << std::endl;
       for (auto& f : lsAdj) {
-        std::clog << f->get_id() << std::endl;
+        // std::clog << f->get_id() << std::endl;
         if (f->has_segment(b, a) == true) {
           fadj = f;
           break;
         }
       }
       if (fadj != nullptr) {
-        std::clog << "found: " << fadj->get_id() << std::endl;
-        if ( (std::abs(this->get_point_elevation(ai) - fadj->get_point_elevation(fadj->has_point2(a))) > 0.01) ||
-             (std::abs(this->get_point_elevation(bi) - fadj->get_point_elevation(fadj->has_point2(b))) > 0.01) )
+        // if ( (std::abs(this->get_point_elevation(ai) - fadj->get_point_elevation(fadj->has_point2(a))) > 0.01) ||
+        //      (std::abs(this->get_point_elevation(bi) - fadj->get_point_elevation(fadj->has_point2(b))) > 0.01) )
+        double adiff = std::abs(this->get_point_elevation(ai) - fadj->get_point_elevation(fadj->has_point2(a)));
+        double bdiff = std::abs(this->get_point_elevation(bi) - fadj->get_point_elevation(fadj->has_point2(b)));
+        if (this->get_id() == "111114973") {
+          std::clog << "fadj: " << fadj->get_id() << std::endl;
+          std::clog << "size: " << curnc.size() << " : " << nnc.size() << std::endl;
+          std::clog << adiff << std::endl; 
+          std::clog << adiff << std::endl; 
+        }
+        if ( (adiff > 0.01) || (bdiff > 0.01) ) 
         {
-          std::clog << "diff elevation" << std::endl;
+          // std::clog << "diff elevation" << std::endl;
           //-- then add those walls   
           if (nnc.size() > 0) {
             for (int j = 0; j < (nnc.size() - 1); j++) {
@@ -147,6 +161,8 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
               t.v1 = int(_vertices_vw.size()) - 1;
               t.v2 = int(_vertices_vw.size()) - 2;
               _triangles_vw.push_back(t);
+              if (this->get_id() == "111114973")
+                std::clog << "vw added" << std::endl;
             }
           }
           if (curnc.size() > 0) {
