@@ -100,18 +100,20 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
 
 
 void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
-  if (this->get_id() == "111114973") {
-    std::clog << "-- 111114973 --" << std::endl;
-    std::clog << "lsAdj: " << lsAdj.size() << std::endl;
-    for (auto& f : lsAdj) 
-      std::clog << f->get_id() << " " << std::endl;
-    std::clog << std::endl;
-  }
+  // if (this->get_id() == "111114973") {
+  //   std::clog << "-- 111114973 --" << std::endl;
+  //   std::clog << "lsAdj: " << lsAdj.size() << std::endl;
+  //   for (auto& f : lsAdj) 
+  //     std::clog << f->get_id() << " " << std::endl;
+  //   std::clog << std::endl;
+  // }
+  float TOL = 0.01;
   int i = 0;
   for (auto& curnc : _nc) {
     if (curnc.empty() == false) {
       curnc.push_back(this->get_point_elevation(i));
       std::sort(curnc.begin(), curnc.end());
+      std::reverse(curnc.begin(), curnc.end()); //-- heights from top to bottom 
     }
     i++;
   }
@@ -137,55 +139,65 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
         }
       }
       if (fadj != nullptr) {
-        // if ( (std::abs(this->get_point_elevation(ai) - fadj->get_point_elevation(fadj->has_point2(a))) > 0.01) ||
-        //      (std::abs(this->get_point_elevation(bi) - fadj->get_point_elevation(fadj->has_point2(b))) > 0.01) )
         double fadj_az = fadj->get_point_elevation(fadj->has_point2(a));
         double fadj_bz = fadj->get_point_elevation(fadj->has_point2(b));
         double adiff = std::abs(this->get_point_elevation(ai) - fadj_az);
         double bdiff = std::abs(this->get_point_elevation(bi) - fadj_bz);
-        if (this->get_id() == "111114973") {
-          std::clog << "fadj: " << fadj->get_id() << std::endl;
-          std::clog << "size: " << curnc.size() << " : " << nnc.size() << std::endl;
-          std::clog << adiff << std::endl; 
-          std::clog << adiff << std::endl; 
-        }
+        // if (this->get_id() == "111114973") {
+        //   std::clog << "fadj: " << fadj->get_id() << std::endl;
+        //   std::clog << "size: " << curnc.size() << " : " << nnc.size() << std::endl;
+        //   std::clog << adiff << std::endl; 
+        //   std::clog << adiff << std::endl; 
+        // }
         if ( (adiff > 0.01) || (bdiff > 0.01) ) 
         {
+
+          int sa = 0;
+          int ea = 0;
+          for (int j = 0; j < curnc.size(); j++) {
+            if (std::abs(this->get_point_elevation(ai) - curnc[j]) < TOL)
+              sa = j;
+            if (std::abs(fadj_az - curnc[j]) < TOL) 
+              ea = j;
+          }
+          int sb = 0;
+          int eb = 0;
+          for (int j = 0; j < nnc.size(); j++) {
+            if (std::abs(this->get_point_elevation(bi) - nnc[j]) < TOL)
+              sb = j;
+            if (std::abs(fadj_bz - nnc[j]) < TOL) 
+              eb = j;
+          }
+
           if (nnc.size() > 0) {
-            for (int j = 0; j < (nnc.size() - 1); j++) {
-              if (nnc[j] >= fadj_bz) {
+            for (int j = sb; j < eb; j++) {
+              if (curnc.size() == 0)
                 _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), this->get_point_elevation(ai)));
-                _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[j]));
-                _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[j + 1]));
-                Triangle t;
-                t.v0 = int(_vertices_vw.size()) - 3;
-                t.v1 = int(_vertices_vw.size()) - 1;
-                t.v2 = int(_vertices_vw.size()) - 2;
-                _triangles_vw.push_back(t);
-                if (this->get_id() == "111114973")
-                  std::clog << "vw added" << std::endl;
-              }
+              else  
+                _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[sa]));
+              _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[j]));
+              _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[j + 1]));
+              Triangle t;
+              t.v0 = int(_vertices_vw.size()) - 3;
+              t.v1 = int(_vertices_vw.size()) - 2;
+              t.v2 = int(_vertices_vw.size()) - 1;
+              _triangles_vw.push_back(t);
             }
           }
+
           if (curnc.size() > 0) {
-            for (int j = 0; j < (curnc.size() - 1); j++) {
-              if (curnc[j] >= fadj_az) {
-                if (nnc.size() == 0) {
-                  _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), this->get_point_elevation(bi)));
-                }
-                else {
-                  _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc.front()));
-                }
-                _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[j]));
-                _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[j + 1]));
-                Triangle t;
-                t.v0 = int(_vertices_vw.size()) - 3;
-                t.v1 = int(_vertices_vw.size()) - 2;
-                t.v2 = int(_vertices_vw.size()) - 1;
-                _triangles_vw.push_back(t);
-                if (this->get_id() == "111114973")
-                  std::clog << "vw added" << std::endl;
-              }
+            for (int j = sa; j < ea; j++) {
+              if (nnc.size() == 0)
+                _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), this->get_point_elevation(bi)));
+              else
+                _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[eb]));
+              _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[j]));
+              _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[j + 1]));
+              Triangle t;
+              t.v0 = int(_vertices_vw.size()) - 3;
+              t.v1 = int(_vertices_vw.size()) - 1;
+              t.v2 = int(_vertices_vw.size()) - 2;
+              _triangles_vw.push_back(t);
             }
           }
         }
@@ -193,9 +205,6 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
     }
     ai++;
   }
-  if (this->get_id() == "111114973")
-    std::clog << "-- 111114973 --" << std::endl;
-
 }
     
 
@@ -207,7 +216,7 @@ bool TopoFeature::has_segment(Point2& a, Point2& b) {
     int itmp;
     tmp = this->get_next_point2_in_ring(posa, itmp);
     // if (bg::equals(b, tmp) == true) {
-    std::clog << bg::distance(b, tmp) << std::endl;
+    // std::clog << bg::distance(b, tmp) << std::endl;
     if (bg::distance(b, tmp) <= threshold)
       return true;
   }
