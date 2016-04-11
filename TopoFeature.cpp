@@ -139,8 +139,10 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
       if (fadj != nullptr) {
         // if ( (std::abs(this->get_point_elevation(ai) - fadj->get_point_elevation(fadj->has_point2(a))) > 0.01) ||
         //      (std::abs(this->get_point_elevation(bi) - fadj->get_point_elevation(fadj->has_point2(b))) > 0.01) )
-        double adiff = std::abs(this->get_point_elevation(ai) - fadj->get_point_elevation(fadj->has_point2(a)));
-        double bdiff = std::abs(this->get_point_elevation(bi) - fadj->get_point_elevation(fadj->has_point2(b)));
+        double fadj_az = fadj->get_point_elevation(fadj->has_point2(a));
+        double fadj_bz = fadj->get_point_elevation(fadj->has_point2(b));
+        double adiff = std::abs(this->get_point_elevation(ai) - fadj_az);
+        double bdiff = std::abs(this->get_point_elevation(bi) - fadj_bz);
         if (this->get_id() == "111114973") {
           std::clog << "fadj: " << fadj->get_id() << std::endl;
           std::clog << "size: " << curnc.size() << " : " << nnc.size() << std::endl;
@@ -149,38 +151,41 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
         }
         if ( (adiff > 0.01) || (bdiff > 0.01) ) 
         {
-          // std::clog << "diff elevation" << std::endl;
-          //-- then add those walls   
           if (nnc.size() > 0) {
             for (int j = 0; j < (nnc.size() - 1); j++) {
-              _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), this->get_point_elevation(ai)));
-              _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[j]));
-              _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[j + 1]));
-              Triangle t;
-              t.v0 = int(_vertices_vw.size()) - 3;
-              t.v1 = int(_vertices_vw.size()) - 1;
-              t.v2 = int(_vertices_vw.size()) - 2;
-              _triangles_vw.push_back(t);
-              if (this->get_id() == "111114973")
-                std::clog << "vw added" << std::endl;
+              if (nnc[j] >= fadj_bz) {
+                _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), this->get_point_elevation(ai)));
+                _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[j]));
+                _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[j + 1]));
+                Triangle t;
+                t.v0 = int(_vertices_vw.size()) - 3;
+                t.v1 = int(_vertices_vw.size()) - 1;
+                t.v2 = int(_vertices_vw.size()) - 2;
+                _triangles_vw.push_back(t);
+                if (this->get_id() == "111114973")
+                  std::clog << "vw added" << std::endl;
+              }
             }
           }
           if (curnc.size() > 0) {
             for (int j = 0; j < (curnc.size() - 1); j++) {
-              if (nnc.size() == 0)
-                _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), this->get_point_elevation(bi)));
-              else
-                _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc.front()));
-              _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[j]));
-              _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[j + 1]));
-              Triangle t;
-              t.v0 = int(_vertices_vw.size()) - 3;
-              t.v1 = int(_vertices_vw.size()) - 2;
-              t.v2 = int(_vertices_vw.size()) - 1;
-              _triangles_vw.push_back(t);
-              if (this->get_id() == "111114973")
-                std::clog << "vw added" << std::endl;
-
+              if (curnc[j] >= fadj_az) {
+                if (nnc.size() == 0) {
+                  _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), this->get_point_elevation(bi)));
+                }
+                else {
+                  _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc.front()));
+                }
+                _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[j]));
+                _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[j + 1]));
+                Triangle t;
+                t.v0 = int(_vertices_vw.size()) - 3;
+                t.v1 = int(_vertices_vw.size()) - 2;
+                t.v2 = int(_vertices_vw.size()) - 1;
+                _triangles_vw.push_back(t);
+                if (this->get_id() == "111114973")
+                  std::clog << "vw added" << std::endl;
+              }
             }
           }
         }
