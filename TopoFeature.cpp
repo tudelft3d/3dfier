@@ -100,13 +100,13 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
 
 
 void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
-  // if (this->get_id() == "111114973") {
-  //   std::clog << "-- 111114973 --" << std::endl;
-  //   std::clog << "lsAdj: " << lsAdj.size() << std::endl;
-  //   for (auto& f : lsAdj) 
-  //     std::clog << f->get_id() << " " << std::endl;
-  //   std::clog << std::endl;
-  // }
+  if (this->get_id() == "107729942") {
+    std::clog << "-- 107729942 --" << std::endl;
+    // std::clog << "lsAdj: " << lsAdj.size() << std::endl;
+    // for (auto& f : lsAdj) 
+      // std::clog << f->get_id() << " " << std::endl;
+    // std::clog << std::endl;
+  }
   float TOL = 0.01;
   int i = 0;
   for (auto& curnc : _nc) {
@@ -129,10 +129,10 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
     std::vector<float> nnc = _nc[bi];
     if ( (curnc.size() > 0) || (nnc.size() > 0) ) {
       get_point2(ai, a);
-      // std::clog << "a: " << bg::get<0>(a) << " " << bg::get<1>(a) << std::endl;
-      // std::clog << "b: " << bg::get<0>(b) << " " << bg::get<1>(b) << std::endl;
+       std::clog << "a: " << bg::get<0>(a) << " " << bg::get<1>(a) << std::endl;
+       std::clog << "b: " << bg::get<0>(b) << " " << bg::get<1>(b) << std::endl;
       for (auto& f : lsAdj) {
-        // std::clog << f->get_id() << std::endl;
+//         std::clog << f->get_id() << std::endl;
         if (f->has_segment(b, a) == true) {
           fadj = f;
           break;
@@ -151,7 +151,6 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
         // }
         if ( (adiff > 0.01) || (bdiff > 0.01) ) 
         {
-
           int sa = 0;
           int ea = 0;
           for (int j = 0; j < curnc.size(); j++) {
@@ -184,7 +183,6 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
               _triangles_vw.push_back(t);
             }
           }
-
           if (curnc.size() > 0) {
             for (int j = sa; j < ea; j++) {
               if (nnc.size() == 0)
