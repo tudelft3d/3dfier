@@ -99,6 +99,42 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
 }
 
 
+void TopoFeature::fix_bowtie(std::vector<TopoFeature*> lsAdj) {
+  if (this->get_id() == "116724964") 
+    std::clog << "--116724964" << std::endl;
+  int ai = 0;
+  int bi;
+  Point2 a;
+  Point2 b;
+  TopoFeature* fadj;
+  for (auto& curnc : _nc) {
+    fadj = nullptr;
+    b = this->get_next_point2_in_ring(ai, bi);
+    std::vector<float> nnc = _nc[bi];
+    if ( (curnc.size() > 0) || (nnc.size() > 0) ) {
+      get_point2(ai, a);
+      for (auto& f : lsAdj) {
+        if (f->has_segment(b, a) == true) {
+          fadj = f;
+          break;
+        }
+      }
+      if (fadj != nullptr) {
+        double f_az = this->get_point_elevation(ai);
+        double f_bz = this->get_point_elevation(bi);
+        double fadj_az = fadj->get_point_elevation(fadj->has_point2(a));
+        double fadj_bz = fadj->get_point_elevation(fadj->has_point2(b));
+        if ( ((f_az > fadj_az) && (f_bz < fadj_bz)) || ((f_az < fadj_az) && (f_bz > fadj_bz)) ) {
+          std::clog << "BOWTIE:" << this->get_id() << " " << fadj->get_id() << std::endl;
+          std::clog << this->get_class() << " " << fadj->get_class() << std::endl;
+        }
+      }
+    }
+    ai++;
+  }
+}
+
+
 void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
   if (this->get_id() == "107729942") {
     std::clog << "-- 107729942 --" << std::endl;
@@ -129,8 +165,8 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
     std::vector<float> nnc = _nc[bi];
     if ( (curnc.size() > 0) || (nnc.size() > 0) ) {
       get_point2(ai, a);
-       std::clog << "a: " << bg::get<0>(a) << " " << bg::get<1>(a) << std::endl;
-       std::clog << "b: " << bg::get<0>(b) << " " << bg::get<1>(b) << std::endl;
+      // std::clog << "a: " << bg::get<0>(a) << " " << bg::get<1>(a) << std::endl;
+      // std::clog << "b: " << bg::get<0>(b) << " " << bg::get<1>(b) << std::endl;
       for (auto& f : lsAdj) {
 //         std::clog << f->get_id() << std::endl;
         if (f->has_segment(b, a) == true) {

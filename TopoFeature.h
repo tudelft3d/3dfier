@@ -49,6 +49,7 @@ public:
 
   std::string  get_id();
   void         construct_vertical_walls(std::vector<TopoFeature*> lsAdj);
+  void         fix_bowtie(std::vector<TopoFeature*> lsAdj);
   int          get_counter(); 
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();

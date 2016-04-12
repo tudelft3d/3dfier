@@ -222,6 +222,16 @@ bool Map3d::threeDfy(bool triangulate) {
     std::clog << "=====  /STITCHING =====" << std::endl;
     this->stitch_lifted_features();
     std::clog << "=====  STITCHING/ =====" << std::endl;
+    
+    std::clog << "=====  /BOWTIES =====" << std::endl;
+    for (auto& p : _lsFeatures) {
+      if (p->has_vertical_walls() == true) {
+        std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
+        p->fix_bowtie(lsAdj);
+      }
+    }
+    std::clog << "=====  BOWTIES/ =====" << std::endl;
+
     std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
     for (auto& p : _lsFeatures) {
       if ( (p->get_class() == TERRAIN) ||
