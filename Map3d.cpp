@@ -497,7 +497,7 @@ void Map3d::stitch_lifted_features() {
         lstouching.push_back(fadj);
       }
     }
-    if (f->get_id() == "111114973")
+    if (f->get_id() == "107729942")
       std::clog << "yo" << std::endl;
 //-- 2. build the node-column for each vertex
     // oring
