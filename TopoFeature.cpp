@@ -119,7 +119,7 @@ void TopoFeature::fix_bowtie(std::vector<TopoFeature*> lsAdj) {
           break;
         }
       }
-      if (fadj != nullptr) {
+      if ( (fadj != nullptr) && (this->get_counter() < fadj->get_counter()) ) {
         double f_az = this->get_point_elevation(ai);
         double f_bz = this->get_point_elevation(bi);
         double fadj_az = fadj->get_point_elevation(fadj->has_point2(a));
@@ -127,6 +127,16 @@ void TopoFeature::fix_bowtie(std::vector<TopoFeature*> lsAdj) {
         if ( ((f_az > fadj_az) && (f_bz < fadj_bz)) || ((f_az < fadj_az) && (f_bz > fadj_bz)) ) {
           std::clog << "BOWTIE:" << this->get_id() << " " << fadj->get_id() << std::endl;
           std::clog << this->get_class() << " " << fadj->get_class() << std::endl;
+          // TODO : remove the nc because vertices are lowered
+          if (this->get_class() > fadj->get_class()) {
+            this->set_point_elevation(ai, fadj_az);
+            this->set_point_elevation(bi, fadj_bz);
+          }
+          else {
+            fadj->set_point_elevation(fadj->has_point2(a), f_az);
+            fadj->set_point_elevation(fadj->has_point2(b), f_bz);
+          }
+
         }
       }
     }
