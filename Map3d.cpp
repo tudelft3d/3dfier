@@ -518,7 +518,7 @@ void Map3d::stitch_lifted_features() {
         }
       }
       if (toprocess == true) {
-        this->build_nodecolumn(f, i, star);
+        this->build_nodecolumns(f, i, star);
       }
     }
     // irings
@@ -541,7 +541,7 @@ void Map3d::stitch_lifted_features() {
           }
         }
         if (toprocess == true) {
-          this->build_nodecolumn(f, (i + offset), star);
+          this->build_nodecolumns(f, (i + offset), star);
         }
       }
       offset += bg::num_points(iring);
@@ -550,33 +550,22 @@ void Map3d::stitch_lifted_features() {
 }
 
 
-void Map3d::build_nodecolumn(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
+void Map3d::build_nodecolumns(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
   float fz = f->get_point_elevation(pos);
-  //-- degree of vertex == 2
+//-- degree of vertex == 2
   if (star.size() == 1) {
     //-- if same class, then average. TODO: always, also for water?
-    if (f->get_class() == star[0].first->get_class())
-        stitch_average(f, pos, star[0].first, star[0].second);
+    if (f->get_class() == star[0].first->get_class()) {
+      stitch_average(f, pos, star[0].first, star[0].second);
+    }
+    else if ( (f->is_hard() == false) && (star[0].first->is_hard() == false) ) {
+      stitch_average(f, pos, star[0].first, star[0].second);
+    }
     else {
-      if (f->is_hard() == true) {
-        if (star[0].first->is_hard() == true)  {
-          // TODO : order to check, vertical added to soft/2nd passed
-          stitch_2_hard(f, pos, star[0].first, star[0].second, _threshold_jump_edges); 
-        }
-        else {
-          stitch_jumpedge(f, pos, star[0].first, star[0].second, _threshold_jump_edges);
-        }
-      }
-      else { //-- f is soft
-        if (star[0].first->is_hard() == true)  {
-          stitch_jumpedge(star[0].first, star[0].second, f, pos, _threshold_jump_edges);
-        }
-        else {
-          stitch_average(f, pos, star[0].first, star[0].second);
-        }
-      }
+      stitch_jumpedge(f, pos, star[0].first, star[0].second, _threshold_jump_edges);
     }
   }
+//-- degree of vertex >= 3: more complex cases
   else if (star.size() > 1) {
     //-- collect all elevations
     std::vector<float> televs;
@@ -617,6 +606,7 @@ void Map3d::build_nodecolumn(TopoFeature* f, int pos, std::vector< std::pair<Top
   }
 }
 
+
 // TODO : hard classes shouldn't be adjusted: can make unvertical water eg
 void Map3d::adjust_nc(std::vector<float>& televs, float jumpedge) {
   for (int i = 1; i <= 5; i++) {
@@ -629,35 +619,36 @@ void Map3d::adjust_nc(std::vector<float>& televs, float jumpedge) {
 }
 
 
-void Map3d::stitch_jumpedge(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge) {
-  float hardz = hard->get_point_elevation(hardpos);
-  float deltaz = std::abs(hardz - soft->get_point_elevation(softpos));
-  // std::clog << "deltaz=" << deltaz << std::endl;
-  if (deltaz < jumpedge) 
-    soft->set_point_elevation(softpos, hardz);
-  else {
-    soft->add_nc(softpos, hardz);
-    // std::clog << "nc added: " << hardz << " (" << soft->get_point_elevation(softpos) << ")" << std::endl;
+void Map3d::stitch_jumpedge(TopoFeature* f1, int f1pos, TopoFeature* f2, int f2pos, float jumpedge) {
+  float f1z = f1->get_point_elevation(f1pos);
+  float f2z = f2->get_point_elevation(f2pos);
+  float deltaz = std::abs(f1z - f2z);
+  bool fixed = false;
+  if (deltaz < jumpedge) {
+    if (f1->is_hard() == false) {
+      f1->set_point_elevation(f1pos, f2z);
+      fixed = true;
+    }
+    else if (f2->is_hard() == false) {
+      f2->set_point_elevation(f2pos, f1z);
+      fixed = true;
+    }
+  }
+  //-- then vertical walls must be added: nc to highest
+  //-- also for hard-hard stitching
+  if (fixed == false) { 
+    if (f1z > f2z)
+      f1->add_nc(f1pos, f2z);
+    else
+      f2->add_nc(f2pos, f1z);
   }
 }
 
-void Map3d::stitch_average(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos) {
-  float hardz = hard->get_point_elevation(hardpos);
-  float softz = soft->get_point_elevation(softpos);
-  hard->set_point_elevation(hardpos, (hardz + softz) / 2);
-  soft->set_point_elevation(softpos, (hardz + softz) / 2);
-}
 
-void Map3d::stitch_2_hard(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge) {
-  // TODO: how to stitch 2 hard classes? Add VW for Road/Building?
-  if (hard->get_class() == ROAD)
-    hard->add_nc(hardpos, soft->get_point_elevation(softpos));
-  else if (soft->get_class() == ROAD)
-    soft->add_nc(softpos, hard->get_point_elevation(hardpos));
-  else {
-    std::clog << "STITCH_2_HARD: " << hard->get_class() << " --- " << soft->get_class() << std::endl;
-    std::clog << "\t no ROAD involved, only WATER and BUILDING." << std::endl;
-  }
+void Map3d::stitch_average(TopoFeature* f1, int f1pos, TopoFeature* f2, int f2pos) {
+  float avgz = (f1->get_point_elevation(f1pos) + f2->get_point_elevation(f2pos) ) / 2; 
+  f1->set_point_elevation(f1pos, avgz);
+  f2->set_point_elevation(f2pos, avgz);
 }
 
 

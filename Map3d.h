@@ -96,9 +96,8 @@ private:
 
   void stitch_one_feature(TopoFeature* f, TopoClass adjclass);
   bool read_one_gdal_layer(OGRLayer* dataLayer, std::string idfield, std::pair<std::string, std::string> &l);
-  void build_nodecolumn(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star);
+  void build_nodecolumns(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star);
   void stitch_jumpedge(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge);
-  void stitch_2_hard(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos, float jumpedge);
   void stitch_average(TopoFeature* hard, int hardpos, TopoFeature* soft, int softpos);
   void adjust_nc(std::vector<float>& televs, float jumpedge);
   std::vector<TopoFeature*> get_adjacent_features(TopoFeature* f);
