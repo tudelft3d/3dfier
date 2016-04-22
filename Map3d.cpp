@@ -217,44 +217,44 @@ bool Map3d::threeDfy(bool triangulate) {
     else
       std::clog << "niveau-1 " << p->get_id() << std::endl;
   }
-  std::clog << "===== LIFTING/ =====" << std::endl;
-  if (triangulate == true) {
-    std::clog << "=====  /STITCHING =====" << std::endl;
-    this->stitch_lifted_features();
-    std::clog << "=====  STITCHING/ =====" << std::endl;
+  // std::clog << "===== LIFTING/ =====" << std::endl;
+  // if (triangulate == true) {
+  //   std::clog << "=====  /STITCHING =====" << std::endl;
+  //   this->stitch_lifted_features();
+  //   std::clog << "=====  STITCHING/ =====" << std::endl;
     
-    std::clog << "=====  /BOWTIES =====" << std::endl;
-    for (auto& p : _lsFeatures) {
-      if (p->has_vertical_walls() == true) {
-        std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
-        p->fix_bowtie(lsAdj);
-      }
-    }
-    std::clog << "=====  BOWTIES/ =====" << std::endl;
+  //   std::clog << "=====  /BOWTIES =====" << std::endl;
+  //   for (auto& p : _lsFeatures) {
+  //     if (p->has_vertical_walls() == true) {
+  //       std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
+  //       p->fix_bowtie(lsAdj);
+  //     }
+  //   }
+  //   std::clog << "=====  BOWTIES/ =====" << std::endl;
 
-    std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
-    for (auto& p : _lsFeatures) {
-      if ( (p->get_class() == TERRAIN) ||
-           (p->get_class() == ROAD) ||
-           (p->get_class() == FOREST) ) 
-      {
-        if (p->has_vertical_walls() == true) {
-          std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
-          p->construct_vertical_walls(lsAdj);
-        }
-      }
-    }
-    std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
-    std::clog << "=====  /CDT =====" << std::endl;
-    for (auto& p : _lsFeatures) {
-      // std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
-      // if (p->get_id() == "107734797")
-        // p->buildCDT();
-      // else
-        p->buildCDT();
-    }
-    std::clog << "=====  CDT/ =====" << std::endl;
-  }
+  //   std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
+  //   for (auto& p : _lsFeatures) {
+  //     if ( (p->get_class() == TERRAIN) ||
+  //          (p->get_class() == ROAD) ||
+  //          (p->get_class() == FOREST) ) 
+  //     {
+  //       if (p->has_vertical_walls() == true) {
+  //         std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
+  //         p->construct_vertical_walls(lsAdj);
+  //       }
+  //     }
+  //   }
+  //   std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
+  //   std::clog << "=====  /CDT =====" << std::endl;
+  //   for (auto& p : _lsFeatures) {
+  //     // std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
+  //     // if (p->get_id() == "107734797")
+  //       // p->buildCDT();
+  //     // else
+  //       p->buildCDT();
+  //   }
+  //   std::clog << "=====  CDT/ =====" << std::endl;
+  // }
   return true;
 }
 
@@ -495,125 +495,125 @@ void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
 
 
 void Map3d::stitch_lifted_features() {
-  for (auto& f : _lsFeatures) {
-    std::vector<PairIndexed> re;
-    _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-//-- 1. store all touching (adjacent + incident)
-    std::vector<TopoFeature*> lstouching;
-    for (auto& each : re) {
-      TopoFeature* fadj = each.second;
-      if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
-        // std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
-        lstouching.push_back(fadj);
-      }
-    }
-    if (f->get_id() == "107729942")
-      std::clog << "yo" << std::endl;
-//-- 2. build the node-column for each vertex
-    // oring
-    Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); 
-    for (int i = 0; i < oring.size(); i++) {
-      std::vector< std::pair<TopoFeature*, int> > star;  
-      bool toprocess = true;
-      for (auto& fadj : lstouching) {
-        int index = fadj->has_point2(oring[i]); //-- TODO: more than one point can be touching!
-        if (index != -1)  {
-          if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
-            star.push_back(std::make_pair(fadj, index));
-          }
-          else {
-            toprocess = false;
-            break;
-          }
-        }
-      }
-      if (toprocess == true) {
-        this->build_nodecolumns(f, i, star);
-      }
-    }
-    // irings
-    int offset = int(bg::num_points(oring));
-    for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
-      std::clog << f->get_id() << " irings " << std::endl;
-      for (int i = 0; i < iring.size(); i++) {
-        std::vector< std::pair<TopoFeature*, int> > star;  
-        bool toprocess = true;
-        for (auto& fadj : lstouching) {
-          int index = fadj->has_point2(iring[i]);
-          if (index != -1)  {
-            if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
-              star.push_back(std::make_pair(fadj, index));
-            }
-            else {
-              toprocess = false;
-              break;
-            }
-          }
-        }
-        if (toprocess == true) {
-          this->build_nodecolumns(f, (i + offset), star);
-        }
-      }
-      offset += bg::num_points(iring);
-    }
-  }
+//   for (auto& f : _lsFeatures) {
+//     std::vector<PairIndexed> re;
+//     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+// //-- 1. store all touching (adjacent + incident)
+//     std::vector<TopoFeature*> lstouching;
+//     for (auto& each : re) {
+//       TopoFeature* fadj = each.second;
+//       if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
+//         // std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
+//         lstouching.push_back(fadj);
+//       }
+//     }
+//     if (f->get_id() == "107729942")
+//       std::clog << "yo" << std::endl;
+// //-- 2. build the node-column for each vertex
+//     // oring
+//     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); 
+//     for (int i = 0; i < oring.size(); i++) {
+//       std::vector< std::pair<TopoFeature*, int> > star;  
+//       bool toprocess = true;
+//       for (auto& fadj : lstouching) {
+//         int index = fadj->has_point2(oring[i]); //-- TODO: more than one point can be touching!
+//         if (index != -1)  {
+//           if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
+//             star.push_back(std::make_pair(fadj, index));
+//           }
+//           else {
+//             toprocess = false;
+//             break;
+//           }
+//         }
+//       }
+//       if (toprocess == true) {
+//         this->build_nodecolumns(f, i, star);
+//       }
+//     }
+//     // irings
+//     int offset = int(bg::num_points(oring));
+//     for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
+//       std::clog << f->get_id() << " irings " << std::endl;
+//       for (int i = 0; i < iring.size(); i++) {
+//         std::vector< std::pair<TopoFeature*, int> > star;  
+//         bool toprocess = true;
+//         for (auto& fadj : lstouching) {
+//           int index = fadj->has_point2(iring[i]);
+//           if (index != -1)  {
+//             if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
+//               star.push_back(std::make_pair(fadj, index));
+//             }
+//             else {
+//               toprocess = false;
+//               break;
+//             }
+//           }
+//         }
+//         if (toprocess == true) {
+//           this->build_nodecolumns(f, (i + offset), star);
+//         }
+//       }
+//       offset += bg::num_points(iring);
+//     }
+//   }
 }
 
 
 void Map3d::build_nodecolumns(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
-  float fz = f->get_point_elevation(pos);
-//-- degree of vertex == 2
-  if (star.size() == 1) {
-    //-- if same class, then average. TODO: always, also for water?
-    if (f->get_class() == star[0].first->get_class()) {
-      stitch_average(f, pos, star[0].first, star[0].second);
-    }
-    else if ( (f->is_hard() == false) && (star[0].first->is_hard() == false) ) {
-      stitch_average(f, pos, star[0].first, star[0].second);
-    }
-    else {
-      stitch_jumpedge(f, pos, star[0].first, star[0].second, _threshold_jump_edges);
-    }
-  }
-//-- degree of vertex >= 3: more complex cases
-  else if (star.size() > 1) {
-    //-- collect all elevations
-    std::vector<float> televs;
-    std::vector<int> c;
-    televs.assign(6, -999.0);
-    c.assign(6, 0);
-    televs[f->get_class()] = fz;
-    for (auto& fadj : star) {
-      if (c[fadj.first->get_class()] == 0) {
-        televs[fadj.first->get_class()] = fadj.first->get_point_elevation(fadj.second);
-        c[fadj.first->get_class()]++;
-      }
-      else {
-        televs[fadj.first->get_class()] += fadj.first->get_point_elevation(fadj.second);
-        c[fadj.first->get_class()]++;
-      }
-    }
-    for (int i = 0; i < 6; i++) {
-      if (c[i] != 0)
-        televs[i] /= c[i];
-    }
-    adjust_nc(televs, _threshold_jump_edges);
-    f->set_point_elevation(pos, televs[f->get_class()]);
-    for (int i = 0; i <= 5; i++) {
-      if ( (televs[i] > -998) && (i != f->get_class()) && (televs[i] < televs[f->get_class()]) )
-        f->add_nc(pos, televs[i]);
-    }
+//   float fz = f->get_point_elevation(pos);
+// //-- degree of vertex == 2
+//   if (star.size() == 1) {
+//     //-- if same class, then average. TODO: always, also for water?
+//     if (f->get_class() == star[0].first->get_class()) {
+//       stitch_average(f, pos, star[0].first, star[0].second);
+//     }
+//     else if ( (f->is_hard() == false) && (star[0].first->is_hard() == false) ) {
+//       stitch_average(f, pos, star[0].first, star[0].second);
+//     }
+//     else {
+//       stitch_jumpedge(f, pos, star[0].first, star[0].second, _threshold_jump_edges);
+//     }
+//   }
+// //-- degree of vertex >= 3: more complex cases
+//   else if (star.size() > 1) {
+//     //-- collect all elevations
+//     std::vector<float> televs;
+//     std::vector<int> c;
+//     televs.assign(6, -999.0);
+//     c.assign(6, 0);
+//     televs[f->get_class()] = fz;
+//     for (auto& fadj : star) {
+//       if (c[fadj.first->get_class()] == 0) {
+//         televs[fadj.first->get_class()] = fadj.first->get_point_elevation(fadj.second);
+//         c[fadj.first->get_class()]++;
+//       }
+//       else {
+//         televs[fadj.first->get_class()] += fadj.first->get_point_elevation(fadj.second);
+//         c[fadj.first->get_class()]++;
+//       }
+//     }
+//     for (int i = 0; i < 6; i++) {
+//       if (c[i] != 0)
+//         televs[i] /= c[i];
+//     }
+//     adjust_nc(televs, _threshold_jump_edges);
+//     f->set_point_elevation(pos, televs[f->get_class()]);
+//     for (int i = 0; i <= 5; i++) {
+//       if ( (televs[i] > -998) && (i != f->get_class()) && (televs[i] < televs[f->get_class()]) )
+//         f->add_nc(pos, televs[i]);
+//     }
 
-    for (auto& fadj : star) {
-      // 1. set the elevation adjusted with the nc
-      fadj.first->set_point_elevation(fadj.second, televs[fadj.first->get_class()]);
-      // 2. if type ROAD/TERRAIN/FOREST && others are lower
-      for (int i = 0; i <= 5; i++) {
-        if ( (televs[i] > -998) && (i != fadj.first->get_class()) && (televs[i] < televs[fadj.first->get_class()]) )
-          fadj.first->add_nc(fadj.second, televs[i]);
-      }
-    }
-  }
+//     for (auto& fadj : star) {
+//       // 1. set the elevation adjusted with the nc
+//       fadj.first->set_point_elevation(fadj.second, televs[fadj.first->get_class()]);
+//       // 2. if type ROAD/TERRAIN/FOREST && others are lower
+//       for (int i = 0; i <= 5; i++) {
+//         if ( (televs[i] > -998) && (i != fadj.first->get_class()) && (televs[i] < televs[fadj.first->get_class()]) )
+//           fadj.first->add_nc(fadj.second, televs[i]);
+//       }
+//     }
+//   }
 }
 
 
@@ -630,35 +630,35 @@ void Map3d::adjust_nc(std::vector<float>& televs, float jumpedge) {
 
 
 void Map3d::stitch_jumpedge(TopoFeature* f1, int f1pos, TopoFeature* f2, int f2pos, float jumpedge) {
-  float f1z = f1->get_point_elevation(f1pos);
-  float f2z = f2->get_point_elevation(f2pos);
-  float deltaz = std::abs(f1z - f2z);
-  bool fixed = false;
-  if (deltaz < jumpedge) {
-    if (f1->is_hard() == false) {
-      f1->set_point_elevation(f1pos, f2z);
-      fixed = true;
-    }
-    else if (f2->is_hard() == false) {
-      f2->set_point_elevation(f2pos, f1z);
-      fixed = true;
-    }
-  }
-  //-- then vertical walls must be added: nc to highest
-  //-- also for hard-hard stitching
-  if (fixed == false) { 
-    if (f1z > f2z)
-      f1->add_nc(f1pos, f2z);
-    else
-      f2->add_nc(f2pos, f1z);
-  }
+  // float f1z = f1->get_point_elevation(f1pos);
+  // float f2z = f2->get_point_elevation(f2pos);
+  // float deltaz = std::abs(f1z - f2z);
+  // bool fixed = false;
+  // if (deltaz < jumpedge) {
+  //   if (f1->is_hard() == false) {
+  //     f1->set_point_elevation(f1pos, f2z);
+  //     fixed = true;
+  //   }
+  //   else if (f2->is_hard() == false) {
+  //     f2->set_point_elevation(f2pos, f1z);
+  //     fixed = true;
+  //   }
+  // }
+  // //-- then vertical walls must be added: nc to highest
+  // //-- also for hard-hard stitching
+  // if (fixed == false) { 
+  //   if (f1z > f2z)
+  //     f1->add_nc(f1pos, f2z);
+  //   else
+  //     f2->add_nc(f2pos, f1z);
+  // }
 }
 
 
 void Map3d::stitch_average(TopoFeature* f1, int f1pos, TopoFeature* f2, int f2pos) {
-  float avgz = (f1->get_point_elevation(f1pos) + f2->get_point_elevation(f2pos) ) / 2; 
-  f1->set_point_elevation(f1pos, avgz);
-  f2->set_point_elevation(f2pos, avgz);
+  // float avgz = (f1->get_point_elevation(f1pos) + f2->get_point_elevation(f2pos) ) / 2; 
+  // f1->set_point_elevation(f1pos, avgz);
+  // f2->set_point_elevation(f2pos, avgz);
 }
 
 

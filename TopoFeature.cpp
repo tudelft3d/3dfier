@@ -37,14 +37,20 @@ TopoFeature::TopoFeature(char *wkt, std::string pid) {
   _toplevel = true;
   _p2 = new Polygon2();
   bg::read_wkt(wkt, *(_p2));
+  
   bg::read_wkt(wkt, _p3);
   _velevations.resize(bg::num_points(*(_p2)));
   _nc.resize(bg::num_points(*(_p2)));
+  
+  _lidarelevs.resize(bg::num_interior_rings(*_p2) + 1);
+  _lidarelevs[0].resize(bg::num_points(_p2->outer()));
+  for (int i = 0; i < bg::num_interior_rings(*_p2); i++)
+    _lidarelevs[i+1].resize(bg::num_points(_p2->inners()[i]));
 }
 
 TopoFeature::~TopoFeature() {
   // TODO: clear memory properly
-  std::cout << "I am dead" << std::endl;
+  std::cout << "I am dead now." << std::endl;
 }
 
 Box2 TopoFeature::get_bbox2d() {
@@ -68,7 +74,7 @@ void TopoFeature::set_top_level(bool toplevel) {
 }
 
 Polygon2* TopoFeature::get_Polygon2() {
-    return _p2;
+  return _p2;
 }
 
 std::string TopoFeature::get_obj_v(int z_exaggeration) {
@@ -100,167 +106,164 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
 
 
 void TopoFeature::fix_bowtie(std::vector<TopoFeature*> lsAdj) {
-  if (this->get_id() == "116724964") 
-    std::clog << "--116724964" << std::endl;
-  int ai = 0;
-  int bi;
-  Point2 a;
-  Point2 b;
-  TopoFeature* fadj;
-  for (auto& curnc : _nc) {
-    fadj = nullptr;
-    b = this->get_next_point2_in_ring(ai, bi);
-    std::vector<float> nnc = _nc[bi];
-    if ( (curnc.size() > 0) || (nnc.size() > 0) ) {
-      get_point2(ai, a);
-      for (auto& f : lsAdj) {
-        if (f->has_segment(b, a) == true) {
-          fadj = f;
-          break;
-        }
-      }
-      if ( (fadj != nullptr) && (this->get_counter() < fadj->get_counter()) ) {
-        double f_az = this->get_point_elevation(ai);
-        double f_bz = this->get_point_elevation(bi);
-        double fadj_az = fadj->get_point_elevation(fadj->has_point2(a));
-        double fadj_bz = fadj->get_point_elevation(fadj->has_point2(b));
-        if ( ((f_az > fadj_az) && (f_bz < fadj_bz)) || ((f_az < fadj_az) && (f_bz > fadj_bz)) ) {
-          std::clog << "BOWTIE:" << this->get_id() << " " << fadj->get_id() << std::endl;
-          std::clog << this->get_class() << " " << fadj->get_class() << std::endl;
-          // TODO : remove the nc because vertices are lowered
-          if (this->get_class() > fadj->get_class()) {
-            this->set_point_elevation(ai, fadj_az);
-            this->set_point_elevation(bi, fadj_bz);
-          }
-          else {
-            fadj->set_point_elevation(fadj->has_point2(a), f_az);
-            fadj->set_point_elevation(fadj->has_point2(b), f_bz);
-          }
+  // if (this->get_id() == "116724964") 
+  //   std::clog << "--116724964" << std::endl;
+  // int ai = 0;
+  // int bi;
+  // Point2 a;
+  // Point2 b;
+  // TopoFeature* fadj;
+  // for (auto& curnc : _nc) {
+  //   fadj = nullptr;
+  //   b = this->get_next_point2_in_ring(ai, bi);
+  //   std::vector<float> nnc = _nc[bi];
+  //   if ( (curnc.size() > 0) || (nnc.size() > 0) ) {
+  //     get_point2(ai, a);
+  //     for (auto& f : lsAdj) {
+  //       if (f->has_segment(b, a) == true) {
+  //         fadj = f;
+  //         break;
+  //       }
+  //     }
+  //     if ( (fadj != nullptr) && (this->get_counter() < fadj->get_counter()) ) {
+  //       double f_az = this->get_point_elevation(ai);
+  //       double f_bz = this->get_point_elevation(bi);
+  //       double fadj_az = fadj->get_point_elevation(fadj->has_point2(a));
+  //       double fadj_bz = fadj->get_point_elevation(fadj->has_point2(b));
+  //       if ( ((f_az > fadj_az) && (f_bz < fadj_bz)) || ((f_az < fadj_az) && (f_bz > fadj_bz)) ) {
+  //         std::clog << "BOWTIE:" << this->get_id() << " " << fadj->get_id() << std::endl;
+  //         std::clog << this->get_class() << " " << fadj->get_class() << std::endl;
+  //         // TODO : remove the nc because vertices are lowered
+  //         if (this->get_class() > fadj->get_class()) {
+  //           this->set_point_elevation(ai, fadj_az);
+  //           this->set_point_elevation(bi, fadj_bz);
+  //         }
+  //         else {
+  //           fadj->set_point_elevation(fadj->has_point2(a), f_az);
+  //           fadj->set_point_elevation(fadj->has_point2(b), f_bz);
+  //         }
 
-        }
-      }
-    }
-    ai++;
-  }
+  //       }
+  //     }
+  //   }
+  //   ai++;
+  // }
 }
 
 
 void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
-  if (this->get_id() == "107729942") {
-    std::clog << "-- 107729942 --" << std::endl;
-    // std::clog << "lsAdj: " << lsAdj.size() << std::endl;
-    // for (auto& f : lsAdj) 
-      // std::clog << f->get_id() << " " << std::endl;
-    // std::clog << std::endl;
-  }
-  float TOL = 0.01;
-  int i = 0;
-  for (auto& curnc : _nc) {
-    if (curnc.empty() == false) {
-      curnc.push_back(this->get_point_elevation(i));
-      std::sort(curnc.begin(), curnc.end());
-      std::reverse(curnc.begin(), curnc.end()); //-- heights from top to bottom 
-    }
-    i++;
-  }
+//   if (this->get_id() == "107729942") {
+//     std::clog << "-- 107729942 --" << std::endl;
+//     // std::clog << "lsAdj: " << lsAdj.size() << std::endl;
+//     // for (auto& f : lsAdj) 
+//       // std::clog << f->get_id() << " " << std::endl;
+//     // std::clog << std::endl;
+//   }
+//   float TOL = 0.01;
+//   int i = 0;
+//   for (auto& curnc : _nc) {
+//     if (curnc.empty() == false) {
+//       curnc.push_back(this->get_point_elevation(i));
+//       std::sort(curnc.begin(), curnc.end());
+//       std::reverse(curnc.begin(), curnc.end()); //-- heights from top to bottom 
+//     }
+//     i++;
+//   }
 
-  int ai = 0;
-  int bi;
-  Point2 a;
-  Point2 b;
-  TopoFeature* fadj;
-  for (auto& curnc : _nc) {
-    fadj = nullptr;
-    b = this->get_next_point2_in_ring(ai, bi);
-    std::vector<float> nnc = _nc[bi];
-    if ( (curnc.size() > 0) || (nnc.size() > 0) ) {
-      get_point2(ai, a);
-      // std::clog << "a: " << bg::get<0>(a) << " " << bg::get<1>(a) << std::endl;
-      // std::clog << "b: " << bg::get<0>(b) << " " << bg::get<1>(b) << std::endl;
-      for (auto& f : lsAdj) {
-//         std::clog << f->get_id() << std::endl;
-        if (f->has_segment(b, a) == true) {
-          fadj = f;
-          break;
-        }
-      }
-      if (fadj != nullptr) {
-        double fadj_az = fadj->get_point_elevation(fadj->has_point2(a));
-        double fadj_bz = fadj->get_point_elevation(fadj->has_point2(b));
-        double adiff = std::abs(this->get_point_elevation(ai) - fadj_az);
-        double bdiff = std::abs(this->get_point_elevation(bi) - fadj_bz);
-        // if (this->get_id() == "111114973") {
-        //   std::clog << "fadj: " << fadj->get_id() << std::endl;
-        //   std::clog << "size: " << curnc.size() << " : " << nnc.size() << std::endl;
-        //   std::clog << adiff << std::endl; 
-        //   std::clog << adiff << std::endl; 
-        // }
-        if ( (adiff > 0.01) || (bdiff > 0.01) ) 
-        {
-          int sa = 0;
-          int ea = 0;
-          for (int j = 0; j < curnc.size(); j++) {
-            if (std::abs(this->get_point_elevation(ai) - curnc[j]) < TOL)
-              sa = j;
-            if (std::abs(fadj_az - curnc[j]) < TOL) 
-              ea = j;
-          }
-          int sb = 0;
-          int eb = 0;
-          for (int j = 0; j < nnc.size(); j++) {
-            if (std::abs(this->get_point_elevation(bi) - nnc[j]) < TOL)
-              sb = j;
-            if (std::abs(fadj_bz - nnc[j]) < TOL) 
-              eb = j;
-          }
+//   int ai = 0;
+//   int bi;
+//   Point2 a;
+//   Point2 b;
+//   TopoFeature* fadj;
+//   for (auto& curnc : _nc) {
+//     fadj = nullptr;
+//     b = this->get_next_point2_in_ring(ai, bi);
+//     std::vector<float> nnc = _nc[bi];
+//     if ( (curnc.size() > 0) || (nnc.size() > 0) ) {
+//       get_point2(ai, a);
+//       // std::clog << "a: " << bg::get<0>(a) << " " << bg::get<1>(a) << std::endl;
+//       // std::clog << "b: " << bg::get<0>(b) << " " << bg::get<1>(b) << std::endl;
+//       for (auto& f : lsAdj) {
+// //         std::clog << f->get_id() << std::endl;
+//         if (f->has_segment(b, a) == true) {
+//           fadj = f;
+//           break;
+//         }
+//       }
+//       if (fadj != nullptr) {
+//         double fadj_az = fadj->get_point_elevation(fadj->has_point2(a));
+//         double fadj_bz = fadj->get_point_elevation(fadj->has_point2(b));
+//         double adiff = std::abs(this->get_point_elevation(ai) - fadj_az);
+//         double bdiff = std::abs(this->get_point_elevation(bi) - fadj_bz);
+//         // if (this->get_id() == "111114973") {
+//         //   std::clog << "fadj: " << fadj->get_id() << std::endl;
+//         //   std::clog << "size: " << curnc.size() << " : " << nnc.size() << std::endl;
+//         //   std::clog << adiff << std::endl; 
+//         //   std::clog << adiff << std::endl; 
+//         // }
+//         if ( (adiff > 0.01) || (bdiff > 0.01) ) 
+//         {
+//           int sa = 0;
+//           int ea = 0;
+//           for (int j = 0; j < curnc.size(); j++) {
+//             if (std::abs(this->get_point_elevation(ai) - curnc[j]) < TOL)
+//               sa = j;
+//             if (std::abs(fadj_az - curnc[j]) < TOL) 
+//               ea = j;
+//           }
+//           int sb = 0;
+//           int eb = 0;
+//           for (int j = 0; j < nnc.size(); j++) {
+//             if (std::abs(this->get_point_elevation(bi) - nnc[j]) < TOL)
+//               sb = j;
+//             if (std::abs(fadj_bz - nnc[j]) < TOL) 
+//               eb = j;
+//           }
 
-          if (nnc.size() > 0) {
-            for (int j = sb; j < eb; j++) {
-              if (curnc.size() == 0)
-                _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), this->get_point_elevation(ai)));
-              else  
-                _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[sa]));
-              _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[j]));
-              _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[j + 1]));
-              Triangle t;
-              t.v0 = int(_vertices_vw.size()) - 3;
-              t.v1 = int(_vertices_vw.size()) - 2;
-              t.v2 = int(_vertices_vw.size()) - 1;
-              _triangles_vw.push_back(t);
-            }
-          }
-          if (curnc.size() > 0) {
-            for (int j = sa; j < ea; j++) {
-              if (nnc.size() == 0)
-                _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), this->get_point_elevation(bi)));
-              else
-                _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[eb]));
-              _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[j]));
-              _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[j + 1]));
-              Triangle t;
-              t.v0 = int(_vertices_vw.size()) - 3;
-              t.v1 = int(_vertices_vw.size()) - 1;
-              t.v2 = int(_vertices_vw.size()) - 2;
-              _triangles_vw.push_back(t);
-            }
-          }
-        }
-      }
-    }
-    ai++;
-  }
+//           if (nnc.size() > 0) {
+//             for (int j = sb; j < eb; j++) {
+//               if (curnc.size() == 0)
+//                 _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), this->get_point_elevation(ai)));
+//               else  
+//                 _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[sa]));
+//               _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[j]));
+//               _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[j + 1]));
+//               Triangle t;
+//               t.v0 = int(_vertices_vw.size()) - 3;
+//               t.v1 = int(_vertices_vw.size()) - 2;
+//               t.v2 = int(_vertices_vw.size()) - 1;
+//               _triangles_vw.push_back(t);
+//             }
+//           }
+//           if (curnc.size() > 0) {
+//             for (int j = sa; j < ea; j++) {
+//               if (nnc.size() == 0)
+//                 _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), this->get_point_elevation(bi)));
+//               else
+//                 _vertices_vw.push_back(Point3(this->get_point_x(bi), this->get_point_y(bi), nnc[eb]));
+//               _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[j]));
+//               _vertices_vw.push_back(Point3(this->get_point_x(ai), this->get_point_y(ai), curnc[j + 1]));
+//               Triangle t;
+//               t.v0 = int(_vertices_vw.size()) - 3;
+//               t.v1 = int(_vertices_vw.size()) - 1;
+//               t.v2 = int(_vertices_vw.size()) - 2;
+//               _triangles_vw.push_back(t);
+//             }
+//           }
+//         }
+//       }
+//     }
+//     ai++;
+//   }
 }
     
 
 bool TopoFeature::has_segment(Point2& a, Point2& b) {
   double threshold = 0.001;
-  int posa = this->has_point2(a);
-  if (posa != -1) {
+  int ringi, pi;
+  if (this->has_point2(a, ringi, pi) == true) {
     Point2 tmp;
-    int itmp;
-    tmp = this->get_next_point2_in_ring(posa, itmp);
-    // if (bg::equals(b, tmp) == true) {
-    // std::clog << bg::distance(b, tmp) << std::endl;
+    tmp = this->get_next_point2_in_ring(ringi, pi);
     if (bg::distance(b, tmp) <= threshold)
       return true;
   }
@@ -268,87 +271,46 @@ bool TopoFeature::has_segment(Point2& a, Point2& b) {
 }
 
 
-int TopoFeature::has_point2(Point2& p) {
+bool TopoFeature::has_point2(Point2& p, int& ringi, int& pi) {
   double threshold = 0.001;
   Ring2 oring = bg::exterior_ring(*_p2);
-  int re = -1;
+  ringi = 0;
   for (int i = 0; i < oring.size(); i++) {
-    if (bg::distance(p, oring[i]) <= threshold)
-      return i;
+    if (bg::distance(p, oring[i]) <= threshold) {
+      pi = i;
+      return true;
+    }
   }
-  int offset = int(bg::num_points(oring));
+  ringi++;
   auto irings = bg::interior_rings(*_p2);
   for (Ring2& iring: irings) {
     for (int i = 0; i < iring.size(); i++) {
-      if (bg::distance(p, iring[i]) <= threshold)
-        return (i + offset);
-    }
-    offset += bg::num_points(iring);
-  }
-  return re;
-}
-
-Point2 TopoFeature::get_previous_point2_in_ring(int i, int& index) {
-  Ring2 oring = bg::exterior_ring(*_p2);
-  int offset = int(bg::num_points(oring));
-  if (i < offset) {
-    if (i == 0) {
-      index = (offset - 1);
-      return oring.back();
-    }
-    else {
-      index = (i - 1);
-      return oring[i - 1];
-    }
-  }
-  for (Ring2& iring: bg::interior_rings(*_p2)) {
-    if (i < (offset + iring.size())) {
-      if (i == offset) {
-        index = i;
-        return iring.back();
-      }
-      else {
-        index = (offset + i - 1);
-        return (iring[i - 1 - offset]);
+      if (bg::distance(p, iring[i]) <= threshold) {
+        pi = i;
+        return true;
       }
     }
-    offset += iring.size();
+    ringi++;
   }
-  Point2 tmp;
-  return tmp;
+  return false;
 }
 
 
-Point2 TopoFeature::get_next_point2_in_ring(int i, int& index) {
-  Ring2 oring = bg::exterior_ring(*_p2);
-  int offset = int(bg::num_points(oring));
-  //-- on the oring
-  if (i < offset) { 
-    if (i == (offset - 1)) {
-      index = 0;
-      return oring.front();
-    }
-    else {
-      index = (i + 1);
-      return oring[i + 1];
-    }
+Point2 TopoFeature::get_next_point2_in_ring(int ringi, int& pi) {
+  Ring2 ring;
+  if (ringi == 0) 
+    ring = _p2->outer();
+  else
+    ring = _p2->inners()[ringi - 1];
+  
+  if (pi == (ring.size() - 1)) {
+    pi = 0;
+    return ring.front();
   }
-  //-- not on the oring: search irings
-  for (Ring2& iring: bg::interior_rings(*_p2)) {
-    if (i < (offset + iring.size())) {
-      if (i == (offset - 1 + iring.size())) {
-        index = offset;
-        return iring.front();
-      }
-      else {
-        index = (i + 1);
-        return (iring[i + 1 - offset]);
-      }
-    }
-    offset += iring.size();
+  else {
+    pi += 1;
+    return ring[pi];
   }
-  Point2 tmp;
-  return tmp;
 }
 
 
@@ -370,138 +332,97 @@ std::vector<float>& TopoFeature::get_nc(int i) {
 }
 
 
-void TopoFeature::get_point2(int i, Point2& p) {
-  Ring2 oring = bg::exterior_ring(*(_p2));
-  int offset = int(bg::num_points(oring));
-  if (i < offset) {
-    p = oring[i];
-    return;
-  }
-  for (Ring2& iring: bg::interior_rings(*(_p2))) {
-    if (i < (offset + iring.size())) {
-      p = iring[i - offset];
-      return;
-    }
-    offset += iring.size();
-  }
-  return;
+int TopoFeature::get_point_elevation(int ringi, int pi) {
+  return _z[ringi][pi];
 }
 
 
-double TopoFeature::get_point_x(int i) {
-  Ring2 oring = bg::exterior_ring(*(_p2));
-  int offset = int(bg::num_points(oring));
-  if (i < offset) 
-    return bg::get<0>(oring[i]);
-  for (Ring2& iring: bg::interior_rings(*(_p2))) {
-    if (i < (offset + iring.size()))
-      return bg::get<0>(iring[i - offset]);
-    offset += iring.size();
-  }
-  return 0.0;
+void TopoFeature::set_point_elevation(int ringi, int pi, int z) {
+  _z[ringi][pi] = z;  
 }
-
-
-double TopoFeature::get_point_y(int i) {
-  Ring2 oring = bg::exterior_ring(*(_p2));
-  int offset = int(bg::num_points(oring));
-  if (i < offset) 
-    return bg::get<1>(oring[i]);
-  for (Ring2& iring: bg::interior_rings(*(_p2))) {
-    if (i < (offset + iring.size()))
-      return bg::get<1>(iring[i - offset]);
-    offset += iring.size();
-  }
-  return 0.0;
-}
-
-
-float TopoFeature::get_point_elevation(int i) {
-  Ring3 oring = bg::exterior_ring(_p3);
-  int offset = int(bg::num_points(oring));
-  if (i < offset) 
-    return bg::get<2>(oring[i]);
-  for (Ring3& iring: bg::interior_rings(_p3)) {
-    if (i < (offset + iring.size()))
-      return bg::get<2>(iring[i - offset]);
-    offset += iring.size();
-  }
-  return 0.0;
-}
-
-void TopoFeature::set_point_elevation(int i, float z) {
-  Ring3 oring = bg::exterior_ring(_p3);
-  int offset = int(bg::num_points(oring));
-  if (i < offset) {
-    bg::set<2>(bg::exterior_ring(_p3)[i], z);
-    return;
-  }
-  auto irings = bg::interior_rings(_p3);
-  for (int j = 0; j < irings.size(); j++) {
-    if (i < (offset + irings[j].size()))
-      bg::set<2>(bg::interior_rings(_p3)[j][i - offset], z);
-    offset += irings[j].size();
-  }    
-}
-
 
 
 bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float radius) {
-  //-- TODO: okay here brute-force, use of flann is points>200 (to benchmark perhaps?)  
   Point2 p(x, y);
+  int zcm = int(z * 100);
+  int ringi = 0;
   Ring2 oring = bg::exterior_ring(*(_p2));
   for (int i = 0; i < oring.size(); i++) {
     if (bg::distance(p, oring[i]) <= radius)
-      (_velevations[i]).push_back(z);
+      (_lidarelevs[ringi][i]).push_back(zcm);
   }
-  int offset = int(bg::num_points(oring));
+  ringi++;
   auto irings = bg::interior_rings(*(_p2));
   for (Ring2& iring: irings) {
     for (int i = 0; i < iring.size(); i++) {
       if (bg::distance(p, iring) <= radius) {
-        (_velevations[i + offset]).push_back(z);
+        (_lidarelevs[ringi][i]).push_back(zcm);
       }
     }
-    offset += bg::num_points(iring);
+    ringi++;
   }
   return true;
 }
 
+
 void TopoFeature::lift_vertices_boundary(float percentile) {
-  //-- fetch one average value to assign to missing ones
-  // TODO : is avg to fix problems the best? I doubt.
-  std::vector<float> zvertices;
-  float avg = 0.0;
-  for (auto& v : _velevations) {
-    if (v.size() > 0) {
-      std::nth_element(v.begin(), v.begin() + (v.size() * percentile), v.end());
-      zvertices.push_back(v[v.size() * percentile]);
-      avg += v[v.size() * percentile];
+  int ringi = 0;
+  Ring2 oring = bg::exterior_ring(*(_p2));
+  for (int i = 0; i < oring.size(); i++) {
+    std::vector<int> &l = _lidarelevs[ringi][i];
+    if (l.empty() == true)
+      _z[ringi][i] = -9999;
+    else {
+      std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
+      _z[ringi][i] = l[l.size() * percentile];
     }
-    else
-      zvertices.push_back(-9999);
   }
-  avg /= zvertices.size();
-  for (auto& v : zvertices) 
-    if (v < -9998) {
-      v = avg;
-      // std::clog << "** interpolation vertex ** " << this->get_class() << std::endl;
+  ringi++;
+  auto irings = bg::interior_rings(*(_p2));
+  for (Ring2& iring: irings) {
+    for (int i = 0; i < iring.size(); i++) {
+      std::vector<int> &l = _lidarelevs[ringi][i];
+      if (l.empty() == true)
+        _z[ringi][i] = -9999;
+      else {
+        std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
+        _z[ringi][i] = l[l.size() * percentile];
+      }    
     }
-  //-- assign the value of the Polygon3
-  Ring3 oring = bg::exterior_ring(_p3);
-  for (int i = 0; i < oring.size(); i++) 
-    bg::set<2>(bg::exterior_ring(_p3)[i], zvertices[i]);
-  auto irings = bg::interior_rings(_p3);
-  std::size_t offset = bg::num_points(oring);
-  for (int i = 0; i < irings.size(); i++) {
-    for (int j = 0; j < (irings[i]).size(); j++)
-      bg::set<2>(bg::interior_rings(_p3)[i][j], zvertices[j + offset]);
-    offset += bg::num_points(irings[i]);
+    ringi++;
   }
+
+  // std::vector<float> zvertices;
+  // float avg = 0.0;
+  // for (auto& v : _velevations) {
+  //   if (v.size() > 0) {
+  //     std::nth_element(v.begin(), v.begin() + (v.size() * percentile), v.end());
+  //     zvertices.push_back(v[v.size() * percentile]);
+  //     avg += v[v.size() * percentile];
+  //   }
+  //   else
+  //     zvertices.push_back(-9999);
+  // }
+  // avg /= zvertices.size();
+  // for (auto& v : zvertices) 
+  //   if (v < -9998) {
+  //     v = avg;
+  //     // std::clog << "** interpolation vertex ** " << this->get_class() << std::endl;
+  //   }
+  // //-- assign the value of the Polygon3
+  // Ring3 oring = bg::exterior_ring(_p3);
+  // for (int i = 0; i < oring.size(); i++) 
+  //   bg::set<2>(bg::exterior_ring(_p3)[i], zvertices[i]);
+  // auto irings = bg::interior_rings(_p3);
+  // std::size_t offset = bg::num_points(oring);
+  // for (int i = 0; i < irings.size(); i++) {
+  //   for (int j = 0; j < (irings[i]).size(); j++)
+  //     bg::set<2>(bg::interior_rings(_p3)[i][j], zvertices[j + offset]);
+  //   offset += bg::num_points(irings[i]);
+  // }
   _velevations.clear();
   _velevations.shrink_to_fit();
 }  
-
 
 
 //-------------------------------
@@ -589,56 +510,21 @@ std::string Block::get_obj_f(int offset, bool usemtl) {
 }
 
 
-float Block::get_height_top() {
-  if (_is3d == true)
-    return _height_top;
+int Block::get_height_top() {
   if (_zvaluesinside.size() == 0)
     return 0;
-  if (_heightref_top == "max") {
-    double v = 0;
-    for (auto z : _zvaluesinside) {
-      if (z > v)
-        v = z;
-    }
-    return v;
-  }
-  else if (_heightref_top == "min") {
-    double v = 9999;
-    for (auto z : _zvaluesinside) {
-      if (z < v)
-        v = z;
-    }
-    return v;
-  }
-  else if (_heightref_top == "avg") {
-    double sum = 0.0;
-    for (auto z : _zvaluesinside) 
-      sum += z;
-    return (sum / _zvaluesinside.size());
-  }
-  else if (_heightref_top == "median") {
-    std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() / 2), _zvaluesinside.end());
-    return _zvaluesinside[_zvaluesinside.size() / 2];
-  }
-  else {
-    if (_heightref_top.substr(0, _heightref_top.find_first_of("-")) == "percentile") {
-      double p = (std::stod(_heightref_top.substr(_heightref_top.find_first_of("-") + 1)) / 100);
-      std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * p), _zvaluesinside.end());
-      return _zvaluesinside[_zvaluesinside.size() * p];
-    }
-    else
-      std::cerr << "ERROR: height reference '" << _heightref_top << "' unknown." << std::endl;
-  }
-  return 0;
+  double p = (std::stod(_heightref_top.substr(_heightref_top.find_first_of("-") + 1)) / 100);
+  std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * p), _zvaluesinside.end());
+  return _zvaluesinside[_zvaluesinside.size() * p];
 }
 
 
-float Block::get_height_base() {
-  if (_is3d == true)
-    return _height_base;
+int Block::get_height_base() {
   double p = (std::stod(_heightref_base.substr(_heightref_base.find_first_of("-") + 1)) / 100);
-  std::vector<float> tmp;
-  for (auto& each : _velevations) {
+  lift_vertices_boundary(p);
+  
+  std::vector<int> tmp;
+  for (auto& each : _z) {
     if (each.size() > 0) {
       std::nth_element(each.begin(), each.begin() + (each.size() * p), each.end());
       tmp.push_back(each[each.size() * p]);
@@ -646,16 +532,17 @@ float Block::get_height_base() {
   }
   if (tmp.empty())
     return 0.0;
-  else
-  return *(std::min_element(std::begin(tmp), std::end(tmp)));
+  else //-- take the lowest of all the vertices for the ground
+    return *(std::min_element(std::begin(tmp), std::end(tmp)));
 }
 
 
 bool Block::add_elevation_point(double x, double y, double z, float radius, bool lastreturn) {
   Point2 p(x, y);
+  int zcm = int(z * 100);
   //-- 1. assign to polygon if inside
   if (bg::within(p, *(_p2)) == true)
-    _zvaluesinside.push_back(z);
+    _zvaluesinside.push_back(zcm);
   //-- 2. add to the vertices of the pgn to find their heights
   assign_elevation_to_vertex(x, y, z, radius);
   return true;

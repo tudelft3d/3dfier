@@ -46,24 +46,20 @@ public:
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
 
-
   std::string  get_id();
   void         construct_vertical_walls(std::vector<TopoFeature*> lsAdj);
   void         fix_bowtie(std::vector<TopoFeature*> lsAdj);
   int          get_counter(); 
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
-  int          has_point2(Point2& p);
-  void         get_point2(int i, Point2& p);
+  bool         has_point2(Point2& p, int& ringi, int& pi);
+  int          get_point_elevation(int ringi, int pi);
+  void         set_point_elevation(int ringi, int pi, int z);  
   bool         has_segment(Point2& a, Point2& b);
-  bool         get_top_level();
   void         set_top_level(bool toplevel);
-  double       get_point_x(int i);
-  double       get_point_y(int i);
-  float        get_point_elevation(int i);
-  void         set_point_elevation(int i, float z);  
   void         add_nc(int i, float z);
   bool         has_vertical_walls(); 
+  bool         get_top_level();
   std::vector<float>& get_nc(int i);
 
 protected:
@@ -73,15 +69,19 @@ protected:
   int          _counter;
   static int   _count;
   bool         _toplevel; 
+
   std::vector< std::vector<float> > _nc; //-- node columns
   std::vector< std::vector<float> > _velevations;
+
+  std::vector< std::vector< std::vector<int> > > _lidarelevs;
+  std::vector< std::vector<int> >                _z;
+
   std::vector<Point3>   _vertices;  //-- output of Triangle
   std::vector<Triangle> _triangles; //-- output of Triangle
   std::vector<Point3>   _vertices_vw;  //-- for vertical walls
   std::vector<Triangle> _triangles_vw; //-- for vertical walls
 
-  Point2  get_previous_point2_in_ring(int i, int& index);
-  Point2  get_next_point2_in_ring(int i, int& index);
+  Point2  get_next_point2_in_ring(int ringi, int& pi);
   bool    assign_elevation_to_vertex(double x, double y, double z, float radius);
   void    lift_vertices_boundary(float percentile);
 };
@@ -102,15 +102,15 @@ public:
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;
   
-  float               get_height_top();
-  float               get_height_base();
+  int               get_height_top();
+  int               get_height_base();
   static std::string  _heightref_top;
   static std::string  _heightref_base;
 protected:
   bool                _is3d;
   float               _height_top;
   float               _height_base;
-  std::vector<float>  _zvaluesinside;
+  std::vector<int>    _zvaluesinside;
   bool build_CDT();
 };
 
