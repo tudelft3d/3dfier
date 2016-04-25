@@ -23,9 +23,10 @@
 #include "Building.h"
 #include "io.h"
 
+std::string Building::_heightref_top  = "percentile-90";
+std::string Building::_heightref_base = "percentile-10";
 
-
-Building::Building(char *wkt, std::string pid, std::string heightref, std::string heightref_base) 
+Building::Building(char *wkt, std::string pid, std::string heightref_top, std::string heightref_base)
 : Flat(wkt, pid)
 {
   _heightref_top = heightref_top;
@@ -34,7 +35,7 @@ Building::Building(char *wkt, std::string pid, std::string heightref, std::strin
 
 bool Building::lift() {
   //-- for the roof
-  double percentile = (std::stod(_heightref_top.substr(_heightref_trop.find_first_of("-") + 1)) / 100);
+  double percentile = (std::stod(_heightref_top.substr(_heightref_top.find_first_of("-") + 1)) / 100);
   Flat::lift_percentile(percentile);
   //-- for the ground
   percentile = (std::stod(_heightref_base.substr(_heightref_base.find_first_of("-") + 1)) / 100);

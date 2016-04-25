@@ -64,7 +64,7 @@ std::string TopoFeature::get_id() {
 }
 
 bool TopoFeature::buildCDT() {
-  getCDT(&_p3, _vertices, _triangles);
+  getCDT(_p2, _p2z, _vertices, _triangles);
   return true;
 }
 
@@ -453,13 +453,12 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
 
 Flat::Flat(char *wkt, std::string pid) 
 : TopoFeature(wkt, pid) 
-{
-  _heightref = heightref;
-}
+{}
 
 
 int Flat::get_number_vertices() {
-  return int(2 * _vertices.size());
+  // return int(2 * _vertices.size());
+  return ( int(_vertices.size()) + int(_vertices_vw.size()) );
 }
 
 bool Flat::lift_percentile(float percentile) {
@@ -617,7 +616,7 @@ TIN::TIN(char *wkt, std::string pid, int simplification)
 
 
 bool TIN::buildCDT() {
-  getCDT(&_p3, _vertices, _triangles, _lidarpts);
+  getCDT(_p2, _p2z, _vertices, _triangles, _lidarpts);
   return true;
 }
 

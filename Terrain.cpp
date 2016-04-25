@@ -55,7 +55,3 @@ bool Terrain::lift() {
   return true;
 }
 
-bool Terrain::buildCDT() {
-  getCDT(&_p3, _vertices, _triangles, _lidarpts);
-  return true;
-}

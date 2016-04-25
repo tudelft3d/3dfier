@@ -29,7 +29,6 @@ class Forest : public TIN
 public:
   Forest (char *wkt, std::string pid, int simplification);
   bool          lift();
-  bool          buildCDT();
   std::string   get_citygml();
   std::string   get_obj_f(int offset, bool usemtl);
   TopoClass     get_class();

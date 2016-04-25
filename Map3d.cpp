@@ -217,8 +217,8 @@ bool Map3d::threeDfy(bool triangulate) {
     else
       std::clog << "niveau-1 " << p->get_id() << std::endl;
   }
-  // std::clog << "===== LIFTING/ =====" << std::endl;
-  // if (triangulate == true) {
+  std::clog << "===== LIFTING/ =====" << std::endl;
+  if (triangulate == true) {
   //   std::clog << "=====  /STITCHING =====" << std::endl;
   //   this->stitch_lifted_features();
   //   std::clog << "=====  STITCHING/ =====" << std::endl;
@@ -245,16 +245,16 @@ bool Map3d::threeDfy(bool triangulate) {
   //     }
   //   }
   //   std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
-  //   std::clog << "=====  /CDT =====" << std::endl;
-  //   for (auto& p : _lsFeatures) {
-  //     // std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
-  //     // if (p->get_id() == "107734797")
-  //       // p->buildCDT();
-  //     // else
-  //       p->buildCDT();
-  //   }
-  //   std::clog << "=====  CDT/ =====" << std::endl;
-  // }
+    std::clog << "=====  /CDT =====" << std::endl;
+    for (auto& p : _lsFeatures) {
+      std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
+      if (p->get_id() == "107734797")
+        p->buildCDT();
+      else
+        p->buildCDT();
+    }
+    std::clog << "=====  CDT/ =====" << std::endl;
+  }
   return true;
 }
 
