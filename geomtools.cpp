@@ -24,11 +24,8 @@
 
 
 
-//-- TODO: cheap code that randomly generates points if centroid is not inside. to update asap.
-void get_point_inside(Ring3& ring3, Point2& p) {
-  Ring2 ring;
-  for (auto& v : ring3)
-    bg::append(ring, Point2(bg::get<0>(v), bg::get<1>(v)));
+//-- TODO: cheap code that randomly generates points if centroid is not inside.
+void get_point_inside(Ring2& ring, Point2& p) {
   bg::centroid(ring, p);
   if (bg::within(p, ring) == false) {
     Box2 bbox;
@@ -58,12 +55,16 @@ bool triangle_contains_segment(Triangle t, int a, int b) {
   return false;
 }
 
-
-bool getCDT(const Polygon3* pgn, 
+// bool getCDT(const Polygon3* pgn, 
+//             std::vector<Point3> &vertices, 
+//             std::vector<Triangle> &triangles, 
+//             const std::vector<Point3> &lidarpts) {
+bool getCDT(const Polygon2* pgn,
+            const std::vector< std::vector<int> > &z, 
             std::vector<Point3> &vertices, 
             std::vector<Triangle> &triangles, 
             const std::vector<Point3> &lidarpts) {
-  Ring3 oring = bg::exterior_ring(*pgn);
+  Ring2 oring = bg::exterior_ring(*pgn);
   auto irings = bg::interior_rings(*pgn);
   
   struct triangulateio in, out;
@@ -74,12 +75,14 @@ bool getCDT(const Polygon3* pgn,
   in.pointattributelist = (REAL *) malloc(in.numberofpoints * in.numberofpointattributes * sizeof(REAL));
   int counter = 0;
   //-- oring
+  int ringi = 0;
   for (int i = 0; i < oring.size(); i++) {
     in.pointlist[counter++]  = bg::get<0>(oring[i]);
     in.pointlist[counter++]  = bg::get<1>(oring[i]);
-    in.pointattributelist[i] = bg::get<2>(oring[i]);
+    in.pointattributelist[i] = (z[ringi][i] / 100);
     // std::cout << std::setprecision(3) << std::fixed << bg::get<0>(oring[i]) << " | " << bg::get<1>(oring[i]) << " | " << bg::get<2>(oring[i]) << std::endl;
   }
+  ringi++;
   //-- irings
   if (irings.size() == 0) {
     in.numberofholes = 0;
@@ -92,8 +95,9 @@ bool getCDT(const Polygon3* pgn,
       for (int i = 0; i < iring.size(); i++) {
        in.pointlist[counter++] = bg::get<0>(iring[i]);
        in.pointlist[counter++] = bg::get<1>(iring[i]);
-       in.pointattributelist[(counter / 2) - 1] = bg::get<2>(iring[i]);
+       in.pointattributelist[(counter / 2) - 1] = (z[ringi][i] / 100);
       }
+      ringi++;
       Point2 pinside;
       get_point_inside(iring, pinside);
       // std::clog << "pinside: " << bg::wkt(pinside) << std::endl;

@@ -36,9 +36,10 @@ extern "C" {
 }
 
 
-void get_point_inside(Ring3& ring, Point2& p);
+void get_point_inside(Ring2& ring, Point2& p);
 bool triangle_contains_segment(Triangle t, int a, int b);
-bool getCDT(const Polygon3* p, 
+bool getCDT(const Polygon2* pgn,
+            const std::vector< std::vector<int> > &z, 
             std::vector<Point3> &vertices, 
             std::vector<Triangle> &triangles, 
             const std::vector<Point3> &lidarpts = std::vector<Point3>());
