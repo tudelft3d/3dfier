@@ -32,7 +32,7 @@ std::string Terrain::get_obj_f(int offset, bool usemtl) {
   std::stringstream ss;
   if (usemtl == true)
     ss << "usemtl Terrain" << std::endl;
-  ss << TopoFeature::get_obj_f(offset, usemtl);
+  ss << TIN::get_obj_f(offset, usemtl);
   return ss.str();
 }
 
