@@ -37,6 +37,7 @@ TopoFeature::TopoFeature(char *wkt, std::string pid) {
   _p2 = new Polygon2();
   bg::read_wkt(wkt, *(_p2));
   
+  //-- TO DELETE
   bg::read_wkt(wkt, _p3);
   _nc.resize(bg::num_points(*(_p2)));
   
@@ -388,6 +389,7 @@ void TopoFeature::lift_all_boundary_vertices(int height) {
 
 
 void TopoFeature::lift_each_boundary_vertices(float percentile) {
+  //-- 1. assign value for each vertex based on percentile
   int ringi = 0;
   Ring2 oring = bg::exterior_ring(*(_p2));
   for (int i = 0; i < oring.size(); i++) {
@@ -413,40 +415,49 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
     }
     ringi++;
   }
-
-  // std::vector<float> zvertices;
-  // float avg = 0.0;
-  // for (auto& v : _velevations) {
-  //   if (v.size() > 0) {
-  //     std::nth_element(v.begin(), v.begin() + (v.size() * percentile), v.end());
-  //     zvertices.push_back(v[v.size() * percentile]);
-  //     avg += v[v.size() * percentile];
-  //   }
-  //   else
-  //     zvertices.push_back(-9999);
-  // }
-  // avg /= zvertices.size();
-  // for (auto& v : zvertices) 
-  //   if (v < -9998) {
-  //     v = avg;
-  //     // std::clog << "** interpolation vertex ** " << this->get_class() << std::endl;
-  //   }
-  // //-- assign the value of the Polygon3
-  // Ring3 oring = bg::exterior_ring(_p3);
-  // for (int i = 0; i < oring.size(); i++) 
-  //   bg::set<2>(bg::exterior_ring(_p3)[i], zvertices[i]);
-  // auto irings = bg::interior_rings(_p3);
-  // std::size_t offset = bg::num_points(oring);
-  // for (int i = 0; i < irings.size(); i++) {
-  //   for (int j = 0; j < (irings[i]).size(); j++)
-  //     bg::set<2>(bg::interior_rings(_p3)[i][j], zvertices[j + offset]);
-  //   offset += bg::num_points(irings[i]);
-  // }
-  // _velevations.clear();
-  // _velevations.shrink_to_fit();
+  //-- 2. some vertices will have no values (no lidar point within tolerance thus)
+  //--    assign them z value of next vertex in the ring
+  //--    put 0 elevation if none? they will be stitched later on I hope/guess
+  ringi = 0;
+  oring = bg::exterior_ring(*(_p2));
+  int pi;
+  for (int i = 0; i < oring.size(); i++) {
+    if (_p2z[ringi][i] == -9999) {
+      pi = i;
+      int j;
+      for (j = 0; j < 1000; j++) {
+        get_next_point2_in_ring(ringi, pi);
+        if (_p2z[ringi][pi] != -9999)
+          break;
+      }
+      if (j == 1000)
+        _p2z[ringi][i] = 0;
+      else
+      _p2z[ringi][i] = _p2z[ringi][pi];
+    } 
+  }
+  ringi++;
+  irings = bg::interior_rings(*(_p2));
+  for (Ring2& iring: irings) {
+    for (int i = 0; i < iring.size(); i++) {
+      if (_p2z[ringi][i] == -9999) {
+        pi = i;
+        int j;
+        for (j = 0; j < 1000; j++) {
+          get_next_point2_in_ring(ringi, pi);
+          if (_p2z[ringi][pi] != -9999)
+            break;
+        }
+        if (j == 1000)
+          _p2z[ringi][i] = 0;
+        else
+        _p2z[ringi][i] = _p2z[ringi][pi];
+      }    
+    }
+    ringi++;
+  }
 }  
-
-
+  
 //-------------------------------
 //-------------------------------
 
