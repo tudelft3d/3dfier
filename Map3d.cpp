@@ -125,13 +125,14 @@ std::string Map3d::get_obj_per_feature(int z_exaggeration) {
     ss << "o " << p3->get_id() << std::endl;
     offset += offsets[i++];
     ss << p3->get_obj_f(offset, true);
-    if (_building_include_floor == true) {  
-      Building* b = dynamic_cast<Building*>(p3);
-      if (b != nullptr)
-        ss << b->get_obj_f_floor(offset);
-    }
- }
- return ss.str();
+    //-- TODO: floor for buildings
+//    if (_building_include_floor == true) {  
+//      Building* b = dynamic_cast<Building*>(p3);
+//      if (b != nullptr)
+//        ss << b->get_obj_f_floor(offset);
+//    }
+  }
+  return ss.str();
 }
 
 std::string Map3d::get_obj_per_class(int z_exaggeration) {

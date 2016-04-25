@@ -88,7 +88,7 @@ std::string Building::get_obj_f(int offset, bool usemtl) {
   std::stringstream ss;
   if (usemtl == true)
     ss << "usemtl Building" << std::endl;
-  ss << Flat::get_obj_f(offset, usemtl);
+  ss << TopoFeature::get_obj_f(offset, usemtl);
   return ss.str();
 }
 
