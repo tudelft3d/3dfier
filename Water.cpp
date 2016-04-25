@@ -26,52 +26,17 @@
 std::string Water::_heightref = "percentile-10";
 
 Water::Water (char *wkt, std::string pid, std::string heightref) 
-: TopoFeature(wkt, pid)
+: Flat(wkt, pid)
 {
-  if (heightref != "")
-    _heightref = heightref;
+  _heightref = heightref;
 }
 
 bool Water::lift() {
-  float z = 0.0;
-  if (_zvaluesinside.empty() == false) {
-    float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
-    std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
-    //-- assign an elevation to each vertex
-    z = _zvaluesinside[_zvaluesinside.size() * percentile];
-  }
-  //-- assign minimum value
-  Ring3 oring = bg::exterior_ring(_p3);
-  for (int i = 0; i < oring.size(); i++) 
-    bg::set<2>(bg::exterior_ring(_p3)[i], z);
-  auto irings = bg::interior_rings(_p3);
-  std::size_t offset = bg::num_points(oring);
-  for (int i = 0; i < irings.size(); i++) {
-    for (int j = 0; j < (irings[i]).size(); j++)
-      bg::set<2>(bg::interior_rings(_p3)[i][j], z);
-    offset += bg::num_points(irings[i]);
-  }
+  double percentile = (std::stod(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100);
+  Flat::lift_percentile(percentile);
   return true;
 }
 
-bool Water::add_elevation_point(double x, double y, double z, float radius, bool lastreturn)
-{
-  Point2 p(x, y);
-  //-- 1. assign to polygon if inside
-  if (bg::within(p, *(_p2)) == true)
-    _zvaluesinside.push_back(z);
-  return true;
-}
-
-bool Water::buildCDT() {
-  getCDT(&_p3, _vertices, _triangles);
-  return true;
-}
-
-
-int Water::get_number_vertices() {
-  return int(_vertices.size());
-}
 
 TopoClass Water::get_class() {
   return WATER;

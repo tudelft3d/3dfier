@@ -37,7 +37,6 @@ public:
   ~TopoFeature ();
 
   virtual bool          lift() = 0;
-  virtual bool          buildCDT() = 0;
   virtual bool          add_elevation_point(double x, double y, double z, float radius, bool lastreturn = true) = 0;
   virtual std::string   get_citygml() = 0;
   virtual std::string   get_obj_v(int z_exaggeration);
@@ -46,6 +45,7 @@ public:
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
 
+  bool         buildCDT();
   std::string  get_id();
   void         construct_vertical_walls(std::vector<TopoFeature*> lsAdj);
   void         fix_bowtie(std::vector<TopoFeature*> lsAdj);
@@ -53,8 +53,8 @@ public:
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
   bool         has_point2(Point2& p, int& ringi, int& pi);
-  int          get_point_elevation(int ringi, int pi);
-  void         set_point_elevation(int ringi, int pi, int z);  
+  int          get_vertex_elevation(int ringi, int pi);
+  void         set_vertex_elevation(int ringi, int pi, int z);  
   bool         has_segment(Point2& a, Point2& b);
   void         set_top_level(bool toplevel);
   void         add_nc(int i, float z);
@@ -63,18 +63,19 @@ public:
   std::vector<float>& get_nc(int i);
 
 protected:
-  Polygon2*    _p2;
-  Polygon3     _p3;
-  std::string  _id;
-  int          _counter;
-  static int   _count;
-  bool         _toplevel; 
+  Polygon2*                         _p2;
+  std::vector< std::vector<int> >   _p2z;
+  std::string                       _id;
+  int                               _counter;
+  static int                        _count;
+  bool                              _toplevel; 
 
+  std::vector< std::vector< std::vector<int> > > _lidarelevs;
+
+  Polygon3     _p3;
   std::vector< std::vector<float> > _nc; //-- node columns
   std::vector< std::vector<float> > _velevations;
 
-  std::vector< std::vector< std::vector<int> > > _lidarelevs;
-  std::vector< std::vector<int> >                _z;
 
   std::vector<Point3>   _vertices;  //-- output of Triangle
   std::vector<Triangle> _triangles; //-- output of Triangle
@@ -83,35 +84,29 @@ protected:
 
   Point2  get_next_point2_in_ring(int ringi, int& pi);
   bool    assign_elevation_to_vertex(double x, double y, double z, float radius);
-  void    lift_vertices_boundary(float percentile);
+  void    lift_each_boundary_vertices(float percentile);
+  void    lift_all_boundary_vertices(int height);
 };
 
 
 //---------------------------------------------
 
-class Block : public TopoFeature 
+class Flat : public TopoFeature 
 {
 public:
-  Block           (char *wkt, std::string pid, std::string heightref_top, std::string heightref_base); 
-  virtual bool        lift() = 0;
+                      Flat(char *wkt, std::string pid); 
   bool                add_elevation_point(double x, double y, double z, float radius, bool lastreturn);
-  virtual std::string get_citygml() = 0;
-  std::string         get_obj_v(int z_exaggeration);
-  std::string         get_obj_f(int offset, bool usemtl);
   int                 get_number_vertices();
+  int                 get_height();
+  virtual bool        lift() = 0;
+  virtual std::string get_citygml() = 0;
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;
-  
-  int               get_height_top();
-  int               get_height_base();
-  static std::string  _heightref_top;
-  static std::string  _heightref_base;
+  // std::string         get_obj_v(int z_exaggeration);
+  // std::string         get_obj_f(int offset, bool usemtl);
 protected:
-  bool                _is3d;
-  float               _height_top;
-  float               _height_base;
   std::vector<int>    _zvaluesinside;
-  bool build_CDT();
+  bool                lift_percentile(float percentile);
 };
 
 
@@ -120,14 +115,13 @@ protected:
 class Boundary3D : public TopoFeature
 {
 public:
-  Boundary3D    (char *wkt, std::string pid);
-  virtual bool  lift() = 0;
-  virtual bool  buildCDT() = 0;
-  virtual std::string   get_citygml() = 0;
-  bool          add_elevation_point(double x, double y, double z, float radius, bool lastreturn = true);
-  int           get_number_vertices();
-  virtual TopoClass     get_class() = 0;
-  virtual bool          is_hard() = 0;
+                       Boundary3D(char *wkt, std::string pid);
+  bool                 add_elevation_point(double x, double y, double z, float radius, bool lastreturn = true);
+  int                  get_number_vertices();
+  virtual bool         lift() = 0;
+  virtual std::string  get_citygml() = 0;
+  virtual TopoClass    get_class() = 0;
+  virtual bool         is_hard() = 0;
 protected:
   int           _simplification;
   void          smooth_boundary(int passes = 1);
@@ -140,14 +134,14 @@ protected:
 class TIN : public TopoFeature
 {
 public:
-  TIN             (char *wkt, std::string pid, int simplification = 0);
-  virtual bool    lift() = 0;
-  virtual bool    buildCDT() = 0;
-  virtual std::string   get_citygml() = 0;
-  bool            add_elevation_point(double x, double y, double z, float radius, bool lastreturn = true);
-  int             get_number_vertices();
-  virtual TopoClass     get_class() = 0;
-  virtual bool          is_hard() = 0;
+                      TIN(char *wkt, std::string pid, int simplification = 0);
+  virtual bool        lift() = 0;
+  virtual std::string get_citygml() = 0;
+  virtual TopoClass   get_class() = 0;
+  virtual bool        is_hard() = 0;
+  bool                add_elevation_point(double x, double y, double z, float radius, bool lastreturn = true);
+  int                 get_number_vertices();
+  bool                buildCDT();
 protected:
   int                   _simplification;
   std::vector<Point3>   _lidarpts;

@@ -32,17 +32,9 @@ Road::Road (char *wkt, std::string pid, std::string heightref)
 }
 
 bool Road::lift() {
-  //-- assign an elevation to each vertex
   float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
-  lift_vertices_boundary(percentile);
-  //-- take minimum value for obtaining horizontal value
+  lift_each_boundary_vertices(percentile);
   smooth_boundary(5);
-  return true;
-}
-
-
-bool Road::buildCDT() {
-  getCDT(&_p3, _vertices, _triangles);
   return true;
 }
 

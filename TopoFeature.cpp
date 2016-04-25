@@ -25,8 +25,7 @@
 
 //-- initialisation of 
 int TopoFeature::_count = 0;
-std::string Block::_heightref_top = "percentile-50";
-std::string Block::_heightref_base = "percentile-10";
+//std::string Flat::_heightref = "percentile-50";
 
 
 //-----------------------------------------------------------------------------
@@ -39,13 +38,16 @@ TopoFeature::TopoFeature(char *wkt, std::string pid) {
   bg::read_wkt(wkt, *(_p2));
   
   bg::read_wkt(wkt, _p3);
-  _velevations.resize(bg::num_points(*(_p2)));
   _nc.resize(bg::num_points(*(_p2)));
   
+  _p2z.resize(bg::num_interior_rings(*_p2) + 1);
+  _p2z[0].resize(bg::num_points(_p2->outer()));
   _lidarelevs.resize(bg::num_interior_rings(*_p2) + 1);
   _lidarelevs[0].resize(bg::num_points(_p2->outer()));
-  for (int i = 0; i < bg::num_interior_rings(*_p2); i++)
+  for (int i = 0; i < bg::num_interior_rings(*_p2); i++) {
+    _p2z[i+1].resize(bg::num_points(_p2->inners()[i]));
     _lidarelevs[i+1].resize(bg::num_points(_p2->inners()[i]));
+  }
 }
 
 TopoFeature::~TopoFeature() {
@@ -59,6 +61,11 @@ Box2 TopoFeature::get_bbox2d() {
 
 std::string TopoFeature::get_id() {
   return _id;
+}
+
+bool TopoFeature::buildCDT() {
+  getCDT(&_p3, _vertices, _triangles);
+  return true;
 }
 
 int TopoFeature::get_counter() {
@@ -332,13 +339,13 @@ std::vector<float>& TopoFeature::get_nc(int i) {
 }
 
 
-int TopoFeature::get_point_elevation(int ringi, int pi) {
-  return _z[ringi][pi];
+int TopoFeature::get_vertex_elevation(int ringi, int pi) {
+  return _p2z[ringi][pi];
 }
 
 
-void TopoFeature::set_point_elevation(int ringi, int pi, int z) {
-  _z[ringi][pi] = z;  
+void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
+  _p2z[ringi][pi] = z;  
 }
 
 
@@ -365,16 +372,31 @@ bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float
 }
 
 
-void TopoFeature::lift_vertices_boundary(float percentile) {
+void TopoFeature::lift_all_boundary_vertices(int height) {
+  int ringi = 0;
+  Ring2 oring = bg::exterior_ring(*(_p2));
+  for (int i = 0; i < oring.size(); i++) 
+    _p2z[ringi][i] = height;
+  ringi++;
+  auto irings = bg::interior_rings(*(_p2));
+  for (Ring2& iring: irings) {
+    for (int i = 0; i < iring.size(); i++) 
+      _p2z[ringi][i] = height;
+    ringi++;
+  }
+}
+
+
+void TopoFeature::lift_each_boundary_vertices(float percentile) {
   int ringi = 0;
   Ring2 oring = bg::exterior_ring(*(_p2));
   for (int i = 0; i < oring.size(); i++) {
     std::vector<int> &l = _lidarelevs[ringi][i];
     if (l.empty() == true)
-      _z[ringi][i] = -9999;
+      _p2z[ringi][i] = -9999;
     else {
       std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
-      _z[ringi][i] = l[l.size() * percentile];
+      _p2z[ringi][i] = l[l.size() * percentile];
     }
   }
   ringi++;
@@ -383,10 +405,10 @@ void TopoFeature::lift_vertices_boundary(float percentile) {
     for (int i = 0; i < iring.size(); i++) {
       std::vector<int> &l = _lidarelevs[ringi][i];
       if (l.empty() == true)
-        _z[ringi][i] = -9999;
+        _p2z[ringi][i] = -9999;
       else {
         std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
-        _z[ringi][i] = l[l.size() * percentile];
+        _p2z[ringi][i] = l[l.size() * percentile];
       }    
     }
     ringi++;
@@ -420,8 +442,8 @@ void TopoFeature::lift_vertices_boundary(float percentile) {
   //     bg::set<2>(bg::interior_rings(_p3)[i][j], zvertices[j + offset]);
   //   offset += bg::num_points(irings[i]);
   // }
-  _velevations.clear();
-  _velevations.shrink_to_fit();
+  // _velevations.clear();
+  // _velevations.shrink_to_fit();
 }  
 
 
@@ -429,115 +451,101 @@ void TopoFeature::lift_vertices_boundary(float percentile) {
 //-------------------------------
 
 
-Block::Block(char *wkt, std::string pid, std::string heightref_top, std::string heightref_base) 
+Flat::Flat(char *wkt, std::string pid) 
 : TopoFeature(wkt, pid) 
 {
-  _is3d = false;
-  _heightref_top = heightref_top;
-  _heightref_base = heightref_base;
+  _heightref = heightref;
 }
 
 
-int Block::get_number_vertices() {
+int Flat::get_number_vertices() {
   return int(2 * _vertices.size());
 }
 
-
-std::string Block::get_obj_v(int z_exaggeration) {
-  std::stringstream ss;
-  for (auto& v : _vertices)
-    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * this->get_height_top()) : this->get_height_top()) << std::endl;
-  for (auto& v : _vertices)
-    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * this->get_height_base()) : this->get_height_base()) << std::endl;
-  return ss.str();
+bool Flat::lift_percentile(float percentile) {
+  int z = 0;
+  if (_zvaluesinside.empty() == false) {
+    std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
+    z = _zvaluesinside[_zvaluesinside.size() * percentile];
+  }
+  this->lift_all_boundary_vertices(z);
+  _zvaluesinside.clear();
+  _zvaluesinside.shrink_to_fit();
+  return true;
 }
 
-std::string Block::get_obj_f(int offset, bool usemtl) {
-  std::stringstream ss;
-  //-- top surface
-  for (auto& t : _triangles)
-    ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
+int Flat::get_height() {
+  return get_vertex_elevation(0, 0);
+}
+
+// std::string Flat::get_obj_v(int z_exaggeration) {
+//   std::stringstream ss;
+//   for (auto& v : _vertices)
+//     ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * this->get_height_top()) : this->get_height_top()) << std::endl;
+//   for (auto& v : _vertices)
+//     ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * this->get_height_base()) : this->get_height_base()) << std::endl;
+//   return ss.str();
+// }
+
+// std::string Flat::get_obj_f(int offset, bool usemtl) {
+//   std::stringstream ss;
+//   //-- top surface
+//   for (auto& t : _triangles)
+//     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
   
-//-- extract segments
-  std::vector<Segment> allsegments;
-  for (auto& curt : _triangles) {
-    bool issegment = false;
-    for (auto& t : _triangles) {
-      if (triangle_contains_segment(t, curt.v1, curt.v0) == true) {
-        issegment = true;
-        break;
-      }
-    }
-    if (issegment == false) {
-      Segment s;
-      s.v0 = curt.v0;
-      s.v1 = curt.v1;
-      allsegments.push_back(s);
-    }
-    issegment = false;
-    for (auto& t : _triangles) {
-      if (triangle_contains_segment(t, curt.v2, curt.v1) == true) {
-        issegment = true;
-        break;
-      }
-    }
-    if (issegment == false) {
-      Segment s;
-      s.v0 = curt.v1;
-      s.v1 = curt.v2;
-      allsegments.push_back(s);
-    }
-    issegment = false;
-    for (auto& t : _triangles) {
-      if (triangle_contains_segment(t, curt.v0, curt.v2) == true) {
-        issegment = true;
-        break;
-      }
-    }
-    if (issegment == false) {
-      Segment s;
-      s.v0 = curt.v2;
-      s.v1 = curt.v0;
-      allsegments.push_back(s);
-    }
-  }
-  //-- side surfaces walls
-  for (auto& s : allsegments) {
-    ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
-    ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
-  }
-  return ss.str();
-}
+// //-- extract segments
+//   std::vector<Segment> allsegments;
+//   for (auto& curt : _triangles) {
+//     bool issegment = false;
+//     for (auto& t : _triangles) {
+//       if (triangle_contains_segment(t, curt.v1, curt.v0) == true) {
+//         issegment = true;
+//         break;
+//       }
+//     }
+//     if (issegment == false) {
+//       Segment s;
+//       s.v0 = curt.v0;
+//       s.v1 = curt.v1;
+//       allsegments.push_back(s);
+//     }
+//     issegment = false;
+//     for (auto& t : _triangles) {
+//       if (triangle_contains_segment(t, curt.v2, curt.v1) == true) {
+//         issegment = true;
+//         break;
+//       }
+//     }
+//     if (issegment == false) {
+//       Segment s;
+//       s.v0 = curt.v1;
+//       s.v1 = curt.v2;
+//       allsegments.push_back(s);
+//     }
+//     issegment = false;
+//     for (auto& t : _triangles) {
+//       if (triangle_contains_segment(t, curt.v0, curt.v2) == true) {
+//         issegment = true;
+//         break;
+//       }
+//     }
+//     if (issegment == false) {
+//       Segment s;
+//       s.v0 = curt.v2;
+//       s.v1 = curt.v0;
+//       allsegments.push_back(s);
+//     }
+//   }
+//   //-- side surfaces walls
+//   for (auto& s : allsegments) {
+//     ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
+//     ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
+//   }
+//   return ss.str();
+// }
 
 
-int Block::get_height_top() {
-  if (_zvaluesinside.size() == 0)
-    return 0;
-  double p = (std::stod(_heightref_top.substr(_heightref_top.find_first_of("-") + 1)) / 100);
-  std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * p), _zvaluesinside.end());
-  return _zvaluesinside[_zvaluesinside.size() * p];
-}
-
-
-int Block::get_height_base() {
-  double p = (std::stod(_heightref_base.substr(_heightref_base.find_first_of("-") + 1)) / 100);
-  lift_vertices_boundary(p);
-  
-  std::vector<int> tmp;
-  for (auto& each : _z) {
-    if (each.size() > 0) {
-      std::nth_element(each.begin(), each.begin() + (each.size() * p), each.end());
-      tmp.push_back(each[each.size() * p]);
-    }
-  }
-  if (tmp.empty())
-    return 0.0;
-  else //-- take the lowest of all the vertices for the ground
-    return *(std::min_element(std::begin(tmp), std::end(tmp)));
-}
-
-
-bool Block::add_elevation_point(double x, double y, double z, float radius, bool lastreturn) {
+bool Flat::add_elevation_point(double x, double y, double z, float radius, bool lastreturn) {
   Point2 p(x, y);
   int zcm = int(z * 100);
   //-- 1. assign to polygon if inside
@@ -605,6 +613,12 @@ TIN::TIN(char *wkt, std::string pid, int simplification)
 : TopoFeature(wkt, pid) 
 {
   _simplification = simplification;
+}
+
+
+bool TIN::buildCDT() {
+  getCDT(&_p3, _vertices, _triangles, _lidarpts);
+  return true;
 }
 
 

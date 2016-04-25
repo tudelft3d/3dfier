@@ -25,29 +25,52 @@
 
 
 
-Building::Building(char *wkt, std::string pid, std::string heightref_top, std::string heightref_base) 
-: Block(wkt, pid, heightref_top, heightref_base)
-{}
+Building::Building(char *wkt, std::string pid, std::string heightref, std::string heightref_base) 
+: Flat(wkt, pid)
+{
+  _heightref_top = heightref_top;
+  _heightref_base = heightref_base;
+}
 
 bool Building::lift() {
-  _height_top  = this->get_height_top();
-  _height_base = this->get_height_base();
-  _is3d = true;
-  _zvaluesinside.clear();
-  _zvaluesinside.shrink_to_fit();
-  _velevations.clear();
-  _velevations.shrink_to_fit();
+  //-- for the roof
+  double percentile = (std::stod(_heightref_top.substr(_heightref_trop.find_first_of("-") + 1)) / 100);
+  Flat::lift_percentile(percentile);
+  //-- for the ground
+  percentile = (std::stod(_heightref_base.substr(_heightref_base.find_first_of("-") + 1)) / 100);
+  std::vector<int> tmp;
+  int ringi = 0;
+  Ring2 oring = bg::exterior_ring(*(_p2));
+  for (int i = 0; i < oring.size(); i++) {
+    std::vector<int> &l = _lidarelevs[ringi][i];
+    std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
+    tmp.push_back(l[l.size() * percentile]);
+  }
+  ringi++;
+  auto irings = bg::interior_rings(*(_p2));
+  for (Ring2& iring: irings) {
+    for (int i = 0; i < iring.size(); i++) {
+      std::vector<int> &l = _lidarelevs[ringi][i];
+      std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
+      tmp.push_back(l[l.size() * percentile]);
+    }
+    ringi++;
+  }
+  if (tmp.empty())
+    _height_base = 0;
+  else //-- take the lowest of all the vertices for the ground
+    _height_base = *(std::min_element(std::begin(tmp), std::end(tmp)));
   return true;
 }
 
-bool Building::buildCDT() {
-  getCDT(&_p3, _vertices, _triangles);
-  return true;
+int Building::get_height_base() {
+  return _height_base;
 }
 
 TopoClass Building::get_class() {
   return BUILDING;
 }
+
 
 bool Building::is_hard() {
   return true;
@@ -56,7 +79,7 @@ bool Building::is_hard() {
 
 std::string Building::get_csv() {
   std::stringstream ss;
-  ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height_top() << ";" << this->get_height_base() << std::endl;
+  ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << std::endl;
   return ss.str(); 
 }
 
@@ -64,7 +87,7 @@ std::string Building::get_obj_f(int offset, bool usemtl) {
   std::stringstream ss;
   if (usemtl == true)
     ss << "usemtl Building" << std::endl;
-  ss << Block::get_obj_f(offset, usemtl);
+  ss << Flat::get_obj_f(offset, usemtl);
   return ss.str();
 }
 
@@ -80,7 +103,7 @@ std::string Building::get_citygml() {
   ss << "<cityObjectMember>";
   ss << "<bldg:Building>";
   ss << "<bldg:measuredHeight uom=\"#m\">";
-  ss << this->get_height_top();
+  ss << this->get_height();
   ss << "</bldg:measuredHeight>";
   ss << "<bldg:lod1Solid>";
   ss << "<gml:Solid>";
@@ -89,11 +112,11 @@ std::string Building::get_citygml() {
   //-- get floor
   ss << get_polygon_lifted_gml(this->_p2, this->get_height_base(), false);
   //-- get roof
-  ss << get_polygon_lifted_gml(this->_p2, this->get_height_top(), true);
+  ss << get_polygon_lifted_gml(this->_p2, this->get_height(), true);
   //-- get the walls
   auto r = bg::exterior_ring(*(this->_p2));
   for (int i = 0; i < (r.size() - 1); i++) 
-    ss << get_extruded_line_gml(&r[i], &r[i + 1], this->get_height_top(), 0, false);
+    ss << get_extruded_line_gml(&r[i], &r[i + 1], this->get_height(), 0, false);
   ss << "</gml:CompositeSurface>";
   ss << "</gml:exterior>";
   ss << "</gml:Solid>";

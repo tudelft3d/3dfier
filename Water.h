@@ -26,22 +26,17 @@
 
 #include "TopoFeature.h"
 
-
-class Water : public TopoFeature
+class Water : public Flat
 {
 public:
-  Water (char *wkt, std::string pid, std::string heightref);
+                Water(char *wkt, std::string pid, std::string heightref);
   bool          lift();
-  bool          buildCDT();
   std::string   get_citygml();
   std::string   get_obj_f(int offset, bool usemtl);
   TopoClass     get_class();
   bool          is_hard();
-  int           get_number_vertices();
-  bool          add_elevation_point(double x, double y, double z, float radius, bool lastreturn = true);
-  static std::string _heightref;
 protected:
-  std::vector<float>  _zvaluesinside;
+  static std::string  _heightref;
 };
 
 

@@ -29,14 +29,10 @@ Forest::Forest (char *wkt, std::string pid, int simplification) : TIN(wkt, pid, 
 
 
 bool Forest::lift() {
-  TopoFeature::lift_vertices_boundary(0.5);
+  TopoFeature::lift_each_boundary_vertices(0.5);
   return true;
 }
 
-bool Forest::buildCDT() {
-  getCDT(&_p3, _vertices, _triangles, _lidarpts);
-  return true;
-}
 
 TopoClass Forest::get_class() {
   return FOREST;
