@@ -125,7 +125,7 @@ public:
 protected:
   int           _simplification;
   void          smooth_boundary(int passes = 1);
-  void          smooth_ring(Ring3 &r, std::vector<float> &elevs);
+  // void          smooth_ring(Ring3 &r, std::vector<float> &elevs);
 };
 
 

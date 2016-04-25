@@ -588,31 +588,51 @@ bool Boundary3D::add_elevation_point(double x, double y, double z, float radius,
   return true;
 }
 
+
+
 void Boundary3D::smooth_boundary(int passes) {
+  std::vector<int> tmp;
   for (int p = 0; p < passes; p++) {
-    Ring3 oring = bg::exterior_ring(_p3);
-    std::vector<float> elevs(bg::num_points(oring));
-    smooth_ring(oring, elevs);
-    for (int i = 0; i < oring.size(); i++) 
-      bg::set<2>(bg::exterior_ring(_p3)[i], elevs[i]);
-    auto irings = bg::interior_rings(_p3);
-    for (int i = 0; i < irings.size(); i++) {
-      elevs.resize(bg::num_points(irings[i]));
-      smooth_ring(irings[i], elevs);
-      for (int j = 0; j < (irings[i]).size(); j++)
-        bg::set<2>(bg::interior_rings(_p3)[i][j], elevs[j]);
+    for (auto& r : _p2z) {
+      tmp.resize(r.size());
+      tmp.front() = int( (r[1] + r.back()) / 2);
+      auto it = r.end();
+      it -= 2;
+      tmp.back() = int((r.front() + *it) / 2);
+      for (int i = 1; i < (r.size() - 1); i++) 
+        tmp[i] = int( (r[i - 1] + r[i + 1]) / 2);
     }
   }
 }
 
-void Boundary3D::smooth_ring(Ring3 &r, std::vector<float> &elevs) {
-  elevs.front() = (bg::get<2>(r[1]) + bg::get<2>(r.back())) / 2;
-  auto it = r.end();
-  it -= 2;
-  elevs.back() = (bg::get<2>(r.front()) + bg::get<2>(*it)) / 2;
-  for (int i = 1; i < (r.size() - 1); i++) 
-    elevs[i] = (bg::get<2>(r[i - 1]) + bg::get<2>(r[i + 1])) / 2;
-}
+// void Boundary3D::smooth_boundary(int passes) {
+//   for (int p = 0; p < passes; p++) {
+//     int ringi = 0;
+//     Ring2 oring = bg::exterior_ring(*(_p2));
+//     std::vector<int> elevs(bg::num_points(oring));
+//     smooth_ring(_p2z[ringi], elevs);
+//     for (int i = 0; i < oring.size(); i++) 
+//       _p2z[ringi][i] = elevs[i];
+//     ringi++;
+//     auto irings = bg::interior_rings(*_p2);
+//     for (Ring2& iring: irings) {
+//       elevs.resize(bg::num_points(iring));
+//       smooth_ring(_p2z[ringi], elevs);
+//       for (int i = 0; i < iring.size(); i++) 
+//         _p2z[ringi][i] = elevs[i];
+//       ringi++;
+//     }
+//   }
+// }
+
+// void Boundary3D::smooth_ring(const std::vector<int> &r, std::vector<int> &elevs) {
+//   elevs.front() = (bg::get<2>(r[1]) + bg::get<2>(r.back())) / 2;
+//   auto it = r.end();
+//   it -= 2;
+//   elevs.back() = (bg::get<2>(r.front()) + bg::get<2>(*it)) / 2;
+//   for (int i = 1; i < (r.size() - 1); i++) 
+//     elevs[i] = (bg::get<2>(r[i - 1]) + bg::get<2>(r[i + 1])) / 2;
+// }
 
 
 
