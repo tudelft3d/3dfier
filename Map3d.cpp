@@ -220,9 +220,9 @@ bool Map3d::threeDfy(bool triangulate) {
   }
   std::clog << "===== LIFTING/ =====" << std::endl;
   if (triangulate == true) {
-  //   std::clog << "=====  /STITCHING =====" << std::endl;
-  //   this->stitch_lifted_features();
-  //   std::clog << "=====  STITCHING/ =====" << std::endl;
+    std::clog << "=====  /STITCHING =====" << std::endl;
+    this->stitch_lifted_features();
+    std::clog << "=====  STITCHING/ =====" << std::endl;
     
   //   std::clog << "=====  /BOWTIES =====" << std::endl;
   //   for (auto& p : _lsFeatures) {
@@ -493,71 +493,69 @@ void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
 }
 
 
-
-
 void Map3d::stitch_lifted_features() {
-//   for (auto& f : _lsFeatures) {
-//     std::vector<PairIndexed> re;
-//     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-// //-- 1. store all touching (adjacent + incident)
-//     std::vector<TopoFeature*> lstouching;
-//     for (auto& each : re) {
-//       TopoFeature* fadj = each.second;
-//       if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
-//         // std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
-//         lstouching.push_back(fadj);
-//       }
-//     }
-//     if (f->get_id() == "107729942")
-//       std::clog << "yo" << std::endl;
-// //-- 2. build the node-column for each vertex
-//     // oring
-//     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); 
-//     for (int i = 0; i < oring.size(); i++) {
-//       std::vector< std::pair<TopoFeature*, int> > star;  
-//       bool toprocess = true;
-//       for (auto& fadj : lstouching) {
-//         int index = fadj->has_point2(oring[i]); //-- TODO: more than one point can be touching!
-//         if (index != -1)  {
-//           if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
-//             star.push_back(std::make_pair(fadj, index));
-//           }
-//           else {
-//             toprocess = false;
-//             break;
-//           }
-//         }
-//       }
-//       if (toprocess == true) {
-//         this->build_nodecolumns(f, i, star);
-//       }
-//     }
-//     // irings
-//     int offset = int(bg::num_points(oring));
-//     for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
-//       std::clog << f->get_id() << " irings " << std::endl;
-//       for (int i = 0; i < iring.size(); i++) {
-//         std::vector< std::pair<TopoFeature*, int> > star;  
-//         bool toprocess = true;
-//         for (auto& fadj : lstouching) {
-//           int index = fadj->has_point2(iring[i]);
-//           if (index != -1)  {
-//             if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
-//               star.push_back(std::make_pair(fadj, index));
-//             }
-//             else {
-//               toprocess = false;
-//               break;
-//             }
-//           }
-//         }
-//         if (toprocess == true) {
-//           this->build_nodecolumns(f, (i + offset), star);
-//         }
-//       }
-//       offset += bg::num_points(iring);
-//     }
-//   }
+  for (auto& f : _lsFeatures) {
+    std::vector<PairIndexed> re;
+    _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+//-- 1. store all touching (adjacent + incident)
+    std::vector<TopoFeature*> lstouching;
+    for (auto& each : re) {
+      TopoFeature* fadj = each.second;
+      if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
+        // std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
+        lstouching.push_back(fadj);
+      }
+    }
+    if (f->get_id() == "107729942")
+      std::clog << "yo" << std::endl;
+//-- 2. build the node-column for each vertex
+    // oring
+    Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); 
+    for (int i = 0; i < oring.size(); i++) {
+      std::vector< std::pair<TopoFeature*, int> > star;  
+      bool toprocess = true;
+      for (auto& fadj : lstouching) {
+        int index = fadj->has_point2(oring[i]); //-- TODO: more than one point can be touching!
+        if (index != -1)  {
+          if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
+            star.push_back(std::make_pair(fadj, index));
+          }
+          else {
+            toprocess = false;
+            break;
+          }
+        }
+      }
+      if (toprocess == true) {
+        this->build_nodecolumns(f, i, star);
+      }
+    }
+    // irings
+    int offset = int(bg::num_points(oring));
+    for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
+      std::clog << f->get_id() << " irings " << std::endl;
+      for (int i = 0; i < iring.size(); i++) {
+        std::vector< std::pair<TopoFeature*, int> > star;  
+        bool toprocess = true;
+        for (auto& fadj : lstouching) {
+          int index = fadj->has_point2(iring[i]);
+          if (index != -1)  {
+            if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
+              star.push_back(std::make_pair(fadj, index));
+            }
+            else {
+              toprocess = false;
+              break;
+            }
+          }
+        }
+        // if (toprocess == true) {
+        //   this->build_nodecolumns(f, (i + offset), star);
+        // }
+      }
+      offset += bg::num_points(iring);
+    }
+  }
 }
 
 
