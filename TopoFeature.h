@@ -37,6 +37,7 @@ public:
   ~TopoFeature ();
 
   virtual bool          lift() = 0;
+  virtual bool          buildCDT();
   virtual bool          add_elevation_point(double x, double y, double z, float radius, bool lastreturn = true) = 0;
   virtual std::string   get_citygml() = 0;
   virtual std::string   get_obj_v(int z_exaggeration);
@@ -45,7 +46,6 @@ public:
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
 
-  bool         buildCDT();
   std::string  get_id();
   void         construct_vertical_walls(std::vector<TopoFeature*> lsAdj);
   void         fix_bowtie(std::vector<TopoFeature*> lsAdj);
