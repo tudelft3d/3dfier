@@ -52,10 +52,11 @@ public:
   int          get_counter(); 
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
-  bool         has_point2(Point2& p, int& ringi, int& pi);
+  bool         has_point2(const Point2& p);
+  bool         has_point2(const Point2& p, int& ringi, int& pi);
+  bool         has_segment(Point2& a, Point2& b);
   int          get_vertex_elevation(int ringi, int pi);
   void         set_vertex_elevation(int ringi, int pi, int z);  
-  bool         has_segment(Point2& a, Point2& b);
   void         set_top_level(bool toplevel);
   void         add_nc(int i, float z);
   bool         has_vertical_walls(); 

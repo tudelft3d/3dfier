@@ -512,13 +512,14 @@ void Map3d::stitch_lifted_features() {
     // oring
     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); 
     for (int i = 0; i < oring.size(); i++) {
-      std::vector< std::pair<TopoFeature*, int> > star;  
+      std::vector< std::tuple<TopoFeature*, int, int> > star;  
       bool toprocess = true;
       for (auto& fadj : lstouching) {
-        int index = fadj->has_point2(oring[i]); //-- TODO: more than one point can be touching!
-        if (index != -1)  {
+        //-- TODO: more than one point can be touching!
+        int ringi, pi; 
+        if (fadj->has_point2(oring[i], ringi, pi) == true) {
           if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
-            star.push_back(std::make_pair(fadj, index));
+            star.push_back(std::make_tuple(fadj, ringi, pi));
           }
           else {
             toprocess = false;
@@ -527,39 +528,54 @@ void Map3d::stitch_lifted_features() {
         }
       }
       if (toprocess == true) {
-        this->build_nodecolumns(f, i, star);
+        this->stitch_one_vertex(f, 0, i, star);
       }
     }
     // irings
-    int offset = int(bg::num_points(oring));
-    for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
-      std::clog << f->get_id() << " irings " << std::endl;
-      for (int i = 0; i < iring.size(); i++) {
-        std::vector< std::pair<TopoFeature*, int> > star;  
-        bool toprocess = true;
-        for (auto& fadj : lstouching) {
-          int index = fadj->has_point2(iring[i]);
-          if (index != -1)  {
-            if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
-              star.push_back(std::make_pair(fadj, index));
-            }
-            else {
-              toprocess = false;
-              break;
-            }
-          }
-        }
-        // if (toprocess == true) {
-        //   this->build_nodecolumns(f, (i + offset), star);
-        // }
-      }
-      offset += bg::num_points(iring);
-    }
+    // for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
+    //   std::clog << f->get_id() << " irings " << std::endl;
+    //   for (int i = 0; i < iring.size(); i++) {
+    //     std::vector< std::tuple<TopoFeature*, int, int> > star;  
+    //     bool toprocess = true;
+    //     for (auto& fadj : lstouching) {
+    //       int ringi, pi; 
+    //       if (fadj->has_point2(iring[i], ringi, pi) == true) {
+    //         if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
+    //           star.push_back(std::make_tuple(fadj, ringi, pi));
+    //         }
+    //         else {
+    //           toprocess = false;
+    //           break;
+    //         }
+    //       }
+    //     }
+    //     // if (toprocess == true) {
+    //     //   this->build_nodecolumns(f, (i + offset), star);
+    //     // }
+    //   }
+    // }
   }
 }
 
+void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star) {
+  int fz = f->get_vertex_elevation(ringi, pi);
+//-- degree of vertex == 2
+  if (star.size() == 1) {
+    //-- if same class, then average. TODO: always, also for water?
+    if (f->get_class() == std::get<0>(star[0])->get_class()) {
+      stitch_average(f, pos, std::get<0>(star[0]), std::get<1>(star[0]));
+    }
+    else if ( (f->is_hard() == false) && (star[0].first->is_hard() == false) ) {
+      stitch_average(f, pos, star[0].first, star[0].second);
+    }
+    else {
+      stitch_jumpedge(f, pos, star[0].first, star[0].second, _threshold_jump_edges);
+    }
+  }
+  else
+    std::cout << "star>2" << std::endl;
+}
 
-void Map3d::build_nodecolumns(TopoFeature* f, int pos, std::vector< std::pair<TopoFeature*, int> >& star) {
 //   float fz = f->get_point_elevation(pos);
 // //-- degree of vertex == 2
 //   if (star.size() == 1) {

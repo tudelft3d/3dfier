@@ -279,7 +279,13 @@ bool TopoFeature::has_segment(Point2& a, Point2& b) {
 }
 
 
-bool TopoFeature::has_point2(Point2& p, int& ringi, int& pi) {
+bool TopoFeature::has_point2(const Point2& p) {
+  int a, b;
+  return has_point2(p, a, b);
+}
+
+
+bool TopoFeature::has_point2(const Point2& p, int& ringi, int& pi) {
   double threshold = 0.001;
   Ring2 oring = bg::exterior_ring(*_p2);
   ringi = 0;
