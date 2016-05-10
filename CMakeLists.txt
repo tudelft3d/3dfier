@@ -42,20 +42,17 @@ endif()
 
 # LIBLAS
 find_package(libLAS 1.8 REQUIRED)
-find_package(LASzip 2.0.1 QUIET NO_MODULE)
+find_package (LASzip QUIET)
 
-# yaml-cpp
-SET(yaml-cpp_LIBRARIES ""  CACHE STRING "filepath to yaml-cpp library")
-SET(yaml-cpp_INCLUDE_DIRS "" CACHE STRING "path to yaml-cpp include directory")
-find_package(PkgConfig)
-pkg_check_modules(yaml-cpp REQUIRED yaml-cpp)
+# YamlCpp
+find_package(YamlCpp REQUIRED)
 
-# triangle
+# Triangle
 find_package(Triangle)
 
-include_directories( ${GDAL_INCLUDE_DIR} ${libLAS_INCLUDE_DIRS} ${LASZIP_INCLUDE_DIR} ${yaml-cpp_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
-link_directories(${yaml-cpp_LIBRARY_DIRS})
+include_directories( ${Boost_INCLUDE_DIRS} ${LIBLAS_INCLUDE_DIR} ${LASZIP_INCLUDE_DIR} ${YAMLCPP_INCLUDE_DIR} ${GDAL_INCLUDE_DIR} ${TRIANGLE_INCLUDE_DIR})
+link_directories(${YamlCpp_LIBRARY_DIRS})
 
 # Creating entries for target: 3dfier
 add_executable( 3dfier main.cpp io.cpp Map3d.cpp Building.cpp Road.cpp Terrain.cpp TopoFeature.cpp Forest.cpp Water.cpp geomtools.cpp)
-target_link_libraries( 3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${yaml-cpp_LIBRARIES} ${TRIANGLE_LIBRARIES} )
+target_link_libraries( 3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY} ${TRIANGLE_LIBRARY} )
