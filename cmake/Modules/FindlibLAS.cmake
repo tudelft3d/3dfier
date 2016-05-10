@@ -45,59 +45,20 @@ FIND_PATH(LIBLAS_INCLUDE_DIR
   /tmp/lasjunk/include
   ${LIBLAS_ROOT_DIR}/include)
 
-FIND_LIBRARY(LIBLAS_LIBRARY
-  NAMES ${LIBLAS_NAMES} liblas
+find_library(LIBLAS_LIBRARY
+  NAMES liblas.dylib liblas
   PATHS
   /usr/lib
   /usr/local/lib
   /tmp/lasjunk/lib
-  ${LIBLAS_ROOT_DIR}/lib)
-
-IF(LIBLAS_FOUND)
-  SET(LIBLAS_LIBRARIES ${LIBLAS_LIBRARY})
-ENDIF()
-
-IF(LIBLAS_INCLUDE_DIR)
-  SET(LIBLAS_VERSION 0)
-
-  SET(LIBLAS_VERSION_H "${LIBLAS_INCLUDE_DIR}/liblas/version.hpp")
-  FILE(READ ${LIBLAS_VERSION_H} LIBLAS_VERSION_H_CONTENTS)
-
-  IF (DEFINED LIBLAS_VERSION_H_CONTENTS)
-  
-    # string will be something like "106000", which is xyyzzz (x=major, y=minor, z=patch)
-    string(REGEX REPLACE ".*#define[ \t]LIBLAS_VERSION[ \t]+([0-9]).*" "\\1" LIBLAS_VERSION_MAJOR "${LIBLAS_VERSION_H_CONTENTS}")
-    string(REGEX REPLACE ".*#define[ \t]LIBLAS_VERSION[ \t]+[0-9]([0-9][0-9]).*" "\\1" LIBLAS_VERSION_MINOR "${LIBLAS_VERSION_H_CONTENTS}")
-    string(REGEX REPLACE ".*#define[ \t]LIBLAS_VERSION[ \t]+[0-9][0-9][0-9]([0-9][0-9][0-9]).*"   "\\1" LIBLAS_VERSION_PATCH   "${LIBLAS_VERSION_H_CONTENTS}")
-    #message(FATAL_ERROR "${LIBLAS_VERSION_MAJOR}.${LIBLAS_VERSION_MINOR}.${LIBLAS_VERSION_PATCH}")
-
-    if(NOT ${LIBLAS_VERSION_MAJOR} MATCHES "[0-9]+")
-      message(FATAL_ERROR "libLAS version parsing failed for LIBLAS_VERSION_MAJOR!")
-    endif()
-    if(NOT ${LIBLAS_VERSION_MINOR} MATCHES "[0-9]+")
-      message(FATAL_ERROR "libLAS version parsing failed for LIBLAS_VERSION_MINOR!")
-    endif()
-    if(NOT ${LIBLAS_VERSION_PATCH} MATCHES "[0-9]+")
-      message(FATAL_ERROR "libLAS version parsing failed for LIBLAS_VERSION_PATCH!")
-    endif()
+  ${LIBLAS_ROOT_DIR}/lib
+)
 
 
-    SET(LIBLAS_VERSION "${LIBLAS_VERSION_MAJOR}.${LIBLAS_VERSION_MINOR}.${LIBLAS_VERSION_PATCH}"
-      CACHE INTERNAL "The version string for libLAS library")
 
-    IF (LIBLAS_VERSION VERSION_EQUAL LibLAS_FIND_VERSION OR
-        LIBLAS_VERSION VERSION_GREATER LibLAS_FIND_VERSION)
-      MESSAGE(STATUS "Found libLAS version: ${LIBLAS_VERSION}")
-    ELSE()
-      MESSAGE(FATAL_ERROR "libLS version check failed. Version ${LIBLAS_VERSION} was found, at least version ${LibLAS_FIND_VERSION} is required")
-    ENDIF()
-  ELSE()
-    MESSAGE(FATAL_ERROR "Failed to open ${LIBLAS_VERSION_H} file")
-  ENDIF()
 
-ENDIF()
 
 # Handle the QUIETLY and REQUIRED arguments and set LIBLAS_FOUND to TRUE
 # if all listed variables are TRUE
-INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(libLAS DEFAULT_MSG LIBLAS_LIBRARY LIBLAS_INCLUDE_DIR)
+#INCLUDE(FindPackageHandleStandardArgs)
+#FIND_PACKAGE_HANDLE_STANDARD_ARGS(libLAS DEFAULT_MSG LIBLAS_LIBRARY LIBLAS_INCLUDE_DIR)

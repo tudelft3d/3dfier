@@ -41,7 +41,7 @@ if ( NOT GDAL_FOUND )
 endif()
 
 # LIBLAS
-find_package(libLAS 1.8 REQUIRED)
+find_package(libLAS REQUIRED)
 find_package (LASzip QUIET)
 
 # YamlCpp
