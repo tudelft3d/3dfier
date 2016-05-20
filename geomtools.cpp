@@ -140,7 +140,7 @@ bool getCDT(const Polygon3* pgn,
 	for (auto &pt : lidarpts) {
 		cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
 	}
-	
+
 	//Mark facets that are inside the domain bounded by the polygon
 	mark_domains(cdt);
 

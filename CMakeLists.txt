@@ -47,12 +47,20 @@ find_package (LASzip QUIET)
 # YamlCpp
 find_package(YamlCpp REQUIRED)
 
-# Triangle
-find_package(Triangle)
+# CGAL
+find_package( CGAL QUIET COMPONENTS  )
 
-include_directories( ${Boost_INCLUDE_DIRS} ${LIBLAS_INCLUDE_DIR} ${LASZIP_INCLUDE_DIR} ${YAMLCPP_INCLUDE_DIR} ${GDAL_INCLUDE_DIR} ${TRIANGLE_INCLUDE_DIR})
+if ( NOT CGAL_FOUND )
+  message(SEND_ERROR "val3dity requires the CGAL library")
+  return()  
+endif()
+
+# include helper file
+include( ${CGAL_USE_FILE} )
+
+include_directories( ${CGAL_INCLUDE_DIR} ${CGAL_3RD_PARTY_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${LIBLAS_INCLUDE_DIR} ${LASZIP_INCLUDE_DIR} ${YAMLCPP_INCLUDE_DIR} ${GDAL_INCLUDE_DIR})
 link_directories(${YamlCpp_LIBRARY_DIRS})
 
 # Creating entries for target: 3dfier
 add_executable( 3dfier main.cpp io.cpp Map3d.cpp Building.cpp Road.cpp Terrain.cpp TopoFeature.cpp Forest.cpp Water.cpp geomtools.cpp)
-target_link_libraries( 3dfier ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY} ${TRIANGLE_LIBRARY} )
+target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY})
