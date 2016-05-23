@@ -27,13 +27,13 @@
 Map3d::Map3d() {
   OGRRegisterAll();
   _building_include_floor = false;
-  _building_heightref_roof = "median";
+  _building_heightref_roof = "percentile-50";
   _building_heightref_floor = "percentile-05";
   _building_triangulate = true;
   _terrain_simplification = 0;
   _forest_simplification = 0;
   _radius_vertex_elevation = 1.0;
-  _threshold_jump_edges = 0.5;
+  _threshold_jump_edges = 50;
   _minx = 1e8;
   _miny = 1e8;
 }
@@ -532,33 +532,35 @@ void Map3d::stitch_lifted_features() {
       }
     }
     // irings
-    // for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
-    //   std::clog << f->get_id() << " irings " << std::endl;
-    //   for (int i = 0; i < iring.size(); i++) {
-    //     std::vector< std::tuple<TopoFeature*, int, int> > star;  
-    //     bool toprocess = true;
-    //     for (auto& fadj : lstouching) {
-    //       int ringi, pi; 
-    //       if (fadj->has_point2(iring[i], ringi, pi) == true) {
-    //         if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
-    //           star.push_back(std::make_tuple(fadj, ringi, pi));
-    //         }
-    //         else {
-    //           toprocess = false;
-    //           break;
-    //         }
-    //       }
-    //     }
-    //     // if (toprocess == true) {
-    //     //   this->build_nodecolumns(f, (i + offset), star);
-    //     // }
-    //   }
-    // }
+    int noiring = 0;
+    for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
+      noiring++;
+      std::clog << f->get_id() << " irings " << std::endl;
+      for (int i = 0; i < iring.size(); i++) {
+        std::vector< std::tuple<TopoFeature*, int, int> > star;  
+        bool toprocess = true;
+        for (auto& fadj : lstouching) {
+          int ringi, pi; 
+          if (fadj->has_point2(iring[i], ringi, pi) == true) {
+            if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
+              star.push_back(std::make_tuple(fadj, ringi, pi));
+            }
+            else {
+              toprocess = false;
+              break;
+            }
+          }
+        }
+        if (toprocess == true) {
+          this->stitch_one_vertex(f, noiring, i, star);
+          // this->build_nodecolumns(f, (i + offset), star);
+        }
+      }
+    }
   }
 }
 
 void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star) {
-  int fz = f->get_vertex_elevation(ringi, pi);
 //-- degree of vertex == 2
   if (star.size() == 1) {
     //-- if same class, then average. TODO: always, also for water?
@@ -572,77 +574,44 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       stitch_jumpedge(f, ringi, pi, std::get<0>(star[0]), std::get<1>(star[0]), std::get<2>(star[0]));
     }
   }
-  else
-    std::clog << "[star>2]" << std::endl;
-}
-
-//   float fz = f->get_point_elevation(pos);
-// //-- degree of vertex == 2
-//   if (star.size() == 1) {
-//     //-- if same class, then average. TODO: always, also for water?
-//     if (f->get_class() == star[0].first->get_class()) {
-//       stitch_average(f, pos, star[0].first, star[0].second);
-//     }
-//     else if ( (f->is_hard() == false) && (star[0].first->is_hard() == false) ) {
-//       stitch_average(f, pos, star[0].first, star[0].second);
-//     }
-//     else {
-//       stitch_jumpedge(f, pos, star[0].first, star[0].second, _threshold_jump_edges);
-//     }
-//   }
-// //-- degree of vertex >= 3: more complex cases
-//   else if (star.size() > 1) {
-//     //-- collect all elevations
-//     std::vector<float> televs;
-//     std::vector<int> c;
-//     televs.assign(6, -999.0);
-//     c.assign(6, 0);
-//     televs[f->get_class()] = fz;
-//     for (auto& fadj : star) {
-//       if (c[fadj.first->get_class()] == 0) {
-//         televs[fadj.first->get_class()] = fadj.first->get_point_elevation(fadj.second);
-//         c[fadj.first->get_class()]++;
-//       }
-//       else {
-//         televs[fadj.first->get_class()] += fadj.first->get_point_elevation(fadj.second);
-//         c[fadj.first->get_class()]++;
-//       }
-//     }
-//     for (int i = 0; i < 6; i++) {
-//       if (c[i] != 0)
-//         televs[i] /= c[i];
-//     }
-//     adjust_nc(televs, _threshold_jump_edges);
-//     f->set_point_elevation(pos, televs[f->get_class()]);
-//     for (int i = 0; i <= 5; i++) {
-//       if ( (televs[i] > -998) && (i != f->get_class()) && (televs[i] < televs[f->get_class()]) )
-//         f->add_nc(pos, televs[i]);
-//     }
-
-//     for (auto& fadj : star) {
-//       // 1. set the elevation adjusted with the nc
-//       fadj.first->set_point_elevation(fadj.second, televs[fadj.first->get_class()]);
-//       // 2. if type ROAD/TERRAIN/FOREST && others are lower
-//       for (int i = 0; i <= 5; i++) {
-//         if ( (televs[i] > -998) && (i != fadj.first->get_class()) && (televs[i] < televs[fadj.first->get_class()]) )
-//           fadj.first->add_nc(fadj.second, televs[i]);
-//       }
-//     }
-//   }
-// }
-
-
-// TODO : hard classes shouldn't be adjusted: can make unvertical water eg
-void Map3d::adjust_nc(std::vector<float>& televs, float jumpedge) {
-  for (int i = 1; i <= 5; i++) {
-    for (int j = (i + 1); j <= 5; j++) {
-      if ( (televs[i] >= -998) && (televs[j] >= -998) && (std::abs(televs[i] - televs[j]) < jumpedge) ) {
-        televs[j] = televs[i];
-      }
+//-- degree of vertex >= 3: more complex cases
+  else if (star.size() > 1) {
+    //-- collect all elevations
+    std::vector< std::tuple< int, TopoFeature*, int, int > > nc;
+    nc.push_back(std::make_tuple(
+                 f->get_vertex_elevation(ringi, pi),
+                 f,
+                 ringi,
+                 pi));
+    for (auto& fadj : star) {
+      nc.push_back(std::make_tuple(
+                   std::get<0>(fadj)->get_vertex_elevation(std::get<1>(fadj), std::get<2>(fadj)),
+                   std::get<0>(fadj), 
+                   std::get<1>(fadj), 
+                   std::get<2>(fadj)));
     }
+    //-- sort low-high based on heights (get<0>)
+    std::sort(nc.begin(), nc.end(), 
+              [](std::tuple<int, TopoFeature*, int, int> const &t1, std::tuple<int, TopoFeature*, int, int> const &t2) {
+              return std::get<0>(t1) < std::get<0>(t2); 
+    });
+    std::cout << nc.size() << std::endl;
+
+    //-- ADJUST THE HEIGHTS IN THE NC
+    for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it = nc.begin() ; it != nc.end(); ++it) {
+      std::cout << std::get<0>(*it) << std::endl;
+      auto it2 = it + 1;
+      if (it2 == nc.end())
+        break;
+      if ( (std::get<1>(*it2)->get_class() != BUILDING) && (std::get<0>(*it2) - std::get<0>(*it)) < this->_threshold_jump_edges) 
+        std::get<0>(*it2) = std::get<0>(*it);
+    }
+
+    for (auto& v : nc)
+      std::get<1>(v)->set_vertex_elevation(std::get<2>(v), std::get<3>(v), std::get<0>(v));
+    // TODO : store somehow the nc in a data structure
   }
 }
-
 
 void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
   int f1z = f1->get_vertex_elevation(ringi1, pi1);
@@ -669,8 +638,6 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
   //     f2->add_nc(f2pos, f1z);
   // }
 }
-
-
 
 void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
   float avgz = (f1->get_vertex_elevation(ringi1, pi1) + f2->get_vertex_elevation(ringi2, pi2) ) / 2; 
