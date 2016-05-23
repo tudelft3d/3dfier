@@ -52,13 +52,12 @@ void Map3d::set_building_heightref_floor(std::string h) {
   _building_heightref_floor = h;  
 }
 
-
 void Map3d::set_radius_vertex_elevation(float radius) {
   _radius_vertex_elevation = radius;  
 }
 
 void Map3d::set_threshold_jump_edges(float threshold) {
-  _threshold_jump_edges = threshold;  
+  _threshold_jump_edges = int(threshold * 100);
 }
 
 void Map3d::set_building_include_floor(bool include) {
@@ -460,6 +459,7 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
       printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
     i++;
   }
+  printProgressBar(100);
   std::clog << "done" << std::endl;
   ifs.close();
   return true;
@@ -569,11 +569,11 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       stitch_average(f, ringi, pi, std::get<0>(star[0]), std::get<1>(star[0]), std::get<2>(star[0]));
     }
     else {
-      stitch_jumpedge(f, ringi, pi, std::get<0>(star[0]), std::get<1>(star[0]), std::get<2>(star[0]), _threshold_jump_edges);
+      stitch_jumpedge(f, ringi, pi, std::get<0>(star[0]), std::get<1>(star[0]), std::get<2>(star[0]));
     }
   }
   else
-    std::cout << "[star>2]" << std::endl;
+    std::clog << "[star>2]" << std::endl;
 }
 
 //   float fz = f->get_point_elevation(pos);
@@ -644,12 +644,12 @@ void Map3d::adjust_nc(std::vector<float>& televs, float jumpedge) {
 }
 
 
-void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2, float jumpedge) {
-  float f1z = f1->get_vertex_elevation(ringi1, pi1);
-  float f2z = f2->get_vertex_elevation(ringi2, pi2);
-  float deltaz = std::abs(f1z - f2z);
+void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
+  int f1z = f1->get_vertex_elevation(ringi1, pi1);
+  int f2z = f2->get_vertex_elevation(ringi2, pi2);
+  int deltaz = std::abs(f1z - f2z);
   bool bStitched = false;
-  if (deltaz < jumpedge) {
+  if (deltaz < this->_threshold_jump_edges) {
     if (f1->is_hard() == false) {
       f1->set_vertex_elevation(ringi1, pi1, f2z);
       bStitched = true;
