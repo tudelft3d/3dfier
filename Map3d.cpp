@@ -563,17 +563,17 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
   if (star.size() == 1) {
     //-- if same class, then average. TODO: always, also for water?
     if (f->get_class() == std::get<0>(star[0])->get_class()) {
-      stitch_average(f, pos, std::get<0>(star[0]), std::get<1>(star[0]));
+      stitch_average(f, ringi, pi, std::get<0>(star[0]), std::get<1>(star[0]), std::get<2>(star[0]));
     }
-    else if ( (f->is_hard() == false) && (star[0].first->is_hard() == false) ) {
-      stitch_average(f, pos, star[0].first, star[0].second);
+    else if ( (f->is_hard() == false) && (std::get<0>(star[0])->is_hard() == false) ) {
+      stitch_average(f, ringi, pi, std::get<0>(star[0]), std::get<1>(star[0]), std::get<2>(star[0]));
     }
     else {
-      stitch_jumpedge(f, pos, star[0].first, star[0].second, _threshold_jump_edges);
+      stitch_jumpedge(f, ringi, pi, std::get<0>(star[0]), std::get<1>(star[0]), std::get<2>(star[0]), _threshold_jump_edges);
     }
   }
   else
-    std::cout << "star>2" << std::endl;
+    std::cout << "[star>2]" << std::endl;
 }
 
 //   float fz = f->get_point_elevation(pos);
@@ -629,7 +629,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
 //       }
 //     }
 //   }
-}
+// }
 
 
 // TODO : hard classes shouldn't be adjusted: can make unvertical water eg
@@ -644,24 +644,25 @@ void Map3d::adjust_nc(std::vector<float>& televs, float jumpedge) {
 }
 
 
-void Map3d::stitch_jumpedge(TopoFeature* f1, int f1pos, TopoFeature* f2, int f2pos, float jumpedge) {
-  // float f1z = f1->get_point_elevation(f1pos);
-  // float f2z = f2->get_point_elevation(f2pos);
-  // float deltaz = std::abs(f1z - f2z);
-  // bool fixed = false;
-  // if (deltaz < jumpedge) {
-  //   if (f1->is_hard() == false) {
-  //     f1->set_point_elevation(f1pos, f2z);
-  //     fixed = true;
-  //   }
-  //   else if (f2->is_hard() == false) {
-  //     f2->set_point_elevation(f2pos, f1z);
-  //     fixed = true;
-  //   }
-  // }
-  // //-- then vertical walls must be added: nc to highest
-  // //-- also for hard-hard stitching
-  // if (fixed == false) { 
+void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2, float jumpedge) {
+  float f1z = f1->get_vertex_elevation(ringi1, pi1);
+  float f2z = f2->get_vertex_elevation(ringi2, pi2);
+  float deltaz = std::abs(f1z - f2z);
+  bool bStitched = false;
+  if (deltaz < jumpedge) {
+    if (f1->is_hard() == false) {
+      f1->set_vertex_elevation(ringi1, pi1, f2z);
+      bStitched = true;
+    }
+    else if (f2->is_hard() == false) {
+      f2->set_vertex_elevation(ringi2, pi2, f1z);
+      bStitched = true;
+    }
+  }
+  //-- then vertical walls must be added: nc to highest
+  //-- also for hard-hard stitching
+  // TODO : fix this NC thing
+  // if (bStitched == false) { 
   //   if (f1z > f2z)
   //     f1->add_nc(f1pos, f2z);
   //   else
@@ -670,10 +671,11 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int f1pos, TopoFeature* f2, int f2p
 }
 
 
-void Map3d::stitch_average(TopoFeature* f1, int f1pos, TopoFeature* f2, int f2pos) {
-  // float avgz = (f1->get_point_elevation(f1pos) + f2->get_point_elevation(f2pos) ) / 2; 
-  // f1->set_point_elevation(f1pos, avgz);
-  // f2->set_point_elevation(f2pos, avgz);
+
+void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
+  float avgz = (f1->get_vertex_elevation(ringi1, pi1) + f2->get_vertex_elevation(ringi2, pi2) ) / 2; 
+  f1->set_vertex_elevation(ringi1, pi1, avgz);
+  f2->set_vertex_elevation(ringi2, pi2, avgz);
 }
 
 
