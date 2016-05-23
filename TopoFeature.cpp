@@ -355,7 +355,8 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
   _p2z[ringi][pi] = z;  
 }
 
-
+//-- used to collect all LiDAR points linked to the polygon
+//-- later all these values will be used to lift the polygon (and put values in _p2z)
 bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float radius) {
   Point2 p(x, y);
   int zcm = int(z * 100);
@@ -379,7 +380,7 @@ bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float
 }
 
 
-void TopoFeature::lift_all_boundary_vertices(int height) {
+void TopoFeature::lift_all_boundary_vertices_same_height(int height) {
   int ringi = 0;
   Ring2 oring = bg::exterior_ring(*(_p2));
   for (int i = 0; i < oring.size(); i++) 
@@ -484,7 +485,7 @@ bool Flat::lift_percentile(float percentile) {
     std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
     z = _zvaluesinside[_zvaluesinside.size() * percentile];
   }
-  this->lift_all_boundary_vertices(z);
+  this->lift_all_boundary_vertices_same_height(z);
   _zvaluesinside.clear();
   _zvaluesinside.shrink_to_fit();
   return true;

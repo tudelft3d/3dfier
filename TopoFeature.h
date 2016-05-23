@@ -71,11 +71,14 @@ protected:
   static int                        _count;
   bool                              _toplevel; 
 
+  //-- used to collect all LiDAR points linked to the polygon
   std::vector< std::vector< std::vector<int> > > _lidarelevs;
 
+  //-- will be removed
   Polygon3     _p3;
   std::vector< std::vector<float> > _nc; //-- node columns
   std::vector< std::vector<float> > _velevations;
+  //-- will be removed
 
 
   std::vector<Point3>   _vertices;  //-- output of Triangle
@@ -86,7 +89,7 @@ protected:
   Point2  get_next_point2_in_ring(int ringi, int& pi);
   bool    assign_elevation_to_vertex(double x, double y, double z, float radius);
   void    lift_each_boundary_vertices(float percentile);
-  void    lift_all_boundary_vertices(int height);
+  void    lift_all_boundary_vertices_same_height(int height);
 };
 
 
