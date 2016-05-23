@@ -79,7 +79,8 @@ bool getCDT(const Polygon2* pgn,
   for (int i = 0; i < oring.size(); i++) {
     in.pointlist[counter++]  = bg::get<0>(oring[i]);
     in.pointlist[counter++]  = bg::get<1>(oring[i]);
-    in.pointattributelist[i] = (z[ringi][i] / 100);
+//    std::cout << float(z[ringi][i]) / 100.0 << std::endl;
+    in.pointattributelist[i] = (float(z[ringi][i]) / 100.0);
     // std::cout << std::setprecision(3) << std::fixed << bg::get<0>(oring[i]) << " | " << bg::get<1>(oring[i]) << " | " << bg::get<2>(oring[i]) << std::endl;
   }
   ringi++;
@@ -95,7 +96,7 @@ bool getCDT(const Polygon2* pgn,
       for (int i = 0; i < iring.size(); i++) {
        in.pointlist[counter++] = bg::get<0>(iring[i]);
        in.pointlist[counter++] = bg::get<1>(iring[i]);
-       in.pointattributelist[(counter / 2) - 1] = (z[ringi][i] / 100);
+       in.pointattributelist[(counter / 2) - 1] = (float(z[ringi][i]) / 100.0);
       }
       ringi++;
       Point2 pinside;
