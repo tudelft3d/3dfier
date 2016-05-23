@@ -1,3 +1,51 @@
+
+// unordered_map::insert
+#include <iostream>
+#include <string>
+#include <unordered_map>
+#include <vector>
+#include <string>
+//#include <fstream>
+#include <sstream>
+#include <iomanip>
+//#include <algorithm>
+
+typedef std::unordered_multimap<std::string,int> stringmap;
+
+std::string genkey(double x, double y) {
+    std::stringstream ss;
+//    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v)
+    
+}
+
+int main ()
+{
+    std::unordered_multimap<std::string, int> umm;
+    
+    umm.emplace("111222", 44);
+    umm.emplace("111222", 45);
+    umm.emplace("111", 666);
+    std::cout << umm.count("111222") << std::endl;
+    auto range = umm.equal_range("111222");
+    for_each (
+              range.first,
+              range.second,
+              [](stringmap::value_type& x){std::cout << " " << x.second;}
+              );
+    
+    std::cout << std::endl << "---" << std::endl;
+    if (umm.find("111222") != umm.end())
+        std::cout << "found: " << umm.find("111222")->second << std::endl;
+    
+    std::cout << std::endl << "size: " << umm.size() << std::endl;
+    return 0;
+}
+
+
+
+
+
+
 void TopoFeature::construct_vertical_walls() {
   int i = 0;
   for (auto& curnc : _nc) {
