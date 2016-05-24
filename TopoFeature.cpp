@@ -237,18 +237,41 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       std::clog << "b: " << bnc.size() << std::endl;
 
     //-- sort the node-columns
+      std::cout << "az: " << az << std::endl;
+      std::cout << "bz: " << bz << std::endl;
+      std::cout << "fadj_az: " << fadj_az << std::endl;
+      std::cout << "fadj_bz: " << fadj_bz << std::endl;
       std::sort(anc.begin(), anc.end());
       std::sort(bnc.begin(), bnc.end());
       // std::reverse(curnc.begin(), curnc.end()); //-- heights from top to bottom 
       std::vector<int>::iterator sait, eait, sbit, ebit;
-      sait = std::find(anc.begin(), anc.end(), bz);
+      sait = std::find(anc.begin(), anc.end(), bz);      
       eait = std::find(anc.begin(), anc.end(), az);
-      sbit = std::find(anc.begin(), anc.end(), bz);
-      ebit = std::find(anc.begin(), anc.end(), az);
+      sbit = std::find(bnc.begin(), bnc.end(), bz);
+      ebit = std::find(bnc.begin(), bnc.end(), az);
+      if (sait == anc.end())
+        std::cout << "WRONG ITERATOR sait" << std::endl;
+      else
+        std::cout << *sait << std::endl;
+      if (eait == anc.end())
+        std::cout << "WRONG ITERATOR eait" << std::endl;
+      else
+        std::cout << *eait << std::endl;
+      if (sbit == bnc.end())
+        std::cout << "WRONG ITERATOR sbit" << std::endl;
+      else
+        std::cout << *sbit << std::endl;
+      if (ebit == bnc.end())
+        std::cout << "WRONG ITERATOR ebit" << std::endl;
+      else
+        std::cout << *ebit << std::endl;
 
     //-- iterate to triangulate
       while (sbit != ebit) {
-        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+        if (anc.size() == 0)
+          _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), az));
+        else
+          _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
         _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
         sbit++;
         _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
@@ -259,7 +282,10 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
         _triangles_vw.push_back(t);
       }
       while (sait != eait) {
-        _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
+        if (bnc.size() == 0)
+          _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), bz));
+        else
+          _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
         _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
         sait++;
         _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
