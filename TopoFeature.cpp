@@ -214,10 +214,12 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       int fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
       int fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
 
-      if ( (az <= fadj_az) && (bz <= fadj_bz) ) //-- bowties need to be solved somewhere else
+      if ( (az < fadj_az) || (bz < fadj_bz) ) 
+        continue;
+      if ( (az == fadj_az) && (bz == fadj_bz) ) //-- bowties need to be solved somewhere else
         continue;
 
-      //-- Point a: collect its nc from the global hash (nc)
+    //-- Point a: collect its nc from the global hash (nc)
       anc.clear();
       auto range = nc.equal_range(gen_key_bucket(&a));
       while (range.first != range.second) {
@@ -225,7 +227,7 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
         (range.first)++;
       }
       std::clog << "a: " << anc.size() << std::endl;
-      //-- Point b: collect its nc from the global hash (nc)
+    //-- Point b: collect its nc from the global hash (nc)
       bnc.clear();
       range = nc.equal_range(gen_key_bucket(&b));
       while (range.first != range.second) {
@@ -234,7 +236,7 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       }
       std::clog << "b: " << bnc.size() << std::endl;
 
-      //-- sort the node-columns
+    //-- sort the node-columns
       std::sort(anc.begin(), anc.end());
       std::sort(bnc.begin(), bnc.end());
       // std::reverse(curnc.begin(), curnc.end()); //-- heights from top to bottom 
@@ -244,6 +246,29 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       sbit = std::find(anc.begin(), anc.end(), bz);
       ebit = std::find(anc.begin(), anc.end(), az);
 
+    //-- iterate to triangulate
+      while (sbit != ebit) {
+        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+        _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
+        sbit++;
+        _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
+        Triangle t;
+        t.v0 = int(_vertices_vw.size()) - 3;
+        t.v1 = int(_vertices_vw.size()) - 2;
+        t.v2 = int(_vertices_vw.size()) - 1;
+        _triangles_vw.push_back(t);
+      }
+      while (sait != eait) {
+        _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
+        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+        sait++;
+        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+        Triangle t;
+        t.v0 = int(_vertices_vw.size()) - 3;
+        t.v1 = int(_vertices_vw.size()) - 2;
+        t.v2 = int(_vertices_vw.size()) - 1;
+        _triangles_vw.push_back(t);
+      }
     }
   } 
 }
