@@ -25,6 +25,7 @@
 #define __3dfier__Map3d__
 
 #include "definitions.h"
+#include <unordered_map>
 #include "geomtools.h"
 #include "TopoFeature.h"
 #include "Building.h"
@@ -84,8 +85,9 @@ private:
   double      _minx;
   double      _miny;
 
-  std::vector<TopoFeature*>   _lsFeatures;
-  std::vector<std::string>    _allowed_layers;
+  std::unordered_multimap<std::string, int> _nc;
+  std::vector<TopoFeature*>                 _lsFeatures;
+  std::vector<std::string>                  _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
 
 #if GDAL_VERSION_MAJOR < 2

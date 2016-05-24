@@ -23,6 +23,14 @@
 #include "io.h"
 
 
+std::string gen_key_bucket(Point2* p) {
+  std::stringstream ss;
+  ss << std::setprecision(2) << std::fixed << int(bg::get<0>(p) * 100);
+  ss << std::setprecision(2) << std::fixed << int(bg::get<1>(p) * 100);
+  return ss.str(); 
+}
+
+
 void printProgressBar( int percent ) {
   std::string bar;
   for(int i = 0; i < 50; i++){

@@ -222,7 +222,11 @@ bool Map3d::threeDfy(bool triangulate) {
     std::clog << "=====  /STITCHING =====" << std::endl;
     this->stitch_lifted_features();
     std::clog << "=====  STITCHING/ =====" << std::endl;
-    
+  
+
+    std::clog << "SIZE FEATURES: " << _lsFeatures.size() << std::endl;
+    std::clog << "SIZE NC: " << _nc.size() << std::endl;
+
   //   std::clog << "=====  /BOWTIES =====" << std::endl;
   //   for (auto& p : _lsFeatures) {
   //     if (p->has_vertical_walls() == true) {
@@ -577,39 +581,50 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
 //-- degree of vertex >= 3: more complex cases
   else if (star.size() > 1) {
     //-- collect all elevations
-    std::vector< std::tuple< int, TopoFeature*, int, int > > nc;
-    nc.push_back(std::make_tuple(
+    std::vector< std::tuple< int, TopoFeature*, int, int > > zstar;
+    zstar.push_back(std::make_tuple(
                  f->get_vertex_elevation(ringi, pi),
                  f,
                  ringi,
                  pi));
     for (auto& fadj : star) {
-      nc.push_back(std::make_tuple(
+      zstar.push_back(std::make_tuple(
                    std::get<0>(fadj)->get_vertex_elevation(std::get<1>(fadj), std::get<2>(fadj)),
                    std::get<0>(fadj), 
                    std::get<1>(fadj), 
                    std::get<2>(fadj)));
     }
     //-- sort low-high based on heights (get<0>)
-    std::sort(nc.begin(), nc.end(), 
+    std::sort(zstar.begin(), zstar.end(), 
               [](std::tuple<int, TopoFeature*, int, int> const &t1, std::tuple<int, TopoFeature*, int, int> const &t2) {
               return std::get<0>(t1) < std::get<0>(t2); 
     });
-    std::cout << nc.size() << std::endl;
+    std::cout << zstar.size() << std::endl;
 
     //-- ADJUST THE HEIGHTS IN THE NC
-    for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it = nc.begin() ; it != nc.end(); ++it) {
+    //-- snap bottom-up by using threshold_jumpedge, ignoring Buildings
+    for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it = zstar.begin() ; it != zstar.end(); ++it) {
       std::cout << std::get<0>(*it) << std::endl;
       auto it2 = it + 1;
-      if (it2 == nc.end())
+      if (it2 == zstar.end())
         break;
       if ( (std::get<1>(*it2)->get_class() != BUILDING) && (std::get<0>(*it2) - std::get<0>(*it)) < this->_threshold_jump_edges) 
         std::get<0>(*it2) = std::get<0>(*it);
     }
 
-    for (auto& v : nc)
-      std::get<1>(v)->set_vertex_elevation(std::get<2>(v), std::get<3>(v), std::get<0>(v));
-    // TODO : store somehow the nc in a data structure
+    //-- assign the heights to the polygons incident to the nc
+    for (auto& each : zstar)
+      std::get<1>(each)->set_vertex_elevation(std::get<2>(each), std::get<3>(each), std::get<0>(each));
+    
+    int tmph = -99999;
+    for (auto& each : zstar) {
+      std::get<1>(each)->add_vertical_wall();
+      if (std::get<0>(each) != tmph) {
+        Point2 p = std::get<1>(each)->get_point2(std::get<2>(each), std::get<3>(each));
+        _nc.emplace(gen_key_bucket(&p), std::get<0>(each));
+        tmph = std::get<0>(each);
+      }
+    }
   }
 }
 
@@ -629,14 +644,14 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
     }
   }
   //-- then vertical walls must be added: nc to highest
-  //-- also for hard-hard stitching
   // TODO : fix this NC thing
-  // if (bStitched == false) { 
-  //   if (f1z > f2z)
-  //     f1->add_nc(f1pos, f2z);
-  //   else
-  //     f2->add_nc(f2pos, f1z);
-  // }
+  if (bStitched == false) { 
+    f1->add_vertical_wall();
+    f2->add_vertical_wall();
+    Point2 p = f1->get_point2(ringi1, pi1);
+    _nc.emplace(gen_key_bucket(&p), f1z);
+    _nc.emplace(gen_key_bucket(&p), f2z);
+  }
 }
 
 void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
