@@ -25,7 +25,6 @@
 #define __3dfier__Map3d__
 
 #include "definitions.h"
-#include <unordered_map>
 #include "geomtools.h"
 #include "TopoFeature.h"
 #include "Building.h"

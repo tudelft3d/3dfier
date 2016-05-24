@@ -161,7 +161,47 @@ void TopoFeature::fix_bowtie(std::vector<TopoFeature*> lsAdj) {
 }
 
 
-void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
+void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std::unordered_multimap<std::string, int> nc) {
+  if (this->has_vertical_walls() == false)
+    return;
+  
+  std::vector<Ring2> therings;
+  therings.push_back(bg::exterior_ring(*(_p2)));
+  for (auto& iring: bg::interior_rings(*(_p2))) 
+    therings.push_back(iring);
+
+  std::vector<int> anc, bnc;
+  Point2 a, b;
+  for (auto& ring : therings) {
+    for (int i = 0; i < ring.size(); i++) {
+      anc.clear();
+      a = ring[i];
+      auto range = nc.equal_range(gen_key_bucket(&a));
+      while (range.first != range.second) {
+        anc.push_back(range.first->second);
+        (range.first)++;
+      }
+      std::cout << "a: " << anc.size() << std::endl;
+ 
+      // Point b
+      if (i == (ring.size() - 1)) 
+        b = ring.front();
+      else 
+        b = ring[i + 1];
+      bnc.clear();
+      range = nc.equal_range(gen_key_bucket(&b));
+      while (range.first != range.second) {
+        bnc.push_back(range.first->second);
+        (range.first)++;
+      }
+      std::cout << "b: " << bnc.size() << std::endl;
+    }
+  } 
+}
+
+
+
+// void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
 //   if (this->get_id() == "107729942") {
 //     std::clog << "-- 107729942 --" << std::endl;
 //     // std::clog << "lsAdj: " << lsAdj.size() << std::endl;
@@ -265,7 +305,7 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj) {
 //     }
 //     ai++;
 //   }
-}
+// }
     
 
 bool TopoFeature::has_segment(Point2& a, Point2& b) {

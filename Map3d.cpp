@@ -223,7 +223,6 @@ bool Map3d::threeDfy(bool triangulate) {
     this->stitch_lifted_features();
     std::clog << "=====  STITCHING/ =====" << std::endl;
   
-
     std::clog << "SIZE FEATURES: " << _lsFeatures.size() << std::endl;
     std::clog << "SIZE NC: " << _nc.size() << std::endl;
 
@@ -236,19 +235,15 @@ bool Map3d::threeDfy(bool triangulate) {
   //   }
   //   std::clog << "=====  BOWTIES/ =====" << std::endl;
 
-  //   std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
-  //   for (auto& p : _lsFeatures) {
-  //     if ( (p->get_class() == TERRAIN) ||
-  //          (p->get_class() == ROAD) ||
-  //          (p->get_class() == FOREST) ) 
-  //     {
-  //       if (p->has_vertical_walls() == true) {
-  //         std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
-  //         p->construct_vertical_walls(lsAdj);
-  //       }
-  //     }
-  //   }
-  //   std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
+    std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
+    for (auto& p : _lsFeatures) {
+      if (p->has_vertical_walls() == true) {
+        std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
+        p->construct_vertical_walls(lsAdj, _nc);
+      }
+    }
+    std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
+
     std::clog << "=====  /CDT =====" << std::endl;
     for (auto& p : _lsFeatures) {
       std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;

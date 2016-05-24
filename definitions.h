@@ -9,6 +9,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <unordered_map>
 
 #include <liblas/liblas.hpp>
 #include <ogrsf_frmts.h>
