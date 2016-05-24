@@ -34,12 +34,14 @@ TopoFeature::TopoFeature(char *wkt, std::string pid) {
   _id = pid;
   _counter = _count++;
   _toplevel = true;
+  _bVerticalWalls = false;
   _p2 = new Polygon2();
   bg::read_wkt(wkt, *(_p2));
   
   //-- TO DELETE
   bg::read_wkt(wkt, _p3);
   _nc.resize(bg::num_points(*(_p2)));
+  //-- TO DELETE
   
   _p2z.resize(bg::num_interior_rings(*_p2) + 1);
   _p2z[0].resize(bg::num_points(_p2->outer()));
@@ -309,6 +311,14 @@ bool TopoFeature::has_point2(const Point2& p, int& ringi, int& pi) {
   return false;
 }
 
+Point2 TopoFeature::get_point2(int ringi, int pi) {
+  Ring2 ring;
+  if (ringi == 0) 
+    ring = _p2->outer();
+  else
+    ring = _p2->inners()[ringi - 1];
+  return ring[pi];
+}
 
 Point2 TopoFeature::get_next_point2_in_ring(int ringi, int& pi) {
   Ring2 ring;
@@ -335,11 +345,13 @@ void TopoFeature::add_nc(int i, float z) {
 
 
 bool TopoFeature::has_vertical_walls() {
-  for (auto& curnc : _nc) 
-    if (curnc.size() > 0) 
-      return true;
-  return false;
+  return _bVerticalWalls;
 }
+
+void TopoFeature::add_vertical_wall() {
+  _bVerticalWalls = true;
+}
+
 
 std::vector<float>& TopoFeature::get_nc(int i) {
   return _nc[i];

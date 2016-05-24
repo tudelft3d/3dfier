@@ -52,6 +52,7 @@ public:
   int          get_counter(); 
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
+  Point2       get_point2(int ringi, int pi);
   bool         has_point2(const Point2& p);
   bool         has_point2(const Point2& p, int& ringi, int& pi);
   bool         has_segment(Point2& a, Point2& b);
@@ -60,6 +61,7 @@ public:
   void         set_top_level(bool toplevel);
   void         add_nc(int i, float z);
   bool         has_vertical_walls(); 
+  void         add_vertical_wall(); 
   bool         get_top_level();
   std::vector<float>& get_nc(int i);
 
@@ -69,6 +71,7 @@ protected:
   std::string                       _id;
   int                               _counter;
   static int                        _count;
+  bool                              _bVerticalWalls; 
   bool                              _toplevel; 
 
   //-- used to collect all LiDAR points linked to the polygon
