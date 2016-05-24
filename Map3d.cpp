@@ -486,7 +486,7 @@ void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
   for (auto& each : re) {
     // TopoFeature* fadj = each.second;
     if ( each.second->get_class() == adjclass ) {
-      std::cout << each.second->get_id() << std::endl;
+      std::clog << each.second->get_id() << std::endl;
     }
   }
 }
@@ -594,12 +594,12 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
               [](std::tuple<int, TopoFeature*, int, int> const &t1, std::tuple<int, TopoFeature*, int, int> const &t2) {
               return std::get<0>(t1) < std::get<0>(t2); 
     });
-    std::cout << zstar.size() << std::endl;
+    std::clog << zstar.size() << std::endl;
 
     //-- ADJUST THE HEIGHTS IN THE NC
     //-- snap bottom-up by using threshold_jumpedge, ignoring Buildings
     for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it = zstar.begin() ; it != zstar.end(); ++it) {
-      std::cout << std::get<0>(*it) << std::endl;
+      std::clog << std::get<0>(*it) << std::endl;
       auto it2 = it + 1;
       if (it2 == zstar.end())
         break;
