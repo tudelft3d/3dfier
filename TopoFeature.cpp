@@ -165,36 +165,85 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
   if (this->has_vertical_walls() == false)
     return;
   
+  //-- gather all rings
   std::vector<Ring2> therings;
   therings.push_back(bg::exterior_ring(*(_p2)));
   for (auto& iring: bg::interior_rings(*(_p2))) 
     therings.push_back(iring);
 
+  //-- process each vertex of the polygon separately
   std::vector<int> anc, bnc;
   Point2 a, b;
+  TopoFeature* fadj;
+  int ringi = -1;
   for (auto& ring : therings) {
-    for (int i = 0; i < ring.size(); i++) {
+    ringi++;
+    for (int ai = 0; ai < ring.size(); ai++) {
+      //-- Point a
+      a = ring[ai];
+      //-- find Point b
+      int bi;
+      if (ai == (ring.size() - 1)) {
+        b = ring.front();
+        bi = 0;
+      }
+      else {
+        b = ring[ai + 1];
+        bi = ai + 1;
+      }
+      //-- find the adjacent polygon to segment ab (fadj)
+      fadj = nullptr;
+      for (auto& adj : lsAdj) {
+        // std::clog << adj->get_id() << std::endl;
+        if (adj->has_segment(b, a) == true) {
+          fadj = adj;
+          break;
+        }
+      }
+      if (fadj == nullptr)
+        continue;
+      //-- check height differences: f > fadj for *both* Points a and b
+      int adj_a_ringi;
+      int adj_a_pi;
+      fadj->has_point2(a, adj_a_ringi, adj_a_pi);
+      int adj_b_ringi;
+      int adj_b_pi;
+      fadj->has_point2(b, adj_b_ringi, adj_b_pi);
+      int az = this->get_vertex_elevation(ringi, ai);
+      int bz = this->get_vertex_elevation(ringi, bi);
+      int fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
+      int fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
+
+      if ( (az <= fadj_az) && (bz <= fadj_bz) ) //-- bowties need to be solved somewhere else
+        continue;
+
+      //-- Point a: collect its nc from the global hash (nc)
       anc.clear();
-      a = ring[i];
       auto range = nc.equal_range(gen_key_bucket(&a));
       while (range.first != range.second) {
         anc.push_back(range.first->second);
         (range.first)++;
       }
-      std::cout << "a: " << anc.size() << std::endl;
- 
-      // Point b
-      if (i == (ring.size() - 1)) 
-        b = ring.front();
-      else 
-        b = ring[i + 1];
+      std::clog << "a: " << anc.size() << std::endl;
+      //-- Point b: collect its nc from the global hash (nc)
       bnc.clear();
       range = nc.equal_range(gen_key_bucket(&b));
       while (range.first != range.second) {
         bnc.push_back(range.first->second);
         (range.first)++;
       }
-      std::cout << "b: " << bnc.size() << std::endl;
+      std::clog << "b: " << bnc.size() << std::endl;
+
+      //-- sort the node-columns
+      std::sort(anc.begin(), anc.end());
+      std::sort(bnc.begin(), bnc.end());
+      // std::reverse(curnc.begin(), curnc.end()); //-- heights from top to bottom 
+      std::vector<int>::iterator sait, eait, sbit, ebit;
+      sait = std::find(anc.begin(), anc.end(), bz);
+      eait = std::find(anc.begin(), anc.end(), az);
+      sbit = std::find(anc.begin(), anc.end(), bz);
+      ebit = std::find(anc.begin(), anc.end(), az);
+
     }
   } 
 }
