@@ -1,107 +1,64 @@
-#---
-# File: FindLIBLAS.cmake
+###############################################################################
 #
-# Find the native LIBLAS includes and library
+# CMake module to search for libLAS library
 #
-#  LIBLAS_INCLUDE_DIRS - where to find liblas's includes.
-#  LIBLAS_LIBRARIES    - List of libraries when using liblas.
-#  LIBLAS_FOUND        - True if liblas found.
-#---
+# On success, the macro sets the following variables:
+# LIBLAS_FOUND       = if the library found
+# LIBLAS_LIBRARIES   = full path to the library
+# LIBLAS_INCLUDE_DIR = where to find the library headers also defined,
+#                       but not for general use are
+# LIBLAS_LIBRARY     = where to find the PROJ.4 library.
+# LIBLAS_VERSION     = version of library which was found, e.g. "1.2.5"
+#
+# Copyright (c) 2009 Mateusz Loskot <mateusz@loskot.net>
+#
+# Module source: http://github.com/mloskot/workshop/tree/master/cmake/
+#
+# Redistribution and use is allowed according to the terms of the BSD license.
+# For details see the accompanying COPYING-CMAKE-SCRIPTS file.
+#
+###############################################################################
+MESSAGE(STATUS "Searching for LibLAS ${LibLAS_FIND_VERSION}+ library")
+
+IF(LIBLAS_INCLUDE_DIR)
+  # Already in cache, be silent
+  SET(LIBLAS_FIND_QUIETLY TRUE)
+ENDIF()
+
+IF(WIN32)
+  IF(DEFINED ENV{LIBLAS_ROOT})
+    SET(LIBLAS_ROOT_DIR $ENV{LIBLAS_ROOT})
+    #MESSAGE(STATUS " FindLibLAS: trying LIBLAS using environment variable LIBLAS_ROOT=$ENV{LIBLAS_ROOT}")
+  ELSE()
+    SET(LIBLAS_ROOT_DIR c:/liblas)
+    #MESSAGE(STATUS " FindLibLAS: trying LIBLAS using default location LIBLAS_ROOT=c:/liblas")
+  ENDIF()
+ENDIF()
 
 
-# Set the include dir:
-find_path(LIBLAS_INCLUDE_DIR liblas/liblas.hpp)
+FIND_PATH(LIBLAS_INCLUDE_DIR
+  liblas.hpp
+  PATH_PREFIXES liblas
+  PATHS
+  /usr/include
+  /usr/local/include
+  /tmp/lasjunk/include
+  ${LIBLAS_ROOT_DIR}/include)
 
-# Macro for setting libraries:
-macro(FIND_LIBLAS_LIBRARY MYLIBRARY MYLIBRARYNAME)
+find_library(LIBLAS_LIBRARY
+  NAMES liblas.dylib liblas
+  PATHS
+  /usr/lib
+  /usr/local/lib
+  /tmp/lasjunk/lib
+  ${LIBLAS_ROOT_DIR}/lib
+)
 
-   find_library(
-     "${MYLIBRARY}_DEBUG"
-     NAMES "${MYLIBRARYNAME}${CMAKE_DEBUG_POSTFIX}"
-     PATHS
-     ${LIBLAS_DIR}/lib/Debug
-     ${LIBLAS_DIR}/lib64/Debug
-     ${LIBLAS_DIR}/lib
-     ${LIBLAS_DIR}/lib64
-     $ENV{LIBLAS_DIR}/lib/debug
-     $ENV{LIBLAS_DIR}/lib64/debug
-     NO_DEFAULT_PATH
-   )
 
-   find_library(
-     "${MYLIBRARY}_DEBUG"
-     NAMES "${MYLIBRARYNAME}${CMAKE_DEBUG_POSTFIX}"
-     PATHS
-     ~/Library/Frameworks
-     /Library/Frameworks
-     /usr/local/lib
-     /usr/local/lib64
-     /usr/lib
-     /usr/lib64
-     /sw/lib
-     /opt/local/lib
-     /opt/csw/lib
-     /opt/lib
-     [HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session\ Manager\\Environment;LIBLAS_ROOT]/lib
-     /usr/freeware/lib64
-   )
 
-   find_library(
-     ${MYLIBRARY}
-     NAMES "${MYLIBRARYNAME}${CMAKE_RELEASE_POSTFIX}"
-     PATHS
-     ${LIBLAS_DIR}/lib/Release
-     ${LIBLAS_DIR}/lib64/Release
-     ${LIBLAS_DIR}/lib
-     ${LIBLAS_DIR}/lib64
-     $ENV{LIBLAS_DIR}/lib/Release
-     $ENV{LIBLAS_DIR}/lib64/Release
-     $ENV{LIBLAS_DIR}/lib
-     $ENV{LIBLAS_DIR}/lib64
-     $ENV{LIBLAS_DIR}
-     $ENV{LIBLASDIR}/lib
-     $ENV{LIBLASDIR}/lib64
-     $ENV{LIBLASDIR}
-     $ENV{LIBLAS_ROOT}/lib
-     $ENV{LIBLAS_ROOT}/lib64
-     NO_DEFAULT_PATH
-   )
 
-   find_library(
-     ${MYLIBRARY}
-     NAMES "${MYLIBRARYNAME}${CMAKE_RELEASE_POSTFIX}"
-     PATHS
-     ~/Library/Frameworks
-     /Library/Frameworks
-     /usr/local/lib
-     /usr/local/lib64
-     /usr/lib
-     /usr/lib64
-     /sw/lib
-     /opt/local/lib
-     /opt/csw/lib
-     /opt/lib
-     [HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session\ Manager\\Environment;LIBLAS_ROOT]/lib
-     /usr/freeware/lib64
-   )
 
-   if( NOT ${MYLIBRARY}_DEBUG )
-     if( MYLIBRARY )
-       set( ${MYLIBRARY}_DEBUG ${MYLIBRARY} )
-     endif(MYLIBRARY)
-   endif( NOT ${MYLIBRARY}_DEBUG )
-
-endmacro(FIND_LIBLAS_LIBRARY LIBRARY LIBRARYNAME)
-
-FIND_LIBLAS_LIBRARY(LIBLAS_LIBRARY las)
-FIND_LIBLAS_LIBRARY(LIBLASC_LIBRARY las_c)
-
-set(LIBLAS_FOUND "NO")
-if(LIBLAS_LIBRARY AND LIBLASC_LIBRARY AND LIBLAS_INCLUDE_DIR)
-
-    FIND_PACKAGE(Boost) # used by LIBLAS
-    if(Boost_FOUND)
-        set(LIBLAS_LIBRARIES ${LIBLAS_LIBRARY} ${LIBLASC_LIBRARY} )
-        set(LIBLAS_FOUND "YES")
-    endif()
-endif()
+# Handle the QUIETLY and REQUIRED arguments and set LIBLAS_FOUND to TRUE
+# if all listed variables are TRUE
+#INCLUDE(FindPackageHandleStandardArgs)
+#FIND_PACKAGE_HANDLE_STANDARD_ARGS(libLAS DEFAULT_MSG LIBLAS_LIBRARY LIBLAS_INCLUDE_DIR)

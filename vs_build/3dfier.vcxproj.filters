@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\main.cpp" />
+    <ClCompile Include="..\io.cpp" />
+    <ClCompile Include="..\Map3d.cpp" />
+    <ClCompile Include="..\Building.cpp" />
+    <ClCompile Include="..\Road.cpp" />
+    <ClCompile Include="..\Terrain.cpp" />
+    <ClCompile Include="..\TopoFeature.cpp" />
+    <ClCompile Include="..\Forest.cpp" />
+    <ClCompile Include="..\Water.cpp" />
+    <ClCompile Include="..\geomtools.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{63B2F148-D4DD-3502-976F-2F70D55A7FC6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
