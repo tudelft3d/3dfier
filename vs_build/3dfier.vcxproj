@@ -55,7 +55,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\Libraries\boost_1_60_0;C:\OSGeo4W64\include;..\..\Libraries\yaml-cpp\include;..\..\Libraries\triangle;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\boost_1_60_0;C:\OSGeo4W64\include;..\..\yaml-cpp\include;..\..\CGAL-4.8\include;..\..\CGAL-4.8\build\include;..\..\CGAL-4.8\auxiliary\gmp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -69,13 +69,17 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
+      <FunctionLevelLinking>
+      </FunctionLevelLinking>
+      <FloatingPointModel>Strict</FloatingPointModel>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Libraries\boost_1_60_0;C:\OSGeo4W64\include;..\..\Libraries\yaml-cpp\include;..\..\Libraries\triangle;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\boost_1_60_0;C:\OSGeo4W64\include;..\..\yaml-cpp\include;..\..\triangle;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>..\..\Libraries\boost_1_60_0;C:\OSGeo4W64\include;..\..\Libraries\yaml-cpp\include;..\..\Libraries\triangle;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\boost_1_60_0;C:\OSGeo4W64\include;..\..\yaml-cpp\include;..\..\triangle;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -83,9 +87,9 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalOptions> /machine:x64 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;C:\OSGeo4W64\lib\gdal_i.lib;C:\OSGeo4W64\lib\liblas.lib;C:\OSGeo4W64\lib\laszip.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\Libraries\boost_1_60_0\lib64-msvc-14.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>C:\OSGeo4W64\lib\gdal_i.lib;C:\OSGeo4W64\lib\liblas.lib;C:\OSGeo4W64\lib\laszip.lib;..\..\CGAL-4.8\build\lib\libCGAL_Core-vc140-mt-gd-4.8.lib;..\..\CGAL-4.8\build\lib\libCGAL-vc140-mt-gd-4.8.lib;..\..\CGAL-4.8\auxiliary\gmp\lib\libgmp-10.lib;..\..\CGAL-4.8\auxiliary\gmp\lib\libmpfr-4.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\boost_1_60_0\lib64-msvc-14.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImportLibrary>
@@ -101,7 +105,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\Libraries\boost_1_60_0;C:\OSGeo4W64\include;..\..\Libraries\yaml-cpp\include;..\..\Libraries\triangle;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\boost_1_60_0;C:\OSGeo4W64\include;..\..\yaml-cpp\include;..\..\CGAL-4.8\include;..\..\CGAL-4.8\build\include;..\..\CGAL-4.8\auxiliary\gmp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <CompileAs>Default</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -121,10 +125,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Libraries\boost_1_60_0;C:\OSGeo4W64\include;..\..\Libraries\yaml-cpp\include;..\..\Libraries\triangle;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\boost_1_60_0;C:\OSGeo4W64\include;..\..\yaml-cpp\include;..\..\triangle;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>..\..\Libraries\boost_1_60_0;C:\OSGeo4W64\include;..\..\Libraries\yaml-cpp\include;..\..\Libraries\triangle;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\boost_1_60_0;C:\OSGeo4W64\include;..\..\yaml-cpp\include;..\..\triangle;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -133,8 +137,8 @@
     </Midl>
     <Link>
       <AdditionalOptions> /machine:x64 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;C:\OSGeo4W64\lib\gdal_i.lib;C:\OSGeo4W64\lib\liblas.lib;C:\OSGeo4W64\lib\laszip.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\Libraries\boost_1_60_0\lib64-msvc-14.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>C:\OSGeo4W64\lib\gdal_i.lib;C:\OSGeo4W64\lib\liblas.lib;C:\OSGeo4W64\lib\laszip.lib;..\..\CGAL-4.8\build\lib\libCGAL_Core-vc140-mt-4.8.lib;..\..\CGAL-4.8\build\lib\libCGAL-vc140-mt-4.8.lib;..\..\CGAL-4.8\auxiliary\gmp\lib\libgmp-10.lib;..\..\CGAL-4.8\auxiliary\gmp\lib\libmpfr-4.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\boost_1_60_0\lib64-msvc-14.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>No</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImportLibrary>
@@ -162,10 +166,7 @@
     <ClCompile Include="..\..\3dfier\geomtools.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Libraries\triangle\vs_build\Triangle.vcxproj">
-      <Project>{3541c635-1dc0-408d-81dc-e01600cb4b13}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Libraries\yaml-cpp\vs_build\yaml-cpp.vcxproj">
+    <ProjectReference Include="..\..\yaml-cpp\vs_build\yaml-cpp.vcxproj">
       <Project>{bedbc2de-23c7-3769-90b4-97589a504b92}</Project>
     </ProjectReference>
   </ItemGroup>
