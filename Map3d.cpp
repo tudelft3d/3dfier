@@ -502,6 +502,7 @@ void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
 
 
 void Map3d::stitch_lifted_features() {
+  std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
     std::vector<PairIndexed> re;
     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
@@ -514,8 +515,8 @@ void Map3d::stitch_lifted_features() {
         lstouching.push_back(fadj);
       }
     }
-    if (f->get_id() == "111114973")
-      std::clog << "107480794" << std::endl;
+    // if (f->get_id() == "111114973")
+    //   std::clog << "107480794" << std::endl;
 //-- 2. build the node-column for each vertex
     // oring
     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); 
@@ -524,11 +525,12 @@ void Map3d::stitch_lifted_features() {
       std::vector< std::tuple<TopoFeature*, int, int> > star;  
       bool toprocess = true;
       for (auto& fadj : lstouching) {
-        //-- TODO: more than one point can be touching, if iring touch oring!!!
-        int ringi, pi; 
-        if (fadj->has_point2(oring[i], ringi, pi) == true) {
+        ringis.clear();
+        pis.clear();
+        if (fadj->has_point2_(oring[i], ringis, pis) == true) {
           if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
-            star.push_back(std::make_tuple(fadj, ringi, pi));
+            for (int k = 0; k < ringis.size(); k++)
+              star.push_back(std::make_tuple(fadj, ringis[k], pis[k]));
           }
           else {
             toprocess = false;
@@ -549,11 +551,12 @@ void Map3d::stitch_lifted_features() {
         std::vector< std::tuple<TopoFeature*, int, int> > star;  
         bool toprocess = true;
         for (auto& fadj : lstouching) {
-          //-- TODO: more than one point can be touching!
-          int ringi, pi; 
-          if (fadj->has_point2(iring[i], ringi, pi) == true) {
+          ringis.clear();
+          pis.clear();
+          if (fadj->has_point2_(iring[i], ringis, pis) == true) {
             if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
-              star.push_back(std::make_tuple(fadj, ringi, pi));
+              for (int k = 0; k < ringis.size(); k++)
+                star.push_back(std::make_tuple(fadj, ringis[k], pis[k]));   
             }
             else {
               toprocess = false;
@@ -563,7 +566,6 @@ void Map3d::stitch_lifted_features() {
         }
         if (toprocess == true) {
           this->stitch_one_vertex(f, noiring, i, star);
-          // this->build_nodecolumns(f, (i + offset), star);
         }
       }
     }

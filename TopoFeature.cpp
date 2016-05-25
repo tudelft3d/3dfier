@@ -206,16 +206,18 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       if (fadj == nullptr)
         continue;
       //-- check height differences: f > fadj for *both* Points a and b
-      int adj_a_ringi;
-      int adj_a_pi;
-      fadj->has_point2(a, adj_a_ringi, adj_a_pi);
-      int adj_b_ringi;
-      int adj_b_pi;
-      fadj->has_point2(b, adj_b_ringi, adj_b_pi);
-      int az = this->get_vertex_elevation(ringi, ai);
-      int bz = this->get_vertex_elevation(ringi, bi);
-      int fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
-      int fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
+      // int adj_a_ringi;
+      // int adj_a_pi;
+      // fadj->has_point2(a, adj_a_ringi, adj_a_pi);
+      // int adj_b_ringi;
+      // int adj_b_pi;
+      // fadj->has_point2(b, adj_b_ringi, adj_b_pi);
+      // int az = this->get_vertex_elevation(ringi, ai);
+      // int bz = this->get_vertex_elevation(ringi, bi);
+      int az = this->get_vertex_elevation(a);
+      int bz = this->get_vertex_elevation(b);
+      int fadj_az = fadj->get_vertex_elevation(a);
+      int fadj_bz = fadj->get_vertex_elevation(b);
 
       if ( (az < fadj_az) || (bz < fadj_bz) ) 
         continue;
@@ -305,10 +307,10 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
 
 bool TopoFeature::has_segment(Point2& a, Point2& b) {
   double threshold = 0.001;
-  int ringi, pi;
-  if (this->has_point2(a, ringi, pi) == true) {
+  std::vector<int> ringis, pis;
+  if (this->has_point2_(a, ringis, pis) == true) {
     Point2 tmp;
-    tmp = this->get_next_point2_in_ring(ringi, pi);
+    tmp = this->get_next_point2_in_ring(ringis[0], pis[0]);
     if (bg::distance(b, tmp) <= threshold)
       return true;
   }
@@ -317,19 +319,22 @@ bool TopoFeature::has_segment(Point2& a, Point2& b) {
 
 
 bool TopoFeature::has_point2(const Point2& p) {
-  int a, b;
-  return has_point2(p, a, b);
+  std::vector<int> a, b;
+  return has_point2_(p, a, b);
 }
 
 
-bool TopoFeature::has_point2(const Point2& p, int& ringi, int& pi) {
+bool TopoFeature::has_point2_(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis) {
   double threshold = 0.001;
   Ring2 oring = bg::exterior_ring(*_p2);
-  ringi = 0;
+  int ringi = 0;
+  bool re = false;
   for (int i = 0; i < oring.size(); i++) {
     if (bg::distance(p, oring[i]) <= threshold) {
-      pi = i;
-      return true;
+      ringis.push_back(ringi);
+      pis.push_back(i);
+      re = true;
+      break;
     }
   }
   ringi++;
@@ -337,13 +342,15 @@ bool TopoFeature::has_point2(const Point2& p, int& ringi, int& pi) {
   for (Ring2& iring: irings) {
     for (int i = 0; i < iring.size(); i++) {
       if (bg::distance(p, iring[i]) <= threshold) {
-        pi = i;
-        return true;
+        ringis.push_back(ringi);
+        pis.push_back(i);
+        re = true;
+        break;
       }
     }
     ringi++;
   }
-  return false;
+  return re;
 }
 
 Point2 TopoFeature::get_point2(int ringi, int pi) {
@@ -395,6 +402,12 @@ std::vector<float>& TopoFeature::get_nc(int i) {
 
 int TopoFeature::get_vertex_elevation(int ringi, int pi) {
   return _p2z[ringi][pi];
+}
+
+int TopoFeature::get_vertex_elevation(Point2& p) {
+  std::vector<int> ringis, pis;
+  has_point2_(p, ringis, pis);
+  return _p2z[ringis[0]][pis[0]];
 }
 
 
