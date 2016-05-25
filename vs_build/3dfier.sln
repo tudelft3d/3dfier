@@ -4,9 +4,7 @@ VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "3dfier", "3dfier.vcxproj", "{1B42089A-84AD-3A0E-B9AA-67E4F75795D6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "triangle", "..\..\Libraries\triangle\vs_build\Triangle.vcxproj", "{3541C635-1DC0-408D-81DC-E01600CB4B13}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yaml-cpp static mt", "..\..\Libraries\yaml-cpp\vs_build\yaml-cpp.vcxproj", "{BEDBC2DE-23C7-3769-90B4-97589A504B92}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yaml-cpp", "..\..\yaml-cpp\vs_build\yaml-cpp.vcxproj", "{BEDBC2DE-23C7-3769-90B4-97589A504B92}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,14 +20,6 @@ Global
 		{1B42089A-84AD-3A0E-B9AA-67E4F75795D6}.Release|x64.ActiveCfg = Release|x64
 		{1B42089A-84AD-3A0E-B9AA-67E4F75795D6}.Release|x64.Build.0 = Release|x64
 		{1B42089A-84AD-3A0E-B9AA-67E4F75795D6}.Release|x86.ActiveCfg = Release|x64
-		{3541C635-1DC0-408D-81DC-E01600CB4B13}.Debug|x64.ActiveCfg = Debug|x64
-		{3541C635-1DC0-408D-81DC-E01600CB4B13}.Debug|x64.Build.0 = Debug|x64
-		{3541C635-1DC0-408D-81DC-E01600CB4B13}.Debug|x86.ActiveCfg = Debug|Win32
-		{3541C635-1DC0-408D-81DC-E01600CB4B13}.Debug|x86.Build.0 = Debug|Win32
-		{3541C635-1DC0-408D-81DC-E01600CB4B13}.Release|x64.ActiveCfg = Release|x64
-		{3541C635-1DC0-408D-81DC-E01600CB4B13}.Release|x64.Build.0 = Release|x64
-		{3541C635-1DC0-408D-81DC-E01600CB4B13}.Release|x86.ActiveCfg = Release|Win32
-		{3541C635-1DC0-408D-81DC-E01600CB4B13}.Release|x86.Build.0 = Release|Win32
 		{BEDBC2DE-23C7-3769-90B4-97589A504B92}.Debug|x64.ActiveCfg = Debug|x64
 		{BEDBC2DE-23C7-3769-90B4-97589A504B92}.Debug|x64.Build.0 = Debug|x64
 		{BEDBC2DE-23C7-3769-90B4-97589A504B92}.Debug|x86.ActiveCfg = Debug|x64
