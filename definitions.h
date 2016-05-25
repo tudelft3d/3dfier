@@ -1,7 +1,6 @@
 #ifndef __3DFIER__Definitions__
 #define __3DFIER__Definitions__
 
-
 #include <iostream>
 #include <iomanip>
 #include <cmath>
@@ -31,13 +30,13 @@ typedef bg::model::point<double, 3, bg::cs::cartesian> Point3;
 typedef bg::model::polygon<Point3, true, false> Polygon3;
 typedef bg::model::ring<Point3, true, false> Ring3; //-- cw, first!=last
 
-
 //-- for Shewchuk's Triangle
 typedef struct Segment
 {
   int v0;
   int v1;
 } Segment;
+
 typedef struct Triangle
 {
   int v0;
@@ -52,8 +51,7 @@ typedef enum
    BRIDGE               = 2,
    ROAD                 = 3,
    TERRAIN              = 4,
-   FOREST               = 5,
+   FOREST               = 5
 } TopoClass;
-
 
 #endif
