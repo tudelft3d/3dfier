@@ -235,8 +235,17 @@ bool Map3d::threeDfy(bool triangulate) {
   //   }
   //   std::clog << "=====  BOWTIES/ =====" << std::endl;
 
+  auto range = _nc.equal_range("849029744696257");
+  while (range.first != range.second) {
+    std::cout << range.first->second << std::endl;
+    // bnc.push_back(range.first->second);
+    (range.first)++;
+  }
+
     std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
     for (auto& p : _lsFeatures) {
+      if (p->get_id() == "107480794")
+        std::clog << "yo" << std::endl;
       if (p->has_vertical_walls() == true) {
         std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
         p->construct_vertical_walls(lsAdj, _nc);
@@ -505,12 +514,13 @@ void Map3d::stitch_lifted_features() {
         lstouching.push_back(fadj);
       }
     }
-    if (f->get_id() == "107729942")
-      std::clog << "yo" << std::endl;
+    if (f->get_id() == "111114973")
+      std::clog << "107480794" << std::endl;
 //-- 2. build the node-column for each vertex
     // oring
     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); 
     for (int i = 0; i < oring.size(); i++) {
+      std::cout << std::setprecision(3) << std::fixed << bg::get<0>(oring[i]) << " : " << bg::get<1>(oring[i]) << std::endl;
       std::vector< std::tuple<TopoFeature*, int, int> > star;  
       bool toprocess = true;
       for (auto& fadj : lstouching) {
