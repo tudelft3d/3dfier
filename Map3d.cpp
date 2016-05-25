@@ -246,7 +246,7 @@ bool Map3d::threeDfy(bool triangulate) {
 
     std::clog << "=====  /CDT =====" << std::endl;
     for (auto& p : _lsFeatures) {
-      std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
+      // std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
       if (p->get_id() == "107734797")
         p->buildCDT();
       else
@@ -514,7 +514,7 @@ void Map3d::stitch_lifted_features() {
       std::vector< std::tuple<TopoFeature*, int, int> > star;  
       bool toprocess = true;
       for (auto& fadj : lstouching) {
-        //-- TODO: more than one point can be touching!
+        //-- TODO: more than one point can be touching, if iring touch oring!!!
         int ringi, pi; 
         if (fadj->has_point2(oring[i], ringi, pi) == true) {
           if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
@@ -539,6 +539,7 @@ void Map3d::stitch_lifted_features() {
         std::vector< std::tuple<TopoFeature*, int, int> > star;  
         bool toprocess = true;
         for (auto& fadj : lstouching) {
+          //-- TODO: more than one point can be touching!
           int ringi, pi; 
           if (fadj->has_point2(iring[i], ringi, pi) == true) {
             if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
@@ -639,7 +640,6 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
     }
   }
   //-- then vertical walls must be added: nc to highest
-  // TODO : fix this NC thing
   if (bStitched == false) { 
     f1->add_vertical_wall();
     f2->add_vertical_wall();
