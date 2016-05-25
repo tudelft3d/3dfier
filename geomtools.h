@@ -26,16 +26,6 @@
 #include "definitions.h"
 #include <random>
 
-//-- stuff for Shewchuk's Triangle
-#define ANSI_DECLARATORS
-#define VOID void
-#define REAL double
-
-extern "C" {
-  #include "triangle.h"
-}
-
-
 void get_point_inside(Ring2& ring, Point2& p);
 bool triangle_contains_segment(Triangle t, int a, int b);
 bool getCDT(const Polygon2* pgn,
