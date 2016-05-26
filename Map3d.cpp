@@ -522,7 +522,7 @@ void Map3d::stitch_lifted_features() {
     // oring
     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); 
     for (int i = 0; i < oring.size(); i++) {
-      std::cout << std::setprecision(3) << std::fixed << bg::get<0>(oring[i]) << " : " << bg::get<1>(oring[i]) << std::endl;
+      // std::cout << std::setprecision(3) << std::fixed << bg::get<0>(oring[i]) << " : " << bg::get<1>(oring[i]) << std::endl;
       std::vector< std::tuple<TopoFeature*, int, int> > star;  
       bool toprocess = true;
       for (auto& fadj : lstouching) {
@@ -573,6 +573,7 @@ void Map3d::stitch_lifted_features() {
   }
 }
 
+
 void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star) {
 //-- degree of vertex == 2
   if (star.size() == 1) {
@@ -608,7 +609,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
               [](std::tuple<int, TopoFeature*, int, int> const &t1, std::tuple<int, TopoFeature*, int, int> const &t2) {
               return std::get<0>(t1) < std::get<0>(t2); 
     });
-    std::clog << zstar.size() << std::endl;
+    // std::clog << zstar.size() << std::endl;
 
     //-- ADJUST THE HEIGHTS IN THE NC
     //-- snap bottom-up by using threshold_jumpedge, ignoring Buildings
@@ -620,6 +621,16 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       if ( (std::get<1>(*it2)->get_class() != BUILDING) && (std::get<0>(*it2) - std::get<0>(*it)) < this->_threshold_jump_edges) 
         std::get<0>(*it2) = std::get<0>(*it);
     }
+
+    //-- check if diff vertices from same class have diff heights
+    std::vector<int> lowestperclass(6, -9999);
+    for (auto& each : zstar) 
+      if (lowestperclass[std::get<1>(each)->get_class()] == -9999)
+        lowestperclass[std::get<1>(each)->get_class()] = std::get<0>(each);
+    for (auto& each : zstar) 
+      if (std::get<1>(each)->get_class() != BUILDING)
+        std::get<0>(each) = lowestperclass[std::get<1>(each)->get_class()];
+
 
     //-- assign the heights to the polygons incident to the nc
     for (auto& each : zstar)
