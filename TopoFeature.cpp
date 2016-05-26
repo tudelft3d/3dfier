@@ -196,9 +196,14 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       }
       //-- find the adjacent polygon to segment ab (fadj)
       fadj = nullptr;
+      int adj_a_ringi = 0;
+      int adj_a_pi = 0;
+      int adj_b_ringi = 0;
+      int adj_b_pi = 0;
       for (auto& adj : lsAdj) {
         // std::clog << adj->get_id() << std::endl;
-        if (adj->has_segment(b, a) == true) {
+        if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi) == true) {
+        // if (adj->has_segment(b, a) == true) {
           fadj = adj;
           break;
         }
@@ -206,18 +211,14 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       if (fadj == nullptr)
         continue;
       //-- check height differences: f > fadj for *both* Points a and b
-      // int adj_a_ringi;
-      // int adj_a_pi;
       // fadj->has_point2(a, adj_a_ringi, adj_a_pi);
-      // int adj_b_ringi;
-      // int adj_b_pi;
       // fadj->has_point2(b, adj_b_ringi, adj_b_pi);
-      // int az = this->get_vertex_elevation(ringi, ai);
-      // int bz = this->get_vertex_elevation(ringi, bi);
-      int az = this->get_vertex_elevation(a);
-      int bz = this->get_vertex_elevation(b);
-      int fadj_az = fadj->get_vertex_elevation(a);
-      int fadj_bz = fadj->get_vertex_elevation(b);
+      // int fadj_az = fadj->get_vertex_elevation(a);
+      // int fadj_bz = fadj->get_vertex_elevation(b);
+      int az = this->get_vertex_elevation(ringi, ai);
+      int bz = this->get_vertex_elevation(ringi, bi);
+      int fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
+      int fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
 
       if ( (az < fadj_az) || (bz < fadj_bz) ) 
         continue;
@@ -302,6 +303,29 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       }
     }
   } 
+}
+
+
+bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& bringi, int& bpi) {
+  double threshold = 0.001;
+  std::vector<int> ringis, pis;
+  Point2 tmp;
+  int nextpi;
+  if (this->has_point2_(a, ringis, pis) == true) {
+    for (int k = 0; k < ringis.size(); k++) {
+      nextpi = pis[k];
+      tmp = this->get_next_point2_in_ring(ringis[k], nextpi);
+      if (bg::distance(b, tmp) <= threshold) {
+        aringi = ringis[k];
+        api = pis[k];
+        bringi = ringis[k];
+        bpi = nextpi;
+        return true;
+      }
+    }
+
+  }
+  return false;
 }
 
 
@@ -416,7 +440,7 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
 }
 
 //-- used to collect all LiDAR points linked to the polygon
-//-- later all these values will be used to lift the polygon (and put values in _p2z)
+//-- later all these values are used to lift the polygon (and put values in _p2z)
 bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float radius) {
   Point2 p(x, y);
   int zcm = int(z * 100);
