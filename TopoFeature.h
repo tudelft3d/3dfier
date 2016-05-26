@@ -54,9 +54,11 @@ public:
   Box2         get_bbox2d();
   Point2       get_point2(int ringi, int pi);
   bool         has_point2(const Point2& p);
-  bool         has_point2(const Point2& p, int& ringi, int& pi);
+  bool         has_point2_(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis);
   bool         has_segment(Point2& a, Point2& b);
+  bool         has_segment(Point2& a, Point2& b, int& aringi, int& api, int& bringi, int& bpi);
   int          get_vertex_elevation(int ringi, int pi);
+  int          get_vertex_elevation(Point2& p);
   void         set_vertex_elevation(int ringi, int pi, int z);  
   void         set_top_level(bool toplevel);
   void         add_nc(int i, float z);
