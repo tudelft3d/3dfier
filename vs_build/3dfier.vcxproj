@@ -170,6 +170,18 @@
       <Project>{bedbc2de-23c7-3769-90b4-97589a504b92}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Building.h" />
+    <ClInclude Include="..\definitions.h" />
+    <ClInclude Include="..\Forest.h" />
+    <ClInclude Include="..\geomtools.h" />
+    <ClInclude Include="..\io.h" />
+    <ClInclude Include="..\Map3d.h" />
+    <ClInclude Include="..\Road.h" />
+    <ClInclude Include="..\Terrain.h" />
+    <ClInclude Include="..\TopoFeature.h" />
+    <ClInclude Include="..\Water.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

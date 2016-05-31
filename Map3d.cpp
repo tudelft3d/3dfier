@@ -277,7 +277,7 @@ bool Map3d::construct_rtree() {
 }
 
 
-bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers) {
+bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::string heightfield, std::vector< std::pair<std::string, std::string> > &layers) {
   std::clog << "Reading input dataset: " << ifile << std::endl;
 
 #if GDAL_VERSION_MAJOR < 2
@@ -294,7 +294,7 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::vecto
     std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
     return false;
   }
-  bool wentgood = this->extract_and_add_polygon(dataSource, idfield, layers);
+  bool wentgood = this->extract_and_add_polygon(dataSource, idfield, heightfield, layers);
   #if GDAL_VERSION_MAJOR < 2
     OGRDataSource::DestroyDataSource(dataSource);
   #else
@@ -304,7 +304,7 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::vecto
 }
 
 
-bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::string lifting) {
+bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::string heightfield, std::string lifting) {
   std::clog << "Reading input dataset: " << ifile << std::endl;
 
 #if GDAL_VERSION_MAJOR < 2
@@ -325,10 +325,11 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
   int numberOfLayers = dataSource->GetLayerCount();
   for (int currentLayer = 0; currentLayer < numberOfLayers; currentLayer++) {
     OGRLayer *dataLayer = dataSource->GetLayer(currentLayer);
-    std::pair<std::string, std::string> p(dataLayer->GetName(), lifting);
+    std::string name = dataLayer->GetName();
+    std::pair<std::string, std::string> p(name, lifting);
     layers.push_back(p);
   }
-  bool wentgood = this->extract_and_add_polygon(dataSource, idfield, layers);
+  bool wentgood = this->extract_and_add_polygon(dataSource, idfield, heightfield, layers);
   //-- find minx/miny of all datasets
   // TODO : also find minx/miny for the method above with GML
   OGREnvelope bbox;
@@ -353,9 +354,9 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
 
 
 #if GDAL_VERSION_MAJOR < 2
-  bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers)
+  bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::string heightfield, std::vector< std::pair<std::string, std::string> > &layers)
 #else
-  bool Map3d::extract_and_add_polygon(GDALDataset *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers) 
+  bool Map3d::extract_and_add_polygon(GDALDataset *dataSource, std::string idfield, std::string heightfield, std::vector< std::pair<std::string, std::string> > &layers)
 #endif
 {
   bool wentgood = true;
@@ -374,8 +375,9 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
     std::clog << "\tLayer: " << dataLayer->GetName() << std::endl;
     std::clog << "\t(" << numberOfPolygons << " features --> " << l.second << ")" << std::endl;
     OGRFeature *f;
+    
     while ((f = dataLayer->GetNextFeature()) != NULL) {
-      if ( (f->GetFieldIndex("hoogtenive") != -1) && (f->GetFieldAsInteger("hoogtenive") < 0) )
+      if ( (f->GetFieldIndex(heightfield.c_str()) != -1) && (f->GetFieldAsInteger(heightfield.c_str()) < 0) )
           continue;
       switch(f->GetGeometryRef()->getGeometryType()) {
         case wkbPolygon:
@@ -409,7 +411,7 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
             _lsFeatures.push_back(p3);
           }          
           //-- flag all polygons at (niveau < 0) for top10nl
-          if ( (f->GetFieldIndex("hoogtenive") != -1) && (f->GetFieldAsInteger("hoogtenive") < 0) ) {
+          if ( (f->GetFieldIndex(heightfield.c_str()) != -1) && (f->GetFieldAsInteger(heightfield.c_str()) < 0) ) {
             // std::clog << "niveau=-1: " << f->GetFieldAsString(idfield.c_str()) << std::endl;
             (_lsFeatures.back())->set_top_level(false);
           }

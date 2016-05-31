@@ -41,8 +41,8 @@ public:
   Map3d  ();
   ~Map3d ();
 
-  bool add_polygons_file(std::string ifile, std::string idfield, std::vector<std::pair<std::string, std::string> > &layers);
-  bool add_polygons_file(std::string ifile, std::string idfield, std::string lifttype);
+  bool add_polygons_file(std::string ifile, std::string idfield, std::string heightfield, std::vector< std::pair<std::string, std::string> > &layers);
+  bool add_polygons_file(std::string ifile, std::string idfield, std::string heightfield, std::string lifting);
 
   bool add_las_file(std::string ifile, std::vector<int> lasomits, int skip = 0);
 
@@ -90,9 +90,9 @@ private:
   bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
 
 #if GDAL_VERSION_MAJOR < 2
-  bool extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers);
+  bool extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::string heightfield, std::vector< std::pair<std::string, std::string> > &layers);
 #else
-  bool extract_and_add_polygon(GDALDataset *dataSource, std::string idfield, std::vector< std::pair<std::string, std::string> > &layers);
+  bool extract_and_add_polygon(GDALDataset *dataSource, std::string idfield, std::string heightfield, std::vector< std::pair<std::string, std::string> > &layers);
 #endif
 
   void stitch_one_feature(TopoFeature* f, TopoClass adjclass);

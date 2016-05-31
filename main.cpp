@@ -95,6 +95,10 @@ int main(int argc, const char * argv[]) {
   n = nodes["input_polygons"];
   bool wentgood = true;
   for (auto it = n.begin(); it != n.end(); ++it) {
+    std::string heightfield = "hoogtenive";
+    if ((*it)["height_field"]) {
+      heightfield = (*it)["height_field"].as<std::string>();
+    }
     if ((*it)["lifting_per_layer"]) {
       YAML::Node tmp = (*it)["lifting_per_layer"];
       std::vector<std::pair<std::string, std::string> > layers;
@@ -106,6 +110,7 @@ int main(int argc, const char * argv[]) {
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
         wentgood = map3d.add_polygons_file(it2->as<std::string>(),
                                            (*it)["uniqueid"].as<std::string>(),
+                                           heightfield,
                                            layers);
       }
     }
@@ -114,6 +119,7 @@ int main(int argc, const char * argv[]) {
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
         wentgood = map3d.add_polygons_file(it2->as<std::string>(),
                                            (*it)["uniqueid"].as<std::string>(),
+                                           heightfield,
                                            (*it)["lifting"].as<std::string>());
       }
     }
