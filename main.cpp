@@ -130,38 +130,6 @@ int main(int argc, const char * argv[]) {
 
   wentgood = map3d.add_polygons_files(files);
 
-  //n = nodes["input_polygons"];
-  //bool wentgood = true;
-  //for (auto it = n.begin(); it != n.end(); ++it) {
-  //  std::string heightfield = "hoogtenive";
-  //  if ((*it)["height_field"]) {
-  //    heightfield = (*it)["height_field"].as<std::string>();
-  //  }
-  //  if ((*it)["lifting_per_layer"]) {
-  //    YAML::Node tmp = (*it)["lifting_per_layer"];
-  //    std::vector<std::pair<std::string, std::string> > layers;
-  //    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-  //      std::pair<std::string, std::string> onepair( (it2->first).as<std::string>(), (it2->second).as<std::string>() );
-  //      layers.push_back(onepair);
-  //    }
-  //    tmp = (*it)["datasets"];
-  //    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-  //      wentgood = map3d.add_polygons_file(it2->as<std::string>(),
-  //                                         (*it)["uniqueid"].as<std::string>(),
-  //                                         heightfield,
-  //                                         layers);
-  //    }
-  //  }
-  //  else if ((*it)["lifting"]) {
-  //    YAML::Node tmp = (*it)["datasets"];
-  //    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-  //      wentgood = map3d.add_polygons_file(it2->as<std::string>(),
-  //                                         (*it)["uniqueid"].as<std::string>(),
-  //                                         heightfield,
-  //                                         (*it)["lifting"].as<std::string>());
-  //    }
-  //  }
-  //}
   if (wentgood == false) {
     std::cerr << "ERROR: Something went bad while reading input polygons. Aborting." << std::endl;
     return 0;
