@@ -277,97 +277,76 @@ bool Map3d::construct_rtree() {
 }
 
 
-bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::string heightfield, std::vector< std::pair<std::string, std::string> > &layers) {
-  std::clog << "Reading input dataset: " << ifile << std::endl;
-
+bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
 #if GDAL_VERSION_MAJOR < 2
-  if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0) 
-    OGRRegisterAll(); 
-  OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
+  if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0)
+    OGRRegisterAll();
 #else
-  if (GDALGetDriverCount() == 0) 
+  if (GDALGetDriverCount() == 0)
     GDALAllRegister();
-  GDALDataset *dataSource = (GDALDataset*) GDALOpenEx(ifile.c_str(), GDAL_OF_READONLY, NULL, NULL, NULL);
+#endif
+  for (auto file = files.begin(); file != files.end(); ++file) {
+    std::clog << "Reading input dataset: " << file->filename << std::endl;
+#if GDAL_VERSION_MAJOR < 2
+    OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(file->filename.c_str(), false);
+#else
+    GDALDataset *dataSource = (GDALDataset*)GDALOpenEx(file->filename.c_str(), GDAL_OF_READONLY, NULL, NULL, NULL);
 #endif
 
-  if (dataSource == NULL) {
-    std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
-    return false;
-  }
-  bool wentgood = this->extract_and_add_polygon(dataSource, idfield, heightfield, layers);
-  #if GDAL_VERSION_MAJOR < 2
-    OGRDataSource::DestroyDataSource(dataSource);
-  #else
-    GDALClose(dataSource);
-  #endif
-  return wentgood;
-}
-
-
-bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::string heightfield, std::string lifting) {
-  std::clog << "Reading input dataset: " << ifile << std::endl;
-
-#if GDAL_VERSION_MAJOR < 2
-  if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0) 
-    OGRRegisterAll(); 
-  OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(ifile.c_str(), false);
-#else
-  if (GDALGetDriverCount() == 0) 
-    GDALAllRegister();
-  GDALDataset *dataSource = (GDALDataset*) GDALOpenEx(ifile.c_str(), GDAL_OF_READONLY, NULL, NULL, NULL);
-#endif
-
-  if (dataSource == NULL) {
-    std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
-    return false;
-  }
-  std::vector< std::pair<std::string, std::string> > layers;
-  int numberOfLayers = dataSource->GetLayerCount();
-  for (int currentLayer = 0; currentLayer < numberOfLayers; currentLayer++) {
-    OGRLayer *dataLayer = dataSource->GetLayer(currentLayer);
-    std::string name = dataLayer->GetName();
-    std::pair<std::string, std::string> p(name, lifting);
-    layers.push_back(p);
-  }
-  bool wentgood = this->extract_and_add_polygon(dataSource, idfield, heightfield, layers);
-  //-- find minx/miny of all datasets
-  // TODO : also find minx/miny for the method above with GML
-  OGREnvelope bbox;
-  for (auto l : layers) {
-    OGRLayer *dataLayer = dataSource->GetLayerByName((l.first).c_str());
-    if (dataLayer == NULL) {
-      continue;
+    if (dataSource == NULL) {
+      std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
+      return false;
     }
-    dataLayer->GetExtent(&bbox);
-    if (bbox.MinX < _minx)
-      _minx = bbox.MinX;
-    if (bbox.MinY < _miny)
-      _miny = bbox.MinY;
-  }
+
+    // if the file doesn't have layers specified, add all
+    if (file->layers[0].first.empty())
+    {
+      std::string lifting = file->layers[0].second;
+      file->layers.clear();
+      int numberOfLayers = dataSource->GetLayerCount();
+      for (int i = 0; i < numberOfLayers; i++) {
+        OGRLayer *dataLayer = dataSource->GetLayer(i);
+        file->layers.emplace_back(dataLayer->GetName(), lifting);
+      }
+    }
+
+    bool wentgood = this->extract_and_add_polygon(dataSource, &(*file));
 #if GDAL_VERSION_MAJOR < 2
-  OGRDataSource::DestroyDataSource(dataSource);
+    OGRDataSource::DestroyDataSource(dataSource);
 #else
-  GDALClose(dataSource);
+    GDALClose(dataSource);
 #endif
-  return wentgood;
+
+    if (wentgood == false) {
+      std::cerr << "ERROR: Something went bad while reading input polygons. Aborting." << std::endl;
+      return 0;
+    }
+  
+  }
+  return true;
 }
 
 
 #if GDAL_VERSION_MAJOR < 2
-  bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, std::string idfield, std::string heightfield, std::vector< std::pair<std::string, std::string> > &layers)
+  bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, PolygonFile *file)
 #else
-  bool Map3d::extract_and_add_polygon(GDALDataset *dataSource, std::string idfield, std::string heightfield, std::vector< std::pair<std::string, std::string> > &layers)
+  bool Map3d::extract_and_add_polygon(GDALDataset *dataSource, PolygonFile *file)
 #endif
 {
-  bool wentgood = true;
-  for (auto l : layers) {
+  const char *idfield = file->idfield.c_str();
+  const char *heightfield = file->heightfield.c_str();
+  bool wentgood = false;
+  for (auto l : file->layers) {
     OGRLayer *dataLayer = dataSource->GetLayerByName((l.first).c_str());
     if (dataLayer == NULL) {
       continue;
     }
-    if (dataLayer->FindFieldIndex(idfield.c_str(), false) == -1) {
+    if (dataLayer->FindFieldIndex(idfield, false) == -1) {
       std::cerr << "ERROR: field '" << idfield << "' not found." << std::endl;
-      wentgood = false;
+      continue;
+    }
+    if (dataLayer->FindFieldIndex(heightfield, false) == -1) {
+      std::cerr << "ERROR: field '" << heightfield << "' not found." << std::endl;
       continue;
     }
     dataLayer->ResetReading();
@@ -377,7 +356,7 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
     OGRFeature *f;
     
     while ((f = dataLayer->GetNextFeature()) != NULL) {
-      if ( (f->GetFieldIndex(heightfield.c_str()) != -1) && (f->GetFieldAsInteger(heightfield.c_str()) < 0) )
+      if ( (f->GetFieldIndex(heightfield) != -1) && (f->GetFieldAsInteger(heightfield) < 0) )
           continue;
       switch(f->GetGeometryRef()->getGeometryType()) {
         case wkbPolygon:
@@ -391,27 +370,27 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
           f->GetGeometryRef()->exportToWkt(&wkt);
           bg::unique(*p2); //-- remove duplicate vertices
           if (l.second == "Building") {
-            Building* p3 = new Building(wkt, f->GetFieldAsString(idfield.c_str()), _building_heightref_roof, _building_heightref_floor);
+            Building* p3 = new Building(wkt, f->GetFieldAsString(idfield), _building_heightref_roof, _building_heightref_floor);
             _lsFeatures.push_back(p3);
           }
           else if (l.second == "Terrain") {
-            Terrain* p3 = new Terrain(wkt, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
+            Terrain* p3 = new Terrain(wkt, f->GetFieldAsString(idfield), this->_terrain_simplification);
             _lsFeatures.push_back(p3);
           }
           else if (l.second == "Forest") {
-            Forest* p3 = new Forest(wkt, f->GetFieldAsString(idfield.c_str()), this->_terrain_simplification);
+            Forest* p3 = new Forest(wkt, f->GetFieldAsString(idfield), this->_terrain_simplification);
             _lsFeatures.push_back(p3);
           }
           else if (l.second == "Water") {
-            Water* p3 = new Water(wkt, f->GetFieldAsString(idfield.c_str()), this->_water_heightref);
+            Water* p3 = new Water(wkt, f->GetFieldAsString(idfield), this->_water_heightref);
             _lsFeatures.push_back(p3);
           }
           else if (l.second == "Road") {
-            Road* p3 = new Road(wkt, f->GetFieldAsString(idfield.c_str()), this->_road_heightref);
+            Road* p3 = new Road(wkt, f->GetFieldAsString(idfield), this->_road_heightref);
             _lsFeatures.push_back(p3);
           }          
           //-- flag all polygons at (niveau < 0) for top10nl
-          if ( (f->GetFieldIndex(heightfield.c_str()) != -1) && (f->GetFieldAsInteger(heightfield.c_str()) < 0) ) {
+          if ( (f->GetFieldIndex(heightfield) != -1) && (f->GetFieldAsInteger(heightfield) < 0) ) {
             // std::clog << "niveau=-1: " << f->GetFieldAsString(idfield.c_str()) << std::endl;
             (_lsFeatures.back())->set_top_level(false);
           }
@@ -422,6 +401,7 @@ bool Map3d::add_polygons_file(std::string ifile, std::string idfield, std::strin
         }
       }
     }
+    wentgood = true;
   }
   return wentgood;
 }
@@ -513,6 +493,14 @@ void Map3d::stitch_lifted_features() {
     std::vector<TopoFeature*> lstouching;
     for (auto& each : re) {
       TopoFeature* fadj = each.second;
+      if (bg::intersects(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
+      {
+        std::clog << f->get_id() << " intersects " << fadj->get_id() << std::endl;
+      }
+      if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
+      {
+        std::clog << f->get_id() << " touches " << fadj->get_id() << std::endl;
+      }
       if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
         // std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
         lstouching.push_back(fadj);

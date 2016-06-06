@@ -91,39 +91,77 @@ int main(int argc, const char * argv[]) {
     if (n["Road"]["height"])
       map3d.set_road_heightref(n["Road"]["height"].as<std::string>());
 
-//-- add the polygons to the map3d
+  //-- add the polygons to the map3d
+  std::vector<PolygonFile> files;
   n = nodes["input_polygons"];
-  bool wentgood = true;
+  bool wentgood = false;
   for (auto it = n.begin(); it != n.end(); ++it) {
+    // Get the correct uniqueid attribute
+    std::string uniqueid = "fid";
+    if ((*it)["uniqueid"]) {
+      uniqueid = (*it)["uniqueid"].as<std::string>();
+    }
+    // Get the correct height attribute
     std::string heightfield = "hoogtenive";
     if ((*it)["height_field"]) {
       heightfield = (*it)["height_field"].as<std::string>();
     }
-    if ((*it)["lifting_per_layer"]) {
-      YAML::Node tmp = (*it)["lifting_per_layer"];
-      std::vector<std::pair<std::string, std::string> > layers;
-      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-        std::pair<std::string, std::string> onepair( (it2->first).as<std::string>(), (it2->second).as<std::string>() );
-        layers.push_back(onepair);
+
+    // Get all datasets
+    YAML::Node datasets = (*it)["datasets"];
+    for (auto it2 = datasets.begin(); it2 != datasets.end(); ++it2) {
+      PolygonFile file;
+      file.filename = it2->as<std::string>();
+      file.idfield = uniqueid;
+      file.heightfield = heightfield;
+      if ((*it)["lifting"]) {
+        file.layers.emplace_back(std::string(), (*it)["lifting"].as<std::string>());
+        files.push_back(file);
       }
-      tmp = (*it)["datasets"];
-      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-        wentgood = map3d.add_polygons_file(it2->as<std::string>(),
-                                           (*it)["uniqueid"].as<std::string>(),
-                                           heightfield,
-                                           layers);
-      }
-    }
-    else if ((*it)["lifting"]) {
-      YAML::Node tmp = (*it)["datasets"];
-      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-        wentgood = map3d.add_polygons_file(it2->as<std::string>(),
-                                           (*it)["uniqueid"].as<std::string>(),
-                                           heightfield,
-                                           (*it)["lifting"].as<std::string>());
+      else if ((*it)["lifting_per_layer"]) {
+        YAML::Node layers = (*it)["lifting_per_layer"];
+        for (auto it3 = layers.begin(); it3 != layers.end(); ++it3) {
+          file.layers.emplace_back(it3->first.as<std::string>(), it3->second.as<std::string>());
+        }
+      files.push_back(file);
       }
     }
   }
+
+  wentgood = map3d.add_polygons_files(files);
+
+  //n = nodes["input_polygons"];
+  //bool wentgood = true;
+  //for (auto it = n.begin(); it != n.end(); ++it) {
+  //  std::string heightfield = "hoogtenive";
+  //  if ((*it)["height_field"]) {
+  //    heightfield = (*it)["height_field"].as<std::string>();
+  //  }
+  //  if ((*it)["lifting_per_layer"]) {
+  //    YAML::Node tmp = (*it)["lifting_per_layer"];
+  //    std::vector<std::pair<std::string, std::string> > layers;
+  //    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+  //      std::pair<std::string, std::string> onepair( (it2->first).as<std::string>(), (it2->second).as<std::string>() );
+  //      layers.push_back(onepair);
+  //    }
+  //    tmp = (*it)["datasets"];
+  //    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+  //      wentgood = map3d.add_polygons_file(it2->as<std::string>(),
+  //                                         (*it)["uniqueid"].as<std::string>(),
+  //                                         heightfield,
+  //                                         layers);
+  //    }
+  //  }
+  //  else if ((*it)["lifting"]) {
+  //    YAML::Node tmp = (*it)["datasets"];
+  //    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+  //      wentgood = map3d.add_polygons_file(it2->as<std::string>(),
+  //                                         (*it)["uniqueid"].as<std::string>(),
+  //                                         heightfield,
+  //                                         (*it)["lifting"].as<std::string>());
+  //    }
+  //  }
+  //}
   if (wentgood == false) {
     std::cerr << "ERROR: Something went bad while reading input polygons. Aborting." << std::endl;
     return 0;
