@@ -319,9 +319,8 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
 
     if (wentgood == false) {
       std::cerr << "ERROR: Something went bad while reading input polygons. Aborting." << std::endl;
-      return 0;
+      return false;
     }
-  
   }
   return true;
 }
@@ -342,11 +341,11 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
       continue;
     }
     if (dataLayer->FindFieldIndex(idfield, false) == -1) {
-      std::cerr << "ERROR: field '" << idfield << "' not found." << std::endl;
+      std::cerr << "ERROR: field '" << idfield << "' not found in layer '" << l.first << "'." << std::endl;
       continue;
     }
     if (dataLayer->FindFieldIndex(heightfield, false) == -1) {
-      std::cerr << "ERROR: field '" << heightfield << "' not found." << std::endl;
+      std::cerr << "ERROR: field '" << heightfield << "' not found in layer " << l.first << "'." << std::endl;
       continue;
     }
     dataLayer->ResetReading();
@@ -493,14 +492,6 @@ void Map3d::stitch_lifted_features() {
     std::vector<TopoFeature*> lstouching;
     for (auto& each : re) {
       TopoFeature* fadj = each.second;
-      if (bg::intersects(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
-      {
-        std::clog << f->get_id() << " intersects " << fadj->get_id() << std::endl;
-      }
-      if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
-      {
-        std::clog << f->get_id() << " touches " << fadj->get_id() << std::endl;
-      }
       if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
         // std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
         lstouching.push_back(fadj);

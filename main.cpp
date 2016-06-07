@@ -18,7 +18,7 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
- */
+*/
 
 
 //-- TODO: create the topo DS locally? to prevent cases where nodes on only in one polygon. Or pprepair before?
@@ -123,18 +123,12 @@ int main(int argc, const char * argv[]) {
         for (auto it3 = layers.begin(); it3 != layers.end(); ++it3) {
           file.layers.emplace_back(it3->first.as<std::string>(), it3->second.as<std::string>());
         }
-      files.push_back(file);
+        files.push_back(file);
       }
     }
   }
 
-  wentgood = map3d.add_polygons_files(files);
-
-  if (wentgood == false) {
-    std::cerr << "ERROR: Something went bad while reading input polygons. Aborting." << std::endl;
-    return 0;
-  }
-
+  map3d.add_polygons_files(files);
   std::clog << "\nTotal # of polygons: " << map3d.get_num_polygons() << std::endl;
   
   //-- spatially index the polygons
