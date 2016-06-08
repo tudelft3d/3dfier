@@ -69,8 +69,8 @@ int main(int argc, const char * argv[]) {
   if (n["Building"]) {
     if (n["Building"]["height_roof"])
       map3d.set_building_heightref_roof(n["Building"]["height_roof"].as<std::string>());
-    if (n["Building"]["height_ground"])
-      map3d.set_building_heightref_floor(n["Building"]["height_ground"].as<std::string>());
+    if (n["Building"]["height_floor"])
+      map3d.set_building_heightref_floor(n["Building"]["height_floor"].as<std::string>());
     if (n["Building"]["triangulate"]) {
       if (n["Building"]["triangulate"].as<std::string>() == "true") 
         map3d.set_building_triangulate(true);

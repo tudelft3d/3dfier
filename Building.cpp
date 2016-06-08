@@ -45,7 +45,8 @@ bool Building::lift() {
   for (int i = 0; i < oring.size(); i++) {
     std::vector<int> &l = _lidarelevs[ringi][i];
     std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
-    tmp.push_back(l[l.size() * percentile]);
+    if (l.empty() == false)
+      tmp.push_back(l[l.size() * percentile]);
   }
   ringi++;
   auto irings = bg::interior_rings(*(_p2));
@@ -53,7 +54,8 @@ bool Building::lift() {
     for (int i = 0; i < iring.size(); i++) {
       std::vector<int> &l = _lidarelevs[ringi][i];
       std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
-      tmp.push_back(l[l.size() * percentile]);
+      if (l.empty() == false)
+        tmp.push_back(l[l.size() * percentile]);
     }
     ringi++;
   }

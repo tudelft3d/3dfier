@@ -212,6 +212,7 @@ bool Map3d::threeDfy(bool triangulate) {
   std::clog << "===== /LIFTING =====" << std::endl;
   for (auto& p : _lsFeatures) {
     if (p->get_top_level() == true) {
+      std::clog << p->get_id() << std::endl;
       p->lift();
     }
     else
@@ -224,8 +225,8 @@ bool Map3d::threeDfy(bool triangulate) {
     this->stitch_lifted_features();
     std::clog << "=====  STITCHING/ =====" << std::endl;
   
-    std::clog << "SIZE FEATURES: " << _lsFeatures.size() << std::endl;
-    std::clog << "SIZE NC: " << _nc.size() << std::endl;
+    // std::clog << "SIZE FEATURES: " << _lsFeatures.size() << std::endl;
+    // std::clog << "SIZE NC: " << _nc.size() << std::endl;
 
   //   std::clog << "=====  /BOWTIES =====" << std::endl;
   //   for (auto& p : _lsFeatures) {
@@ -243,16 +244,16 @@ bool Map3d::threeDfy(bool triangulate) {
     (range.first)++;
   }
 
-    std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
-    for (auto& p : _lsFeatures) {
-      if (p->get_id() == "107757032")
-        std::clog << "yo" << std::endl;
-      if (p->has_vertical_walls() == true) {
-        std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
-        p->construct_vertical_walls(lsAdj, _nc);
-      }
-    }
-    std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
+    // std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
+    // for (auto& p : _lsFeatures) {
+    //   if (p->get_id() == "107757032")
+    //     std::clog << "yo" << std::endl;
+    //   if (p->has_vertical_walls() == true) {
+    //     std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
+    //     p->construct_vertical_walls(lsAdj, _nc);
+    //   }
+    // }
+    // std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
 
     std::clog << "=====  /CDT =====" << std::endl;
     for (auto& p : _lsFeatures) {
@@ -493,21 +494,22 @@ void Map3d::stitch_lifted_features() {
     std::vector<TopoFeature*> lstouching;
     for (auto& each : re) {
       TopoFeature* fadj = each.second;
-      if (bg::intersects(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
-      {
-        std::clog << f->get_id() << " intersects " << fadj->get_id() << std::endl;
-      }
-      if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
-      {
-        std::clog << f->get_id() << " touches " << fadj->get_id() << std::endl;
-      }
+      // if (bg::intersects(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
+      // {
+      //   std::clog << f->get_id() << " intersects " << fadj->get_id() << std::endl;
+      // }
+      // if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
+      // {
+      //   std::clog << f->get_id() << " touches " << fadj->get_id() << std::endl;
+      // }
       if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
         // std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
         lstouching.push_back(fadj);
       }
     }
-    // if (f->get_id() == "111114973")
-    //   std::clog << "107480794" << std::endl;
+    if (f->get_id() == "102574812")
+      std::clog << "break-point" << std::endl;
+    
 //-- 2. build the node-column for each vertex
     // oring
     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2())); 
@@ -612,24 +614,23 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
         std::get<0>(*it2) = std::get<0>(*it);
     }
 
-    //-- check if diff vertices from same class have diff heights
-    std::vector<int> lowestperclass(6, -9999);
+    //-- check if diff vertices from same class have diff heights, ignoring Buildings
+    std::vector<int> lowestperclass(6, 99999);
     for (auto& each : zstar) 
-      if (lowestperclass[std::get<1>(each)->get_class()] == -9999)
+      if (std::get<0>(each) < lowestperclass[std::get<1>(each)->get_class()])
         lowestperclass[std::get<1>(each)->get_class()] = std::get<0>(each);
+    //-- and assign the lowest to each (per class)
     for (auto& each : zstar) 
       if (std::get<1>(each)->get_class() != BUILDING)
         std::get<0>(each) = lowestperclass[std::get<1>(each)->get_class()];
-
-
-    //-- assign the heights to the polygons incident to the nc
+    //-- assign the adjusted heights 
     for (auto& each : zstar)
       std::get<1>(each)->set_vertex_elevation(std::get<2>(each), std::get<3>(each), std::get<0>(each));
-    
+    //-- add the vertical walls & build the nc    
     int tmph = -99999;
     for (auto& each : zstar) {
       std::get<1>(each)->add_vertical_wall();
-      if (std::get<0>(each) != tmph) {
+      if (std::get<0>(each) != tmph) { //-- not to repeat the same height
         Point2 p = std::get<1>(each)->get_point2(std::get<2>(each), std::get<3>(each));
         _nc.emplace(gen_key_bucket(&p), std::get<0>(each));
         tmph = std::get<0>(each);
@@ -639,27 +640,56 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
 }
 
 void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
-  int f1z = f1->get_vertex_elevation(ringi1, pi1);
-  int f2z = f2->get_vertex_elevation(ringi2, pi2);
-  int deltaz = std::abs(f1z - f2z);
-  bool bStitched = false;
-  if (deltaz < this->_threshold_jump_edges) {
-    if (f1->is_hard() == false) {
-      f1->set_vertex_elevation(ringi1, pi1, f2z);
-      bStitched = true;
+//-- Buildings involved
+  if ( (f1->get_class() == BUILDING) || (f2->get_class() == BUILDING) ) {
+    if ( (f1->get_class() == BUILDING) && (f2->get_class() == BUILDING) ) {
+      f1->add_vertical_wall();
+      f2->add_vertical_wall();
+      Point2 p = f1->get_point2(ringi1, pi1);
+      _nc.emplace(gen_key_bucket(&p), f1->get_vertex_elevation(ringi1, pi1));
+      _nc.emplace(gen_key_bucket(&p), f2->get_vertex_elevation(ringi2, pi2));
     }
-    else if (f2->is_hard() == false) {
-      f2->set_vertex_elevation(ringi2, pi2, f1z);
-      bStitched = true;
+    else if (f1->get_class() == BUILDING) {
+      f2->set_vertex_elevation(ringi2, pi2, dynamic_cast<Building*>(f1)->get_height_base());
+      f1->add_vertical_wall();
+      f2->add_vertical_wall();
+      Point2 p = f1->get_point2(ringi1, pi1);
+      _nc.emplace(gen_key_bucket(&p), f1->get_vertex_elevation(ringi1, pi1));
+      _nc.emplace(gen_key_bucket(&p), dynamic_cast<Building*>(f1)->get_height_base());
+    }
+    else { //-- f2 is Building
+      f1->set_vertex_elevation(ringi1, pi1, dynamic_cast<Building*>(f2)->get_height_base());
+      f1->add_vertical_wall();
+      f2->add_vertical_wall();
+      Point2 p = f1->get_point2(ringi1, pi1);
+      _nc.emplace(gen_key_bucket(&p), f2->get_vertex_elevation(ringi2, pi2));
+      _nc.emplace(gen_key_bucket(&p), dynamic_cast<Building*>(f2)->get_height_base());
     }
   }
-  //-- then vertical walls must be added: nc to highest
-  if (bStitched == false) { 
-    f1->add_vertical_wall();
-    f2->add_vertical_wall();
-    Point2 p = f1->get_point2(ringi1, pi1);
-    _nc.emplace(gen_key_bucket(&p), f1z);
-    _nc.emplace(gen_key_bucket(&p), f2z);
+//-- no Buildings involved
+  else {
+    bool bStitched = false;
+    int f1z = f1->get_vertex_elevation(ringi1, pi1);
+    int f2z = f2->get_vertex_elevation(ringi2, pi2);
+    int deltaz = std::abs(f1z - f2z);
+    if (deltaz < this->_threshold_jump_edges) {
+      if (f1->is_hard() == false) {
+        f1->set_vertex_elevation(ringi1, pi1, f2z);
+        bStitched = true;
+      }
+      else if (f2->is_hard() == false) {
+        f2->set_vertex_elevation(ringi2, pi2, f1z);
+        bStitched = true;
+      }
+    }
+    //-- then vertical walls must be added: nc to highest
+    if (bStitched == false) { 
+      f1->add_vertical_wall();
+      f2->add_vertical_wall();
+      Point2 p = f1->get_point2(ringi1, pi1);
+      _nc.emplace(gen_key_bucket(&p), f1z);
+      _nc.emplace(gen_key_bucket(&p), f2z);
+    }
   }
 }
 
