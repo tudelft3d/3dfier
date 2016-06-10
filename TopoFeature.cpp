@@ -782,23 +782,25 @@ int TIN::get_number_vertices() {
 
 
 bool TIN::add_elevation_point(double x, double y, double z, float radius, bool lastreturn) {
-  Point2 p(x, y);
-  //-- 1. add points to surface if inside
-  if ( (bg::within(p, *(_p2)) == true) && (this->get_distance_to_boundaries(p) > 4.0) ) {
-    if (_simplification == 0)
-      _lidarpts.push_back(Point3(x, y, z));
-    else {
-      std::random_device rd;
-      std::mt19937 gen(rd());
-      std::uniform_int_distribution<int> dis(1, _simplification);
-      if (dis(gen) == 1)
-        _lidarpts.push_back(Point3(x, y, z));
-    }
+  bool toadd = false;
+  float distance = 4.0;
+  if (_simplification == 0)
+    toadd = true;
+  else {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(1, _simplification);
+    if (dis(gen) == 1)
+      toadd = true;
   }
-  //-- 2. add to the vertices of the pgn to find their heights
+  if (toadd == true) {
+    Point2 p(x, y);
+    if ( (bg::within(p, *(_p2)) == true) && (this->get_distance_to_boundaries(p) > (radius * 1.5)) ) 
+      _lidarpts.push_back(Point3(x, y, z));
+  }
   if (lastreturn == true)
     assign_elevation_to_vertex(x, y, z, radius);
-  return true;
+  return toadd;
 }
 
 
