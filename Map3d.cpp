@@ -620,9 +620,25 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       if (std::get<0>(each) < lowestperclass[std::get<1>(each)->get_class()])
         lowestperclass[std::get<1>(each)->get_class()] = std::get<0>(each);
     //-- and assign the lowest to each (per class)
-    for (auto& each : zstar) 
+    int hasbuildings = -1;
+    int i = 0;
+    for (auto& each : zstar) {
       if (std::get<1>(each)->get_class() != BUILDING)
         std::get<0>(each) = lowestperclass[std::get<1>(each)->get_class()];
+      else 
+        hasbuildings = i;
+      i++;
+    }
+
+    //-- deal with buildings. If there's a building and a soft class incident, then this soft class
+    //-- get allocated the height value of the floor of the building. Any building will do if >1.
+    if (hasbuildings != -1) {
+      for (auto& each : zstar) {
+        if ( (std::get<1>(each)->get_class() != BUILDING) && (std::get<1>(each)->is_hard() == false) )
+          std::get<0>(each) = dynamic_cast<Building*>(std::get<1>(zstar[hasbuildings]))->get_height_base();
+      }
+    }
+
     //-- assign the adjusted heights 
     for (auto& each : zstar)
       std::get<1>(each)->set_vertex_elevation(std::get<2>(each), std::get<3>(each), std::get<0>(each));
