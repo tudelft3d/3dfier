@@ -237,23 +237,23 @@ bool Map3d::threeDfy(bool triangulate) {
   //   }
   //   std::clog << "=====  BOWTIES/ =====" << std::endl;
 
-  auto range = _nc.equal_range("849029744696257");
-  while (range.first != range.second) {
-    std::cout << range.first->second << std::endl;
-    // bnc.push_back(range.first->second);
-    (range.first)++;
-  }
+  // auto range = _nc.equal_range("849029744696257");
+  // while (range.first != range.second) {
+  //   std::cout << range.first->second << std::endl;
+  //   // bnc.push_back(range.first->second);
+  //   (range.first)++;
+  // }
 
-    // std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
-    // for (auto& p : _lsFeatures) {
-    //   if (p->get_id() == "107757032")
-    //     std::clog << "yo" << std::endl;
-    //   if (p->has_vertical_walls() == true) {
-    //     std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
-    //     p->construct_vertical_walls(lsAdj, _nc);
-    //   }
-    // }
-    // std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
+    std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
+    for (auto& p : _lsFeatures) {
+      if (p->get_id() == "107757032")
+        std::clog << "yo" << std::endl;
+      if (p->has_vertical_walls() == true) {
+        std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
+        p->construct_vertical_walls(lsAdj, _nc);
+      }
+    }
+    std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
 
     std::clog << "=====  /CDT =====" << std::endl;
     for (auto& p : _lsFeatures) {
@@ -638,6 +638,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     }
   }
 }
+
 
 void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
 //-- Buildings involved

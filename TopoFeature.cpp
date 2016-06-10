@@ -329,6 +329,39 @@ bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& 
 }
 
 
+float TopoFeature::get_distance_to_boundaries(Point2& p) {
+  //-- collect the rings of the polygon
+  std::vector<Ring2> therings;
+  therings.push_back(bg::exterior_ring(*(_p2)));
+  for (auto& iring: bg::interior_rings(*(_p2)))
+      therings.push_back(iring);
+  //-- process each vertex of the polygon separately
+  Point2 a, b;
+  Segment2 s;
+  int ringi = -1;
+  double dmin = 99999;
+  for (auto& ring : therings) {
+    ringi++;
+    for (int ai = 0; ai < ring.size(); ai++) {
+      a = ring[ai];
+      if (ai == (ring.size() - 1))
+          b = ring.front();
+      else
+          b = ring[ai + 1];
+      //-- calculate distance
+      bg::set<0, 0>(s, bg::get<0>(a));
+      bg::set<0, 1>(s, bg::get<1>(a));
+      bg::set<1, 0>(s, bg::get<0>(b));
+      bg::set<1, 1>(s, bg::get<1>(b));
+      float d = boost::geometry::distance(p, s);
+      if (d < dmin)
+          dmin = d;
+    }
+  }
+  return dmin;
+}
+
+
 bool TopoFeature::has_segment(Point2& a, Point2& b) {
   double threshold = 0.001;
   std::vector<int> ringis, pis;
@@ -751,7 +784,7 @@ int TIN::get_number_vertices() {
 bool TIN::add_elevation_point(double x, double y, double z, float radius, bool lastreturn) {
   Point2 p(x, y);
   //-- 1. add points to surface if inside
-  if (bg::within(p, *(_p2)) == true) {
+  if ( (bg::within(p, *(_p2)) == true) && (this->get_distance_to_boundaries(p) > 4.0) ) {
     if (_simplification == 0)
       _lidarpts.push_back(Point3(x, y, z));
     else {
@@ -767,6 +800,7 @@ bool TIN::add_elevation_point(double x, double y, double z, float radius, bool l
     assign_elevation_to_vertex(x, y, z, radius);
   return true;
 }
+
 
 
 

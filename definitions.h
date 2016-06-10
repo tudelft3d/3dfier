@@ -23,6 +23,7 @@
 namespace bg  = boost::geometry;
 namespace bgi = boost::geometry::index;
 typedef bg::model::d2::point_xy<double> Point2;
+typedef bg::model::segment<Point2> Segment2;
 typedef bg::model::linestring<Point2> Linestring2; 
 typedef bg::model::polygon<Point2, true, false> Polygon2; //-- cw, first!=last
 typedef bg::model::ring<Point2, true, false> Ring2; //-- cw, first!=last
