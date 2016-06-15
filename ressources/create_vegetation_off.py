@@ -58,9 +58,17 @@ def main():
         print "done"
 
     #-- 4. take each laz.txt and merge and OFF file
-    fOut = open(args[1])
+    print "READING TXT FILES AND CREATING OFF FILE"
+    # fOut = open(args[1], 'w')
+    # fOut.write(COFF)
+
+    thepts = []
     for i in range(len(lasfiles)):
-        print "---", TMPFOLDER, i
+        # print "---", TMPFOLDER, i
+        f = open(TMPFOLDER + str(i) + ".txt")
+        for l in f:
+            thepts.append(l + " 48 206 77 100")
+    print len(thepts)    
 
 
 
