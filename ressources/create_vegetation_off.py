@@ -3,6 +3,7 @@ from optparse import OptionParser
 import yaml
 import sys
 import subprocess
+import random
 
 
 TMPFOLDER = "/Users/hugo/temp/0000/"
@@ -23,6 +24,7 @@ def main():
 
     #-- 2. convert them to txt and thin them by 10 with las2txt
     for i,each in enumerate(lasfiles):
+        print "="*10
         cmd = LAS2LAS
         cmd += " -keep_every_nth 10"
         cmd += " -keep_class 1"
@@ -58,18 +60,26 @@ def main():
         print "done"
 
     #-- 4. take each laz.txt and merge and OFF file
+    print "="*10
     print "READING TXT FILES AND CREATING OFF FILE"
-    # fOut = open(args[1], 'w')
-    # fOut.write(COFF)
-
     thepts = []
     for i in range(len(lasfiles)):
         # print "---", TMPFOLDER, i
         f = open(TMPFOLDER + str(i) + ".txt")
+        random.randint(38, 58)
         for l in f:
-            thepts.append(l + " 48 206 77 100")
+            thepts.append(l[:-2] + " " 
+                          + str(random.randint(28, 60)) + " "
+                          + str(random.randint(176, 230)) + " "
+                          + str(random.randint(57, 100)) + " 100")
     print len(thepts)    
-
+    fOut = open(args[1], 'w')
+    fOut.write("COFF\n")
+    fOut.write("%d 0 0\n" % len(thepts))
+    for each in thepts:
+        fOut.write(each + "\n")
+    fOut.close()
+    print "-->finished"
 
 
 
