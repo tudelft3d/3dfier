@@ -34,6 +34,10 @@ bool Forest::lift() {
 }
 
 
+bool Forest::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+return true;
+}
+
 TopoClass Forest::get_class() {
   return FOREST;
 }

@@ -49,12 +49,24 @@ typedef struct PolygonFile
 
 typedef enum
 {
-   BUILDING             = 0,
-   WATER                = 1,
-   BRIDGE               = 2,
-   ROAD                 = 3,
-   TERRAIN              = 4,
-   FOREST               = 5
+   BUILDING   = 0,
+   WATER      = 1,
+   BRIDGE     = 2,
+   ROAD       = 3,
+   TERRAIN    = 4,
+   FOREST     = 5
 } TopoClass;
+
+
+typedef enum
+{
+  LAS_UNKNOWN      =  0,
+  LAS_UNCLASSIFIED =  1,
+  LAS_GROUND       =  2,
+  LAS_BUILDING     =  6,
+  LAS_WATER        =  9,
+  LAS_BRIDGE       = 26
+} LAS14Class;
+
 
 #endif

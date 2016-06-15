@@ -679,12 +679,11 @@ int Flat::get_height() {
 // }
 
 
-bool Flat::add_elevation_point(double x, double y, double z, float radius, bool lastreturn) {
+bool Flat::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   Point2 p(x, y);
   int zcm = int(z * 100);
-  //-- 1. assign to polygon if inside
-  if (bg::within(p, *(_p2)) == true)
-    _zvaluesinside.push_back(zcm);
+  //-- 1. assign to polygon since within the threshold value (buffering of polygon)
+  _zvaluesinside.push_back(zcm);
   //-- 2. add to the vertices of the pgn to find their heights
   assign_elevation_to_vertex(x, y, z, radius);
   return true;
@@ -707,7 +706,7 @@ int Boundary3D::get_number_vertices() {
 }
 
 
-bool Boundary3D::add_elevation_point(double x, double y, double z, float radius, bool lastreturn) {
+bool Boundary3D::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   assign_elevation_to_vertex(x, y, z, radius);
   return true;
 }
@@ -781,27 +780,27 @@ int TIN::get_number_vertices() {
 }
 
 
-bool TIN::add_elevation_point(double x, double y, double z, float radius, bool lastreturn) {
-  bool toadd = false;
-  float distance = 4.0;
-  if (_simplification == 0)
-    toadd = true;
-  else {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> dis(1, _simplification);
-    if (dis(gen) == 1)
-      toadd = true;
-  }
-  if (toadd == true) {
-    Point2 p(x, y);
-    if ( (bg::within(p, *(_p2)) == true) && (this->get_distance_to_boundaries(p) > (radius * 1.5)) ) 
-      _lidarpts.push_back(Point3(x, y, z));
-  }
-  if (lastreturn == true)
-    assign_elevation_to_vertex(x, y, z, radius);
-  return toadd;
-}
+// bool TIN::add_elevation_point(double x, double y, double z, float radius, bool lastreturn) {
+//   bool toadd = false;
+//   float distance = 4.0;
+//   if (_simplification == 0)
+//     toadd = true;
+//   else {
+//     std::random_device rd;
+//     std::mt19937 gen(rd());
+//     std::uniform_int_distribution<int> dis(1, _simplification);
+//     if (dis(gen) == 1)
+//       toadd = true;
+//   }
+//   if (toadd == true) {
+//     Point2 p(x, y);
+//     if ( (bg::within(p, *(_p2)) == true) && (this->get_distance_to_boundaries(p) > (radius * 1.5)) ) 
+//       _lidarpts.push_back(Point3(x, y, z));
+//   }
+//   if (lastreturn == true)
+//     assign_elevation_to_vertex(x, y, z, radius);
+//   return toadd;
+// }
 
 
 

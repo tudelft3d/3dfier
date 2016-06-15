@@ -179,24 +179,42 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
 
 // void Map3d::add_elevation_point(double x, double y, double z, int returnno, liblas::Classification lasclass) {
 void Map3d::add_elevation_point(liblas::Point const& laspt) {
-  if ( (laspt.GetClassification() == liblas::Classification(1)) && (laspt.GetReturnNumber() != 1) )
-    return;
+  //-- filter out vegetation TODO: shouldn't be here me thinks, but in each specific classes
+  // if ( (laspt.GetClassification() == liblas::Classification(1)) && (laspt.GetReturnNumber() != 1) )
+    // return;
+
+  // p.GetX(), p.GetY(), p.GetZ(), p.GetReturnNumber(), p.GetClassification()
+
   Point2 p(laspt.GetX(), laspt.GetY());
   std::vector<PairIndexed> re;
-  // p.GetX(), p.GetY(), p.GetZ(), p.GetReturnNumber(), p.GetClassification()
   Point2 minp(laspt.GetX() - 0.1, laspt.GetY() - 0.1);
   Point2 maxp(laspt.GetX() + 0.1, laspt.GetY() + 0.1);
   Box2 querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
+  LAS14Class lasclass = LAS_UNKNOWN;
   for (auto& v : re) {
     TopoFeature* f = v.second;
     if (bg::distance(p, *(f->get_Polygon2())) < _radius_vertex_elevation) {     
-      if (laspt.GetClassification() == liblas::Classification(1)) {
-        if (f->get_class() == FOREST)
-          f->add_elevation_point(laspt.GetX(), laspt.GetY(), laspt.GetZ(), _radius_vertex_elevation, false);
-      }
+      //-- get LAS class
+      if (laspt.GetClassification() == liblas::Classification(LAS_UNCLASSIFIED) )
+        lasclass = LAS_UNCLASSIFIED;
+      else if (laspt.GetClassification() == liblas::Classification(LAS_GROUND) )
+        lasclass = LAS_GROUND;
+      else if (laspt.GetClassification() == liblas::Classification(LAS_BUILDING) )
+        lasclass = LAS_BUILDING;
+      else if (laspt.GetClassification() == liblas::Classification(LAS_WATER) )
+        lasclass = LAS_WATER;
+      else if (laspt.GetClassification() == liblas::Classification(LAS_BRIDGE) )
+        lasclass = LAS_BRIDGE;
       else
-        f->add_elevation_point(laspt.GetX(), laspt.GetY(), laspt.GetZ(), _radius_vertex_elevation);
+        lasclass = LAS_UNKNOWN;
+
+      f->add_elevation_point(laspt.GetX(), 
+                             laspt.GetY(), 
+                             laspt.GetZ(), 
+                             _radius_vertex_elevation,
+                             lasclass,
+                             (laspt.GetReturnNumber() == laspt.GetNumberOfReturns()));
     }
   }
 }

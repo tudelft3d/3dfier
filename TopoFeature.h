@@ -38,7 +38,7 @@ public:
 
   virtual bool          lift() = 0;
   virtual bool          buildCDT();
-  virtual bool          add_elevation_point(double x, double y, double z, float radius, bool lastreturn = true) = 0;
+  virtual bool          add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) = 0;
   virtual std::string   get_citygml() = 0;
   virtual std::string   get_obj_v(int z_exaggeration);
   virtual std::string   get_obj_f(int offset, bool usemtl);
@@ -105,7 +105,7 @@ class Flat : public TopoFeature
 {
 public:
                       Flat(char *wkt, std::string pid); 
-  bool                add_elevation_point(double x, double y, double z, float radius, bool lastreturn);
+  bool                add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
   int                 get_number_vertices();
   int                 get_height();
   virtual bool        lift() = 0;
@@ -126,7 +126,7 @@ class Boundary3D : public TopoFeature
 {
 public:
                        Boundary3D(char *wkt, std::string pid);
-  bool                 add_elevation_point(double x, double y, double z, float radius, bool lastreturn = true);
+  bool                 add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
   int                  get_number_vertices();
   virtual bool         lift() = 0;
   virtual std::string  get_citygml() = 0;
@@ -149,7 +149,7 @@ public:
   virtual std::string get_citygml() = 0;
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;
-  bool                add_elevation_point(double x, double y, double z, float radius, bool lastreturn = true);
+  virtual bool        add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) = 0;
   int                 get_number_vertices();
   bool                buildCDT();
 protected:

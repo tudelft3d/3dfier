@@ -28,6 +28,11 @@ Terrain::Terrain (char *wkt, std::string pid, int simplification)
 : TIN(wkt, pid, simplification)
 {}
 
+
+bool Terrain::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+  return true;
+}
+
 std::string Terrain::get_obj_f(int offset, bool usemtl) {
   std::stringstream ss;
   if (usemtl == true)
