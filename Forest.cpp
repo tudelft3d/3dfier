@@ -35,8 +35,26 @@ bool Forest::lift() {
 
 
 bool Forest::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-return true;
+  bool toadd = false;
+  if (_simplification == 0)
+    toadd = true;
+  else {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(1, _simplification);
+    if (dis(gen) == 1)
+      toadd = true;
+  }
+  if (toadd == true) {
+    Point2 p(x, y);
+    if ( (lastreturn == true) && (bg::within(p, *(_p2)) == true) && (this->get_distance_to_boundaries(p) > (radius * 1.5)) ) 
+      _lidarpts.push_back(Point3(x, y, z));
+  }
+  if (lastreturn == true)
+    assign_elevation_to_vertex(x, y, z, radius);
+  return toadd;
 }
+
 
 TopoClass Forest::get_class() {
   return FOREST;
