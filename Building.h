@@ -35,6 +35,8 @@ public:
   std::string get_csv();
   std::string get_obj_f(int offset, bool usemtl);
   std::string get_obj_f_floor(int offset);
+  std::string get_obj_v_building_volume(int z_exaggeration);
+  std::string get_obj_f_building_volume(int offset, bool usemtl);
   TopoClass   get_class();
   bool        is_hard();
   int         get_height_base();

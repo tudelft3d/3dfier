@@ -173,6 +173,8 @@ int main(int argc, const char * argv[]) {
   std::clog << "Lifting all input polygons to 3D..." << std::endl;
   if (n["format"].as<std::string>() == "CSV-BUILDINGS")
     map3d.threeDfy(false);
+  if (n["format"].as<std::string>() == "OBJ-BUILDINGS")
+    map3d.threeDfy_building_volume();
   else
     map3d.threeDfy();
   std::clog << "done." << std::endl;
@@ -200,6 +202,11 @@ int main(int argc, const char * argv[]) {
     std::clog << "CSV output (only of the buildings)" << std::endl;
     std::cout << map3d.get_csv_buildings() << std::endl;
   }
+  else if (n["format"].as<std::string>() == "OBJ-BUILDINGS") {
+    std::clog << "OBJ output (only of the buildings)" << std::endl;
+    std::cout << map3d.get_obj_building_volume() << std::endl;
+  }
+
 
   //-- bye-bye
   std::clog << "Successfully terminated." << std::endl;
@@ -337,6 +344,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
   if ( (n["format"].as<std::string>() != "OBJ") &&
        (n["format"].as<std::string>() != "OBJ-NoID") &&
        (n["format"].as<std::string>() != "CityGML") &&
+       (n["format"].as<std::string>() != "OBJ-BUILDINGS") &&
        (n["format"].as<std::string>() != "CSV-BUILDINGS") ) {
     wentgood = false;
     std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CSV-BUILDINGS)" << std::endl;

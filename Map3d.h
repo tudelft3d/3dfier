@@ -48,6 +48,7 @@ public:
   void stitch_lifted_features();
   bool construct_rtree();
   bool threeDfy(bool triangulate = true);
+  bool threeDfy_building_volume();
   void add_elevation_point(liblas::Point const& laspt);
 
   unsigned long get_num_polygons();
@@ -57,6 +58,7 @@ public:
   std::string get_csv_buildings();
   std::string get_obj_per_feature(int z_exaggeration = 0);
   std::string get_obj_per_class(int z_exaggeration = 0);
+  std::string get_obj_building_volume(int z_exaggeration = 0);
      
   void set_building_heightref_roof(std::string heightref);
   void set_building_heightref_floor(std::string heightref);

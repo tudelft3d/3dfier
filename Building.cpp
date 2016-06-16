@@ -94,6 +94,27 @@ std::string Building::get_obj_f(int offset, bool usemtl) {
   return ss.str();
 }
 
+std::string Building::get_obj_v_building_volume(int z_exaggeration) {
+  std::stringstream ss;
+  for (auto& v : _vertices)
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)) << std::endl;
+  for (auto& v : _vertices) {
+    float z = float(this->get_height_base()) / 100;
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * z) : z) << std::endl;
+  }
+  return ss.str();
+}
+
+
+std::string Building::get_obj_f_building_volume(int offset, bool usemtl) {
+  std::stringstream ss;
+  if (usemtl == true)
+    ss << "usemtl Building" << std::endl;
+  ss << TopoFeature::get_obj_f(offset, usemtl);
+  return ss.str();
+
+}
+
 std::string Building::get_obj_f_floor(int offset) {
   std::stringstream ss;
   for (auto& t : _triangles)

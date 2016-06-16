@@ -134,6 +134,35 @@ std::string Map3d::get_obj_per_feature(int z_exaggeration) {
   return ss.str();
 }
 
+std::string Map3d::get_obj_building_volume(int z_exaggeration) {
+  std::vector<int> offsets;
+  offsets.push_back(0);
+  std::stringstream ss;
+  ss << "mtllib ./3dfier.mtl" << std::endl;
+  for (auto& p3 : _lsFeatures) {
+    Building* b = dynamic_cast<Building*>(p3);
+    if (b != nullptr) {
+      ss << b->get_obj_v_building_volume(z_exaggeration);
+      offsets.push_back(p3->get_number_vertices());
+    }
+  }
+  // int i = 0;
+  // int offset = 0;
+  // for (auto& p3 : _lsFeatures) {
+  //   ss << "o " << p3->get_id() << std::endl;
+  //   offset += offsets[i++];
+  //   ss << p3->get_obj_f(offset, true);
+    //-- TODO: floor for buildings
+//    if (_building_include_floor == true) {  
+//      Building* b = dynamic_cast<Building*>(p3);
+//      if (b != nullptr)
+//        ss << b->get_obj_f_floor(offset);
+//    }
+  // }
+  return ss.str();
+}
+
+
 std::string Map3d::get_obj_per_class(int z_exaggeration) {
   std::vector<int> offsets;
   offsets.push_back(0);
@@ -285,6 +314,29 @@ bool Map3d::threeDfy(bool triangulate) {
   }
   return true;
 }
+
+
+bool Map3d::threeDfy_building_volume() {
+/*
+  1. lift
+  2. CDT
+*/
+  std::clog << "===== /LIFTING =====" << std::endl;
+  for (auto& p : _lsFeatures) {
+    std::clog << p->get_id() << std::endl;
+    p->lift();
+  }
+  std::clog << "===== LIFTING/ =====" << std::endl;
+  
+  std::clog << "=====  /CDT =====" << std::endl;
+  for (auto& p : _lsFeatures) {
+    // std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
+    p->buildCDT();
+  }
+  std::clog << "=====  CDT/ =====" << std::endl;
+  return true;
+}
+
 
 
 bool Map3d::construct_rtree() {
