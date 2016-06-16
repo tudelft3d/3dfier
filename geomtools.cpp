@@ -172,7 +172,7 @@ bool getCDT(const Polygon2* pgn,
 		}
 	}
 
-	std::cout << "There are " << count << " facets in the domain." << std::endl;
+	std::clog << "There are " << count << " facets in the domain." << std::endl;
 
 	return true;
 }

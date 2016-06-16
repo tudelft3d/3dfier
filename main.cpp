@@ -204,7 +204,7 @@ int main(int argc, const char * argv[]) {
   }
   else if (n["format"].as<std::string>() == "OBJ-BUILDINGS") {
     std::clog << "OBJ output (only of the buildings)" << std::endl;
-    std::cout << map3d.get_obj_building_volume() << std::endl;
+    std::cout << map3d.get_obj_building_volume(z_exaggeration) << std::endl;
   }
 
 

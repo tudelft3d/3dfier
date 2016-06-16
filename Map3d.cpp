@@ -143,22 +143,19 @@ std::string Map3d::get_obj_building_volume(int z_exaggeration) {
     Building* b = dynamic_cast<Building*>(p3);
     if (b != nullptr) {
       ss << b->get_obj_v_building_volume(z_exaggeration);
-      offsets.push_back(p3->get_number_vertices());
+      offsets.push_back(2 * p3->get_number_vertices());
     }
   }
-  // int i = 0;
-  // int offset = 0;
-  // for (auto& p3 : _lsFeatures) {
-  //   ss << "o " << p3->get_id() << std::endl;
-  //   offset += offsets[i++];
-  //   ss << p3->get_obj_f(offset, true);
-    //-- TODO: floor for buildings
-//    if (_building_include_floor == true) {  
-//      Building* b = dynamic_cast<Building*>(p3);
-//      if (b != nullptr)
-//        ss << b->get_obj_f_floor(offset);
-//    }
-  // }
+  int i = 0;
+  int offset = 0;
+  for (auto& p3 : _lsFeatures) {
+    Building* b = dynamic_cast<Building*>(p3);
+    if (b != nullptr) {
+      ss << "o " << p3->get_id() << std::endl;
+      offset += offsets[i++];
+      ss << b->get_obj_f_building_volume(offset, true);
+    }
+  }
   return ss.str();
 }
 
@@ -314,7 +311,6 @@ bool Map3d::threeDfy(bool triangulate) {
   }
   return true;
 }
-
 
 bool Map3d::threeDfy_building_volume() {
 /*
