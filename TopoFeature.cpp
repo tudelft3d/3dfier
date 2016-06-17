@@ -40,7 +40,7 @@ TopoFeature::TopoFeature(char *wkt, std::string pid) {
   
   //-- TO DELETE
   bg::read_wkt(wkt, _p3);
-  _nc.resize(bg::num_points(*(_p2)));
+  //_nc.resize(bg::num_points(*(_p2)));
   //-- TO DELETE
   
   _p2z.resize(bg::num_interior_rings(*_p2) + 1);
@@ -97,12 +97,6 @@ std::string TopoFeature::get_obj_v(int z_exaggeration) {
 }
 
 std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
-  if (this->get_id() == "116727828") {
-    std::clog << "116727828" << std::endl;
-    std::clog << "nc size: " << _nc.size() << std::endl;
-    std::clog << "_vertices_vw: " << _vertices_vw.size() << std::endl;
-    std::clog << "_triangles_vw: " <<_triangles_vw.size() << std::endl;
-  }
   std::stringstream ss;
   for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
@@ -161,13 +155,10 @@ void TopoFeature::fix_bowtie(std::vector<TopoFeature*> lsAdj) {
 }
 
 
-void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std::unordered_multimap<std::string, int> nc) {
+void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std::unordered_map<std::string, std::vector<int>> nc) {
   if (this->has_vertical_walls() == false)
     return;
-  
-//  if (this->get_id() == "107587667")
-//    std::cout << "107587667" << std::endl;
-  
+
   //-- gather all rings
   std::vector<Ring2> therings;
   therings.push_back(bg::exterior_ring(*(_p2)));
@@ -201,9 +192,8 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       int adj_b_ringi = 0;
       int adj_b_pi = 0;
       for (auto& adj : lsAdj) {
-        // std::clog << adj->get_id() << std::endl;
         if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi) == true) {
-        // if (adj->has_segment(b, a) == true) {
+          // if (adj->has_segment(b, a) == true) {
           fadj = adj;
           break;
         }
@@ -211,68 +201,64 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       if (fadj == nullptr)
         continue;
       //-- check height differences: f > fadj for *both* Points a and b
-      // fadj->has_point2(a, adj_a_ringi, adj_a_pi);
-      // fadj->has_point2(b, adj_b_ringi, adj_b_pi);
-      // int fadj_az = fadj->get_vertex_elevation(a);
-      // int fadj_bz = fadj->get_vertex_elevation(b);
       int az = this->get_vertex_elevation(ringi, ai);
       int bz = this->get_vertex_elevation(ringi, bi);
       int fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
       int fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
 
-      if ( (az < fadj_az) || (bz < fadj_bz) ) 
+      if ((az < fadj_az) || (bz < fadj_bz))
         continue;
-      if ( (az == fadj_az) && (bz == fadj_bz) ) //-- bowties need to be solved somewhere else
+      if ((az == fadj_az) && (bz == fadj_bz)) //-- bowties need to be solved somewhere else
         continue;
 
-    //-- Point a: collect its nc from the global hash (nc)
-      anc.clear();
-      auto range = nc.equal_range(gen_key_bucket(&a));
-      while (range.first != range.second) {
-        anc.push_back(range.first->second);
-        (range.first)++;
-      }
-      std::clog << "a: " << anc.size() << std::endl;
-    //-- Point b: collect its nc from the global hash (nc)
-      bnc.clear();
-      range = nc.equal_range(gen_key_bucket(&b));
-      while (range.first != range.second) {
-        bnc.push_back(range.first->second);
-        (range.first)++;
-      }
-      std::clog << "b: " << bnc.size() << std::endl;
-
-    //-- sort the node-columns
+      anc = nc[gen_key_bucket(&a)];
+      bnc = nc[gen_key_bucket(&b)];
       std::clog << "az: " << az << std::endl;
       std::clog << "bz: " << bz << std::endl;
       std::clog << "fadj_az: " << fadj_az << std::endl;
       std::clog << "fadj_bz: " << fadj_bz << std::endl;
-      std::sort(anc.begin(), anc.end());
-      std::sort(bnc.begin(), bnc.end());
-      // std::reverse(curnc.begin(), curnc.end()); //-- heights from top to bottom 
+
+	  //-- find the height of the vertex in the node column
       std::vector<int>::iterator sait, eait, sbit, ebit;
       sait = std::find(anc.begin(), anc.end(), fadj_az);
       eait = std::find(anc.begin(), anc.end(), az);
       sbit = std::find(bnc.begin(), bnc.end(), fadj_bz);
       ebit = std::find(bnc.begin(), bnc.end(), bz);
-      if (sait == anc.end())
+      
+	  int wrongit = 0;
+      if (sait == anc.end()) {
         std::clog << "WRONG ITERATOR sait" << std::endl;
+        wrongit++;
+      }
       else
         std::clog << *sait << std::endl;
-      if (eait == anc.end())
+      if (eait == anc.end()) {
         std::clog << "WRONG ITERATOR eait" << std::endl;
+        wrongit++;
+      }
       else
         std::clog << *eait << std::endl;
-      if (sbit == bnc.end())
+      if (sbit == bnc.end()) {
         std::clog << "WRONG ITERATOR sbit" << std::endl;
+        wrongit++;
+      }
       else
         std::clog << *sbit << std::endl;
-      if (ebit == bnc.end())
+      if (ebit == bnc.end()) {
         std::clog << "WRONG ITERATOR ebit" << std::endl;
+        wrongit++;
+      }
       else
         std::clog << *ebit << std::endl;
 
-    //-- iterate to triangulate
+      if (wrongit == 3) { //check if there is an uneven amount of wrong iterators
+        std::clog << "WRONG AMOUNT OF ITERATORS" << std::endl;
+      }
+      if (wrongit != 4 && eait == anc.end() && ebit == bnc.end()) {
+        std::cerr << "BOTH ITERATORS END" << std::endl;
+      }
+
+      //-- iterate to triangulate
       while (sbit != ebit) {
         if (anc.size() == 0)
           _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
@@ -282,9 +268,10 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
         sbit++;
         _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
         Triangle t;
-        t.v0 = int(_vertices_vw.size()) - 2;
-        t.v1 = int(_vertices_vw.size()) - 3;
-        t.v2 = int(_vertices_vw.size()) - 1;
+        int size = int(_vertices_vw.size());
+        t.v0 = size - 2;
+        t.v1 = size - 3;
+        t.v2 = size - 1;
         _triangles_vw.push_back(t);
       }
       while (sait != eait) {
@@ -296,9 +283,10 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
         sait++;
         _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
         Triangle t;
-        t.v0 = int(_vertices_vw.size()) - 3;
-        t.v1 = int(_vertices_vw.size()) - 2;
-        t.v2 = int(_vertices_vw.size()) - 1;
+        int size = int(_vertices_vw.size());
+        t.v0 = size - 3;
+        t.v1 = size - 2;
+        t.v2 = size - 1;
         _triangles_vw.push_back(t);
       }
     }
@@ -404,12 +392,6 @@ Point2 TopoFeature::get_next_point2_in_ring(int ringi, int& pi) {
 }
 
 
-void TopoFeature::add_nc(int i, float z) {
-
-  _nc[i].push_back(z);
-}
-
-
 bool TopoFeature::has_vertical_walls() {
   return _bVerticalWalls;
 }
@@ -419,14 +401,10 @@ void TopoFeature::add_vertical_wall() {
 }
 
 
-std::vector<float>& TopoFeature::get_nc(int i) {
-  return _nc[i];
-}
-
-
 int TopoFeature::get_vertex_elevation(int ringi, int pi) {
   return _p2z[ringi][pi];
 }
+
 
 int TopoFeature::get_vertex_elevation(Point2& p) {
   std::vector<int> ringis, pis;

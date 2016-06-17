@@ -82,13 +82,13 @@ private:
   double      _minx;
   double      _miny;
 
-  std::unordered_multimap<std::string, int> _nc;
+  std::unordered_map<std::string, std::vector<int>> _nc;
   std::vector<TopoFeature*>                 _lsFeatures;
   std::vector<std::string>                  _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
 
 #if GDAL_VERSION_MAJOR < 2
-  bool extract_and_add_polygon(OGRDataSource *dataSource, PolygonFile *file);
+  bool extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file);
 #else
   bool extract_and_add_polygon(GDALDataset *dataSource, PolygonFile *file);
 #endif

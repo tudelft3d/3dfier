@@ -227,6 +227,11 @@ bool Map3d::threeDfy(bool triangulate) {
     std::clog << "SIZE FEATURES: " << _lsFeatures.size() << std::endl;
     std::clog << "SIZE NC: " << _nc.size() << std::endl;
 
+    //-- Sort all node column vectors
+    for (auto& nc : _nc) {
+      std::sort(nc.second.begin(), nc.second.end());
+    }
+
   //   std::clog << "=====  /BOWTIES =====" << std::endl;
   //   for (auto& p : _lsFeatures) {
   //     if (p->has_vertical_walls() == true) {
@@ -236,17 +241,10 @@ bool Map3d::threeDfy(bool triangulate) {
   //   }
   //   std::clog << "=====  BOWTIES/ =====" << std::endl;
 
-  auto range = _nc.equal_range("849029744696257");
-  while (range.first != range.second) {
-    std::cout << range.first->second << std::endl;
-    // bnc.push_back(range.first->second);
-    (range.first)++;
-  }
-
     std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
     for (auto& p : _lsFeatures) {
-      if (p->get_id() == "107757032")
-        std::clog << "yo" << std::endl;
+      //if (p->get_id() == "107757032")
+      //  std::clog << "yo" << std::endl;
       if (p->has_vertical_walls() == true) {
         std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
         p->construct_vertical_walls(lsAdj, _nc);
@@ -257,9 +255,6 @@ bool Map3d::threeDfy(bool triangulate) {
     std::clog << "=====  /CDT =====" << std::endl;
     for (auto& p : _lsFeatures) {
       // std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
-      if (p->get_id() == "107734797")
-        p->buildCDT();
-      else
         p->buildCDT();
     }
     std::clog << "=====  CDT/ =====" << std::endl;
@@ -327,9 +322,9 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
 
 
 #if GDAL_VERSION_MAJOR < 2
-  bool Map3d::extract_and_add_polygon(OGRDataSource *dataSource, PolygonFile *file)
+bool Map3d::extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file)
 #else
-  bool Map3d::extract_and_add_polygon(GDALDataset *dataSource, PolygonFile *file)
+bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
 #endif
 {
   const char *idfield = file->idfield.c_str();
@@ -345,8 +340,7 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
       continue;
     }
     if (dataLayer->FindFieldIndex(heightfield, false) == -1) {
-      std::cerr << "ERROR: field '" << heightfield << "' not found in layer " << l.first << "'." << std::endl;
-      continue;
+      std::cerr << "ERROR: field '" << heightfield << "' not found in layer, using all polygons " << l.first << "'." << std::endl;
     }
     dataLayer->ResetReading();
     unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
@@ -355,8 +349,6 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
     OGRFeature *f;
     
     while ((f = dataLayer->GetNextFeature()) != NULL) {
-      if ( (f->GetFieldIndex(heightfield) != -1) && (f->GetFieldAsInteger(heightfield) < 0) )
-          continue;
       switch(f->GetGeometryRef()->getGeometryType()) {
         case wkbPolygon:
         case wkbMultiPolygon: 
@@ -462,7 +454,7 @@ std::vector<TopoFeature*> Map3d::get_adjacent_features(TopoFeature* f) {
   std::vector<TopoFeature*> lsAdjacent;
   for (auto& each : re) {
     TopoFeature* fadj = each.second;
-    if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
+    if (f != fadj && (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) || !bg::disjoint(*(f->get_Polygon2()), *(fadj->get_Polygon2())))) {
       // std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
       lsAdjacent.push_back(fadj);
     }
@@ -493,7 +485,7 @@ void Map3d::stitch_lifted_features() {
     for (auto& each : re) {
       TopoFeature* fadj = each.second;
       if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
-        // std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
+        std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
         lstouching.push_back(fadj);
       }
     }
@@ -528,7 +520,7 @@ void Map3d::stitch_lifted_features() {
     int noiring = 0;
     for (Ring2& iring: bg::interior_rings(*(f->get_Polygon2()))) {
       noiring++;
-      std::clog << f->get_id() << " irings " << std::endl;
+      //std::clog << f->get_id() << " irings " << std::endl;
       for (int i = 0; i < iring.size(); i++) {
         std::vector< std::tuple<TopoFeature*, int, int> > star;  
         bool toprocess = true;
@@ -595,7 +587,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     //-- ADJUST THE HEIGHTS IN THE NC
     //-- snap bottom-up by using threshold_jumpedge, ignoring Buildings
     for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it = zstar.begin() ; it != zstar.end(); ++it) {
-      std::clog << std::get<0>(*it) << std::endl;
+      //std::clog << std::get<0>(*it) << std::endl;
       auto it2 = it + 1;
       if (it2 == zstar.end())
         break;
@@ -622,7 +614,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       std::get<1>(each)->add_vertical_wall();
       if (std::get<0>(each) != tmph) {
         Point2 p = std::get<1>(each)->get_point2(std::get<2>(each), std::get<3>(each));
-        _nc.emplace(gen_key_bucket(&p), std::get<0>(each));
+        _nc[gen_key_bucket(&p)].push_back(std::get<0>(each));
         tmph = std::get<0>(each);
       }
     }
@@ -649,8 +641,8 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
     f1->add_vertical_wall();
     f2->add_vertical_wall();
     Point2 p = f1->get_point2(ringi1, pi1);
-    _nc.emplace(gen_key_bucket(&p), f1z);
-    _nc.emplace(gen_key_bucket(&p), f2z);
+    _nc[gen_key_bucket(&p)].push_back(f1z);
+    _nc[gen_key_bucket(&p)].push_back(f2z);
   }
 }
 
@@ -659,5 +651,3 @@ void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2
   f1->set_vertex_elevation(ringi1, pi1, avgz);
   f2->set_vertex_elevation(ringi2, pi2, avgz);
 }
-
-

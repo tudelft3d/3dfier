@@ -47,7 +47,7 @@ public:
   virtual bool          is_hard() = 0;
 
   std::string  get_id();
-  void         construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std::unordered_multimap<std::string, int> nc);
+  void         construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std::unordered_map<std::string, std::vector<int>> nc);
   void         fix_bowtie(std::vector<TopoFeature*> lsAdj);
   int          get_counter(); 
   Polygon2*    get_Polygon2();
@@ -81,7 +81,7 @@ protected:
 
   //-- will be removed
   Polygon3     _p3;
-  std::vector< std::vector<float> > _nc; //-- node columns
+  //std::vector< std::vector<float> > _nc; //-- node columns
   std::vector< std::vector<float> > _velevations;
   //-- will be removed
 
