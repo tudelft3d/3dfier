@@ -727,24 +727,24 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
       f1->add_vertical_wall();
       f2->add_vertical_wall();
       Point2 p = f1->get_point2(ringi1, pi1);
-      _nc.emplace(gen_key_bucket(&p), f1->get_vertex_elevation(ringi1, pi1));
-      _nc.emplace(gen_key_bucket(&p), f2->get_vertex_elevation(ringi2, pi2));
+      _nc[gen_key_bucket(&p)].push_back(f1->get_vertex_elevation(ringi1, pi1));
+      _nc[gen_key_bucket(&p)].push_back(f2->get_vertex_elevation(ringi2, pi2));
     }
     else if (f1->get_class() == BUILDING) {
       f2->set_vertex_elevation(ringi2, pi2, dynamic_cast<Building*>(f1)->get_height_base());
       f1->add_vertical_wall();
       f2->add_vertical_wall();
       Point2 p = f1->get_point2(ringi1, pi1);
-      _nc.emplace(gen_key_bucket(&p), f1->get_vertex_elevation(ringi1, pi1));
-      _nc.emplace(gen_key_bucket(&p), dynamic_cast<Building*>(f1)->get_height_base());
+      _nc[gen_key_bucket(&p)].push_back(f1->get_vertex_elevation(ringi1, pi1));
+      _nc[gen_key_bucket(&p)].push_back(dynamic_cast<Building*>(f1)->get_height_base());
     }
     else { //-- f2 is Building
       f1->set_vertex_elevation(ringi1, pi1, dynamic_cast<Building*>(f2)->get_height_base());
       f1->add_vertical_wall();
       f2->add_vertical_wall();
       Point2 p = f1->get_point2(ringi1, pi1);
-      _nc.emplace(gen_key_bucket(&p), f2->get_vertex_elevation(ringi2, pi2));
-      _nc.emplace(gen_key_bucket(&p), dynamic_cast<Building*>(f2)->get_height_base());
+      _nc[gen_key_bucket(&p)].push_back(f2->get_vertex_elevation(ringi2, pi2));
+      _nc[gen_key_bucket(&p)].push_back(dynamic_cast<Building*>(f2)->get_height_base());
     }
   }
   //-- no Buildings involved
