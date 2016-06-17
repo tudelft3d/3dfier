@@ -38,6 +38,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 
 
 int main(int argc, const char * argv[]) {
+  //std::clog.imbue(std::locale("en_US"));  
 //-- reading the config file
   if (argc != 2) {
     std::cerr << "ERROR: the config file (*.yml) is not defined." << std::endl;
