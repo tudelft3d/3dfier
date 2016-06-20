@@ -416,6 +416,9 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
     OGRFeature *f;
 
     while ((f = dataLayer->GetNextFeature()) != NULL) {
+      //if ((f->GetFieldIndex(heightfield) != -1) && (f->GetFieldAsInteger(heightfield) < 0)) {
+      //  continue;
+      //}
       switch (f->GetGeometryRef()->getGeometryType()) {
         case wkbPolygon:
         case wkbMultiPolygon:

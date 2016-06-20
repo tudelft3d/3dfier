@@ -206,8 +206,19 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       if ((az == fadj_az) && (bz == fadj_bz)) //-- bowties need to be solved somewhere else
         continue;
 
-      anc = nc[gen_key_bucket(&a)];
-      bnc = nc[gen_key_bucket(&b)];
+      try {
+        anc = nc.at(gen_key_bucket(&a));
+      }
+      catch (const std::out_of_range& oor) {
+        std::cerr << "Out of Range error anc: " << oor.what() << std::endl;
+      }
+      try {
+        bnc = nc.at(gen_key_bucket(&b));
+      }
+      catch (const std::out_of_range& oor) {
+        std::cerr << "Out of Range error bnc: " << oor.what() << std::endl;
+      }
+
       std::clog << "az: " << az << std::endl;
       std::clog << "bz: " << bz << std::endl;
       std::clog << "fadj_az: " << fadj_az << std::endl;
@@ -219,8 +230,8 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       eait = std::find(anc.begin(), anc.end(), az);
       sbit = std::find(bnc.begin(), bnc.end(), fadj_bz);
       ebit = std::find(bnc.begin(), bnc.end(), bz);
-      
-	  int wrongit = 0;
+
+      int wrongit = 0;
       if (sait == anc.end()) {
         std::clog << "WRONG ITERATOR sait" << std::endl;
         wrongit++;
@@ -254,8 +265,8 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       }
 
       //-- iterate to triangulate
-      while (sbit != ebit) {
-        if (anc.size() == 0)
+      while (sbit != ebit && (sbit+1) != bnc.end()) {
+        if (anc.size() == 0 || sait == anc.end())
           _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
         else
           _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
@@ -269,8 +280,8 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
         t.v2 = size - 1;
         _triangles_vw.push_back(t);
       }
-      while (sait != eait) {
-        if (bnc.size() == 0)
+      while (sait != eait && (sait + 1) != anc.end()) {
+        if (bnc.size() == 0 || ebit == bnc.end())
           _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100));
         else
           _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
