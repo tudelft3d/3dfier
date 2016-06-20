@@ -38,11 +38,6 @@ TopoFeature::TopoFeature(char *wkt, std::string pid) {
   _p2 = new Polygon2();
   bg::read_wkt(wkt, *(_p2));
   
-  //-- TO DELETE
-  bg::read_wkt(wkt, _p3);
-  //_nc.resize(bg::num_points(*(_p2)));
-  //-- TO DELETE
-  
   _p2z.resize(bg::num_interior_rings(*_p2) + 1);
   _p2z[0].resize(bg::num_points(_p2->outer()));
   _lidarelevs.resize(bg::num_interior_rings(*_p2) + 1);
