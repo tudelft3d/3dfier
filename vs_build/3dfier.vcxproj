@@ -118,8 +118,7 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <DebugInformationFormat>
-      </DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
@@ -164,6 +163,8 @@
     <ClCompile Include="..\..\3dfier\Forest.cpp" />
     <ClCompile Include="..\..\3dfier\Water.cpp" />
     <ClCompile Include="..\..\3dfier\geomtools.cpp" />
+    <ClCompile Include="..\Bridge.cpp" />
+    <ClCompile Include="..\Separation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\yaml-cpp\vs_build\yaml-cpp.vcxproj">
@@ -171,6 +172,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Bridge.h" />
     <ClInclude Include="..\Building.h" />
     <ClInclude Include="..\definitions.h" />
     <ClInclude Include="..\Forest.h" />
@@ -178,6 +180,7 @@
     <ClInclude Include="..\io.h" />
     <ClInclude Include="..\Map3d.h" />
     <ClInclude Include="..\Road.h" />
+    <ClInclude Include="..\Separation.h" />
     <ClInclude Include="..\Terrain.h" />
     <ClInclude Include="..\TopoFeature.h" />
     <ClInclude Include="..\Water.h" />

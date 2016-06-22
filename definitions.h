@@ -60,7 +60,8 @@ typedef enum
    BRIDGE     = 2,
    ROAD       = 3,
    TERRAIN    = 4,
-   FOREST     = 5
+   FOREST     = 5,
+   SEPARATION = 6
 } TopoClass;
 
 

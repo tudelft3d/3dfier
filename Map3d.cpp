@@ -85,6 +85,14 @@ void Map3d::set_road_heightref(std::string h) {
   _road_heightref = h;
 }
 
+void Map3d::set_separation_heightref(std::string h) {
+  _separation_heightref = h;
+}
+
+void Map3d::set_bridge_heightref(std::string h) {
+  _bridge_heightref = h;
+}
+
 std::string Map3d::get_citygml() {
   std::stringstream ss;
   ss << get_xml_header();
@@ -257,15 +265,21 @@ bool Map3d::threeDfy(bool triangulate) {
   std::clog << "===== /LIFTING =====" << std::endl;
   for (auto& p : _lsFeatures) {
     if (p->get_top_level() == true) {
-      std::clog << p->get_id() << std::endl;
+      //std::clog << p->get_id() << std::endl;
       p->lift();
     }
     else
-      std::clog << "niveau-1 " << p->get_id() << std::endl;
+    {
+      std::clog << "non-top-niveau " << p->get_id() << std::endl;
+      // Lift to height for bridges/overpass
+      if (p->get_class() == BRIDGE)
+      {
+        p->lift();
+      }
+    }
   }
   std::clog << "===== LIFTING/ =====" << std::endl;
   if (triangulate == true) {
-
     std::clog << "=====  /STITCHING =====" << std::endl;
     this->stitch_lifted_features();
     std::clog << "=====  STITCHING/ =====" << std::endl;
@@ -289,8 +303,6 @@ bool Map3d::threeDfy(bool triangulate) {
 
     std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
     for (auto& p : _lsFeatures) {
-      //if (p->get_id() == "107757032")
-      //  std::clog << "yo" << std::endl;
       if (p->has_vertical_walls() == true) {
         std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
         p->construct_vertical_walls(lsAdj, _nc);
@@ -300,7 +312,6 @@ bool Map3d::threeDfy(bool triangulate) {
 
     std::clog << "=====  /CDT =====" << std::endl;
     for (auto& p : _lsFeatures) {
-      // std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
       p->buildCDT();
     }
     std::clog << "=====  CDT/ =====" << std::endl;
@@ -451,9 +462,17 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
             Road* p3 = new Road(wkt, f->GetFieldAsString(idfield), this->_road_heightref);
             _lsFeatures.push_back(p3);
           }
+          else if (l.second == "Separation") {
+            Separation* p3 = new Separation(wkt, f->GetFieldAsString(idfield), this->_separation_heightref);
+            _lsFeatures.push_back(p3);
+          }
+          else if (l.second == "Bridge/Overpass") {
+            Bridge* p3 = new Bridge(wkt, f->GetFieldAsString(idfield), this->_bridge_heightref);
+            _lsFeatures.push_back(p3);
+          }
           //-- flag all polygons at (niveau < 0) for top10nl
-          if ((f->GetFieldIndex(heightfield) != -1) && (f->GetFieldAsInteger(heightfield) < 0)) {
-            // std::clog << "niveau=-1: " << f->GetFieldAsString(idfield.c_str()) << std::endl;
+          if ((f->GetFieldIndex(heightfield) != -1) && (f->GetFieldAsInteger(heightfield) != 0)) {
+             // std::clog << "niveau=" << f->GetFieldAsInteger(heightfield) << ": " << f->GetFieldAsString(idfield) << std::endl;
             (_lsFeatures.back())->set_top_level(false);
           }
           break;
@@ -557,32 +576,58 @@ void Map3d::stitch_lifted_features() {
   for (auto& f : _lsFeatures) {
     std::vector<PairIndexed> re;
     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-    //-- 1. store all touching (adjacent + incident)
     std::vector<TopoFeature*> lstouching;
-    for (auto& each : re) {
-      TopoFeature* fadj = each.second;
 
-      // if (bg::intersects(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
-      // {
-      //   std::clog << f->get_id() << " intersects " << fadj->get_id() << std::endl;
-      // }
-      // if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
-      // {
-      //   std::clog << f->get_id() << " touches " << fadj->get_id() << std::endl;
-      // }
-
-      if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
-        std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
-        lstouching.push_back(fadj);
+    // Handle briges
+    if (f->get_top_level() == false) {
+      if (f->get_class() == BRIDGE)
+      {
+        for (auto& each : re) {
+          TopoFeature* fadj = each.second;
+          // fadj is ground level
+          // 1. fadj touches thus is the connected feature
+          // 2. fadj overlaps thus is feature underneath and is a pilar of the bridge
+          if (fadj->get_top_level() == true &&
+            (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) ||
+            (bg::overlaps(*(f->get_Polygon2()), *(fadj->get_Polygon2())) && fadj->get_class() == BRIDGE))) {
+            std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
+            lstouching.push_back(fadj);
+          }
+        }
+      }
+      else {
+        // Skip rest if feature is not top
+        continue;
       }
     }
-    if (f->get_id() == "102574812")
-      std::clog << "break-point" << std::endl;
+    else {
+      //-- 1. store all touching top level (adjacent + incident)
+      for (auto& each : re) {
+        TopoFeature* fadj = each.second;
+
+        // if (bg::intersects(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
+        // {
+        //   std::clog << f->get_id() << " intersects " << fadj->get_id() << std::endl;
+        // }
+        // if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
+        // {
+        //   std::clog << f->get_id() << " touches " << fadj->get_id() << std::endl;
+        // }
+
+        std::clog << "touches check" << std::endl;
+
+        if (fadj->get_top_level() == true && bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
+          std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
+          lstouching.push_back(fadj);
+        }
+      }
+    }
 
     //-- 2. build the node-column for each vertex
         // oring
     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2()));
     for (int i = 0; i < oring.size(); i++) {
+      std::clog << "oring check" << std::endl;
       // std::cout << std::setprecision(3) << std::fixed << bg::get<0>(oring[i]) << " : " << bg::get<1>(oring[i]) << std::endl;
       std::vector< std::tuple<TopoFeature*, int, int> > star;
       bool toprocess = true;
@@ -607,6 +652,7 @@ void Map3d::stitch_lifted_features() {
     // irings
     int noiring = 0;
     for (Ring2& iring : bg::interior_rings(*(f->get_Polygon2()))) {
+      std::clog << "iring check" << std::endl;
       noiring++;
       //std::clog << f->get_id() << " irings " << std::endl;
       for (int i = 0; i < iring.size(); i++) {
@@ -639,7 +685,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
   //-- degree of vertex == 2
   if (star.size() == 1) {
     //-- if same class, then average. TODO: always, also for water?
-    if (f->get_class() == std::get<0>(star[0])->get_class()) {
+    if (f->get_class() != BUILDING && f->get_class() == std::get<0>(star[0])->get_class()) {
       stitch_average(f, ringi, pi, std::get<0>(star[0]), std::get<1>(star[0]), std::get<2>(star[0]));
     }
     else if ((f->is_hard() == false) && (std::get<0>(star[0])->is_hard() == false)) {

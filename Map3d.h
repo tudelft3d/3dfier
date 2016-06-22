@@ -32,6 +32,8 @@
 #include "Forest.h"
 #include "Water.h"
 #include "Road.h"
+#include "Separation.h"
+#include "Bridge.h"
 
 typedef std::pair<Box2, TopoFeature*> PairIndexed;
 
@@ -68,6 +70,8 @@ public:
   void set_forest_simplification(int simplification);
   void set_water_heightref(std::string heightref);
   void set_road_heightref(std::string heightref);
+  void set_separation_heightref(std::string heightref);
+  void set_bridge_heightref(std::string heightref);
   void set_radius_vertex_elevation(float radius);
   void set_threshold_jump_edges(float threshold);
 private:
@@ -79,6 +83,8 @@ private:
   int         _forest_simplification;
   std::string _water_heightref;
   std::string _road_heightref;
+  std::string _separation_heightref;
+  std::string _bridge_heightref;
   float       _radius_vertex_elevation;
   int         _threshold_jump_edges; //-- in cm/integer
   double      _minx;

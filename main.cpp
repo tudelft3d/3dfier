@@ -36,8 +36,6 @@
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 
-
-
 int main(int argc, const char * argv[]) {
   boost::locale::generator gen;
   std::locale loc = gen("en_US.UTF-8");
@@ -58,6 +56,7 @@ int main(int argc, const char * argv[]) {
   allowedFeatures.insert("Terrain");
   allowedFeatures.insert("Road");
   allowedFeatures.insert("Forest");
+  allowedFeatures.insert("Separation");
   allowedFeatures.insert("Bridge/Overpass");
 
 //-- validate the YAML file right now, nicer for the user
@@ -94,6 +93,12 @@ int main(int argc, const char * argv[]) {
   if (n["Road"]) 
     if (n["Road"]["height"])
       map3d.set_road_heightref(n["Road"]["height"].as<std::string>());
+  if (n["Separation"])
+    if (n["Separation"]["height"])
+      map3d.set_separation_heightref(n["Separation"]["height"].as<std::string>());
+  if (n["Bridge/Overpass"])
+    if (n["Bridge/Overpass"]["height"])
+      map3d.set_bridge_heightref(n["Bridge/Overpass"]["height"].as<std::string>());
 
   //-- add the polygons to the map3d
   std::vector<PolygonFile> files;
@@ -298,6 +303,26 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       if (is_string_integer(n["Forest"]["simplification"].as<std::string>()) == false) {
         wentgood = false;
         std::cerr << "\tOption 'Forest.simplification' invalid; must be an integer." << std::endl;
+      }
+    }
+  }
+  if (n["Separation"]) {
+    if (n["Separation"]["height"]) {
+      std::string s = n["Separation"]["height"].as<std::string>();
+      if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
+        (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
+        wentgood = false;
+        std::cerr << "\tOption 'Separation.height' invalid; must be 'percentile-XX'." << std::endl;
+      }
+    }
+  }
+  if (n["Bridge/Overpass"]) {
+    if (n["Bridge/Overpass"]["height"]) {
+      std::string s = n["Bridge/Overpass"]["height"].as<std::string>();
+      if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
+        (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
+        wentgood = false;
+        std::cerr << "\tOption 'Bridge/Overpass.height' invalid; must be 'percentile-XX'." << std::endl;
       }
     }
   }
