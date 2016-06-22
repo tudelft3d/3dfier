@@ -22,6 +22,7 @@
 
 #include "Map3d.h"
 #include "io.h"
+#include "boost/locale.hpp"
 
 
 Map3d::Map3d() {
@@ -412,7 +413,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
     dataLayer->ResetReading();
     unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
     std::clog << "\tLayer: " << dataLayer->GetName() << std::endl;
-    std::clog << "\t(" << numberOfPolygons << " features --> " << l.second << ")" << std::endl;
+    std::clog << "\t(" << boost::locale::as::number << numberOfPolygons << " features --> " << l.second << ")" << std::endl;
     OGRFeature *f;
 
     while ((f = dataLayer->GetNextFeature()) != NULL) {
@@ -485,10 +486,11 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
   liblas::ReaderFactory f;
   liblas::Reader reader = f.CreateWithStream(ifs);
   liblas::Header const& header = reader.GetHeader();
-  std::clog << "\t(" << header.GetPointRecordsCount() << " points in the file)" << std::endl;
+
+  std::clog << "\t(" << boost::locale::as::number << header.GetPointRecordsCount() << " points in the file)" << std::endl;
   if ((skip != 0) && (skip != 1)) {
     std::clog << "\t(skipping every " << skip << "th points, thus ";
-    std::clog << (header.GetPointRecordsCount() / skip) << " are used)" << std::endl;
+    std::clog << boost::locale::as::number << (header.GetPointRecordsCount() / skip) << " are used)" << std::endl;
   }
   else
     std::clog << "\t(all points used, no skipping)" << std::endl;
@@ -701,7 +703,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     //-- get allocated the height value of the floor of the building. Any building will do if >1.
     if (hasbuildings != -1) {
       for (auto& each : zstar) {
-        if ((std::get<1>(each)->get_class() != BUILDING) && (std::get<1>(each)->is_hard() == false))
+        if ((std::get<1>(each)->get_class() != BUILDING))// && (std::get<1>(each)->is_hard() == false))
           std::get<0>(each) = dynamic_cast<Building*>(std::get<1>(zstar[hasbuildings]))->get_height_base();
       }
     }

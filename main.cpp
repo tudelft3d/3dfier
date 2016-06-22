@@ -32,13 +32,18 @@
 #include "io.h"
 #include "TopoFeature.h"
 #include "Map3d.h"
+#include "boost/locale.hpp"
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 
 
 
 int main(int argc, const char * argv[]) {
-  //std::clog.imbue(std::locale("en_US"));  
+  boost::locale::generator gen;
+  std::locale loc = gen("en_US.UTF-8");
+  std::locale::global(loc);
+  std::clog.imbue(loc);
+
 //-- reading the config file
   if (argc != 2) {
     std::cerr << "ERROR: the config file (*.yml) is not defined." << std::endl;
@@ -128,7 +133,7 @@ int main(int argc, const char * argv[]) {
   }
 
   map3d.add_polygons_files(files);
-  std::clog << "\nTotal # of polygons: " << map3d.get_num_polygons() << std::endl;
+  std::clog << "\nTotal # of polygons: " << boost::locale::as::number << map3d.get_num_polygons() << std::endl;
   
   //-- spatially index the polygons
   map3d.construct_rtree();

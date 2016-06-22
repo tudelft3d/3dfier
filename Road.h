@@ -31,6 +31,7 @@ class Road : public Boundary3D
 public:
   Road (char *wkt, std::string pid, std::string heightref);
   bool                lift();
+  bool                add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
   std::string         get_citygml();
   std::string         get_obj_f(int offset, bool usemtl);
   static std::string  _heightref;
