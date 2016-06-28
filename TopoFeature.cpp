@@ -96,7 +96,7 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
   for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
   unsigned long k = _vertices.size();
-  if (usemtl == true)
+  if (usemtl == true && _triangles_vw.size() > 0)
     ss << "usemtl VerticalWalls" << std::endl;
   for (auto& t : _triangles_vw)
     ss << "f " << (t.v0 + 1 + offset + k) << " " << (t.v1 + 1 + offset + k) << " " << (t.v2 + 1 + offset + k) << std::endl;
@@ -265,7 +265,7 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       }
 
       //-- iterate to triangulate
-      while (sbit != ebit && (sbit+1) != bnc.end()) {
+      while (sbit != ebit && sbit != bnc.end() && (sbit+1) != bnc.end()) {
         if (anc.size() == 0 || sait == anc.end())
           _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
         else
@@ -280,7 +280,7 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
         t.v2 = size - 1;
         _triangles_vw.push_back(t);
       }
-      while (sait != eait && (sait + 1) != anc.end()) {
+      while (sait != eait && sait != anc.end() && (sait + 1) != anc.end()) {
         if (bnc.size() == 0 || ebit == bnc.end())
           _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100));
         else
@@ -664,7 +664,6 @@ int Flat::get_height() {
 
 
 bool Flat::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  Point2 p(x, y);
   int zcm = int(z * 100);
   //-- 1. assign to polygon since within the threshold value (buffering of polygon)
   _zvaluesinside.push_back(zcm);

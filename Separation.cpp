@@ -33,9 +33,18 @@ Separation::Separation(char *wkt, std::string pid, std::string heightref)
 bool Separation::lift()
 {
   double percentile = (std::stod(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100);
-  Flat::lift_percentile(percentile);
+  lift_percentile(percentile);
   return true;
 }
+
+
+bool Separation::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+  if (lastreturn == true && lasclass != LAS_BUILDING && lasclass != LAS_WATER) {
+    Flat::add_elevation_point(x, y, z, radius, lasclass, lastreturn);
+  }
+  return true;
+}
+
 
 TopoClass Separation::get_class()
 {

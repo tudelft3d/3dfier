@@ -26,7 +26,7 @@
 #include "TopoFeature.h"
 
 
-class Bridge : public Boundary3D
+class Bridge : public Flat
 {
 public:
   Bridge(char *wkt, std::string pid, std::string heightref);

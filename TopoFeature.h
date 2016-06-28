@@ -62,11 +62,9 @@ public:
   int          get_vertex_elevation(Point2& p);
   void         set_vertex_elevation(int ringi, int pi, int z);  
   void         set_top_level(bool toplevel);
-  void         add_nc(int i, float z);
   bool         has_vertical_walls(); 
   void         add_vertical_wall(); 
   bool         get_top_level();
-  std::vector<float>& get_nc(int i);
 
 protected:
   Polygon2*                         _p2;
@@ -128,7 +126,6 @@ public:
 protected:
   int           _simplification;
   void          smooth_boundary(int passes = 1);
-  // void          smooth_ring(Ring3 &r, std::vector<float> &elevs);
 };
 
 

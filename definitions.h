@@ -29,15 +29,13 @@ typedef bg::model::polygon<Point2, true, false> Polygon2; //-- cw, first!=last
 typedef bg::model::ring<Point2, true, false> Ring2; //-- cw, first!=last
 typedef bg::model::box<Point2> Box2;
 typedef bg::model::point<double, 3, bg::cs::cartesian> Point3;
-typedef bg::model::polygon<Point3, true, false> Polygon3;
-typedef bg::model::ring<Point3, true, false> Ring3; //-- cw, first!=last
-
 
 typedef struct Segment
 {
   int v0;
   int v1;
 } Segment;
+
 typedef struct Triangle
 {
   int v0;
@@ -64,7 +62,6 @@ typedef enum
    SEPARATION = 6
 } TopoClass;
 
-
 typedef enum
 {
   LAS_UNKNOWN      =  0,
@@ -72,8 +69,7 @@ typedef enum
   LAS_GROUND       =  2,
   LAS_BUILDING     =  6,
   LAS_WATER        =  9,
-  LAS_BRIDGE       = 26
+  LAS_BRIDGE       =  26
 } LAS14Class;
-
 
 #endif
