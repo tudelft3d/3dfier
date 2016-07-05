@@ -46,8 +46,11 @@ bool Forest::add_elevation_point(double x, double y, double z, float radius, LAS
       toadd = true;
   }
   if (toadd == true) {
-    Point2 p(x, y);
-    if ( (lastreturn == true) && (bg::within(p, *(_p2)) == true) && (this->get_distance_to_boundaries(p) > (radius * 1.5)) ) 
+    //Point2 p(x, y);
+    if ( lastreturn == true &&
+        (lasclass != LAS_BUILDING) ) //&& 
+        //(bg::within(p, *(_p2)) == true) && 
+        //(this->get_distance_to_boundaries(p) > (radius * 1.5)) ) 
       _lidarpts.push_back(Point3(x, y, z));
   }
   if (lastreturn == true)

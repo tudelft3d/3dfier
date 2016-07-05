@@ -409,6 +409,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
 {
   const char *idfield = file->idfield.c_str();
   const char *heightfield = file->heightfield.c_str();
+  bool multiple_heights = file->handle_multiple_heights;
   bool wentgood = false;
   for (auto l : file->layers) {
     OGRLayer *dataLayer = dataSource->GetLayerByName((l.first).c_str());
@@ -433,7 +434,6 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
         case wkbPolygon:
         case wkbPolygon25D: {
           Polygon2* p2 = new Polygon2();
-          // TODO : WKT surely not best/fastest way, to change. Or is it?
           char *wkt;
           f->GetGeometryRef()->flattenTo2D();
           f->GetGeometryRef()->exportToWkt(&wkt);
@@ -466,10 +466,15 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
             Bridge* p3 = new Bridge(wkt, f->GetFieldAsString(idfield), this->_bridge_heightref);
             _lsFeatures.push_back(p3);
           }
-          //-- flag all polygons at (niveau < 0) for top10nl
+          //-- flag all polygons at (niveau != 0) or remove if not handling multiple height levels
           if ((f->GetFieldIndex(heightfield) != -1) && (f->GetFieldAsInteger(heightfield) != 0)) {
-            // std::clog << "niveau=" << f->GetFieldAsInteger(heightfield) << ": " << f->GetFieldAsString(idfield) << std::endl;
-            (_lsFeatures.back())->set_top_level(false);
+            if (multiple_heights) {
+              // std::clog << "niveau=" << f->GetFieldAsInteger(heightfield) << ": " << f->GetFieldAsString(idfield) << std::endl;
+              _lsFeatures.back()->set_top_level(false);
+            }
+            else {
+              _lsFeatures.pop_back();
+            }
           }
           break;
         }
@@ -551,7 +556,6 @@ std::vector<TopoFeature*> Map3d::get_adjacent_features(TopoFeature* f) {
   for (auto& each : re) {
     TopoFeature* fadj = each.second;
     if (f != fadj && (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) || !bg::disjoint(*(f->get_Polygon2()), *(fadj->get_Polygon2())))) {
-      // std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
       lsAdjacent.push_back(fadj);
     }
   }
@@ -573,60 +577,30 @@ void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
 
 void Map3d::stitch_lifted_features() {
   std::vector<int> ringis, pis;
-  //for (auto& f : _lsFeatures) {
-  for (std::vector<TopoFeature *>::iterator it = _lsFeatures.begin(); it != _lsFeatures.end();) {
-    TopoFeature *f = *it;
+  for (auto& f : _lsFeatures) {
     std::vector<PairIndexed> re;
     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
     std::vector<TopoFeature*> lstouching;
 
-    // Handle briges
-    if (f->get_top_level() == false && f->get_class() == ROAD) {
-      //if (f->get_class() != ROAD) {
-      //  for (auto& each : re) {
-      //    TopoFeature* fadj = each.second;
-      //    // 1. fadj touches thus is a connected feature
-      //    // 2. fadj is ground level and overlaps thus is feature underneath and is a pilar of the bridge
-      //    if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) ||
-      //      (fadj->get_top_level() == true && bg::overlaps(*(f->get_Polygon2()), *(fadj->get_Polygon2())) && fadj->get_class() == BRIDGE)) {
-      //      std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
-      //      lstouching.push_back(fadj);
-      //    }
-      //  }
-      //}
-      //else {
-        // Skip rest of features
-        // TODO: maybe remove feature since it should not be written?
-        it = _lsFeatures.erase(it);
-        continue;
-      //}
-    }
-    else {
-      //-- 1. store all touching top level (adjacent + incident)
-      for (auto& each : re) {
-        TopoFeature* fadj = each.second;
-        if (!(fadj->get_top_level() == false && fadj->get_class() == ROAD)) {
+    //-- 1. store all touching top level (adjacent + incident)
+    for (auto& each : re) {
+      TopoFeature* fadj = each.second;
 
-          // if (bg::intersects(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
-          // {
-          //   std::clog << f->get_id() << " intersects " << fadj->get_id() << std::endl;
-          // }
-          // if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
-          // {
-          //   std::clog << f->get_id() << " touches " << fadj->get_id() << std::endl;
-          // }
+      // if (bg::intersects(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
+      // {
+      //   std::clog << f->get_id() << " intersects " << fadj->get_id() << std::endl;
+      // }
+      // if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
+      // {
+      //   std::clog << f->get_id() << " touches " << fadj->get_id() << std::endl;
+      // }
 
-          //if (fadj->get_top_level() == true && bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
-          if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2()))) {
-            std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
-            lstouching.push_back(fadj);
-          }
-        }
+      //if (fadj->get_top_level() == true && bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
+      if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2()))) {
+        std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
+        lstouching.push_back(fadj);
       }
     }
-
-    it++;
-
 
     //-- 2. build the node-column for each vertex
     // oring
@@ -759,7 +733,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     //-- get allocated the height value of the floor of the building. Any building will do if >1.
     if (hasbuildings != -1) {
       for (auto& each : zstar) {
-        if ((std::get<1>(each)->get_class() != BUILDING))// && (std::get<1>(each)->is_hard() == false))
+        if (std::get<1>(each)->get_class() != BUILDING && std::get<1>(each)->get_class() != WATER)// && (std::get<1>(each)->is_hard() == false))
           std::get<0>(each) = dynamic_cast<Building*>(std::get<1>(zstar[hasbuildings]))->get_height_base();
       }
     }

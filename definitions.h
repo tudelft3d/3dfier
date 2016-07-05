@@ -48,6 +48,7 @@ typedef struct PolygonFile
   std::string filename;
   std::string idfield;
   std::string heightfield;
+  bool handle_multiple_heights;
   std::vector< std::pair<std::string, std::string> > layers;
 } PolygonFile;
 

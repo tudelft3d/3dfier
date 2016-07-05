@@ -115,6 +115,11 @@ int main(int argc, const char * argv[]) {
     if ((*it)["height_field"]) {
       heightfield = (*it)["height_field"].as<std::string>();
     }
+    // Get the handle_multiple_heights setting
+    bool handle_multiple_heights = false;
+    if ((*it)["handle_multiple_heights"] && (*it)["handle_multiple_heights"].as<std::string>() == "true") {
+      handle_multiple_heights = true;
+    }
 
     // Get all datasets
     YAML::Node datasets = (*it)["datasets"];
@@ -123,6 +128,7 @@ int main(int argc, const char * argv[]) {
       file.filename = it2->as<std::string>();
       file.idfield = uniqueid;
       file.heightfield = heightfield;
+      file.handle_multiple_heights = handle_multiple_heights;
       if ((*it)["lifting"]) {
         file.layers.emplace_back(std::string(), (*it)["lifting"].as<std::string>());
         files.push_back(file);
@@ -158,7 +164,6 @@ int main(int argc, const char * argv[]) {
         map3d.add_las_file(it2->as<std::string>(), lasomits, (*it)["thinning"].as<int>());
       else
         map3d.add_las_file(it2->as<std::string>(), lasomits, 1);
-
     }
   }
 
