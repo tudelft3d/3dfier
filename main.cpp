@@ -215,7 +215,18 @@ int main(int argc, const char * argv[]) {
     std::clog << "OBJ output (only of the buildings)" << std::endl;
     std::cout << map3d.get_obj_building_volume(z_exaggeration) << std::endl;
   }
-
+  else if (n["format"].as<std::string>() == "Shapefile") {
+    std::clog << "Shapefile output" << std::endl;
+    std::string filename = n["filename"].as<std::string>();
+    if (map3d.get_shapefile(filename)) {
+      std::clog << "Shapefile written" << std::endl;
+    }
+    else
+    {
+      std::cerr << "Writing shapefile failed" << std::endl;
+      return 0;
+    }
+  }
 
   //-- bye-bye
   std::clog << "Successfully terminated." << std::endl;
@@ -374,11 +385,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
        (n["format"].as<std::string>() != "OBJ-NoID") &&
        (n["format"].as<std::string>() != "CityGML") &&
        (n["format"].as<std::string>() != "OBJ-BUILDINGS") &&
-       (n["format"].as<std::string>() != "CSV-BUILDINGS") ) {
+       (n["format"].as<std::string>() != "CSV-BUILDINGS")  &&
+       (n["format"].as<std::string>() != "Shapefile") ) {
     wentgood = false;
-    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CSV-BUILDINGS)" << std::endl;
+    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CSV-BUILDINGS | Shapefile)" << std::endl;
+  }
+  //-- Shapefile type filename check
+  if (n["format"].as<std::string>() == "Shapefile" && !n["filename"]) {
+    wentgood = false;
+    std::cerr << "\tOption 'output.format' Shapefile needs an output.filename" << std::endl;
   }
   return wentgood;
 }
-
-

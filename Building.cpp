@@ -203,3 +203,6 @@ std::string Building::get_citygml() {
 }
 
 
+bool Building::get_shape(OGRLayer* layer) {
+  return TopoFeature::get_shape_features(layer, "Building");
+}

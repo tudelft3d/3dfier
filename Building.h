@@ -37,6 +37,7 @@ public:
   std::string get_obj_f_floor(int offset);
   std::string get_obj_v_building_volume(int z_exaggeration);
   std::string get_obj_f_building_volume(int offset, bool usemtl);
+  bool        get_shape(OGRLayer * layer);
   TopoClass   get_class();
   bool        is_hard();
   int         get_height_base();

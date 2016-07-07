@@ -75,6 +75,12 @@ std::string Terrain::get_citygml() {
   return "<EMPTY/>";
 }
 
+
+bool Terrain::get_shape(OGRLayer* layer) {
+  return TopoFeature::get_shape_features(layer, "Terrain");
+}
+
+
 bool Terrain::lift() {
   //-- lift vertices to their median of lidar points
   TopoFeature::lift_each_boundary_vertices(0.5);

@@ -68,3 +68,6 @@ std::string Road::get_citygml() {
 }
 
 
+bool Road::get_shape(OGRLayer* layer) {
+  return TopoFeature::get_shape_features(layer, "Road");
+}

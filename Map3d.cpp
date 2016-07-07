@@ -202,6 +202,44 @@ std::string Map3d::get_obj_per_class(int z_exaggeration) {
   return ss.str();
 }
 
+bool Map3d::get_shapefile(std::string filename) {
+#if GDAL_VERSION_MAJOR < 2
+  if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0)
+    OGRRegisterAll();
+  OGRSFDriver *driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName( "ESRI Shapefile" );
+  OGRDataSource *datasource = driver->CreateDataSource(filename.c_str(), NULL);
+#else
+  if (GDALGetDriverCount() == 0)
+    GDALAllRegister();
+  GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("ESRI Shapefile");
+  GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+#endif
+
+  if (dataSource == NULL) {
+    std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
+    return false;
+  }
+  OGRLayer *layer = dataSource->CreateLayer("my3dmap", NULL, OGR_GT_SetZ(wkbMultiPolygon), NULL);
+  
+  OGRFieldDefn oField("Id", OFTString);
+  if (layer->CreateField(&oField) != OGRERR_NONE)
+  {
+    std::cerr << "Creating Id field failed." << std::endl;
+    return false;
+  }
+  OGRFieldDefn oField2("Class", OFTString);
+  if (layer->CreateField(&oField2) != OGRERR_NONE)
+  {
+    std::cerr << "Creating Class field failed." << std::endl;
+    return false;
+  }
+  for (auto& p3 : _lsFeatures) {
+    p3->get_shape(layer);
+  }
+  GDALClose(dataSource);
+  return true;
+}
+
 unsigned long Map3d::get_num_polygons() {
   return _lsFeatures.size();
 }
@@ -421,7 +459,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
       continue;
     }
     if (dataLayer->FindFieldIndex(heightfield, false) == -1) {
-      std::cerr << "ERROR: field '" << heightfield << "' not found in layer, using all polygons " << l.first << "'." << std::endl;
+      std::cerr << "ERROR: field '" << heightfield << "' not found in layer '" << l.first << "', using all polygons." << std::endl;
     }
     dataLayer->ResetReading();
     unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
@@ -597,7 +635,7 @@ void Map3d::stitch_lifted_features() {
 
       //if (fadj->get_top_level() == true && bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
       if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2()))) {
-        std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
+        //std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
         lstouching.push_back(fadj);
       }
     }

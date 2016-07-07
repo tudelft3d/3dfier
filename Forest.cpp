@@ -80,3 +80,6 @@ std::string Forest::get_obj_f(int offset, bool usemtl) {
 }
 
 
+bool Forest::get_shape(OGRLayer* layer) {
+  return TopoFeature::get_shape_features(layer, "Forest");
+}

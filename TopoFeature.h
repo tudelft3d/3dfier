@@ -42,6 +42,7 @@ public:
   virtual std::string   get_citygml() = 0;
   virtual std::string   get_obj_v(int z_exaggeration);
   virtual std::string   get_obj_f(int offset, bool usemtl);
+  virtual bool          get_shape(OGRLayer*) = 0;
   virtual int           get_number_vertices() = 0;
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
@@ -65,6 +66,8 @@ public:
   bool         has_vertical_walls(); 
   void         add_vertical_wall(); 
   bool         get_top_level();
+  std::string  get_wkt();
+  bool         get_shape_features(OGRLayer* layer, std::string className);
 
 protected:
   Polygon2*                         _p2;

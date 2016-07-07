@@ -33,6 +33,7 @@ public:
   bool          lift();
   std::string   get_citygml();
   std::string   get_obj_f(int offset, bool usemtl);
+  bool          get_shape(OGRLayer * layer);
   TopoClass     get_class();
   bool          is_hard();
 protected:

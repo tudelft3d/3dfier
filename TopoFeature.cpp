@@ -83,26 +83,128 @@ Polygon2* TopoFeature::get_Polygon2() {
 }
 
 std::string TopoFeature::get_obj_v(int z_exaggeration) {
-  std::stringstream ss;
-  for (auto& v : _vertices)
-    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)) << std::endl;
-  for (auto& v : _vertices_vw)
-    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)) << std::endl;
-  return ss.str();
+  std::string obj;
+  for (auto& v : _vertices) {
+    char* buf = new char[200];
+    std::sprintf(buf, "v %.3f %.3f %.3f\n", bg::get<0>(v),  bg::get<1>(v), 
+        (z_exaggeration > 0 ? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)));
+    obj += std::string(buf);
+  }
+  for (auto& v : _vertices_vw) {
+    char* buf = new char[200];
+    std::sprintf(buf, "v %.3f %.3f %.3f\n", bg::get<0>(v), bg::get<1>(v),
+        (z_exaggeration > 0 ? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)));
+    obj += std::string(buf);
+  }
+  return obj;
 }
 
 std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
-  std::stringstream ss;
-  for (auto& t : _triangles)
-    ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
-  unsigned long k = _vertices.size();
+  std::string obj;
+  for (auto& t : _triangles) {
+    char* buf = new char[200];
+    std::sprintf(buf, "f %i %i %i\n", t.v0 + 1 + offset, t.v1 + 1 + offset, t.v2 + 1 + offset);
+    obj += std::string(buf);
+  }
+
   if (usemtl == true && _triangles_vw.size() > 0)
-    ss << "usemtl VerticalWalls" << std::endl;
-  for (auto& t : _triangles_vw)
-    ss << "f " << (t.v0 + 1 + offset + k) << " " << (t.v1 + 1 + offset + k) << " " << (t.v2 + 1 + offset + k) << std::endl;
-  return ss.str();
+    obj += "usemtl VerticalWalls\n";
+
+  unsigned long k = _vertices.size();
+  for (auto& t : _triangles_vw) {
+    char* buf = new char[200];
+    std::sprintf(buf, "f %i %i %i\n", t.v0 + 1 + offset + k, t.v1 + 1 + offset + k, t.v2 + 1 + offset + k);
+    obj += std::string(buf);
+  }
+  return obj;
 }
 
+std::string TopoFeature::get_wkt() {
+  std::string wkt;
+  wkt = "MULTIPOLYGONZ (";
+
+  for (auto& t : _triangles) {
+    char* buf = new char[200];
+    Point3 p1 = _vertices[t.v0];
+    Point3 p2 = _vertices[t.v1];
+    Point3 p3 = _vertices[t.v2];
+    std::sprintf(buf, "((%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f)),",
+      p1.get<0>(), p1.get<1>(), p1.get<2>(),
+      p2.get<0>(), p2.get<1>(), p2.get<2>(),
+      p3.get<0>(), p3.get<1>(), p3.get<2>(),
+      p1.get<0>(), p1.get<1>(), p1.get<2>());
+    wkt += std::string(buf);
+  }
+
+  for (auto& t : _triangles_vw) {
+    char* buf = new char[200];
+    Point3 p1 = _vertices_vw[t.v0];
+    Point3 p2 = _vertices_vw[t.v1];
+    Point3 p3 = _vertices_vw[t.v2];
+    std::sprintf(buf, "((%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f)),",
+      p1.get<0>(), p1.get<1>(), p1.get<2>(),
+      p2.get<0>(), p2.get<1>(), p2.get<2>(),
+      p3.get<0>(), p3.get<1>(), p3.get<2>(),
+      p1.get<0>(), p1.get<1>(), p1.get<2>());
+    wkt += std::string(buf);
+  }
+  wkt.pop_back();
+  wkt += ")";
+  return wkt;
+}
+
+bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
+  OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
+  OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
+  OGRMultiPolygon multipolygon = OGRMultiPolygon();
+  Point3 p;
+
+  //-- add all triangles to the layer
+  for (auto& t : _triangles) {
+    OGRPolygon polygon = OGRPolygon();
+    OGRLinearRing ring = OGRLinearRing();
+    
+    p = _vertices[t.v0];
+    ring.addPoint(&OGRPoint(p.get<0>(), p.get<1>(), p.get<2>()));
+    p = _vertices[t.v1];
+    ring.addPoint(&OGRPoint(p.get<0>(), p.get<1>(), p.get<2>()));
+    p = _vertices[t.v2];
+    ring.addPoint(&OGRPoint(p.get<0>(), p.get<1>(), p.get<2>()));
+
+    ring.closeRings();
+    polygon.addRing(&ring);
+    multipolygon.addGeometry(&polygon);
+  }
+
+  //-- add all vertical wall triangles to the layer
+  for (auto& t : _triangles_vw) {
+    OGRPolygon polygon = OGRPolygon();
+    OGRLinearRing ring = OGRLinearRing();
+
+    p = _vertices_vw[t.v0];
+    ring.addPoint(&OGRPoint(p.get<0>(), p.get<1>(), p.get<2>()));
+    p = _vertices_vw[t.v1];
+    ring.addPoint(&OGRPoint(p.get<0>(), p.get<1>(), p.get<2>()));
+    p = _vertices_vw[t.v2];
+    ring.addPoint(&OGRPoint(p.get<0>(), p.get<1>(), p.get<2>()));
+
+    ring.closeRings();
+    polygon.addRing(&ring);
+    multipolygon.addGeometry(&polygon);
+  }
+
+  feature->SetGeometry(&multipolygon);
+  feature->SetField("Id", this->get_id().c_str());
+  feature->SetField("Class", className.c_str());
+
+  if (layer->CreateFeature(feature) != OGRERR_NONE)
+  {
+    std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
+    return false;
+  }
+  OGRFeature::DestroyFeature(feature);
+  return true;
+}
 
 void TopoFeature::fix_bowtie(std::vector<TopoFeature*> lsAdj) {
   // if (this->get_id() == "116724964") 
@@ -210,19 +312,19 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
         anc = nc.at(gen_key_bucket(&a));
       }
       catch (const std::out_of_range& oor) {
-        std::cerr << "Out of Range error anc: " << oor.what() << std::endl;
+        std::cerr << "Id: " << this->get_id() << " - Out of Range error anc" << std::endl;
       }
       try {
         bnc = nc.at(gen_key_bucket(&b));
       }
       catch (const std::out_of_range& oor) {
-        std::cerr << "Out of Range error bnc: " << oor.what() << std::endl;
+        std::cerr << "Id: " << this->get_id() << " - Out of Range error bnc" << std::endl;
       }
 
-      std::clog << "az: " << az << std::endl;
-      std::clog << "bz: " << bz << std::endl;
-      std::clog << "fadj_az: " << fadj_az << std::endl;
-      std::clog << "fadj_bz: " << fadj_bz << std::endl;
+      //std::clog << "az: " << az << std::endl;
+      //std::clog << "bz: " << bz << std::endl;
+      //std::clog << "fadj_az: " << fadj_az << std::endl;
+      //std::clog << "fadj_bz: " << fadj_bz << std::endl;
 
 	  //-- find the height of the vertex in the node column
       std::vector<int>::iterator sait, eait, sbit, ebit;
@@ -231,38 +333,38 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       sbit = std::find(bnc.begin(), bnc.end(), fadj_bz);
       ebit = std::find(bnc.begin(), bnc.end(), bz);
 
-      int wrongit = 0;
-      if (sait == anc.end()) {
-        std::clog << "WRONG ITERATOR sait" << std::endl;
-        wrongit++;
-      }
-      else
-        std::clog << *sait << std::endl;
-      if (eait == anc.end()) {
-        std::clog << "WRONG ITERATOR eait" << std::endl;
-        wrongit++;
-      }
-      else
-        std::clog << *eait << std::endl;
-      if (sbit == bnc.end()) {
-        std::clog << "WRONG ITERATOR sbit" << std::endl;
-        wrongit++;
-      }
-      else
-        std::clog << *sbit << std::endl;
-      if (ebit == bnc.end()) {
-        std::clog << "WRONG ITERATOR ebit" << std::endl;
-        wrongit++;
-      }
-      else
-        std::clog << *ebit << std::endl;
+      //int wrongit = 0;
+      //if (sait == anc.end()) {
+      //  std::clog << "WRONG ITERATOR sait" << std::endl;
+      //  wrongit++;
+      //}
+      //else
+      //  std::clog << *sait << std::endl;
+      //if (eait == anc.end()) {
+      //  std::clog << "WRONG ITERATOR eait" << std::endl;
+      //  wrongit++;
+      //}
+      //else
+      //  std::clog << *eait << std::endl;
+      //if (sbit == bnc.end()) {
+      //  std::clog << "WRONG ITERATOR sbit" << std::endl;
+      //  wrongit++;
+      //}
+      //else
+      //  std::clog << *sbit << std::endl;
+      //if (ebit == bnc.end()) {
+      //  std::clog << "WRONG ITERATOR ebit" << std::endl;
+      //  wrongit++;
+      //}
+      //else
+      //  std::clog << *ebit << std::endl;
 
-      if (wrongit == 3) { //check if there is an uneven amount of wrong iterators
-        std::clog << "WRONG AMOUNT OF ITERATORS" << std::endl;
-      }
-      if (wrongit != 4 && eait == anc.end() && ebit == bnc.end()) {
-        std::cerr << "BOTH ITERATORS END" << std::endl;
-      }
+      //if (wrongit == 3) { //check if there is an uneven amount of wrong iterators
+      //  std::clog << "WRONG AMOUNT OF ITERATORS" << std::endl;
+      //}
+      //if (wrongit != 4 && eait == anc.end() && ebit == bnc.end()) {
+      //  std::cerr << "BOTH ITERATORS END" << std::endl;
+      //}
 
       //-- iterate to triangulate
       while (sbit != ebit && sbit != bnc.end() && (sbit+1) != bnc.end()) {

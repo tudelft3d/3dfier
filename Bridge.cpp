@@ -74,3 +74,8 @@ std::string Bridge::get_obj_f(int offset, bool usemtl) {
 std::string Bridge::get_citygml() {
   return "<EMPTY/>";
 }
+
+
+bool Bridge::get_shape(OGRLayer* layer) {
+  return TopoFeature::get_shape_features(layer, "Bridge");
+}
