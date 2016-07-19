@@ -471,54 +471,30 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
       switch (f->GetGeometryRef()->getGeometryType()) {
         case wkbPolygon:
         case wkbPolygon25D: {
-          Polygon2* p2 = new Polygon2();
-          char *wkt;
-          f->GetGeometryRef()->flattenTo2D();
-          f->GetGeometryRef()->exportToWkt(&wkt);
-          bg::unique(*p2); //-- remove duplicate vertices
-          if (l.second == "Building") {
-            Building* p3 = new Building(wkt, f->GetFieldAsString(idfield), _building_heightref_roof, _building_heightref_floor);
-            _lsFeatures.push_back(p3);
-          }
-          else if (l.second == "Terrain") {
-            Terrain* p3 = new Terrain(wkt, f->GetFieldAsString(idfield), this->_terrain_simplification);
-            _lsFeatures.push_back(p3);
-          }
-          else if (l.second == "Forest") {
-            Forest* p3 = new Forest(wkt, f->GetFieldAsString(idfield), this->_terrain_simplification);
-            _lsFeatures.push_back(p3);
-          }
-          else if (l.second == "Water") {
-            Water* p3 = new Water(wkt, f->GetFieldAsString(idfield), this->_water_heightref);
-            _lsFeatures.push_back(p3);
-          }
-          else if (l.second == "Road") {
-            Road* p3 = new Road(wkt, f->GetFieldAsString(idfield), this->_road_heightref);
-            _lsFeatures.push_back(p3);
-          }
-          else if (l.second == "Separation") {
-            Separation* p3 = new Separation(wkt, f->GetFieldAsString(idfield), this->_separation_heightref);
-            _lsFeatures.push_back(p3);
-          }
-          else if (l.second == "Bridge/Overpass") {
-            Bridge* p3 = new Bridge(wkt, f->GetFieldAsString(idfield), this->_bridge_heightref);
-            _lsFeatures.push_back(p3);
-          }
-          //-- flag all polygons at (niveau != 0) or remove if not handling multiple height levels
-          if ((f->GetFieldIndex(heightfield) != -1) && (f->GetFieldAsInteger(heightfield) != 0)) {
-            if (multiple_heights) {
-              // std::clog << "niveau=" << f->GetFieldAsInteger(heightfield) << ": " << f->GetFieldAsString(idfield) << std::endl;
-              _lsFeatures.back()->set_top_level(false);
-            }
-            else {
-              _lsFeatures.pop_back();
-            }
-          }
+          extract_feature(f, idfield, heightfield, l.second, multiple_heights);
           break;
         }
         case wkbMultiPolygon:
         case wkbMultiPolygon25D: {
-          std::clog << "MultiPolygons are not (yet) supported" << std::endl;
+          OGRMultiPolygon* multipolygon = (OGRMultiPolygon*)f->GetGeometryRef();
+          int numGeom = multipolygon->getNumGeometries();
+          if (numGeom > 1) {
+            for (int i = 0; i < numGeom; i++) {
+              OGRFeature* cf = f->Clone();
+              std::string id = f->GetFieldAsString(idfield) + '-' + std::to_string(i);
+              cf->SetField(idfield, id.c_str());
+              cf->SetGeometry((OGRPolygon*)multipolygon->getGeometryRef(i));
+              extract_feature(cf, idfield, heightfield, l.second, multiple_heights);
+            }
+            std::clog << "MultiPolygon with " << numGeom << " geometries processed" << std::endl;
+          }
+          else {
+            // just a single geometry thus set the first geometry as the geometry
+            f->SetGeometry(((OGRMultiPolygon*)f->GetGeometryRef())->getGeometryRef(0));
+            extract_feature(f, idfield, heightfield, l.second, multiple_heights);
+            std::clog << "MultiPolygon with 1 geometry processed" << std::endl;
+          }
+          break;
         }
         default: {
           continue;
@@ -528,6 +504,52 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
     wentgood = true;
   }
   return wentgood;
+}
+
+void Map3d::extract_feature(OGRFeature *f, const char *idfield, const char *heightfield, std::string layertype, bool multiple_heights) {
+  Polygon2* p2 = new Polygon2();
+  char *wkt;
+  f->GetGeometryRef()->flattenTo2D();
+  f->GetGeometryRef()->exportToWkt(&wkt);
+  bg::unique(*p2); //-- remove duplicate vertices
+  if (layertype == "Building") {
+    Building* p3 = new Building(wkt, f->GetFieldAsString(idfield), _building_heightref_roof, _building_heightref_floor);
+    _lsFeatures.push_back(p3);
+  }
+  else if (layertype == "Terrain") {
+    Terrain* p3 = new Terrain(wkt, f->GetFieldAsString(idfield), this->_terrain_simplification);
+    _lsFeatures.push_back(p3);
+  }
+  else if (layertype == "Forest") {
+    Forest* p3 = new Forest(wkt, f->GetFieldAsString(idfield), this->_terrain_simplification);
+    _lsFeatures.push_back(p3);
+  }
+  else if (layertype == "Water") {
+    Water* p3 = new Water(wkt, f->GetFieldAsString(idfield), this->_water_heightref);
+    _lsFeatures.push_back(p3);
+  }
+  else if (layertype == "Road") {
+    Road* p3 = new Road(wkt, f->GetFieldAsString(idfield), this->_road_heightref);
+    _lsFeatures.push_back(p3);
+  }
+  else if (layertype == "Separation") {
+    Separation* p3 = new Separation(wkt, f->GetFieldAsString(idfield), this->_separation_heightref);
+    _lsFeatures.push_back(p3);
+  }
+  else if (layertype == "Bridge/Overpass") {
+    Bridge* p3 = new Bridge(wkt, f->GetFieldAsString(idfield), this->_bridge_heightref);
+    _lsFeatures.push_back(p3);
+  }
+  //-- flag all polygons at (niveau != 0) or remove if not handling multiple height levels
+  if ((f->GetFieldIndex(heightfield) != -1) && (f->GetFieldAsInteger(heightfield) != 0)) {
+    if (multiple_heights) {
+      // std::clog << "niveau=" << f->GetFieldAsInteger(heightfield) << ": " << f->GetFieldAsString(idfield) << std::endl;
+      _lsFeatures.back()->set_top_level(false);
+    }
+    else {
+      _lsFeatures.pop_back();
+    }
+  }
 }
 
 
@@ -699,9 +721,9 @@ void Map3d::stitch_lifted_features() {
 
 
 void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star) {
-  //if (f->get_id() == "b3b5a007d-fccc-11e5-8acc-1fc21a78c5fd") {
-  //  std::clog << "break" << std::endl;
-  //}
+  if (f->get_id() == "be02d31fc-fcb0-11e5-8acc-1fc21a78c5fd") {
+    std::clog << "break" << std::endl;
+  }
   //-- degree of vertex == 2
   if (star.size() == 1) {
     TopoFeature* fadj = std::get<0>(star[0]);
@@ -769,6 +791,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
 
     //-- deal with buildings. If there's a building and a soft class incident, then this soft class
     //-- get allocated the height value of the floor of the building. Any building will do if >1.
+    //-- Also ignore water so it doesn't get snapped to the floor of a building
     if (hasbuildings != -1) {
       for (auto& each : zstar) {
         if (std::get<1>(each)->get_class() != BUILDING && std::get<1>(each)->get_class() != WATER)// && (std::get<1>(each)->is_hard() == false))
@@ -791,7 +814,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     }
   }
 }
-
+ 
 
 void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
   //-- Buildings involved

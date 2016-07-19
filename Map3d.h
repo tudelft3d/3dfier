@@ -100,6 +100,7 @@ private:
   bool extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file);
 #else
   bool extract_and_add_polygon(GDALDataset *dataSource, PolygonFile *file);
+  void extract_feature(OGRFeature * f, const char * idfield, const char * heightfield, std::string layertype, bool multiple_heights);
 #endif
 
   void stitch_one_feature(TopoFeature* f, TopoClass adjclass);
