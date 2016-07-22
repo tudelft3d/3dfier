@@ -33,10 +33,12 @@
 #include "TopoFeature.h"
 #include "Map3d.h"
 #include "boost/locale.hpp"
+#include <chrono>
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 
 int main(int argc, const char * argv[]) {
+  auto startTime = std::chrono::high_resolution_clock::now();
   boost::locale::generator gen;
   std::locale loc = gen("en_US.UTF-8");
   std::locale::global(loc);
@@ -229,7 +231,14 @@ int main(int argc, const char * argv[]) {
   }
 
   //-- bye-bye
-  std::clog << "Successfully terminated." << std::endl;
+  long totalTime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - startTime).count();
+  std::clog << "Successfully terminated in " << totalTime;
+  int hours = totalTime / 3600;
+  totalTime -= hours * 3600;
+  int minutes = totalTime / 60;
+  totalTime -= minutes * 60;
+  int seconds = totalTime;
+  std::clog << " seconds || " << hours <<  ":" << minutes << ":" << seconds <<"." << std::endl;
   return 1;
 }
 

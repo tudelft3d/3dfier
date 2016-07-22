@@ -24,10 +24,7 @@
 
 
 std::string gen_key_bucket(Point2* p) {
-  std::stringstream ss;
-  ss << std::setprecision(2) << std::fixed << int(bg::get<0>(p) * 100);
-  ss << std::setprecision(2) << std::fixed << int(bg::get<1>(p) * 100);
-  return ss.str(); 
+  return std::to_string(int(bg::get<0>(p) * 100)) + std::to_string(int(bg::get<1>(p) * 100));
 }
 
 

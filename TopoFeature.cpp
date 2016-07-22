@@ -312,13 +312,13 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
         anc = nc.at(gen_key_bucket(&a));
       }
       catch (const std::out_of_range& oor) {
-        std::cerr << "Id: " << this->get_id() << " - Out of Range error anc" << std::endl;
+        std::cerr << "Id: " << this->get_id() << " - Class: " << this->get_class() << " - Out of Range error anc - " << gen_key_bucket(&a) << std::endl;
       }
       try {
         bnc = nc.at(gen_key_bucket(&b));
       }
       catch (const std::out_of_range& oor) {
-        std::cerr << "Id: " << this->get_id() << " - Out of Range error bnc" << std::endl;
+        std::cerr << "Id: " << this->get_id() << " - Class: " << this->get_class() << " - Out of Range error bnc - " << gen_key_bucket(&b) << std::endl;
       }
 
       //std::clog << "az: " << az << std::endl;
@@ -326,7 +326,7 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       //std::clog << "fadj_az: " << fadj_az << std::endl;
       //std::clog << "fadj_bz: " << fadj_bz << std::endl;
 
-	  //-- find the height of the vertex in the node column
+	    //-- find the height of the vertex in the node column
       std::vector<int>::iterator sait, eait, sbit, ebit;
       sait = std::find(anc.begin(), anc.end(), fadj_az);
       eait = std::find(anc.begin(), anc.end(), az);
@@ -868,7 +868,7 @@ int TIN::get_number_vertices() {
 // bool TIN::add_elevation_point(double x, double y, double z, float radius, bool lastreturn) {
 //   bool toadd = false;
 //   float distance = 4.0;
-//   if (_simplification == 0)
+//   if (_simplification <= 1)
 //     toadd = true;
 //   else {
 //     std::random_device rd;

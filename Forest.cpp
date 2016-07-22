@@ -36,7 +36,7 @@ bool Forest::lift() {
 
 bool Forest::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   bool toadd = false;
-  if (_simplification == 0)
+  if (_simplification <= 1)
     toadd = true;
   else {
     std::random_device rd;

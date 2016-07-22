@@ -61,7 +61,8 @@ std::string Separation::get_obj_f(int offset, bool usemtl)
   std::stringstream ss;
   if (usemtl == true)
     ss << "usemtl Separation" << std::endl;
-  ss << TopoFeature::get_obj_f(offset, usemtl);
+  // set usemtl off to skip seperation of vertical walls
+  ss << TopoFeature::get_obj_f(offset, false);
   return ss.str();
 }
 

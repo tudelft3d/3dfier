@@ -34,37 +34,47 @@ Building::Building(char *wkt, std::string pid, std::string heightref_top, std::s
 }
 
 bool Building::lift() {
-  //-- for the roof
-  double percentile = (std::stod(_heightref_top.substr(_heightref_top.find_first_of("-") + 1)) / 100);
-  Flat::lift_percentile(percentile);
+  if (this->get_id() == "b0b6be352-fd02-11e5-8acc-1fc21a78c5fd") {
+    std::clog << "break" << std::endl;
+  }
+
   //-- for the ground
-  percentile = (std::stod(_heightref_base.substr(_heightref_base.find_first_of("-") + 1)) / 100);
-  std::vector<int> tmp;
-  int ringi = 0;
-  Ring2 oring = bg::exterior_ring(*(_p2));
-  for (int i = 0; i < oring.size(); i++) {
-    std::vector<int> &l = _lidarelevs[ringi][i];
-    std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
-    if (l.empty() == false)
-      tmp.push_back(l[l.size() * percentile]);
+  double percentile = (std::stod(_heightref_base.substr(_heightref_base.find_first_of("-") + 1)) / 100);
+
+  if (_zvaluesground.empty() == false) {
+    //-- Only use ground points for base height calculation
+    std::nth_element(_zvaluesground.begin(), _zvaluesground.begin() + (_zvaluesground.size() * percentile), _zvaluesground.end());
+    _height_base = _zvaluesground[_zvaluesground.size() * percentile];
   }
-  ringi++;
-  auto irings = bg::interior_rings(*(_p2));
-  for (Ring2& iring: irings) {
-    for (int i = 0; i < iring.size(); i++) {
-      std::vector<int> &l = _lidarelevs[ringi][i];
-      std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
-      if (l.empty() == false)
-        tmp.push_back(l[l.size() * percentile]);
-    }
-    ringi++;
+  else if(_zvaluesinside.empty() == false) {
+    std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
+    _height_base = _zvaluesinside[_zvaluesinside.size() * percentile];
   }
-  if (tmp.empty())
+  else {
     _height_base = 0;
-  else //-- take the lowest of all the vertices for the ground
-    _height_base = *(std::min_element(std::begin(tmp), std::end(tmp)));
+  }
+
+  //-- for the roof
+  percentile = (std::stod(_heightref_top.substr(_heightref_top.find_first_of("-") + 1)) / 100);
+  Flat::lift_percentile(percentile);
+
   return true;
 }
+
+
+bool Building::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+  int zcm = int(z * 100);
+  //-- 1. Save the ground points seperate for base height
+  if (lasclass == LAS_GROUND || lasclass == LAS_GROUND) {
+    _zvaluesground.push_back(zcm);
+  }
+  //-- 2. assign to polygon since within the threshold value (buffering of polygon)
+  _zvaluesinside.push_back(zcm);
+  //-- 3. add to the vertices of the pgn to find their heights
+  assign_elevation_to_vertex(x, y, z, radius);
+  return true;
+}
+
 
 int Building::get_height_base() {
   return _height_base;
