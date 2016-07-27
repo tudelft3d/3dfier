@@ -34,10 +34,6 @@ Building::Building(char *wkt, std::string pid, std::string heightref_top, std::s
 }
 
 bool Building::lift() {
-  if (this->get_id() == "b0b6be352-fd02-11e5-8acc-1fc21a78c5fd") {
-    std::clog << "break" << std::endl;
-  }
-
   //-- for the ground
   double percentile = (std::stod(_heightref_base.substr(_heightref_base.find_first_of("-") + 1)) / 100);
 
@@ -65,7 +61,7 @@ bool Building::lift() {
 bool Building::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   int zcm = int(z * 100);
   //-- 1. Save the ground points seperate for base height
-  if (lasclass == LAS_GROUND || lasclass == LAS_GROUND) {
+  if (lasclass == LAS_GROUND || lasclass == LAS_WATER) {
     _zvaluesground.push_back(zcm);
   }
   //-- 2. assign to polygon since within the threshold value (buffering of polygon)

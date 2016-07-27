@@ -149,28 +149,40 @@ bool getCDT(const Polygon2* pgn,
 	mark_domains(cdt);
 
 	unsigned index = 0;
-	int count = 0;
+	//int count = 0;
 
 	if (!cdt.is_valid()) {
 		std::clog << "CDT is invalid." << std::endl;
 	}
-	for (CDT::Finite_vertices_iterator vit = cdt.finite_vertices_begin();
-		vit != cdt.finite_vertices_end(); ++vit) {
-		vertices.push_back(Point3(vit->point().x(), vit->point().y(), vit->point().z()));
-		vit->id() = index++;
+
+  std::set<CDT::Vertex_handle> points;
+  // Create a unique list of vertices in this CDT
+  for (CDT::Finite_faces_iterator fit = cdt.finite_faces_begin();
+    fit != cdt.finite_faces_end(); ++fit) {
+    if (fit->info().in_domain()) {
+      points.insert(fit->vertex(0));
+      points.insert(fit->vertex(1));
+      points.insert(fit->vertex(2));
+    }
+  }
+
+  // Create the id for each vertex
+  for (auto& vertex: points) {
+    vertices.push_back(Point3(vertex->point().x(), vertex->point().y(), vertex->point().z()));
+    vertex->id() = index++;
 	}
 
-	for (CDT::Finite_faces_iterator fit = cdt.finite_faces_begin();
-		fit != cdt.finite_faces_end(); ++fit) {
-		if (fit->info().in_domain()) {
-			Triangle t;
-			t.v0 = fit->vertex(0)->id();
-			t.v1 = fit->vertex(1)->id();
-			t.v2 = fit->vertex(2)->id();
-			triangles.push_back(t);
-			count++;
-		}
-	}
+  // Save the triangle and the corresponding vertex id's
+  for (CDT::Finite_faces_iterator fit = cdt.finite_faces_begin();
+    fit != cdt.finite_faces_end(); ++fit) {
+    if (fit->info().in_domain()) {
+      Triangle t;
+      t.v0 = fit->vertex(0)->id();
+      t.v1 = fit->vertex(1)->id();
+      t.v2 = fit->vertex(2)->id();
+      triangles.push_back(t);
+    }
+  }
 
 	// std::clog << "There are " << count << " facets in the domain." << std::endl;
 

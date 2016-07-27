@@ -28,12 +28,13 @@
 Map3d::Map3d() {
   OGRRegisterAll();
   _building_include_floor = false;
-  _building_heightref_roof = "percentile-50";
-  _building_heightref_floor = "percentile-05";
+  _building_heightref_roof = "percentile-90";
+  _building_heightref_floor = "percentile-10";
   _building_triangulate = true;
   _terrain_simplification = 0;
   _forest_simplification = 0;
   _radius_vertex_elevation = 1.0;
+  _building_radius_vertex_elevation = 1.0;
   _threshold_jump_edges = 50;
   _minx = 1e8;
   _miny = 1e8;
@@ -55,6 +56,10 @@ void Map3d::set_building_heightref_floor(std::string h) {
 
 void Map3d::set_radius_vertex_elevation(float radius) {
   _radius_vertex_elevation = radius;
+}
+
+void Map3d::set_building_radius_vertex_elevation(float radius) {
+  _building_radius_vertex_elevation = radius;
 }
 
 void Map3d::set_threshold_jump_edges(float threshold) {
@@ -260,14 +265,26 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
 
   Point2 p(laspt.GetX(), laspt.GetY());
   std::vector<PairIndexed> re;
-  Point2 minp(laspt.GetX() - _radius_vertex_elevation, laspt.GetY() - _radius_vertex_elevation);
-  Point2 maxp(laspt.GetX() + _radius_vertex_elevation, laspt.GetY() + _radius_vertex_elevation);
+  float radius = _radius_vertex_elevation;
+  if (_building_radius_vertex_elevation > _radius_vertex_elevation) {
+    radius = _building_radius_vertex_elevation;
+  }
+  Point2 minp(laspt.GetX() - radius, laspt.GetY() - radius);
+  Point2 maxp(laspt.GetX() + radius, laspt.GetY() + radius);
   Box2 querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
   LAS14Class lasclass = LAS_UNKNOWN;
   for (auto& v : re) {
     TopoFeature* f = v.second;
-    if (bg::distance(p, *(f->get_Polygon2())) < _radius_vertex_elevation) {
+    if (f->get_class() == BUILDING)
+    {
+      radius = _building_radius_vertex_elevation;
+    }
+    else {
+      radius = _radius_vertex_elevation;
+    }
+
+    if (bg::distance(p, *(f->get_Polygon2())) < radius) {
       //-- get LAS class
       if (laspt.GetClassification() == liblas::Classification(LAS_UNCLASSIFIED))
         lasclass = LAS_UNCLASSIFIED;
@@ -285,7 +302,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
       f->add_elevation_point(laspt.GetX(),
         laspt.GetY(),
         laspt.GetZ(),
-        _radius_vertex_elevation,
+        radius,
         lasclass,
         (laspt.GetReturnNumber() == laspt.GetNumberOfReturns()));
     }
@@ -623,18 +640,6 @@ std::vector<TopoFeature*> Map3d::get_adjacent_features(TopoFeature* f) {
 }
 
 
-void Map3d::stitch_one_feature(TopoFeature* f, TopoClass adjclass) {
-  std::vector<PairIndexed> re;
-  _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-  for (auto& each : re) {
-    // TopoFeature* fadj = each.second;
-    if (each.second->get_class() == adjclass) {
-      std::clog << each.second->get_id() << std::endl;
-    }
-  }
-}
-
-
 void Map3d::stitch_lifted_features() {
   std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
@@ -720,13 +725,10 @@ void Map3d::stitch_lifted_features() {
 }
 
 void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star) {
-  //if (f->get_id() == "b0b6be352-fd02-11e5-8acc-1fc21a78c5fd") {
-  //  std::clog << "break" << std::endl;
-  //}
   //-- degree of vertex == 2
   if (star.size() == 1) {
     TopoFeature* fadj = std::get<0>(star[0]);
-    //-- if not building and same class, then average. TODO: always, also for water?
+    //-- if not building and same class or both soft, then average.
     if (f->get_class() != BUILDING && (f->get_class() == fadj->get_class() || (f->is_hard() == false && fadj->is_hard() == false))) {
       stitch_average(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
     }
@@ -761,8 +763,12 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     std::vector<int> heightperclass(7, 0);
     std::vector<int> classcount(7, 0);
     int building = -1;
+    int water = -1;
     for (int i = 0; i < zstar.size(); i++) {
       if (std::get<1>(zstar[i])->get_class() != BUILDING) {
+        if (std::get<1>(zstar[i])->get_class() == WATER) {
+          water = i;
+        }
         heightperclass[std::get<1>(zstar[i])->get_class()] += std::get<1>(zstar[i])->get_vertex_elevation(std::get<2>(zstar[i]), std::get<3>(zstar[i]));
         classcount[std::get<1>(zstar[i])->get_class()]++;
       }
@@ -779,6 +785,10 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       for (auto& each : zstar) {
         if (std::get<1>(each)->get_class() != BUILDING && std::get<1>(each)->get_class() != WATER) {
           std::get<0>(each) = baseheight;
+          if (water != -1) {
+            //- add a vertical wall between the feature and the water
+            std::get<1>(each)->add_vertical_wall();
+          }
         }
         else if (std::get<1>(each)->get_class() == BUILDING) {
           std::get<1>(each)->add_vertical_wall();
@@ -807,12 +817,13 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
           bool bStitched = false;
           int deltaz = std::abs(std::get<0>(*it) - std::get<0>(*it2));
           if (deltaz < this->_threshold_jump_edges) {
-            if (std::get<1>(*it)->is_hard() == false) {
-              std::get<0>(*it) = std::get<0>(*it2);
+            //-- Handle 2nd is soft first so in case of both soft the heigher value will be snapped to the lowest
+            if (std::get<1>(*it2)->is_hard() == false) {
+              std::get<0>(*it2) = std::get<0>(*it);
               bStitched = true;
             }
-            else if (std::get<1>(*it2)->is_hard() == false) {
-              std::get<0>(*it2) = std::get<0>(*it);
+            else if (std::get<1>(*it)->is_hard() == false) {
+              std::get<0>(*it) = std::get<0>(*it2);
               bStitched = true;
             }
           }
@@ -864,14 +875,28 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
       _nc[key_bucket].push_back(f2z);
     }
     else if (f1->get_class() == BUILDING) {
-      f2->set_vertex_elevation(ringi2, pi2, dynamic_cast<Building*>(f1)->get_height_base());
+      if (f2->get_class() != WATER) {
+        f2->set_vertex_elevation(ringi2, pi2, dynamic_cast<Building*>(f1)->get_height_base());
+      }
+      else
+      {
+        //- keep water flat, add the water height to the nc
+        _nc[key_bucket].push_back(f2z);
+      }
       //- expect a building to always be heighest adjacent feature
       f1->add_vertical_wall();
       _nc[key_bucket].push_back(f1z);
       _nc[key_bucket].push_back(dynamic_cast<Building*>(f1)->get_height_base());
     }
     else { //-- f2 is Building
-      f1->set_vertex_elevation(ringi1, pi1, dynamic_cast<Building*>(f2)->get_height_base());
+      if (f1->get_class() != WATER) {
+        f1->set_vertex_elevation(ringi1, pi1, dynamic_cast<Building*>(f2)->get_height_base());
+      }
+      else
+      {
+        //- keep water flat, add the water height to the nc
+        _nc[key_bucket].push_back(f1z);
+      }
       //- expect a building to always be heighest adjacent feature
       f2->add_vertical_wall();
       _nc[key_bucket].push_back(f2z);

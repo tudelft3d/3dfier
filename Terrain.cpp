@@ -29,6 +29,13 @@ Terrain::Terrain (char *wkt, std::string pid, int simplification)
 {}
 
 
+bool Terrain::lift() {
+  //-- lift vertices to their median of lidar points
+  TopoFeature::lift_each_boundary_vertices(0.5);
+  return true;
+}
+
+
 bool Terrain::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   bool toadd = false;
   if (_simplification <= 1)
@@ -50,8 +57,11 @@ bool Terrain::add_elevation_point(double x, double y, double z, float radius, LA
   //}
   //if ( (lastreturn == true) && (lasclass != LAS_BUILDING) )
   //  assign_elevation_to_vertex(x, y, z, radius);
-  if (toadd == true && lastreturn == true && lasclass == LAS_GROUND) {
-    _lidarpts.push_back(Point3(x, y, z));
+  if (toadd && lastreturn && lasclass == LAS_GROUND) {
+    Point2 p(x, y);
+    if(bg::within(p, *(_p2))) {
+      _lidarpts.push_back(Point3(x, y, z));
+    }
     assign_elevation_to_vertex(x, y, z, radius);
   }
   return toadd;
@@ -82,12 +92,5 @@ std::string Terrain::get_citygml() {
 
 bool Terrain::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Terrain");
-}
-
-
-bool Terrain::lift() {
-  //-- lift vertices to their median of lidar points
-  TopoFeature::lift_each_boundary_vertices(0.5);
-  return true;
 }
 

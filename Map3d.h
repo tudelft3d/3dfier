@@ -74,6 +74,7 @@ public:
   void set_separation_heightref(std::string heightref);
   void set_bridge_heightref(std::string heightref);
   void set_radius_vertex_elevation(float radius);
+  void set_building_radius_vertex_elevation(float radius);
   void set_threshold_jump_edges(float threshold);
 private:
   std::string _building_heightref_roof;
@@ -87,6 +88,7 @@ private:
   std::string _separation_heightref;
   std::string _bridge_heightref;
   float       _radius_vertex_elevation;
+  float       _building_radius_vertex_elevation;
   int         _threshold_jump_edges; //-- in cm/integer
   double      _minx;
   double      _miny;
@@ -103,7 +105,6 @@ private:
   void extract_feature(OGRFeature * f, const char * idfield, const char * heightfield, std::string layertype, bool multiple_heights);
 #endif
 
-  void stitch_one_feature(TopoFeature* f, TopoClass adjclass);
   void stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star);
   void stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);
   void stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);

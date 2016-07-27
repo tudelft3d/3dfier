@@ -37,6 +37,13 @@ bool Water::lift() {
   return true;
 }
 
+//bool Water::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+//  if (lastreturn == true && lasclass == LAS_WATER) {
+//    Flat::add_elevation_point(x, y, z, radius, lasclass, lastreturn);
+//  }
+//  return true;
+//}
+
 
 TopoClass Water::get_class() {
   return WATER;

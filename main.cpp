@@ -102,6 +102,14 @@ int main(int argc, const char * argv[]) {
     if (n["Bridge/Overpass"]["height"])
       map3d.set_bridge_heightref(n["Bridge/Overpass"]["height"].as<std::string>());
 
+  n = nodes["options"];
+  if (n["radius_vertex_elevation"])
+    map3d.set_radius_vertex_elevation(n["radius_vertex_elevation"].as<float>());
+  if (n["building_radius_vertex_elevation"])
+    map3d.set_building_radius_vertex_elevation(n["building_radius_vertex_elevation"].as<float>());
+  if (n["threshold_jump_edges"])
+    map3d.set_threshold_jump_edges(n["threshold_jump_edges"].as<float>());
+
   //-- add the polygons to the map3d
   std::vector<PolygonFile> files;
   n = nodes["input_polygons"];
@@ -173,12 +181,6 @@ int main(int argc, const char * argv[]) {
     std::cerr << "ERROR: No elevation dataset given, cannot 3dfy the dataset. Aborting." << std::endl;
     return 0;
   }
-
-  n = nodes["options"];
-  if (n["radius_vertex_elevation"])
-    map3d.set_radius_vertex_elevation(n["radius_vertex_elevation"].as<float>());
-  if (n["threshold_jump_edges"])
-    map3d.set_threshold_jump_edges(n["threshold_jump_edges"].as<float>());
 
   n = nodes["output"];
   std::clog << "Lifting all input polygons to 3D..." << std::endl;

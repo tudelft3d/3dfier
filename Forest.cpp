@@ -45,16 +45,23 @@ bool Forest::add_elevation_point(double x, double y, double z, float radius, LAS
     if (dis(gen) == 1)
       toadd = true;
   }
-  if (toadd == true) {
-    //Point2 p(x, y);
-    if ( lastreturn == true &&
-        (lasclass != LAS_BUILDING) ) //&& 
-        //(bg::within(p, *(_p2)) == true) && 
-        //(this->get_distance_to_boundaries(p) > (radius * 1.5)) ) 
+  //if (toadd == true) {
+  //  //Point2 p(x, y);
+  //  if ( lastreturn == true &&
+  //      (lasclass != LAS_BUILDING) ) //&& 
+  //      //(bg::within(p, *(_p2)) == true) && 
+  //      //(this->get_distance_to_boundaries(p) > (radius * 1.5)) ) 
+  //    _lidarpts.push_back(Point3(x, y, z));
+  //}
+  //if (lastreturn == true)
+  //  assign_elevation_to_vertex(x, y, z, radius);
+  if (toadd && lastreturn && lasclass != LAS_BUILDING) {
+    Point2 p(x, y);
+    if(bg::within(p, *(_p2))) {
       _lidarpts.push_back(Point3(x, y, z));
-  }
-  if (lastreturn == true)
+    }
     assign_elevation_to_vertex(x, y, z, radius);
+  }
   return toadd;
 }
 
