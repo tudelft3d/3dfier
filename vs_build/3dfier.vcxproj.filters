@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\3dfier\main.cpp" />
+    <ClCompile Include="..\..\3dfier\io.cpp" />
+    <ClCompile Include="..\..\3dfier\Map3d.cpp" />
+    <ClCompile Include="..\..\3dfier\Building.cpp" />
+    <ClCompile Include="..\..\3dfier\Road.cpp" />
+    <ClCompile Include="..\..\3dfier\Terrain.cpp" />
+    <ClCompile Include="..\..\3dfier\TopoFeature.cpp" />
+    <ClCompile Include="..\..\3dfier\Forest.cpp" />
+    <ClCompile Include="..\..\3dfier\Water.cpp" />
+    <ClCompile Include="..\..\3dfier\geomtools.cpp" />
+    <ClCompile Include="..\Separation.cpp" />
+    <ClCompile Include="..\Bridge.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{6bab34b8-d2c1-4389-843c-f8e08273d93c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Map3d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\TopoFeature.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\geomtools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\definitions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Water.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Terrain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Road.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Forest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Building.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Separation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Bridge.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

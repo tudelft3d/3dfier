@@ -26,18 +26,27 @@
 #include "TopoFeature.h"
 
 
-class Building : public Block
+class Building : public Flat
 {
 public:
   Building (char *wkt, std::string pid, std::string heightref_top, std::string heightref_base);
   bool        lift();
-  bool        buildCDT();
+  bool        add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
   std::string get_citygml();
   std::string get_csv();
   std::string get_obj_f(int offset, bool usemtl);
   std::string get_obj_f_floor(int offset);
+  std::string get_obj_v_building_volume(int z_exaggeration);
+  std::string get_obj_f_building_volume(int offset, bool usemtl);
+  bool        get_shape(OGRLayer * layer);
   TopoClass   get_class();
   bool        is_hard();
+  int         get_height_base();
+private: 
+  std::vector<int>    _zvaluesground;
+  static std::string  _heightref_top;
+  static std::string  _heightref_base;
+  int                 _height_base;
 };
 
 

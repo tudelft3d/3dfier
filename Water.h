@@ -26,20 +26,19 @@
 
 #include "TopoFeature.h"
 
-
-class Water : public Boundary3D
+class Water : public Flat
 {
 public:
-  Water (char *wkt, std::string pid, std::string heightref);
+                Water(char *wkt, std::string pid, std::string heightref);
   bool          lift();
-  bool          buildCDT();
+//  bool          add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
   std::string   get_citygml();
   std::string   get_obj_f(int offset, bool usemtl);
+  bool          get_shape(OGRLayer * layer);
   TopoClass     get_class();
   bool          is_hard();
-  static std::string _heightref;
 protected:
-  void          make_boundary_horizontal();
+  static std::string  _heightref;
 };
 
 

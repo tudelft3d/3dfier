@@ -18,13 +18,12 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
- */
+*/
 
 
-//-- TODO: add GDAL2.0 support
+//-- TODO: create the topo DS locally? to prevent cases where nodes on only in one polygon. Or pprepair before?
 //-- TODO: write output all polygons once the tile completely containing is closed?
-//-- TODO: filter the noise in the lidar points inside TIN?
-//-- TODO : how to make roads horizontal "in the length"? or do we need to?
+//-- TODO : how to make roads horizontal "in the width"? 
 
 //-----------------------------------------------------------------------------
 
@@ -33,13 +32,18 @@
 #include "io.h"
 #include "TopoFeature.h"
 #include "Map3d.h"
+#include "boost/locale.hpp"
+#include <chrono>
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 
-
-
 int main(int argc, const char * argv[]) {
-  
+  auto startTime = std::chrono::high_resolution_clock::now();
+  boost::locale::generator gen;
+  std::locale loc = gen("en_US.UTF-8");
+  std::locale::global(loc);
+  std::clog.imbue(loc);
+
 //-- reading the config file
   if (argc != 2) {
     std::cerr << "ERROR: the config file (*.yml) is not defined." << std::endl;
@@ -53,7 +57,8 @@ int main(int argc, const char * argv[]) {
   allowedFeatures.insert("Water");
   allowedFeatures.insert("Terrain");
   allowedFeatures.insert("Road");
-  allowedFeatures.insert("Vegetation");
+  allowedFeatures.insert("Forest");
+  allowedFeatures.insert("Separation");
   allowedFeatures.insert("Bridge/Overpass");
 
 //-- validate the YAML file right now, nicer for the user
@@ -69,8 +74,8 @@ int main(int argc, const char * argv[]) {
   if (n["Building"]) {
     if (n["Building"]["height_roof"])
       map3d.set_building_heightref_roof(n["Building"]["height_roof"].as<std::string>());
-    if (n["Building"]["height_ground"])
-      map3d.set_building_heightref_floor(n["Building"]["height_ground"].as<std::string>());
+    if (n["Building"]["height_floor"])
+      map3d.set_building_heightref_floor(n["Building"]["height_floor"].as<std::string>());
     if (n["Building"]["triangulate"]) {
       if (n["Building"]["triangulate"].as<std::string>() == "true") 
         map3d.set_building_triangulate(true);
@@ -81,49 +86,75 @@ int main(int argc, const char * argv[]) {
   if (n["Terrain"]) 
     if (n["Terrain"]["simplification"])
       map3d.set_terrain_simplification(n["Terrain"]["simplification"].as<int>());
-  if (n["Vegetation"]) 
-    if (n["Vegetation"]["simplification"])
-      map3d.set_vegetation_simplification(n["Vegetation"]["simplification"].as<int>());
+  if (n["Forest"]) 
+    if (n["Forest"]["simplification"])
+      map3d.set_forest_simplification(n["Forest"]["simplification"].as<int>());
   if (n["Water"]) 
     if (n["Water"]["height"])
       map3d.set_water_heightref(n["Water"]["height"].as<std::string>());
   if (n["Road"]) 
     if (n["Road"]["height"])
       map3d.set_road_heightref(n["Road"]["height"].as<std::string>());
+  if (n["Separation"])
+    if (n["Separation"]["height"])
+      map3d.set_separation_heightref(n["Separation"]["height"].as<std::string>());
+  if (n["Bridge/Overpass"])
+    if (n["Bridge/Overpass"]["height"])
+      map3d.set_bridge_heightref(n["Bridge/Overpass"]["height"].as<std::string>());
 
-//-- add the polygons to the map3d
+  n = nodes["options"];
+  if (n["radius_vertex_elevation"])
+    map3d.set_radius_vertex_elevation(n["radius_vertex_elevation"].as<float>());
+  if (n["building_radius_vertex_elevation"])
+    map3d.set_building_radius_vertex_elevation(n["building_radius_vertex_elevation"].as<float>());
+  if (n["threshold_jump_edges"])
+    map3d.set_threshold_jump_edges(n["threshold_jump_edges"].as<float>());
+
+  //-- add the polygons to the map3d
+  std::vector<PolygonFile> files;
   n = nodes["input_polygons"];
-  bool wentgood = true;
+  bool wentgood = false;
   for (auto it = n.begin(); it != n.end(); ++it) {
-    if ((*it)["lifting_per_layer"]) {
-      YAML::Node tmp = (*it)["lifting_per_layer"];
-      std::vector<std::pair<std::string, std::string> > layers;
-      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-        std::pair<std::string, std::string> onepair( (it2->first).as<std::string>(), (it2->second).as<std::string>() );
-        layers.push_back(onepair);
+    // Get the correct uniqueid attribute
+    std::string uniqueid = "fid";
+    if ((*it)["uniqueid"]) {
+      uniqueid = (*it)["uniqueid"].as<std::string>();
+    }
+    // Get the correct height attribute
+    std::string heightfield = "hoogtenive";
+    if ((*it)["height_field"]) {
+      heightfield = (*it)["height_field"].as<std::string>();
+    }
+    // Get the handle_multiple_heights setting
+    bool handle_multiple_heights = false;
+    if ((*it)["handle_multiple_heights"] && (*it)["handle_multiple_heights"].as<std::string>() == "true") {
+      handle_multiple_heights = true;
+    }
+
+    // Get all datasets
+    YAML::Node datasets = (*it)["datasets"];
+    for (auto it2 = datasets.begin(); it2 != datasets.end(); ++it2) {
+      PolygonFile file;
+      file.filename = it2->as<std::string>();
+      file.idfield = uniqueid;
+      file.heightfield = heightfield;
+      file.handle_multiple_heights = handle_multiple_heights;
+      if ((*it)["lifting"]) {
+        file.layers.emplace_back(std::string(), (*it)["lifting"].as<std::string>());
+        files.push_back(file);
       }
-      tmp = (*it)["datasets"];
-      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-        wentgood = map3d.add_polygons_file(it2->as<std::string>(),
-                                           (*it)["uniqueid"].as<std::string>(),
-                                           layers);
+      else if ((*it)["lifting_per_layer"]) {
+        YAML::Node layers = (*it)["lifting_per_layer"];
+        for (auto it3 = layers.begin(); it3 != layers.end(); ++it3) {
+          file.layers.emplace_back(it3->first.as<std::string>(), it3->second.as<std::string>());
+        }
+        files.push_back(file);
       }
     }
-    else if ((*it)["lifting"]) {
-      YAML::Node tmp = (*it)["datasets"];
-      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-        wentgood = map3d.add_polygons_file(it2->as<std::string>(),
-                                           (*it)["uniqueid"].as<std::string>(),
-                                           (*it)["lifting"].as<std::string>());
-      }
-    }
-  }
-  if (wentgood == false) {
-    std::cerr << "ERROR: Something went bad while reading input polygons. Aborting." << std::endl;
-    return 0;
   }
 
-  std::clog << "\nTotal # of polygons: " << map3d.get_num_polygons() << std::endl;
+  map3d.add_polygons_files(files);
+  std::clog << "\nTotal # of polygons: " << boost::locale::as::number << map3d.get_num_polygons() << std::endl;
   
   //-- spatially index the polygons
   map3d.construct_rtree();
@@ -139,7 +170,10 @@ int main(int argc, const char * argv[]) {
     tmp = (*it)["datasets"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
       bElevData = true;
-      map3d.add_las_file(it2->as<std::string>(), lasomits, (*it)["thinning"].as<int>());
+      if ((*it)["thinning"]) 
+        map3d.add_las_file(it2->as<std::string>(), lasomits, (*it)["thinning"].as<int>());
+      else
+        map3d.add_las_file(it2->as<std::string>(), lasomits, 1);
     }
   }
 
@@ -152,6 +186,8 @@ int main(int argc, const char * argv[]) {
   std::clog << "Lifting all input polygons to 3D..." << std::endl;
   if (n["format"].as<std::string>() == "CSV-BUILDINGS")
     map3d.threeDfy(false);
+  if (n["format"].as<std::string>() == "OBJ-BUILDINGS")
+    map3d.threeDfy_building_volume();
   else
     map3d.threeDfy();
   std::clog << "done." << std::endl;
@@ -160,25 +196,51 @@ int main(int argc, const char * argv[]) {
   //-- output
   if (n["building_floor"].as<std::string>() == "true") 
     map3d.set_building_include_floor(true);
+  int z_exaggeration = 0;
+  if (n["vertical_exaggeration"]) 
+    z_exaggeration = n["vertical_exaggeration"].as<int>();
   if (n["format"].as<std::string>() == "CityGML") {
     std::clog << "CityGML output" << std::endl;
     std::cout << map3d.get_citygml() << std::endl;
   }
   else if (n["format"].as<std::string>() == "OBJ") {
     std::clog << "OBJ output" << std::endl;
-    std::cout << map3d.get_obj_per_feature() << std::endl;
+    std::cout << map3d.get_obj_per_feature(z_exaggeration) << std::endl;
   }
   else if (n["format"].as<std::string>() == "OBJ-NoID") {
     std::clog << "OBJ (without IDs) output" << std::endl;
-    std::cout << map3d.get_obj_per_class() << std::endl;
+    std::cout << map3d.get_obj_per_class(z_exaggeration) << std::endl;
   }
   else if (n["format"].as<std::string>() == "CSV-BUILDINGS") {
     std::clog << "CSV output (only of the buildings)" << std::endl;
     std::cout << map3d.get_csv_buildings() << std::endl;
   }
+  else if (n["format"].as<std::string>() == "OBJ-BUILDINGS") {
+    std::clog << "OBJ output (only of the buildings)" << std::endl;
+    std::cout << map3d.get_obj_building_volume(z_exaggeration) << std::endl;
+  }
+  else if (n["format"].as<std::string>() == "Shapefile") {
+    std::clog << "Shapefile output" << std::endl;
+    std::string filename = n["filename"].as<std::string>();
+    if (map3d.get_shapefile(filename)) {
+      std::clog << "Shapefile written" << std::endl;
+    }
+    else
+    {
+      std::cerr << "Writing shapefile failed" << std::endl;
+      return 0;
+    }
+  }
 
   //-- bye-bye
-  std::clog << "Successfully terminated." << std::endl;
+  long totalTime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - startTime).count();
+  std::clog << "Successfully terminated in " << totalTime;
+  int hours = totalTime / 3600;
+  totalTime -= hours * 3600;
+  int minutes = totalTime / 60;
+  totalTime -= minutes * 60;
+  int seconds = totalTime;
+  std::clog << " seconds || " << hours <<  ":" << minutes << ":" << seconds <<"." << std::endl;
   return 1;
 }
 
@@ -263,11 +325,31 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       }
     }
   }  
-  if (n["Vegetation"]) {
-    if (n["Vegetation"]["simplification"]) {
-      if (is_string_integer(n["Vegetation"]["simplification"].as<std::string>()) == false) {
+  if (n["Forest"]) {
+    if (n["Forest"]["simplification"]) {
+      if (is_string_integer(n["Forest"]["simplification"].as<std::string>()) == false) {
         wentgood = false;
-        std::cerr << "\tOption 'Vegetation.simplification' invalid; must be an integer." << std::endl;
+        std::cerr << "\tOption 'Forest.simplification' invalid; must be an integer." << std::endl;
+      }
+    }
+  }
+  if (n["Separation"]) {
+    if (n["Separation"]["height"]) {
+      std::string s = n["Separation"]["height"].as<std::string>();
+      if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
+        (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
+        wentgood = false;
+        std::cerr << "\tOption 'Separation.height' invalid; must be 'percentile-XX'." << std::endl;
+      }
+    }
+  }
+  if (n["Bridge/Overpass"]) {
+    if (n["Bridge/Overpass"]["height"]) {
+      std::string s = n["Bridge/Overpass"]["height"].as<std::string>();
+      if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
+        (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
+        wentgood = false;
+        std::cerr << "\tOption 'Bridge/Overpass.height' invalid; must be 'percentile-XX'." << std::endl;
       }
     }
   }
@@ -299,16 +381,30 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       std::cerr << "\tOption 'options.radius_vertex_elevation' invalid." << std::endl;
     }
   }
+  if (n["threshold_jump_edges"]) {
+    try {
+      boost::lexical_cast<float>(n["threshold_jump_edges"].as<std::string>());
+    }
+    catch(boost::bad_lexical_cast& e) {
+      wentgood = false;
+      std::cerr << "\tOption 'options.threshold_jump_edges' invalid." << std::endl;
+    }
+  }
 //-- 5. output
   n = nodes["output"];
   if ( (n["format"].as<std::string>() != "OBJ") &&
        (n["format"].as<std::string>() != "OBJ-NoID") &&
        (n["format"].as<std::string>() != "CityGML") &&
-       (n["format"].as<std::string>() != "CSV-BUILDINGS") ) {
+       (n["format"].as<std::string>() != "OBJ-BUILDINGS") &&
+       (n["format"].as<std::string>() != "CSV-BUILDINGS")  &&
+       (n["format"].as<std::string>() != "Shapefile") ) {
     wentgood = false;
-    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CSV-BUILDINGS)" << std::endl;
+    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CSV-BUILDINGS | Shapefile)" << std::endl;
+  }
+  //-- Shapefile type filename check
+  if (n["format"].as<std::string>() == "Shapefile" && !n["filename"]) {
+    wentgood = false;
+    std::cerr << "\tOption 'output.format' Shapefile needs an output.filename" << std::endl;
   }
   return wentgood;
 }
-
-

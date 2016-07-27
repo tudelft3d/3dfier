@@ -20,23 +20,21 @@
  SOFTWARE.
 */
 
-#include "Terrain.h"
-#include <algorithm>
+ 
+#include "Forest.h"
 
 
-Terrain::Terrain (char *wkt, std::string pid, int simplification) 
-: TIN(wkt, pid, simplification)
+Forest::Forest (char *wkt, std::string pid, int simplification) : TIN(wkt, pid, simplification)
 {}
 
 
-bool Terrain::lift() {
-  //-- lift vertices to their median of lidar points
+bool Forest::lift() {
   TopoFeature::lift_each_boundary_vertices(0.5);
   return true;
 }
 
 
-bool Terrain::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool Forest::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   bool toadd = false;
   if (_simplification <= 1)
     toadd = true;
@@ -49,15 +47,15 @@ bool Terrain::add_elevation_point(double x, double y, double z, float radius, LA
   }
   //if (toadd == true) {
   //  //Point2 p(x, y);
-  //  if ( (lastreturn == true) && 
-  //       (lasclass == LAS_GROUND) ) //&& 
-  //       //(bg::within(p, *(_p2)) == true) && 
-  //       //(this->get_distance_to_boundaries(p) > (radius * 1.5)) ) 
+  //  if ( lastreturn == true &&
+  //      (lasclass != LAS_BUILDING) ) //&& 
+  //      //(bg::within(p, *(_p2)) == true) && 
+  //      //(this->get_distance_to_boundaries(p) > (radius * 1.5)) ) 
   //    _lidarpts.push_back(Point3(x, y, z));
   //}
-  //if ( (lastreturn == true) && (lasclass != LAS_BUILDING) )
+  //if (lastreturn == true)
   //  assign_elevation_to_vertex(x, y, z, radius);
-  if (toadd && lastreturn && lasclass == LAS_GROUND) {
+  if (toadd && lastreturn && lasclass != LAS_BUILDING) {
     Point2 p(x, y);
     if(bg::within(p, *(_p2))) {
       _lidarpts.push_back(Point3(x, y, z));
@@ -68,29 +66,27 @@ bool Terrain::add_elevation_point(double x, double y, double z, float radius, LA
 }
 
 
-std::string Terrain::get_obj_f(int offset, bool usemtl) {
-  std::stringstream ss;
-  if (usemtl == true)
-    ss << "usemtl Terrain" << std::endl;
-  ss << TIN::get_obj_f(offset, usemtl);
-  return ss.str();
+TopoClass Forest::get_class() {
+  return FOREST;
 }
 
-TopoClass Terrain::get_class() {
-  return TERRAIN;
-}
-
-bool Terrain::is_hard() {
+bool Forest::is_hard() {
   return false;
 }
 
-
-std::string Terrain::get_citygml() {
+std::string Forest::get_citygml() {
   return "<EMPTY/>";
 }
 
-
-bool Terrain::get_shape(OGRLayer* layer) {
-  return TopoFeature::get_shape_features(layer, "Terrain");
+std::string Forest::get_obj_f(int offset, bool usemtl) {
+  std::stringstream ss;
+  if (usemtl == true)
+    ss << "usemtl Forest" << std::endl;
+  ss << TopoFeature::get_obj_f(offset, usemtl);
+  return ss.str();
 }
 
+
+bool Forest::get_shape(OGRLayer* layer) {
+  return TopoFeature::get_shape_features(layer, "Forest");
+}

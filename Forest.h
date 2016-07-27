@@ -19,43 +19,24 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
 */
+#ifndef Forest_h
+#define Forest_h
 
- 
-#include "Vegetation.h"
+#include "TopoFeature.h"
 
-
-Vegetation::Vegetation (char *wkt, std::string pid, int simplification) : TIN(wkt, pid, simplification)
-{}
-
-
-bool Vegetation::lift() {
-  TopoFeature::lift_vertices_boundary(0.5);
-  return true;
-}
-
-bool Vegetation::buildCDT() {
-  getCDT(&_p3, _vertices, _triangles, _segments, _lidarpts);
-  return true;
-}
-
-TopoClass Vegetation::get_class() {
-  return VEGETATION;
-}
-
-bool Vegetation::is_hard() {
-  return false;
-}
-
-std::string Vegetation::get_citygml() {
-  return "<EMPTY/>";
-}
-
-std::string Vegetation::get_obj_f(int offset, bool usemtl) {
-  std::stringstream ss;
-  if (usemtl == true)
-    ss << "usemtl Vegetation" << std::endl;
-  ss << TopoFeature::get_obj_f(offset, usemtl);
-  return ss.str();
-}
+class Forest : public TIN
+{
+public:
+  Forest (char *wkt, std::string pid, int simplification);
+  bool          lift();
+  bool          add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  std::string   get_citygml();
+  std::string   get_obj_f(int offset, bool usemtl);
+  bool          get_shape(OGRLayer * layer);
+  TopoClass     get_class();
+  bool          is_hard();
+};
 
 
+
+#endif /* Forest_h */

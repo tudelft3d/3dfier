@@ -31,14 +31,13 @@ class Road : public Boundary3D
 public:
   Road (char *wkt, std::string pid, std::string heightref);
   bool                lift();
-  bool                buildCDT();
+  bool                add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
   std::string         get_citygml();
   std::string         get_obj_f(int offset, bool usemtl);
+  bool                get_shape(OGRLayer * layer);
   static std::string  _heightref;
   TopoClass           get_class();
   bool                is_hard();
-// protected:
-  // void                smooth_boundary(Polygon3 &p3);
 };
 
 

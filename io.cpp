@@ -23,6 +23,11 @@
 #include "io.h"
 
 
+std::string gen_key_bucket(Point2* p) {
+  return std::to_string(int(bg::get<0>(p) * 100)) + std::to_string(int(bg::get<1>(p) * 100));
+}
+
+
 void printProgressBar( int percent ) {
   std::string bar;
   for(int i = 0; i < 50; i++){

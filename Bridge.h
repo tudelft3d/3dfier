@@ -19,23 +19,26 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
 */
-#ifndef Vegetation_h
-#define Vegetation_h
+ 
+#ifndef Bridge_h
+#define Bridge_h
 
 #include "TopoFeature.h"
 
-class Vegetation : public TIN
+
+class Bridge : public Flat
 {
 public:
-  Vegetation (char *wkt, std::string pid, int simplification);
-  bool          lift();
-  bool          buildCDT();
-  std::string   get_citygml();
-  std::string   get_obj_f(int offset, bool usemtl);
-  TopoClass     get_class();
-  bool          is_hard();
+  Bridge(char *wkt, std::string pid, std::string heightref);
+  bool                lift();
+  bool                add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  std::string         get_citygml();
+  std::string         get_obj_f(int offset, bool usemtl);
+  bool                get_shape(OGRLayer * layer);
+  static std::string  _heightref;
+  TopoClass           get_class();
+  bool                is_hard();
 };
 
 
-
-#endif /* Vegetation_h */
+#endif /* Bridge_h */

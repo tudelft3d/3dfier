@@ -37,72 +37,80 @@ public:
   ~TopoFeature ();
 
   virtual bool          lift() = 0;
-  virtual bool          buildCDT() = 0;
-  virtual bool          add_elevation_point(double x, double y, double z, float radius) = 0;
+  virtual bool          buildCDT();
+  virtual bool          add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) = 0;
   virtual std::string   get_citygml() = 0;
-  virtual std::string   get_obj_v();
+  virtual std::string   get_obj_v(int z_exaggeration);
   virtual std::string   get_obj_f(int offset, bool usemtl);
+  virtual bool          get_shape(OGRLayer*) = 0;
   virtual int           get_number_vertices() = 0;
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
 
   std::string  get_id();
+  void         construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std::unordered_map<std::string, std::vector<int>> nc);
+  void         fix_bowtie(std::vector<TopoFeature*> lsAdj);
   int          get_counter(); 
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
-  int          has_point2(Point2& p);
-  bool         has_segment(Point2& a, Point2& b, int& ia, int& ib);
-  void         set_point_elevation(int i, float z);  
-  double       get_point_x(int i);
-  double       get_point_y(int i);
-  float        get_point_elevation(int i);
-  void         add_nc(int i, float z);
-  std::vector<float>& get_nc(int i);
+  Point2       get_point2(int ringi, int pi);
+  bool         has_point2(const Point2& p);
+  bool         has_point2_(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis);
+  bool         has_segment(Point2& a, Point2& b);
+  bool         has_segment(Point2& a, Point2& b, int& aringi, int& api, int& bringi, int& bpi);
+  float        get_distance_to_boundaries(Point2& p);
+  int          get_vertex_elevation(int ringi, int pi);
+  int          get_vertex_elevation(Point2& p);
+  void         set_vertex_elevation(int ringi, int pi, int z);  
+  void         set_top_level(bool toplevel);
+  bool         has_vertical_walls(); 
+  void         add_vertical_wall(); 
+  bool         get_top_level();
+  std::string  get_wkt();
+  bool         get_shape_features(OGRLayer* layer, std::string className);
 
 protected:
-  Polygon2*    _p2;
-  Polygon3     _p3;
-  std::string  _id;
-  int          _counter;
-  static int   _count;
-  std::vector< std::vector<float> > _nc; //-- node columns
-  std::vector< std::vector<float> > _velevations;
+  Polygon2*                         _p2;
+  std::vector< std::vector<int> >   _p2z;
+  std::string                       _id;
+  int                               _counter;
+  static int                        _count;
+  bool                              _bVerticalWalls; 
+  bool                              _toplevel; 
+
+  //-- used to collect all LiDAR points linked to the polygon
+  std::vector< std::vector< std::vector<int> > > _lidarelevs;
+
   std::vector<Point3>   _vertices;  //-- output of Triangle
   std::vector<Triangle> _triangles; //-- output of Triangle
-  std::vector<Segment>  _segments;  //-- output of Triangle
+  std::vector<Point3>   _vertices_vw;  //-- for vertical walls
+  std::vector<Triangle> _triangles_vw; //-- for vertical walls
 
-  Point2& get_previous_point2_in_ring(int i, int& index);
-  Point2& get_next_point2_in_ring(int i, int& index);
+  Point2  get_next_point2_in_ring(int ringi, int& pi);
   bool    assign_elevation_to_vertex(double x, double y, double z, float radius);
-  void    lift_vertices_boundary(float percentile);
+  void    lift_each_boundary_vertices(float percentile);
+  void    lift_all_boundary_vertices_same_height(int height);
 };
 
 
 //---------------------------------------------
 
-class Block : public TopoFeature 
+class Flat : public TopoFeature 
 {
 public:
-  Block           (char *wkt, std::string pid, std::string heightref_top, std::string heightref_base); 
-  virtual bool    lift() = 0;
-  bool            add_elevation_point(double x, double y, double z, float radius);
-  virtual std::string   get_citygml() = 0;
-  std::string     get_obj_v();
-  std::string     get_obj_f(int offset, bool usemtl);
-  int             get_number_vertices();
-  virtual TopoClass     get_class() = 0;
-  virtual bool          is_hard() = 0;
-  
-  float           get_height_top();
-  float           get_height_base();
-  static std::string    _heightref_top;
-  static std::string    _heightref_base;
+                      Flat(char *wkt, std::string pid); 
+  bool                add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  int                 get_number_vertices();
+  int                 get_height();
+  virtual bool        lift() = 0;
+  virtual std::string get_citygml() = 0;
+  virtual TopoClass   get_class() = 0;
+  virtual bool        is_hard() = 0;
+  // std::string         get_obj_v(int z_exaggeration);
+  // std::string         get_obj_f(int offset, bool usemtl);
 protected:
-  bool                  _is3d;
-  float                 _height_top;
-  float                 _height_base;
-  std::vector<float>    _zvaluesinside;
-  bool build_CDT();
+  std::vector<int>    _zvaluesinside;
+  bool                lift_percentile(float percentile);
 };
 
 
@@ -111,18 +119,16 @@ protected:
 class Boundary3D : public TopoFeature
 {
 public:
-  Boundary3D    (char *wkt, std::string pid);
-  virtual bool  lift() = 0;
-  virtual bool  buildCDT() = 0;
-  virtual std::string   get_citygml() = 0;
-  bool          add_elevation_point(double x, double y, double z, float radius);
-  int           get_number_vertices();
-  virtual TopoClass     get_class() = 0;
-  virtual bool          is_hard() = 0;
+                       Boundary3D(char *wkt, std::string pid);
+  bool                 add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  int                  get_number_vertices();
+  virtual bool         lift() = 0;
+  virtual std::string  get_citygml() = 0;
+  virtual TopoClass    get_class() = 0;
+  virtual bool         is_hard() = 0;
 protected:
   int           _simplification;
   void          smooth_boundary(int passes = 1);
-  void          smooth_ring(Ring3 &r, std::vector<float> &elevs);
 };
 
 
@@ -131,14 +137,14 @@ protected:
 class TIN : public TopoFeature
 {
 public:
-  TIN             (char *wkt, std::string pid, int simplification = 0);
-  virtual bool    lift() = 0;
-  virtual bool    buildCDT() = 0;
-  virtual std::string   get_citygml() = 0;
-  bool            add_elevation_point(double x, double y, double z, float radius);
-  int             get_number_vertices();
-  virtual TopoClass     get_class() = 0;
-  virtual bool          is_hard() = 0;
+                      TIN(char *wkt, std::string pid, int simplification = 0);
+  virtual bool        lift() = 0;
+  virtual std::string get_citygml() = 0;
+  virtual TopoClass   get_class() = 0;
+  virtual bool        is_hard() = 0;
+  virtual bool        add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) = 0;
+  int                 get_number_vertices();
+  bool                buildCDT();
 protected:
   int                   _simplification;
   std::vector<Point3>   _lidarpts;
