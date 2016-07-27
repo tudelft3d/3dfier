@@ -799,42 +799,34 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       }
     }
     else {
-      //-- Assign the average to each (per class) ignoring buildings
       for (auto& each : zstar) {
-        if (std::get<1>(each)->get_class() != BUILDING) {
-          std::get<0>(each) = heightperclass[std::get<1>(each)->get_class()] / classcount[std::get<1>(each)->get_class()];
-        }
+        std::get<0>(each) = heightperclass[std::get<1>(each)->get_class()] / classcount[std::get<1>(each)->get_class()];
       }
-
-      //-- ADJUST THE HEIGHTS IN THE NC
-      //-- snap bottom-up by using threshold_jumpedge and hard/soft classification ignoring buildings
       for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it = zstar.begin(); it != zstar.end(); ++it) {
-        if (std::get<1>(*it)->get_class() != BUILDING) {
-          auto it2 = it + 1;
-          if (it2 == zstar.end())
-            break;
-
-          bool bStitched = false;
+        int znext = std::get<0>(*it);
+        // Get the highest
+        for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it; it2 != zstar.end(); ++it2) {
           int deltaz = std::abs(std::get<0>(*it) - std::get<0>(*it2));
           if (deltaz < this->_threshold_jump_edges) {
-            //-- Handle 2nd is soft first so in case of both soft the heigher value will be snapped to the lowest
-            if (std::get<1>(*it2)->is_hard() == false) {
-              std::get<0>(*it2) = std::get<0>(*it);
-              bStitched = true;
-            }
-            else if (std::get<1>(*it)->is_hard() == false) {
-              std::get<0>(*it) = std::get<0>(*it2);
-              bStitched = true;
-            }
+            znext = std::get<0>(*it2);
           }
-          //-- then vertical walls must be added: nc to highest
-          if (bStitched == false) {
-            //- add a wall to the heighest feature
-            if (std::get<0>(*it) > std::get<0>(*it2)) {
+          else {
+            // Stop if the next feature is higher then the jumpedge
+            break;
+          }
+          if (std::get<1>(*it2)->is_hard()) {
+            // Stop if the next feature is hard
+            break;
+          }
+        }
+        if (std::get<1>(*it)->is_hard() == false) {
+          std::get<0>(*it) = znext;
+        }
+        else {
+          for (std::vector< std::tuple< int, TopoFeature*, int, int > >::reverse_iterator itReverse(it); itReverse != zstar.rend(); itReverse++) {
+            if (std::get<0>(*it) > std::get<0>(*itReverse)) {
               std::get<1>(*it)->add_vertical_wall();
-            }
-            else if (std::get<0>(*it2) > std::get<0>(*it)) {
-              std::get<1>(*it2)->add_vertical_wall();
+              break;
             }
           }
         }
