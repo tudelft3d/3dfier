@@ -759,7 +759,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       return std::get<0>(t1) < std::get<0>(t2);
     });
 
-    //-- Average every class first, except buildings, also used for identifying buildings
+    //-- Calculate height of every class first, except buildings, also used for identifying buildings and water
     std::vector<int> heightperclass(7, 0);
     std::vector<int> classcount(7, 0);
     int building = -1;
@@ -773,11 +773,14 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
         classcount[std::get<1>(zstar[i])->get_class()]++;
       }
       else {
-        building = i;
+        //-- set building to the one with the lowest base
+        if (building == -1 || dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base() > dynamic_cast<Building*>(std::get<1>(zstar[i]))->get_height_base()) {
+          building = i;
+        }
       }
     }
 
-    //-- deal with buildings. If there's a building and a soft class incident, then this soft class
+    //-- Deal with buildings. If there's a building and a soft class incident, then this soft class
     //-- get allocated the height value of the floor of the building. Any building will do if >1.
     //-- Also ignore water so it doesn't get snapped to the floor of a building
     if (building != -1) {
