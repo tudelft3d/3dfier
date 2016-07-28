@@ -348,14 +348,14 @@ bool Map3d::threeDfy(bool triangulate) {
       std::sort(nc.second.begin(), nc.second.end());
     }
 
-    //   std::clog << "=====  /BOWTIES =====" << std::endl;
-    //   for (auto& p : _lsFeatures) {
-    //     if (p->has_vertical_walls() == true) {
-    //       std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
-    //       p->fix_bowtie(lsAdj);
-    //     }
-    //   }
-    //   std::clog << "=====  BOWTIES/ =====" << std::endl;
+    std::clog << "=====  /BOWTIES =====" << std::endl;
+    for (auto& p : _lsFeatures) {
+      if (p->has_vertical_walls() == true) {
+        std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
+        p->fix_bowtie(lsAdj);
+      }
+    }
+    std::clog << "=====  BOWTIES/ =====" << std::endl;
 
     std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
     for (auto& p : _lsFeatures) {
@@ -807,26 +807,24 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       }
       for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it = zstar.begin(); it != zstar.end(); ++it) {
         std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator fnext = it;
-        for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it; it2 != zstar.end(); ++it2) {
+        for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it + 1; it2 != zstar.end(); ++it2) {
           int deltaz = std::abs(std::get<0>(*it) - std::get<0>(*it2));
           if (deltaz < this->_threshold_jump_edges) {
             if (std::get<1>(*it)->is_hard()) {
               if (std::get<1>(*it2)->is_hard()) {
                 std::get<1>(*it2)->add_vertical_wall();
+                fnext = it2;
+                break;
               }
               else {
                 std::get<0>(*it2) = std::get<0>(*it);
-                fnext = it2;
               }
             }
             else {
+              fnext = it2;
               if (std::get<1>(*it2)->is_hard()) {
                 std::get<0>(*it) = std::get<0>(*it2);
-                // Reset the pointer so the in betweens do not get averaged but snapped in next itteration
-                fnext = it;
-              }
-              else {
-                fnext = it2;
+                break;
               }
             }
           }
