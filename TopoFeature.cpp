@@ -256,9 +256,8 @@ void TopoFeature::fix_bowtie(std::vector<TopoFeature*> lsAdj) {
 
       //-- Fix bow-ties
       if (((az > fadj_az) && (bz < fadj_bz)) || ((az < fadj_az) && (bz > fadj_bz))) {
-        std::clog << "BOWTIE:" << this->get_id() << " & " << fadj->get_id() << std::endl;
-        std::clog << this->get_class() << " & " << fadj->get_class() << std::endl;
-        // TODO : remove the nc because vertices are lowered
+        //std::clog << "BOWTIE:" << this->get_id() << " & " << fadj->get_id() << std::endl;
+        //std::clog << this->get_class() << " & " << fadj->get_class() << std::endl;
         if (this->is_hard() && fadj->is_hard() == false) {
           //- this is hard, snap the smallest height of the soft feature to this
           if (abs(az - fadj_az) < abs(bz - fadj_bz)) {
