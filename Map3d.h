@@ -102,8 +102,8 @@ private:
   bool extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file);
 #else
   bool extract_and_add_polygon(GDALDataset *dataSource, PolygonFile *file);
-  void extract_feature(OGRFeature * f, const char * idfield, const char * heightfield, std::string layertype, bool multiple_heights);
 #endif
+  void extract_feature(OGRFeature * f, const char * idfield, const char * heightfield, std::string layertype, bool multiple_heights);
 
   void stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star);
   void stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);
