@@ -21,11 +21,12 @@ if ( COMMAND cmake_policy )
 endif()
 
 # Boost
-find_package( Boost REQUIRED )
+find_package( Boost REQUIRED locale)
 if ( NOT Boost_FOUND )
   message(SEND_ERROR "3dfier requires the Boost library")
   return()  
 endif()
+INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 
 # GDAL
 find_package( GDAL )
@@ -56,4 +57,4 @@ link_directories(${YamlCpp_LIBRARY_DIRS})
 
 # Creating entries for target: 3dfier
 add_executable( 3dfier main.cpp io.cpp Map3d.cpp TopoFeature.cpp Bridge.cpp Separation.cpp Building.cpp Road.cpp Terrain.cpp Forest.cpp Water.cpp geomtools.cpp)
-target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY})
+target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY} ${Boost_LIBRARIES})
