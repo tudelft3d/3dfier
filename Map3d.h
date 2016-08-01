@@ -93,7 +93,7 @@ private:
   double      _minx;
   double      _miny;
 
-  std::unordered_map<std::string, std::vector<int>> _nc;
+  std::unordered_map< std::string, std::vector<int> > _nc;
   std::vector<TopoFeature*>                 _lsFeatures;
   std::vector<std::string>                  _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
