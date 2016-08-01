@@ -51,7 +51,7 @@ find_package(YamlCpp REQUIRED)
 find_package( CGAL QUIET COMPONENTS  )
 
 if ( NOT CGAL_FOUND )
-  message(SEND_ERROR "val3dity requires the CGAL library")
+  message(SEND_ERROR "3dfier requires the CGAL library")
   return()  
 endif()
 
@@ -62,5 +62,5 @@ include_directories( ${CGAL_INCLUDE_DIR} ${CGAL_3RD_PARTY_INCLUDE_DIR} ${Boost_I
 link_directories(${YamlCpp_LIBRARY_DIRS})
 
 # Creating entries for target: 3dfier
-add_executable( 3dfier main.cpp io.cpp Map3d.cpp Building.cpp Road.cpp Terrain.cpp TopoFeature.cpp Forest.cpp Water.cpp geomtools.cpp)
+add_executable( 3dfier main.cpp io.cpp Map3d.cpp TopoFeature.cpp Bridge.cpp Separation.cpp Building.cpp Road.cpp Terrain.cpp Forest.cpp Water.cpp geomtools.cpp)
 target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY})
