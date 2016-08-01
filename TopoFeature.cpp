@@ -113,7 +113,7 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
   unsigned long k = _vertices.size();
   for (auto& t : _triangles_vw) {
     char* buf = new char[200];
-    std::sprintf(buf, "f %i %i %i\n", t.v0 + 1 + offset + k, t.v1 + 1 + offset + k, t.v2 + 1 + offset + k);
+    std::sprintf(buf, "f %lu %lu %lu\n", t.v0 + 1 + offset + k, t.v1 + 1 + offset + k, t.v2 + 1 + offset + k);
     obj += std::string(buf);
   }
   return obj;
