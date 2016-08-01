@@ -496,8 +496,9 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
         if (numGeom > 1) {
           for (int i = 0; i < numGeom; i++) {
             OGRFeature* cf = f->Clone();
-            std::string id = f->GetFieldAsString(idfield) + '-' + std::to_string(i);
-            cf->SetField(idfield, id.c_str());
+            std::stringstream ss;
+            ss << f->GetFieldAsString(idfield) << "-" << std::to_string(i);
+            cf->SetField(idfield, ss.str().c_str());
             cf->SetGeometry((OGRPolygon*)multipolygon->getGeometryRef(i));
             extract_feature(cf, idfield, heightfield, l.second, multiple_heights);
           }
