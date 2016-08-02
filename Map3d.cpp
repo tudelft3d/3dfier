@@ -348,14 +348,14 @@ bool Map3d::threeDfy(bool triangulate) {
       std::sort(nc.second.begin(), nc.second.end());
     }
 
-    //   std::clog << "=====  /BOWTIES =====" << std::endl;
-    //   for (auto& p : _lsFeatures) {
-    //     if (p->has_vertical_walls() == true) {
-    //       std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
-    //       p->fix_bowtie(lsAdj);
-    //     }
-    //   }
-    //   std::clog << "=====  BOWTIES/ =====" << std::endl;
+    std::clog << "=====  /BOWTIES =====" << std::endl;
+    for (auto& p : _lsFeatures) {
+      if (p->has_vertical_walls() == true) {
+        std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
+        p->fix_bowtie(lsAdj);
+      }
+    }
+    std::clog << "=====  BOWTIES/ =====" << std::endl;
 
     std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
     for (auto& p : _lsFeatures) {
@@ -759,7 +759,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       return std::get<0>(t1) < std::get<0>(t2);
     });
 
-    //-- Average every class first, except buildings, also used for identifying buildings
+    //-- Calculate height of every class first, except buildings, also used for identifying buildings and water
     std::vector<int> heightperclass(7, 0);
     std::vector<int> classcount(7, 0);
     int building = -1;
@@ -773,11 +773,14 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
         classcount[std::get<1>(zstar[i])->get_class()]++;
       }
       else {
-        building = i;
+        //-- set building to the one with the lowest base
+        if (building == -1 || dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base() > dynamic_cast<Building*>(std::get<1>(zstar[i]))->get_height_base()) {
+          building = i;
+        }
       }
     }
 
-    //-- deal with buildings. If there's a building and a soft class incident, then this soft class
+    //-- Deal with buildings. If there's a building and a soft class incident, then this soft class
     //-- get allocated the height value of the floor of the building. Any building will do if >1.
     //-- Also ignore water so it doesn't get snapped to the floor of a building
     if (building != -1) {
@@ -799,44 +802,62 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       }
     }
     else {
-      //-- Assign the average to each (per class) ignoring buildings
       for (auto& each : zstar) {
-        if (std::get<1>(each)->get_class() != BUILDING) {
-          std::get<0>(each) = heightperclass[std::get<1>(each)->get_class()] / classcount[std::get<1>(each)->get_class()];
-        }
+      if (std::get<1>(each)->get_id() == "b885ae8a0-fcfe-11e5-8acc-1fc21a78c5fd") {
+        std::clog << "break" << std::endl;
       }
 
-      //-- ADJUST THE HEIGHTS IN THE NC
-      //-- snap bottom-up by using threshold_jumpedge and hard/soft classification ignoring buildings
+        std::get<0>(each) = heightperclass[std::get<1>(each)->get_class()] / classcount[std::get<1>(each)->get_class()];
+      }
       for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it = zstar.begin(); it != zstar.end(); ++it) {
-        if (std::get<1>(*it)->get_class() != BUILDING) {
-          auto it2 = it + 1;
-          if (it2 == zstar.end())
-            break;
-
-          bool bStitched = false;
+        std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator fnext = it;
+        for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it + 1; it2 != zstar.end(); ++it2) {
           int deltaz = std::abs(std::get<0>(*it) - std::get<0>(*it2));
           if (deltaz < this->_threshold_jump_edges) {
-            //-- Handle 2nd is soft first so in case of both soft the heigher value will be snapped to the lowest
-            if (std::get<1>(*it2)->is_hard() == false) {
-              std::get<0>(*it2) = std::get<0>(*it);
-              bStitched = true;
+            fnext = it2;
+            if (std::get<1>(*it)->is_hard()) {
+              if (std::get<1>(*it2)->is_hard()) {
+                std::get<1>(*it2)->add_vertical_wall();
+                break;
+              }
+              else {
+                std::get<0>(*it2) = std::get<0>(*it);
+              }
             }
-            else if (std::get<1>(*it)->is_hard() == false) {
-              std::get<0>(*it) = std::get<0>(*it2);
-              bStitched = true;
-            }
-          }
-          //-- then vertical walls must be added: nc to highest
-          if (bStitched == false) {
-            //- add a wall to the heighest feature
-            if (std::get<0>(*it) > std::get<0>(*it2)) {
-              std::get<1>(*it)->add_vertical_wall();
-            }
-            else if (std::get<0>(*it2) > std::get<0>(*it)) {
-              std::get<1>(*it2)->add_vertical_wall();
+            else {
+              if (std::get<1>(*it2)->is_hard()) {
+                std::get<0>(*it) = std::get<0>(*it2);
+                break;
+              }
             }
           }
+          else {
+            // add a vertical wall to the highest feature
+            std::get<1>(*it2)->add_vertical_wall();
+            break;
+          }
+        }
+        //-- Average heights of soft features within the jumpedge threshold counted from the lowest feature or skip to the next hard feature
+        if (it != fnext) {
+          if (std::get<1>(*it)->is_hard() == false && std::get<1>(*fnext)->is_hard() == false) {
+            int totalz = 0;
+            int count = 0;
+            for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it; it2 != fnext + 1; ++it2) {
+              totalz += std::get<0>(*it2);
+              count++;
+            }
+            totalz = totalz / count;
+            for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it; it2 != fnext + 1; ++it2) {
+              std::get<0>(*it2) = totalz;
+            }
+          }
+          else if (std::get<1>(*it)->is_hard() == false) {
+            // Adjust all intermediate soft features
+            for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it; it2 != fnext; ++it2) {
+              std::get<0>(*it2) = std::get<0>(*fnext);
+            }
+          }
+          it = fnext;
         }
       }
     }

@@ -207,48 +207,99 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
 }
 
 void TopoFeature::fix_bowtie(std::vector<TopoFeature*> lsAdj) {
-  // if (this->get_id() == "116724964") 
-  //   std::clog << "--116724964" << std::endl;
-  // int ai = 0;
-  // int bi;
-  // Point2 a;
-  // Point2 b;
-  // TopoFeature* fadj;
-  // for (auto& curnc : _nc) {
-  //   fadj = nullptr;
-  //   b = this->get_next_point2_in_ring(ai, bi);
-  //   std::vector<float> nnc = _nc[bi];
-  //   if ( (curnc.size() > 0) || (nnc.size() > 0) ) {
-  //     get_point2(ai, a);
-  //     for (auto& f : lsAdj) {
-  //       if (f->has_segment(b, a) == true) {
-  //         fadj = f;
-  //         break;
-  //       }
-  //     }
-  //     if ( (fadj != nullptr) && (this->get_counter() < fadj->get_counter()) ) {
-  //       double f_az = this->get_point_elevation(ai);
-  //       double f_bz = this->get_point_elevation(bi);
-  //       double fadj_az = fadj->get_point_elevation(fadj->has_point2(a));
-  //       double fadj_bz = fadj->get_point_elevation(fadj->has_point2(b));
-  //       if ( ((f_az > fadj_az) && (f_bz < fadj_bz)) || ((f_az < fadj_az) && (f_bz > fadj_bz)) ) {
-  //         std::clog << "BOWTIE:" << this->get_id() << " " << fadj->get_id() << std::endl;
-  //         std::clog << this->get_class() << " " << fadj->get_class() << std::endl;
-  //         // TODO : remove the nc because vertices are lowered
-  //         if (this->get_class() > fadj->get_class()) {
-  //           this->set_point_elevation(ai, fadj_az);
-  //           this->set_point_elevation(bi, fadj_bz);
-  //         }
-  //         else {
-  //           fadj->set_point_elevation(fadj->has_point2(a), f_az);
-  //           fadj->set_point_elevation(fadj->has_point2(b), f_bz);
-  //         }
+  //-- gather all rings
+  std::vector<Ring2> therings;
+  therings.push_back(bg::exterior_ring(*(_p2)));
+  for (auto& iring : bg::interior_rings(*(_p2)))
+    therings.push_back(iring);
 
-  //       }
-  //     }
-  //   }
-  //   ai++;
-  // }
+  //-- process each vertex of the polygon separately
+  std::vector<int> anc, bnc;
+  Point2 a, b;
+  TopoFeature* fadj;
+  int ringi = -1;
+  for (auto& ring : therings) {
+    ringi++;
+    for (int ai = 0; ai < ring.size(); ai++) {
+      //-- Point a
+      a = ring[ai];
+      //-- find Point b
+      int bi;
+      if (ai == (ring.size() - 1)) {
+        b = ring.front();
+        bi = 0;
+      }
+      else {
+        b = ring[ai + 1];
+        bi = ai + 1;
+      }
+      //-- find the adjacent polygon to segment ab (fadj)
+      fadj = nullptr;
+      int adj_a_ringi = 0;
+      int adj_a_pi = 0;
+      int adj_b_ringi = 0;
+      int adj_b_pi = 0;
+      for (auto& adj : lsAdj) {
+        if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi) == true) {
+          // if (adj->has_segment(b, a) == true) {
+          fadj = adj;
+          break;
+        }
+      }
+      if (fadj == nullptr)
+        continue;
+      //-- check height differences: f > fadj for *both* Points a and b
+      int az = this->get_vertex_elevation(ringi, ai);
+      int bz = this->get_vertex_elevation(ringi, bi);
+      int fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
+      int fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
+
+      //-- Fix bow-ties
+      if (((az > fadj_az) && (bz < fadj_bz)) || ((az < fadj_az) && (bz > fadj_bz))) {
+        //std::clog << "BOWTIE:" << this->get_id() << " & " << fadj->get_id() << std::endl;
+        //std::clog << this->get_class() << " & " << fadj->get_class() << std::endl;
+        if (this->is_hard() && fadj->is_hard() == false) {
+          //- this is hard, snap the smallest height of the soft feature to this
+          if (abs(az - fadj_az) < abs(bz - fadj_bz)) {
+            fadj->set_vertex_elevation(adj_a_ringi, adj_a_pi, az);
+          }
+          else {
+            fadj->set_vertex_elevation(adj_b_ringi, adj_b_pi, bz);
+          }
+        }
+        else if (this->is_hard() == false && fadj->is_hard()) {
+          //- this is soft, snap the smallest height to the hard feature
+          if (abs(az - fadj_az) < abs(bz - fadj_bz)) {
+            this->set_vertex_elevation(ringi, ai, fadj_az);
+          }
+          else {
+            this->set_vertex_elevation(ringi, bi, fadj_bz);
+          }
+        }
+        else {
+          if (abs(az - fadj_az) < abs(bz - fadj_bz)) {
+            //- snap a to lowest
+            if (az < fadj_az) {
+              fadj->set_vertex_elevation(adj_a_ringi, adj_a_pi, az);
+            }
+            else
+            {
+              this->set_vertex_elevation(ringi, ai, fadj_az);
+            }
+          }
+          else {
+            //- snap b to lowest
+            if (bz < fadj_bz) {
+              fadj->set_vertex_elevation(adj_b_ringi, adj_b_pi, bz);
+            }
+            else {
+              this->set_vertex_elevation(ringi, bi, fadj_bz);
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 
@@ -305,7 +356,7 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
 
       if ((az < fadj_az) || (bz < fadj_bz))
         continue;
-      if ((az == fadj_az) && (bz == fadj_bz)) //-- bowties need to be solved somewhere else
+      if ((az == fadj_az) && (bz == fadj_bz))
         continue;
 
       try {
