@@ -61,7 +61,7 @@ public:
   std::string get_obj_per_feature(int z_exaggeration = 0);
   std::string get_obj_per_class(int z_exaggeration = 0);
   std::string get_obj_building_volume(int z_exaggeration = 0);
-  bool get_shapefile(std::string filename);
+  bool        get_shapefile(std::string filename);
      
   void set_building_heightref_roof(std::string heightref);
   void set_building_heightref_floor(std::string heightref);
@@ -93,7 +93,7 @@ private:
   double      _minx;
   double      _miny;
 
-  std::unordered_map<std::string, std::vector<int>> _nc;
+  std::unordered_map< std::string, std::vector<int> > _nc;
   std::vector<TopoFeature*>                 _lsFeatures;
   std::vector<std::string>                  _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
@@ -102,8 +102,8 @@ private:
   bool extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file);
 #else
   bool extract_and_add_polygon(GDALDataset *dataSource, PolygonFile *file);
-  void extract_feature(OGRFeature * f, const char * idfield, const char * heightfield, std::string layertype, bool multiple_heights);
 #endif
+  void extract_feature(OGRFeature * f, const char * idfield, const char * heightfield, std::string layertype, bool multiple_heights);
 
   void stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star);
   void stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);

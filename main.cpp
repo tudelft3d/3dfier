@@ -113,7 +113,6 @@ int main(int argc, const char * argv[]) {
   //-- add the polygons to the map3d
   std::vector<PolygonFile> files;
   n = nodes["input_polygons"];
-  bool wentgood = false;
   for (auto it = n.begin(); it != n.end(); ++it) {
     // Get the correct uniqueid attribute
     std::string uniqueid = "fid";

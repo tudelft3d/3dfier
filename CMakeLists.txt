@@ -3,14 +3,7 @@ project( 3dfier )
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/" ${CMAKE_MODULE_PATH})
 
-# C++11
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-if(COMPILER_SUPPORTS_CXX11)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-else()
-  message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-endif()
+add_definitions(-std=c++11)
 
 cmake_minimum_required(VERSION 2.6.2)
 if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" VERSION_GREATER 2.6)
@@ -28,11 +21,12 @@ if ( COMMAND cmake_policy )
 endif()
 
 # Boost
-find_package( Boost REQUIRED )
+find_package( Boost REQUIRED locale)
 if ( NOT Boost_FOUND )
   message(SEND_ERROR "3dfier requires the Boost library")
   return()  
 endif()
+INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 
 # GDAL
 find_package( GDAL )
@@ -51,7 +45,7 @@ find_package(YamlCpp REQUIRED)
 find_package( CGAL QUIET COMPONENTS  )
 
 if ( NOT CGAL_FOUND )
-  message(SEND_ERROR "val3dity requires the CGAL library")
+  message(SEND_ERROR "3dfier requires the CGAL library")
   return()  
 endif()
 
@@ -62,5 +56,5 @@ include_directories( ${CGAL_INCLUDE_DIR} ${CGAL_3RD_PARTY_INCLUDE_DIR} ${Boost_I
 link_directories(${YamlCpp_LIBRARY_DIRS})
 
 # Creating entries for target: 3dfier
-add_executable( 3dfier main.cpp io.cpp Map3d.cpp Building.cpp Road.cpp Terrain.cpp TopoFeature.cpp Forest.cpp Water.cpp geomtools.cpp)
-target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY})
+add_executable( 3dfier main.cpp io.cpp Map3d.cpp TopoFeature.cpp Bridge.cpp Separation.cpp Building.cpp Road.cpp Terrain.cpp Forest.cpp Water.cpp geomtools.cpp)
+target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY} ${Boost_LIBRARIES})
