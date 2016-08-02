@@ -209,16 +209,13 @@ std::string Map3d::get_obj_per_class(int z_exaggeration) {
 
 bool Map3d::get_shapefile(std::string filename) {
 #if GDAL_VERSION_MAJOR < 2
-  if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0)
-    OGRRegisterAll();
-  OGRSFDriver *driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName("ESRI Shapefile");
-  OGRDataSource *datasource = driver->CreateDataSource(filename.c_str(), NULL);
+  std::cerr << "Exporting to a 3D Shapefile requires GDAL/OGC 2.x or higher." << std::endl;
+  return false;
 #else
   if (GDALGetDriverCount() == 0)
     GDALAllRegister();
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("ESRI Shapefile");
   GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
-#endif
 
   if (dataSource == NULL) {
     std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
@@ -243,6 +240,7 @@ bool Map3d::get_shapefile(std::string filename) {
   }
   GDALClose(dataSource);
   return true;
+#endif
 }
 
 unsigned long Map3d::get_num_polygons() {
@@ -498,8 +496,9 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
         if (numGeom > 1) {
           for (int i = 0; i < numGeom; i++) {
             OGRFeature* cf = f->Clone();
-            std::string id = f->GetFieldAsString(idfield) + '-' + std::to_string(i);
-            cf->SetField(idfield, id.c_str());
+            std::stringstream ss;
+            ss << f->GetFieldAsString(idfield) << "-" << std::to_string(i);
+            cf->SetField(idfield, ss.str().c_str());
             cf->SetGeometry((OGRPolygon*)multipolygon->getGeometryRef(i));
             extract_feature(cf, idfield, heightfield, l.second, multiple_heights);
           }

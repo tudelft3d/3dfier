@@ -113,7 +113,7 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
   unsigned long k = _vertices.size();
   for (auto& t : _triangles_vw) {
     char* buf = new char[200];
-    std::sprintf(buf, "f %i %i %i\n", t.v0 + 1 + offset + k, t.v1 + 1 + offset + k, t.v2 + 1 + offset + k);
+    std::sprintf(buf, "f %lu %lu %lu\n", t.v0 + 1 + offset + k, t.v1 + 1 + offset + k, t.v2 + 1 + offset + k);
     obj += std::string(buf);
   }
   return obj;
@@ -165,11 +165,11 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
     OGRLinearRing ring = OGRLinearRing();
     
     p = _vertices[t.v0];
-    ring.addPoint(&OGRPoint(p.get<0>(), p.get<1>(), p.get<2>()));
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
     p = _vertices[t.v1];
-    ring.addPoint(&OGRPoint(p.get<0>(), p.get<1>(), p.get<2>()));
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
     p = _vertices[t.v2];
-    ring.addPoint(&OGRPoint(p.get<0>(), p.get<1>(), p.get<2>()));
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
 
     ring.closeRings();
     polygon.addRing(&ring);
@@ -182,11 +182,11 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
     OGRLinearRing ring = OGRLinearRing();
 
     p = _vertices_vw[t.v0];
-    ring.addPoint(&OGRPoint(p.get<0>(), p.get<1>(), p.get<2>()));
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
     p = _vertices_vw[t.v1];
-    ring.addPoint(&OGRPoint(p.get<0>(), p.get<1>(), p.get<2>()));
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
     p = _vertices_vw[t.v2];
-    ring.addPoint(&OGRPoint(p.get<0>(), p.get<1>(), p.get<2>()));
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
 
     ring.closeRings();
     polygon.addRing(&ring);
