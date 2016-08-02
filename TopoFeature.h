@@ -81,9 +81,9 @@ protected:
   //-- used to collect all LiDAR points linked to the polygon
   std::vector< std::vector< std::vector<int> > > _lidarelevs;
 
-  std::vector<Point3>   _vertices;  //-- output of Triangle
+  std::set<Point3>   _vertices;  //-- output of Triangle
   std::vector<Triangle> _triangles; //-- output of Triangle
-  std::vector<Point3>   _vertices_vw;  //-- for vertical walls
+//  std::vector<Point3>   _vertices_vw;  //-- for vertical walls
   std::vector<Triangle> _triangles_vw; //-- for vertical walls
 
   Point2  get_next_point2_in_ring(int ringi, int& pi);

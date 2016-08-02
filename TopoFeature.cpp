@@ -90,12 +90,12 @@ std::string TopoFeature::get_obj_v(int z_exaggeration) {
         (z_exaggeration > 0 ? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)));
     obj += std::string(buf);
   }
-  for (auto& v : _vertices_vw) {
-    char* buf = new char[200];
-    std::sprintf(buf, "v %.3f %.3f %.3f\n", bg::get<0>(v), bg::get<1>(v),
-        (z_exaggeration > 0 ? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)));
-    obj += std::string(buf);
-  }
+  //for (auto& v : _vertices_vw) {
+  //  char* buf = new char[200];
+  //  std::sprintf(buf, "v %.3f %.3f %.3f\n", bg::get<0>(v), bg::get<1>(v),
+  //      (z_exaggeration > 0 ? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)));
+  //  obj += std::string(buf);
+  //}
   return obj;
 }
 
@@ -103,7 +103,8 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
   std::string obj;
   for (auto& t : _triangles) {
     char* buf = new char[200];
-    std::sprintf(buf, "f %i %i %i\n", t.v0 + 1 + offset, t.v1 + 1 + offset, t.v2 + 1 + offset);
+    //std::sprintf(buf, "f %i %i %i\n", t.v0 + 1 + offset, t.v1 + 1 + offset, t.v2 + 1 + offset);
+    std::sprintf(buf, "f %i %i %i\n", std::distance(_vertices.begin(), t.v0), std::distance(_vertices.begin(), t.v1), std::distance(_vertices.begin(), t.v2));
     obj += std::string(buf);
   }
 
@@ -113,7 +114,9 @@ std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
   unsigned long k = _vertices.size();
   for (auto& t : _triangles_vw) {
     char* buf = new char[200];
-    std::sprintf(buf, "f %lu %lu %lu\n", t.v0 + 1 + offset + k, t.v1 + 1 + offset + k, t.v2 + 1 + offset + k);
+    //std::sprintf(buf, "f %lu %lu %lu\n", t.v0 + 1 + offset + k, t.v1 + 1 + offset + k, t.v2 + 1 + offset + k);
+    std::sprintf(buf, "f %i %i %i\n", std::distance(_vertices.begin(), t.v0), std::distance(_vertices.begin(), t.v1), std::distance(_vertices.begin(), t.v2));
+
     obj += std::string(buf);
   }
   return obj;
@@ -125,9 +128,9 @@ std::string TopoFeature::get_wkt() {
 
   for (auto& t : _triangles) {
     char* buf = new char[200];
-    Point3 p1 = _vertices[t.v0];
-    Point3 p2 = _vertices[t.v1];
-    Point3 p3 = _vertices[t.v2];
+    Point3 p1 = *t.v0;
+    Point3 p2 = *t.v1;
+    Point3 p3 = *t.v2;
     std::sprintf(buf, "((%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f)),",
       p1.get<0>(), p1.get<1>(), p1.get<2>(),
       p2.get<0>(), p2.get<1>(), p2.get<2>(),
@@ -138,9 +141,9 @@ std::string TopoFeature::get_wkt() {
 
   for (auto& t : _triangles_vw) {
     char* buf = new char[200];
-    Point3 p1 = _vertices_vw[t.v0];
-    Point3 p2 = _vertices_vw[t.v1];
-    Point3 p3 = _vertices_vw[t.v2];
+    Point3 p1 = *t.v0;
+    Point3 p2 = *t.v1;
+    Point3 p3 = *t.v2;
     std::sprintf(buf, "((%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f)),",
       p1.get<0>(), p1.get<1>(), p1.get<2>(),
       p2.get<0>(), p2.get<1>(), p2.get<2>(),
@@ -164,11 +167,11 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
     OGRPolygon polygon = OGRPolygon();
     OGRLinearRing ring = OGRLinearRing();
     
-    p = _vertices[t.v0];
+    p = *t.v0;
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices[t.v1];
+    p = *t.v1;
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices[t.v2];
+    p = *t.v2;
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
 
     ring.closeRings();
@@ -181,11 +184,11 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
     OGRPolygon polygon = OGRPolygon();
     OGRLinearRing ring = OGRLinearRing();
 
-    p = _vertices_vw[t.v0];
+    p = *t.v0;
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices_vw[t.v1];
+    p = *t.v1;
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices_vw[t.v2];
+    p = *t.v2;
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
 
     ring.closeRings();
@@ -419,33 +422,43 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
 
       //-- iterate to triangulate
       while (sbit != ebit && sbit != bnc.end() && (sbit+1) != bnc.end()) {
-        if (anc.size() == 0 || sait == anc.end())
-          _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
-        else
-          _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-        _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
-        sbit++;
-        _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
+        //if (anc.size() == 0 || sait == anc.end())
+        //  _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
+        //else
+        //  _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+        //_vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
         Triangle t;
-        int size = int(_vertices_vw.size());
-        t.v0 = size - 2;
-        t.v1 = size - 3;
-        t.v2 = size - 1;
+        std::pair<std::set<Point3>::iterator, bool> ret;
+        if (anc.size() == 0 || sait == anc.end())
+          ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
+        else
+          ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+        t.v1 = ret.first;
+        ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
+        t.v0 = ret.first;
+        sbit++;
+        ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
+        t.v2 = ret.first;
         _triangles_vw.push_back(t);
       }
       while (sait != eait && sait != anc.end() && (sait + 1) != anc.end()) {
-        if (bnc.size() == 0 || ebit == bnc.end())
-          _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100));
-        else
-          _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
-        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-        sait++;
-        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+        //if (bnc.size() == 0 || ebit == bnc.end())
+        //  _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100));
+        //else
+        //  _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
+        //_vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
         Triangle t;
-        int size = int(_vertices_vw.size());
-        t.v0 = size - 3;
-        t.v1 = size - 2;
-        t.v2 = size - 1;
+        std::pair<std::set<Point3>::iterator, bool> ret;
+        if (bnc.size() == 0 || ebit == bnc.end())
+          ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100));
+        else
+          ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
+        t.v0 = ret.first;
+        ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+        t.v1 = ret.first;
+        sait++;
+        ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+        t.v2 = ret.first;
         _triangles_vw.push_back(t);
       }
     }
@@ -730,7 +743,8 @@ Flat::Flat(char *wkt, std::string pid)
 
 int Flat::get_number_vertices() {
   // return int(2 * _vertices.size());
-  return ( int(_vertices.size()) + int(_vertices_vw.size()) );
+  //return ( int(_vertices.size()) + int(_vertices_vw.size()) );
+  return int(_vertices.size());
 }
 
 bool Flat::lift_percentile(float percentile) {
@@ -838,7 +852,8 @@ Boundary3D::Boundary3D(char *wkt, std::string pid)
 
 
 int Boundary3D::get_number_vertices() {
-  return ( int(_vertices.size()) + int(_vertices_vw.size()) );
+  //return ( int(_vertices.size()) + int(_vertices_vw.size()) );
+  return int(_vertices.size());
 }
 
 
@@ -912,7 +927,8 @@ bool TIN::buildCDT() {
 
 
 int TIN::get_number_vertices() {
-  return ( int(_vertices.size()) + int(_vertices_vw.size()) );
+  //return ( int(_vertices.size()) + int(_vertices_vw.size()) );
+  return int(_vertices.size());
 }
 
 

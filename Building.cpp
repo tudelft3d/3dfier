@@ -118,10 +118,10 @@ std::string Building::get_obj_f_building_volume(int offset, bool usemtl) {
     ss << "usemtl Building" << std::endl;
 //-- top surface
   for (auto& t : _triangles)
-    ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
+    ss << "f " << std::distance(_vertices.begin(), t.v0) << " " << std::distance(_vertices.begin(), t.v1) << " " << std::distance(_vertices.begin(), t.v2) << std::endl;
 //-- ground surface
   for (auto& t : _triangles)
-    ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << std::endl;  
+    ss << "f " << std::distance(_vertices.begin(), t.v0) + _vertices.size() << " " << std::distance(_vertices.begin(), t.v1) + _vertices.size() << " " << std::distance(_vertices.begin(), t.v2) + _vertices.size() << std::endl;
 //-- extract segments
   std::vector<Segment> allsegments;
   for (auto& curt : _triangles) {
@@ -167,16 +167,20 @@ std::string Building::get_obj_f_building_volume(int offset, bool usemtl) {
   }
   //-- side surfaces walls
   for (auto& s : allsegments) {
-    ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
-    ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
-  }
+    //ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
+    //ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
+    ss << "f " << std::distance(_vertices.begin(), s.v1) << " " << std::distance(_vertices.begin(), s.v0) << " " << std::distance(_vertices.begin(), s.v0) + _vertices.size() << std::endl;
+    ss << "f " << std::distance(_vertices.begin(), s.v0) + _vertices.size() << " " << std::distance(_vertices.begin(), s.v1) + _vertices.size() << " " << std::distance(_vertices.begin(), s.v1) << std::endl;
+ }
   return ss.str();
 }
 
 std::string Building::get_obj_f_floor(int offset) {
   std::stringstream ss;
-  for (auto& t : _triangles)
-    ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << std::endl;  
+  for (auto& t : _triangles) {
+    //ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << std::endl;
+    ss << "f " << std::distance(_vertices.begin(), t.v0) + _vertices.size() << " " << std::distance(_vertices.begin(), t.v2) + _vertices.size() << " " << std::distance(_vertices.begin(), t.v1) + _vertices.size() << std::endl;
+  }
   return ss.str();
 }
 
