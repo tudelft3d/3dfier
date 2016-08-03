@@ -32,15 +32,15 @@ typedef bg::model::point<double, 3, bg::cs::cartesian> Point3;
 
 typedef struct Segment
 {
-  std::set<Point3>::iterator v0;
-  std::set<Point3>::iterator v1;
+  std::string v0;
+  std::string v1;
 } Segment;
 
 typedef struct Triangle
 {
-  std::set<Point3>::iterator v0;
-  std::set<Point3>::iterator v1;
-  std::set<Point3>::iterator v2;
+  std::string v0;
+  std::string v1;
+  std::string v2;
 } Triangle;
 
 typedef struct PolygonFile

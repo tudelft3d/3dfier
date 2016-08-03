@@ -33,7 +33,7 @@ public:
   bool                lift();
   bool                add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
   std::string         get_citygml();
-  std::string         get_obj_f(int offset, bool usemtl);
+  std::string         get_obj_f(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, bool usemtl);
   bool                get_shape(OGRLayer * layer);
   static std::string  _heightref;
   TopoClass           get_class();

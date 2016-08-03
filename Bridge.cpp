@@ -62,11 +62,11 @@ bool Bridge::is_hard() {
 }
 
 
-std::string Bridge::get_obj_f(int offset, bool usemtl) {
+std::string Bridge::get_obj_f(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, bool usemtl) {
   std::stringstream ss;
   if (usemtl == true)
     ss << "usemtl Bridge" << std::endl;
-  ss << TopoFeature::get_obj_f(offset, usemtl);
+  ss << TopoFeature::get_obj_f(vertices_map, usemtl);
   return ss.str();
 }
 

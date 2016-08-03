@@ -40,8 +40,8 @@ public:
   virtual bool          buildCDT();
   virtual bool          add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) = 0;
   virtual std::string   get_citygml() = 0;
-  virtual std::string   get_obj_v(int z_exaggeration);
-  virtual std::string   get_obj_f(int offset, bool usemtl);
+  virtual std::string   get_obj_v(std::vector<Point3>::size_type &idx, std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, int z_exaggeration);
+  virtual std::string   get_obj_f(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, bool usemtl);
   virtual bool          get_shape(OGRLayer*) = 0;
   virtual int           get_number_vertices() = 0;
   virtual TopoClass     get_class() = 0;
@@ -81,8 +81,9 @@ protected:
   //-- used to collect all LiDAR points linked to the polygon
   std::vector< std::vector< std::vector<int> > > _lidarelevs;
 
-  std::set<Point3>   _vertices;  //-- output of Triangle
-  std::vector<Triangle> _triangles; //-- output of Triangle
+  std::vector<Point3> _vertices;
+  std::unordered_map<std::string, std::vector<Point3>::size_type>   _vertices_map;
+  std::vector<Triangle> _triangles;
 //  std::vector<Point3>   _vertices_vw;  //-- for vertical walls
   std::vector<Triangle> _triangles_vw; //-- for vertical walls
 

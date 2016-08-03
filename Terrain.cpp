@@ -68,17 +68,19 @@ bool Terrain::add_elevation_point(double x, double y, double z, float radius, LA
 }
 
 
-std::string Terrain::get_obj_f(int offset, bool usemtl) {
+std::string Terrain::get_obj_f(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, bool usemtl) {
   std::stringstream ss;
   if (usemtl == true)
     ss << "usemtl Terrain" << std::endl;
-  ss << TIN::get_obj_f(offset, usemtl);
+  ss << TIN::get_obj_f(vertices_map, usemtl);
   return ss.str();
 }
+
 
 TopoClass Terrain::get_class() {
   return TERRAIN;
 }
+
 
 bool Terrain::is_hard() {
   return false;
