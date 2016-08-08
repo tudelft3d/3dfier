@@ -89,7 +89,7 @@ bool Building::is_hard() {
 std::string Building::get_csv() {
   std::stringstream ss;
   ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << std::endl;
-  return ss.str(); 
+  return ss.str();
 }
 
 std::string Building::get_mtl() {

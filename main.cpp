@@ -105,8 +105,13 @@ int main(int argc, const char * argv[]) {
   n = nodes["options"];
   if (n["radius_vertex_elevation"])
     map3d.set_radius_vertex_elevation(n["radius_vertex_elevation"].as<float>());
-  if (n["building_radius_vertex_elevation"])
+  if (n["building_radius_vertex_elevation"]) {
     map3d.set_building_radius_vertex_elevation(n["building_radius_vertex_elevation"].as<float>());
+  }
+  else if (n["radius_vertex_elevation"]) {
+    // Set the building vertex radius equal to the general vertex radius
+    map3d.set_building_radius_vertex_elevation(n["radius_vertex_elevation"].as<float>());
+  }
   if (n["threshold_jump_edges"])
     map3d.set_threshold_jump_edges(n["threshold_jump_edges"].as<float>());
 
@@ -185,7 +190,7 @@ int main(int argc, const char * argv[]) {
   std::clog << "Lifting all input polygons to 3D..." << std::endl;
   if (n["format"].as<std::string>() == "CSV-BUILDINGS")
     map3d.threeDfy(false);
-  if (n["format"].as<std::string>() == "OBJ-BUILDINGS")
+  else if (n["format"].as<std::string>() == "OBJ-BUILDINGS")
     map3d.threeDfy_building_volume();
   else
     map3d.threeDfy();
