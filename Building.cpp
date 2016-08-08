@@ -59,15 +59,18 @@ bool Building::lift() {
 
 
 bool Building::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  int zcm = int(z * 100);
-  //-- 1. Save the ground points seperate for base height
-  if (lasclass == LAS_GROUND || lasclass == LAS_WATER) {
-    _zvaluesground.push_back(zcm);
+  if (lastreturn) {
+    int zcm = int(z * 100);
+    //-- 1. Save the ground points seperate for base height
+    if (lasclass == LAS_GROUND || lasclass == LAS_WATER) {
+      _zvaluesground.push_back(zcm);
+    }
+    Point2 p(x, y);
+    if (bg::distance(p, *(_p2)) <= radius) {
+      //-- 2. assign to polygon since within
+      _zvaluesinside.push_back(zcm);
+    }
   }
-  //-- 2. assign to polygon since within the threshold value (buffering of polygon)
-  _zvaluesinside.push_back(zcm);
-  //-- 3. add to the vertices of the pgn to find their heights
-  assign_elevation_to_vertex(x, y, z, radius);
   return true;
 }
 
