@@ -47,16 +47,6 @@ bool Terrain::add_elevation_point(double x, double y, double z, float radius, LA
     if (dis(gen) == 1)
       toadd = true;
   }
-  //if (toadd == true) {
-  //  //Point2 p(x, y);
-  //  if ( (lastreturn == true) && 
-  //       (lasclass == LAS_GROUND) ) //&& 
-  //       //(bg::within(p, *(_p2)) == true) && 
-  //       //(this->get_distance_to_boundaries(p) > (radius * 1.5)) ) 
-  //    _lidarpts.push_back(Point3(x, y, z));
-  //}
-  //if ( (lastreturn == true) && (lasclass != LAS_BUILDING) )
-  //  assign_elevation_to_vertex(x, y, z, radius);
   if (toadd && lastreturn && lasclass == LAS_GROUND) {
     Point2 p(x, y);
     if(bg::within(p, *(_p2))) {
@@ -68,12 +58,8 @@ bool Terrain::add_elevation_point(double x, double y, double z, float radius, LA
 }
 
 
-std::string Terrain::get_obj_f(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, bool usemtl) {
-  std::stringstream ss;
-  if (usemtl == true)
-    ss << "usemtl Terrain" << std::endl;
-  ss << TIN::get_obj_f(vertices_map, usemtl);
-  return ss.str();
+std::string Terrain::get_mtl() {
+  return "usemtl Terrain\n";
 }
 
 

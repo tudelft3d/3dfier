@@ -104,7 +104,7 @@ std::string TopoFeature::get_obj_v(std::vector<Point3>::size_type &idx, std::uno
   return obj;
 }
 
-std::string TopoFeature::get_obj_f(std::unordered_map<std::string, std::vector<Point3>::size_type> &map, bool usemtl) {
+std::string TopoFeature::get_obj_f(std::unordered_map<std::string, std::vector<Point3>::size_type> &map, bool useverticalwalls) {
   std::string obj;
   for (auto& t : _triangles) {
     char* buf = new char[200];
@@ -113,7 +113,7 @@ std::string TopoFeature::get_obj_f(std::unordered_map<std::string, std::vector<P
     obj += std::string(buf);
   }
 
-  if (usemtl == true && _triangles_vw.size() > 0)
+  if (useverticalwalls == true && _triangles_vw.size() > 0)
     obj += "usemtl VerticalWalls\n";
 
   for (auto& t : _triangles_vw) {

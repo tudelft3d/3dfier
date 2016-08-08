@@ -31,11 +31,13 @@ Water::Water (char *wkt, std::string pid, std::string heightref)
   _heightref = heightref;
 }
 
+
 bool Water::lift() {
   double percentile = (std::stod(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100);
   Flat::lift_percentile(percentile);
   return true;
 }
+
 
 //bool Water::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
 //  if (lastreturn == true && lasclass == LAS_WATER) {
@@ -55,12 +57,8 @@ bool Water::is_hard() {
 }
 
 
-std::string Water::get_obj_f(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, bool usemtl) {
-  std::stringstream ss;
-  if (usemtl == true)
-    ss << "usemtl Water" << std::endl;
-  ss << TopoFeature::get_obj_f(vertices_map, usemtl);
-  return ss.str();
+std::string Water::get_mtl() {
+  return "usemtl Water\n";
 }
 
 

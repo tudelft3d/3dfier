@@ -34,7 +34,7 @@ public:
   bool        add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
   std::string get_citygml();
   std::string get_csv();
-  std::string get_obj_f(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, bool usemtl);
+  std::string get_mtl();
   std::string get_obj_f_floor(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map);
   std::string get_obj_v_building_volume(std::vector<Point3>::size_type &idx, std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, int z_exaggeration);
   std::string get_obj_f_building_volume(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, bool usemtl);

@@ -92,12 +92,8 @@ std::string Building::get_csv() {
   return ss.str(); 
 }
 
-std::string Building::get_obj_f(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, bool usemtl) {
-  std::stringstream ss;
-  if (usemtl == true)
-    ss << "usemtl Building" << std::endl;
-  ss << TopoFeature::get_obj_f(vertices_map, usemtl);
-  return ss.str();
+std::string Building::get_mtl() {
+  return "usemtl Building\n";
 }
 
 std::string Building::get_obj_v_building_volume(std::vector<Point3>::size_type &idx, std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, int z_exaggeration) {
