@@ -31,11 +31,13 @@ Water::Water (char *wkt, std::string pid, std::string heightref)
   _heightref = heightref;
 }
 
+
 bool Water::lift() {
   double percentile = (std::stod(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100);
   Flat::lift_percentile(percentile);
   return true;
 }
+
 
 //bool Water::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
 //  if (lastreturn == true && lasclass == LAS_WATER) {
@@ -49,17 +51,16 @@ TopoClass Water::get_class() {
   return WATER;
 }
 
+
 bool Water::is_hard() {
   return true;
 }
 
-std::string Water::get_obj_f(int offset, bool usemtl) {
-  std::stringstream ss;
-  if (usemtl == true)
-    ss << "usemtl Water" << std::endl;
-  ss << TopoFeature::get_obj_f(offset, usemtl);
-  return ss.str();
+
+std::string Water::get_mtl() {
+  return "usemtl Water\n";
 }
+
 
 std::string Water::get_citygml() {
   return "<EMPTY/>";

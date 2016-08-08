@@ -30,6 +30,7 @@ Bridge::Bridge(char *wkt, std::string pid, std::string heightref)
   _heightref = heightref;
 }
 
+
 bool Bridge::lift() {
   float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
   //lift_each_boundary_vertices(percentile);
@@ -38,12 +39,6 @@ bool Bridge::lift() {
   return true;
 }
 
-
-//bool Bridge::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-//  if ((lastreturn == true) && (lasclass != LAS_BUILDING) && (lasclass != LAS_WATER))
-//    assign_elevation_to_vertex(x, y, z, radius);
-//  return true;
-//}
 
 bool Bridge::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn == true && lasclass != LAS_BUILDING && lasclass != LAS_WATER) {
@@ -57,17 +52,14 @@ TopoClass Bridge::get_class() {
   return BRIDGE;
 }
 
+
 bool Bridge::is_hard() {
   return true;
 }
 
 
-std::string Bridge::get_obj_f(int offset, bool usemtl) {
-  std::stringstream ss;
-  if (usemtl == true)
-    ss << "usemtl Bridge" << std::endl;
-  ss << TopoFeature::get_obj_f(offset, usemtl);
-  return ss.str();
+std::string Bridge::get_mtl() {
+  return "usemtl Bridge\n";
 }
 
 

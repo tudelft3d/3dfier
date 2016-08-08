@@ -21,10 +21,11 @@
 */
 
 #include "geomtools.h"
+#include "io.h"
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>
 #include <CGAL/Projection_traits_xy_3.h>
-#include <CGAL/Triangulation_vertex_base_with_id_2.h>
+#include <CGAL/Triangulation_vertex_base_2.h>
 #include <CGAL/Triangulation_face_base_with_info_2.h>
 #include <CGAL/Polygon_2.h>
 #include <iostream>
@@ -40,7 +41,7 @@ struct FaceInfo2
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel			K;
 typedef CGAL::Projection_traits_xy_3<K>								Gt;
-typedef CGAL::Triangulation_vertex_base_with_id_2<Gt>				Vb;
+typedef CGAL::Triangulation_vertex_base_2<Gt>				Vb;
 typedef CGAL::Triangulation_face_base_with_info_2<FaceInfo2, Gt>	Fbb;
 typedef CGAL::Constrained_triangulation_face_base_2<Gt, Fbb>		Fb;
 typedef CGAL::Triangulation_data_structure_2<Vb, Fb>				Tds;
@@ -49,7 +50,7 @@ typedef CGAL::Constrained_Delaunay_triangulation_2<Gt, Tds, Itag>	CDT;
 typedef CDT::Point													Point;
 typedef CGAL::Polygon_2<Gt>											Polygon_2;
 
-bool triangle_contains_segment(Triangle t, int a, int b) {
+bool triangle_contains_segment(Triangle t, std::string a, std::string b) {
 	if ((t.v0 == a) && (t.v1 == b))
 		return true;
 	if ((t.v1 == a) && (t.v2 == b))
@@ -110,6 +111,7 @@ void mark_domains(CDT& cdt) {
 bool getCDT(const Polygon2* pgn,
 	const std::vector< std::vector<int> > &z,
 	std::vector<Point3> &vertices,
+	std::unordered_map< std::string, std::vector<Point3>::size_type > &vertices_map,
 	std::vector<Triangle> &triangles,
 	const std::vector<Point3> &lidarpts) {
 	CDT cdt;
@@ -155,32 +157,40 @@ bool getCDT(const Polygon2* pgn,
 		std::clog << "CDT is invalid." << std::endl;
 	}
 
-  std::set<CDT::Vertex_handle> points;
-  // Create a unique list of vertices in this CDT
-  for (CDT::Finite_faces_iterator fit = cdt.finite_faces_begin();
-    fit != cdt.finite_faces_end(); ++fit) {
-    if (fit->info().in_domain()) {
-      points.insert(fit->vertex(0));
-      points.insert(fit->vertex(1));
-      points.insert(fit->vertex(2));
-    }
-  }
-
-  // Create the id for each vertex
-  for (auto& vertex: points) {
-    vertices.push_back(Point3(vertex->point().x(), vertex->point().y(), vertex->point().z()));
-    vertex->id() = index++;
-	}
-
-  // Save the triangle and the corresponding vertex id's
+  // Create a unique list of vertices in this CDT and create the triangle
   for (CDT::Finite_faces_iterator fit = cdt.finite_faces_begin();
     fit != cdt.finite_faces_end(); ++fit) {
     if (fit->info().in_domain()) {
       Triangle t;
-      t.v0 = fit->vertex(0)->id();
-      t.v1 = fit->vertex(1)->id();
-      t.v2 = fit->vertex(2)->id();
-      triangles.push_back(t);
+      Point3 p;
+      std::string key;
+      p = Point3(fit->vertex(0)->point().x(), fit->vertex(0)->point().y(), fit->vertex(0)->point().z());
+      key = gen_key_bucket(&p);
+      if (vertices_map.find(key) == vertices_map.end()) {
+        vertices.push_back(p);
+        vertices_map[key] = vertices.size() - 1;
+      }
+      t.v0 = key;
+
+      p = Point3(fit->vertex(1)->point().x(), fit->vertex(1)->point().y(), fit->vertex(1)->point().z());
+      key = gen_key_bucket(&p);
+      if (vertices_map.find(key) == vertices_map.end()) {
+        vertices.push_back(p);
+        vertices_map[key] = vertices.size() - 1;
+      }
+      t.v1 = key;
+
+      p = Point3(fit->vertex(2)->point().x(), fit->vertex(2)->point().y(), fit->vertex(2)->point().z());
+      key = gen_key_bucket(&p);
+      if (vertices_map.find(key) == vertices_map.end()) {
+        vertices.push_back(p);
+        vertices_map[key] = vertices.size() - 1;
+      }
+      t.v2 = key;
+
+      if (t.v0 != t.v1 && t.v0 != t.v2 && t.v1 != t.v2) {
+        triangles.push_back(t);
+      }
     }
   }
 
