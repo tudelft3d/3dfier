@@ -32,7 +32,7 @@ Separation::Separation(char *wkt, std::string pid, std::string heightref)
 
 bool Separation::lift()
 {
-  double percentile = (std::stod(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100);
+  float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
   lift_percentile(percentile);
   return true;
 }

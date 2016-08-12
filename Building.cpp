@@ -35,7 +35,7 @@ Building::Building(char *wkt, std::string pid, std::string heightref_top, std::s
 
 bool Building::lift() {
   //-- for the ground
-  double percentile = (std::stod(_heightref_base.substr(_heightref_base.find_first_of("-") + 1)) / 100);
+  float percentile = std::stof(_heightref_base.substr(_heightref_base.find_first_of("-") + 1)) / 100;
 
   if (_zvaluesground.empty() == false) {
     //-- Only use ground points for base height calculation
@@ -51,7 +51,7 @@ bool Building::lift() {
   }
 
   //-- for the roof
-  percentile = (std::stod(_heightref_top.substr(_heightref_top.find_first_of("-") + 1)) / 100);
+  percentile = std::stof(_heightref_top.substr(_heightref_top.find_first_of("-") + 1)) / 100;
   Flat::lift_percentile(percentile);
 
   return true;

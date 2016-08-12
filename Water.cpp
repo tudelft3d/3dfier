@@ -33,7 +33,7 @@ Water::Water (char *wkt, std::string pid, std::string heightref)
 
 
 bool Water::lift() {
-  double percentile = (std::stod(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100);
+  float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
   Flat::lift_percentile(percentile);
   return true;
 }
