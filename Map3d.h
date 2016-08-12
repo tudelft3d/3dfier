@@ -63,30 +63,30 @@ public:
   std::string get_obj_building_volume(int z_exaggeration = 0);
   bool        get_shapefile(std::string filename);
      
-  void set_building_heightref_roof(std::string heightref);
-  void set_building_heightref_floor(std::string heightref);
+  void set_building_heightref_roof(float heightref);
+  void set_building_heightref_floor(float heightref);
   void set_building_include_floor(bool include);
   void set_building_triangulate(bool triangulate);
   void set_terrain_simplification(int simplification);
   void set_forest_simplification(int simplification);
-  void set_water_heightref(std::string heightref);
-  void set_road_heightref(std::string heightref);
-  void set_separation_heightref(std::string heightref);
-  void set_bridge_heightref(std::string heightref);
+  void set_water_heightref(float heightref);
+  void set_road_heightref(float heightref);
+  void set_separation_heightref(float heightref);
+  void set_bridge_heightref(float heightref);
   void set_radius_vertex_elevation(float radius);
   void set_building_radius_vertex_elevation(float radius);
   void set_threshold_jump_edges(float threshold);
 private:
-  std::string _building_heightref_roof;
-  std::string _building_heightref_floor;
+  float       _building_heightref_roof;
+  float       _building_heightref_floor;
   bool        _building_triangulate;
   bool        _building_include_floor;
   int         _terrain_simplification;
   int         _forest_simplification;
-  std::string _water_heightref;
-  std::string _road_heightref;
-  std::string _separation_heightref;
-  std::string _bridge_heightref;
+  float       _water_heightref;
+  float       _road_heightref;
+  float       _separation_heightref;
+  float       _bridge_heightref;
   float       _radius_vertex_elevation;
   float       _building_radius_vertex_elevation;
   int         _threshold_jump_edges; //-- in cm/integer

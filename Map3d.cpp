@@ -28,8 +28,8 @@
 Map3d::Map3d() {
   OGRRegisterAll();
   _building_include_floor = false;
-  _building_heightref_roof = "percentile-90";
-  _building_heightref_floor = "percentile-10";
+  _building_heightref_roof = 0.9;
+  _building_heightref_floor = 0.1;
   _building_triangulate = true;
   _terrain_simplification = 0;
   _forest_simplification = 0;
@@ -46,11 +46,11 @@ Map3d::~Map3d() {
   _lsFeatures.clear();
 }
 
-void Map3d::set_building_heightref_roof(std::string h) {
+void Map3d::set_building_heightref_roof(float h) {
   _building_heightref_roof = h;
 }
 
-void Map3d::set_building_heightref_floor(std::string h) {
+void Map3d::set_building_heightref_floor(float h) {
   _building_heightref_floor = h;
 }
 
@@ -82,19 +82,19 @@ void Map3d::set_forest_simplification(int simplification) {
   _forest_simplification = simplification;
 }
 
-void Map3d::set_water_heightref(std::string h) {
+void Map3d::set_water_heightref(float h) {
   _water_heightref = h;
 }
 
-void Map3d::set_road_heightref(std::string h) {
+void Map3d::set_road_heightref(float h) {
   _road_heightref = h;
 }
 
-void Map3d::set_separation_heightref(std::string h) {
+void Map3d::set_separation_heightref(float h) {
   _separation_heightref = h;
 }
 
-void Map3d::set_bridge_heightref(std::string h) {
+void Map3d::set_bridge_heightref(float h) {
   _bridge_heightref = h;
 }
 

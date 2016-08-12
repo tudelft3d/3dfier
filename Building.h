@@ -29,7 +29,7 @@
 class Building : public Flat
 {
 public:
-  Building (char *wkt, std::string pid, std::string heightref_top, std::string heightref_base);
+  Building (char *wkt, std::string pid, float heightref_top, float heightref_base);
   bool        lift();
   bool        add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
   std::string get_citygml();
@@ -44,8 +44,8 @@ public:
   int         get_height_base();
 private: 
   std::vector<int>    _zvaluesground;
-  static std::string  _heightref_top;
-  static std::string  _heightref_base;
+  static float          _heightref_top;
+  static float          _heightref_base;
   int                 _height_base;
 };
 

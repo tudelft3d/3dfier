@@ -25,8 +25,6 @@
 
 //-- initialisation of 
 int TopoFeature::_count = 0;
-//std::string Flat::_heightref = "percentile-50";
-
 
 //-----------------------------------------------------------------------------
 

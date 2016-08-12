@@ -22,19 +22,17 @@
  
 #include "Road.h"
 
-std::string Road::_heightref = "percentile-50";
+float Road::_heightref = 0.5;
 
-Road::Road (char *wkt, std::string pid, std::string heightref) 
+Road::Road (char *wkt, std::string pid, float heightref)
 : Boundary3D(wkt, pid)
 {
-  if (heightref != "")
     _heightref = heightref;
 }
 
 
 bool Road::lift() {
-  float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
-  lift_each_boundary_vertices(percentile);
+  lift_each_boundary_vertices(_heightref);
   smooth_boundary(5);
   return true;
 }

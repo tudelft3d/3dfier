@@ -22,9 +22,9 @@
 
 #include "Bridge.h"
 
-std::string Bridge::_heightref = "percentile-50";
+float Bridge::_heightref = 0.8;
 
-Bridge::Bridge(char *wkt, std::string pid, std::string heightref)
+Bridge::Bridge(char *wkt, std::string pid, float heightref)
   : Flat(wkt, pid)
 {
   _heightref = heightref;
@@ -32,10 +32,9 @@ Bridge::Bridge(char *wkt, std::string pid, std::string heightref)
 
 
 bool Bridge::lift() {
-  float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
   //lift_each_boundary_vertices(percentile);
   //smooth_boundary(5);
-  lift_percentile(percentile);
+  lift_percentile(_heightref);
   return true;
 }
 

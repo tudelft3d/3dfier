@@ -28,7 +28,7 @@ SOFTWARE.
 class Separation : public Flat
 {
 public:
-              Separation(char *wkt, std::string pid, std::string heightref);
+              Separation(char *wkt, std::string pid, float heightref);
   bool        lift();
   bool        add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
   std::string get_citygml();
@@ -37,7 +37,7 @@ public:
   TopoClass   get_class();
   bool        is_hard();
 protected:
-  static std::string  _heightref;
+  static float  _heightref;
 };
 
 

@@ -23,10 +23,10 @@
 #include "Building.h"
 #include "io.h"
 
-std::string Building::_heightref_top  = "percentile-90";
-std::string Building::_heightref_base = "percentile-10";
+float Building::_heightref_top  = 0.9;
+float Building::_heightref_base = 0.1;
 
-Building::Building(char *wkt, std::string pid, std::string heightref_top, std::string heightref_base)
+Building::Building(char *wkt, std::string pid, float heightref_top, float heightref_base)
 : Flat(wkt, pid)
 {
   _heightref_top = heightref_top;
@@ -35,24 +35,21 @@ Building::Building(char *wkt, std::string pid, std::string heightref_top, std::s
 
 bool Building::lift() {
   //-- for the ground
-  float percentile = std::stof(_heightref_base.substr(_heightref_base.find_first_of("-") + 1)) / 100;
-
   if (_zvaluesground.empty() == false) {
     //-- Only use ground points for base height calculation
-    std::nth_element(_zvaluesground.begin(), _zvaluesground.begin() + (_zvaluesground.size() * percentile), _zvaluesground.end());
-    _height_base = _zvaluesground[_zvaluesground.size() * percentile];
+    std::nth_element(_zvaluesground.begin(), _zvaluesground.begin() + (_zvaluesground.size() * _heightref_base), _zvaluesground.end());
+    _height_base = _zvaluesground[_zvaluesground.size() * _heightref_base];
   }
   else if(_zvaluesinside.empty() == false) {
-    std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
-    _height_base = _zvaluesinside[_zvaluesinside.size() * percentile];
+    std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * _heightref_base), _zvaluesinside.end());
+    _height_base = _zvaluesinside[_zvaluesinside.size() * _heightref_base];
   }
   else {
     _height_base = 0;
   }
 
   //-- for the roof
-  percentile = std::stof(_heightref_top.substr(_heightref_top.find_first_of("-") + 1)) / 100;
-  Flat::lift_percentile(percentile);
+  Flat::lift_percentile(_heightref_top);
 
   return true;
 }

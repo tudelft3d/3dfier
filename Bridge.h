@@ -29,13 +29,13 @@
 class Bridge : public Flat
 {
 public:
-  Bridge(char *wkt, std::string pid, std::string heightref);
+  Bridge(char *wkt, std::string pid, float heightref);
   bool                lift();
   bool                add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
   std::string         get_citygml();
   std::string         get_mtl();
   bool                get_shape(OGRLayer * layer);
-  static std::string  _heightref;
+  static float        _heightref;
   TopoClass           get_class();
   bool                is_hard();
 };

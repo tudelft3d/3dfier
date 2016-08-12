@@ -23,9 +23,9 @@
  
 #include "Water.h"
 
-std::string Water::_heightref = "percentile-10";
+float Water::_heightref = 0.1;
 
-Water::Water (char *wkt, std::string pid, std::string heightref) 
+Water::Water (char *wkt, std::string pid, float heightref) 
 : Flat(wkt, pid)
 {
   _heightref = heightref;
@@ -33,8 +33,7 @@ Water::Water (char *wkt, std::string pid, std::string heightref)
 
 
 bool Water::lift() {
-  float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
-  Flat::lift_percentile(percentile);
+  Flat::lift_percentile(_heightref);
   return true;
 }
 

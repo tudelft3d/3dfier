@@ -72,10 +72,14 @@ int main(int argc, const char * argv[]) {
 //-- store the lifting options in the Map3d
   YAML::Node n = nodes["lifting_options"];
   if (n["Building"]) {
-    if (n["Building"]["height_roof"])
-      map3d.set_building_heightref_roof(n["Building"]["height_roof"].as<std::string>());
-    if (n["Building"]["height_floor"])
-      map3d.set_building_heightref_floor(n["Building"]["height_floor"].as<std::string>());
+    if (n["Building"]["height_roof"]) {
+      std::string height = n["Building"]["height_roof"].as<std::string>();
+      map3d.set_building_heightref_roof(std::stoi(height.substr(height.find_first_of("-") + 1)) / 100);
+    }
+    if (n["Building"]["height_floor"]){
+      std::string height = n["Building"]["height_floor"].as<std::string>();
+      map3d.set_building_heightref_floor(std::stoi(height.substr(height.find_first_of("-") + 1)) / 100);
+    }
     if (n["Building"]["triangulate"]) {
       if (n["Building"]["triangulate"].as<std::string>() == "true") 
         map3d.set_building_triangulate(true);
@@ -90,17 +94,25 @@ int main(int argc, const char * argv[]) {
     if (n["Forest"]["simplification"])
       map3d.set_forest_simplification(n["Forest"]["simplification"].as<int>());
   if (n["Water"]) 
-    if (n["Water"]["height"])
-      map3d.set_water_heightref(n["Water"]["height"].as<std::string>());
+    if (n["Water"]["height"]) {
+      std::string height = n["Water"]["height"].as<std::string>();
+      map3d.set_water_heightref(std::stoi(height.substr(height.find_first_of("-") + 1)) / 100);
+    }
   if (n["Road"]) 
-    if (n["Road"]["height"])
-      map3d.set_road_heightref(n["Road"]["height"].as<std::string>());
+    if (n["Road"]["height"]) {
+      std::string height = n["Road"]["height"].as<std::string>();
+      map3d.set_road_heightref(std::stoi(height.substr(height.find_first_of("-") + 1)) / 100);
+    }
   if (n["Separation"])
-    if (n["Separation"]["height"])
-      map3d.set_separation_heightref(n["Separation"]["height"].as<std::string>());
+    if (n["Separation"]["height"]) {
+      std::string height = n["Separation"]["height"].as<std::string>();
+      map3d.set_separation_heightref(std::stoi(height.substr(height.find_first_of("-") + 1)) / 100);
+    }
   if (n["Bridge/Overpass"])
-    if (n["Bridge/Overpass"]["height"])
-      map3d.set_bridge_heightref(n["Bridge/Overpass"]["height"].as<std::string>());
+    if (n["Bridge/Overpass"]["height"]) {
+      std::string height = n["Bridge/Overpass"]["height"].as<std::string>();
+      map3d.set_bridge_heightref(std::stoi(height.substr(height.find_first_of("-") + 1)) / 100);
+    }
 
   n = nodes["options"];
   if (n["radius_vertex_elevation"])

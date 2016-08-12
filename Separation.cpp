@@ -22,9 +22,9 @@ SOFTWARE.
 
 #include "Separation.h"
 
-std::string Separation::_heightref = "percentile-90";
+float Separation::_heightref = 0.9;
 
-Separation::Separation(char *wkt, std::string pid, std::string heightref)
+Separation::Separation(char *wkt, std::string pid, float heightref)
   : Flat(wkt, pid)
 {
   _heightref = heightref;
@@ -32,8 +32,7 @@ Separation::Separation(char *wkt, std::string pid, std::string heightref)
 
 bool Separation::lift()
 {
-  float percentile = std::stof(_heightref.substr(_heightref.find_first_of("-") + 1)) / 100;
-  lift_percentile(percentile);
+  lift_percentile(_heightref);
   return true;
 }
 
