@@ -74,11 +74,11 @@ int main(int argc, const char * argv[]) {
   if (n["Building"]) {
     if (n["Building"]["height_roof"]) {
       std::string height = n["Building"]["height_roof"].as<std::string>();
-      map3d.set_building_heightref_roof(std::stoi(height.substr(height.find_first_of("-") + 1)) / 100);
+      map3d.set_building_heightref_roof(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
     if (n["Building"]["height_floor"]){
       std::string height = n["Building"]["height_floor"].as<std::string>();
-      map3d.set_building_heightref_floor(std::stoi(height.substr(height.find_first_of("-") + 1)) / 100);
+      map3d.set_building_heightref_floor(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
     if (n["Building"]["triangulate"]) {
       if (n["Building"]["triangulate"].as<std::string>() == "true") 
@@ -96,22 +96,22 @@ int main(int argc, const char * argv[]) {
   if (n["Water"]) 
     if (n["Water"]["height"]) {
       std::string height = n["Water"]["height"].as<std::string>();
-      map3d.set_water_heightref(std::stoi(height.substr(height.find_first_of("-") + 1)) / 100);
+      map3d.set_water_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
   if (n["Road"]) 
     if (n["Road"]["height"]) {
       std::string height = n["Road"]["height"].as<std::string>();
-      map3d.set_road_heightref(std::stoi(height.substr(height.find_first_of("-") + 1)) / 100);
+      map3d.set_road_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
   if (n["Separation"])
     if (n["Separation"]["height"]) {
       std::string height = n["Separation"]["height"].as<std::string>();
-      map3d.set_separation_heightref(std::stoi(height.substr(height.find_first_of("-") + 1)) / 100);
+      map3d.set_separation_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
   if (n["Bridge/Overpass"])
     if (n["Bridge/Overpass"]["height"]) {
       std::string height = n["Bridge/Overpass"]["height"].as<std::string>();
-      map3d.set_bridge_heightref(std::stoi(height.substr(height.find_first_of("-") + 1)) / 100);
+      map3d.set_bridge_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
 
   n = nodes["options"];
