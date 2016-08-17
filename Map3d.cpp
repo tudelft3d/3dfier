@@ -485,22 +485,18 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
       case wkbMultiPolygon25D: {
         OGRMultiPolygon* multipolygon = (OGRMultiPolygon*)f->GetGeometryRef();
         int numGeom = multipolygon->getNumGeometries();
-        if (numGeom > 1) {
+        if (numGeom >= 1) {
           for (int i = 0; i < numGeom; i++) {
             OGRFeature* cf = f->Clone();
-            std::stringstream ss;
-            ss << f->GetFieldAsString(idfield) << "-" << std::to_string(i);
-            cf->SetField(idfield, ss.str().c_str());
+            if (numGeom > 1) {
+              std::stringstream ss;
+              ss << f->GetFieldAsString(idfield) << "-" << std::to_string(i);
+              cf->SetField(idfield, ss.str().c_str());
+            }
             cf->SetGeometry((OGRPolygon*)multipolygon->getGeometryRef(i));
             extract_feature(cf, idfield, heightfield, l.second, multiple_heights);
           }
           std::clog << "MultiPolygon with " << numGeom << " geometries processed" << std::endl;
-        }
-        else {
-          // just a single geometry thus set the first geometry as the geometry
-          f->SetGeometry(((OGRMultiPolygon*)f->GetGeometryRef())->getGeometryRef(0));
-          extract_feature(f, idfield, heightfield, l.second, multiple_heights);
-          std::clog << "MultiPolygon with 1 geometry processed" << std::endl;
         }
         break;
       }
