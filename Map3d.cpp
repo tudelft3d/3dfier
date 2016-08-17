@@ -648,8 +648,7 @@ void Map3d::stitch_lifted_features() {
       // }
 
       //if (fadj->get_top_level() == true && bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
-      if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2()))) {
-        //std::cout << f->get_id() << "-" << f->get_class() << " : " << fadj->get_id() << "-" << fadj->get_class() << std::endl;
+      if (f != fadj && (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) || !bg::disjoint(*(f->get_Polygon2()), *(fadj->get_Polygon2())))) {
         lstouching.push_back(fadj);
       }
     }
