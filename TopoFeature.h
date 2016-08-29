@@ -47,8 +47,10 @@ public:
   virtual bool          is_hard() = 0;
 
   std::string  get_id();
-  void         construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std::unordered_map< std::string, std::vector<int> > nc);
-  void         fix_bowtie(std::vector<TopoFeature*> lsAdj);
+  void         construct_vertical_walls(std::unordered_map< std::string, std::vector<int> > nc);
+  void         fix_bowtie();
+  void         add_adjacent_feature(TopoFeature* adjFeature);
+  std::vector<TopoFeature*> get_adjacent_features();
   int          get_counter(); 
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
@@ -73,6 +75,7 @@ public:
 protected:
   Polygon2*                         _p2;
   std::vector< std::vector<int> >   _p2z;
+  std::vector<TopoFeature*>         _adjFeatures;
   std::string                       _id;
   int                               _counter;
   static int                        _count;
