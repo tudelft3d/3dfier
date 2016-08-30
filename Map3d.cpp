@@ -33,6 +33,8 @@ Map3d::Map3d() {
   _building_triangulate = true;
   _terrain_simplification = 0;
   _forest_simplification = 0;
+  _terrain_innerbuffer = 0.0;
+  _forest_innerbuffer = 0.0;
   _radius_vertex_elevation = 1.0;
   _building_radius_vertex_elevation = 1.0;
   _threshold_jump_edges = 50;
@@ -80,7 +82,15 @@ void Map3d::set_terrain_simplification(int simplification) {
 
 void Map3d::set_forest_simplification(int simplification) {
   _forest_simplification = simplification;
+} 
+
+void Map3d::set_terrain_innerbuffer(float innerbuffer) {
+  _terrain_innerbuffer = innerbuffer;
 }
+
+void Map3d::set_forest_innerbuffer(float innerbuffer) {
+  _forest_innerbuffer = innerbuffer;
+}  
 
 void Map3d::set_water_heightref(float h) {
   _water_heightref = h;
@@ -525,11 +535,11 @@ void Map3d::extract_feature(OGRFeature *f, const char *idfield, const char *heig
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Terrain") {
-    Terrain* p3 = new Terrain(wkt, f->GetFieldAsString(idfield), this->_terrain_simplification);
+    Terrain* p3 = new Terrain(wkt, f->GetFieldAsString(idfield), this->_terrain_simplification, this->_terrain_innerbuffer);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Forest") {
-    Forest* p3 = new Forest(wkt, f->GetFieldAsString(idfield), this->_forest_simplification);
+    Forest* p3 = new Forest(wkt, f->GetFieldAsString(idfield), this->_forest_simplification, this->_forest_innerbuffer);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Water") {

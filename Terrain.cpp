@@ -24,8 +24,8 @@
 #include <algorithm>
 
 
-Terrain::Terrain (char *wkt, std::string pid, int simplification) 
-: TIN(wkt, pid, simplification)
+Terrain::Terrain (char *wkt, std::string pid, int simplification, float innerbuffer)
+: TIN(wkt, pid, simplification, innerbuffer)
 {}
 
 
@@ -49,7 +49,7 @@ bool Terrain::add_elevation_point(double x, double y, double z, float radius, LA
   }
   if (toadd && lastreturn && lasclass == LAS_GROUND) {
     Point2 p(x, y);
-    if(bg::within(p, *(_p2))) {
+    if (bg::within(p, *(_p2)) && (this->get_distance_to_boundaries(p) > _innerbuffer)) {
       _lidarpts.push_back(Point3(x, y, z));
     }
     assign_elevation_to_vertex(x, y, z, radius);

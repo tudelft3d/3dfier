@@ -87,12 +87,16 @@ int main(int argc, const char * argv[]) {
         map3d.set_building_triangulate(false);
     }
   }
-  if (n["Terrain"]) 
+  if (n["Terrain"])
     if (n["Terrain"]["simplification"])
       map3d.set_terrain_simplification(n["Terrain"]["simplification"].as<int>());
+    if (n["Terrain"]["innerbuffer"])
+      map3d.set_terrain_innerbuffer(n["Terrain"]["innerbuffer"].as<float>());
   if (n["Forest"]) 
     if (n["Forest"]["simplification"])
       map3d.set_forest_simplification(n["Forest"]["simplification"].as<int>());
+    if (n["Forest"]["innerbuffer"])
+      map3d.set_forest_innerbuffer(n["Forest"]["innerbuffer"].as<float>());
   if (n["Water"]) 
     if (n["Water"]["height"]) {
       std::string height = n["Water"]["height"].as<std::string>();

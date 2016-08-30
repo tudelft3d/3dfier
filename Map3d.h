@@ -69,6 +69,8 @@ public:
   void set_building_triangulate(bool triangulate);
   void set_terrain_simplification(int simplification);
   void set_forest_simplification(int simplification);
+  void set_terrain_innerbuffer(float innerbuffer);
+  void set_forest_innerbuffer(float innerbuffer);
   void set_water_heightref(float heightref);
   void set_road_heightref(float heightref);
   void set_separation_heightref(float heightref);
@@ -83,6 +85,8 @@ private:
   bool        _building_include_floor;
   int         _terrain_simplification;
   int         _forest_simplification;
+  float       _terrain_innerbuffer;
+  float       _forest_innerbuffer;
   float       _water_heightref;
   float       _road_heightref;
   float       _separation_heightref;

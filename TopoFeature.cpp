@@ -972,10 +972,11 @@ void Boundary3D::smooth_boundary(int passes) {
 //-------------------------------
 //-------------------------------
 
-TIN::TIN(char *wkt, std::string pid, int simplification) 
+TIN::TIN(char *wkt, std::string pid, int simplification, float innerbuffer) 
 : TopoFeature(wkt, pid) 
 {
   _simplification = simplification;
+  _innerbuffer = innerbuffer;
 }
 
 

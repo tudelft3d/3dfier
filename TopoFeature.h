@@ -139,7 +139,7 @@ protected:
 class TIN : public TopoFeature
 {
 public:
-                      TIN(char *wkt, std::string pid, int simplification = 0);
+                      TIN(char *wkt, std::string pid, int simplification = 0, float innerbuffer = 0);
   virtual bool        lift() = 0;
   virtual std::string get_citygml() = 0;
   virtual TopoClass   get_class() = 0;
@@ -149,6 +149,7 @@ public:
   bool                buildCDT();
 protected:
   int                   _simplification;
+  float                 _innerbuffer;
   std::vector<Point3>   _lidarpts;
 };
 #endif 
