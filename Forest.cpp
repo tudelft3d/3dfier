@@ -47,7 +47,7 @@ bool Forest::add_elevation_point(double x, double y, double z, float radius, LAS
   }
   if (toadd && lastreturn && lasclass != LAS_BUILDING) {
     Point2 p(x, y);
-    if(bg::within(p, *(_p2))) {
+    if(bg::within(p, *(_p2)) && (this->get_distance_to_boundaries(p) > radius) ) {
       _lidarpts.push_back(Point3(x, y, z));
     }
     assign_elevation_to_vertex(x, y, z, radius);
