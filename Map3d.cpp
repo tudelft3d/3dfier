@@ -33,6 +33,8 @@ Map3d::Map3d() {
   _building_triangulate = true;
   _terrain_simplification = 0;
   _forest_simplification = 0;
+  _terrain_innerbuffer = 0.0;
+  _forest_innerbuffer = 0.0;
   _radius_vertex_elevation = 1.0;
   _building_radius_vertex_elevation = 1.0;
   _threshold_jump_edges = 50;
@@ -80,7 +82,15 @@ void Map3d::set_terrain_simplification(int simplification) {
 
 void Map3d::set_forest_simplification(int simplification) {
   _forest_simplification = simplification;
+} 
+
+void Map3d::set_terrain_innerbuffer(float innerbuffer) {
+  _terrain_innerbuffer = innerbuffer;
 }
+
+void Map3d::set_forest_innerbuffer(float innerbuffer) {
+  _forest_innerbuffer = innerbuffer;
+}  
 
 void Map3d::set_water_heightref(float h) {
   _water_heightref = h;
@@ -326,6 +336,12 @@ bool Map3d::threeDfy(bool triangulate) {
   }
   std::clog << "===== LIFTING/ =====" << std::endl;
   if (triangulate == true) {
+    std::clog << "=====  /ADJACENT FEATURES =====" << std::endl;
+    for (auto& p : _lsFeatures) {
+      get_adjacent_features(p);
+    }
+    std::clog << "=====  ADJACENT FEATURES/ =====" << std::endl;
+
     std::clog << "=====  /STITCHING =====" << std::endl;
     this->stitch_lifted_features();
     std::clog << "=====  STITCHING/ =====" << std::endl;
@@ -341,8 +357,7 @@ bool Map3d::threeDfy(bool triangulate) {
     std::clog << "=====  /BOWTIES =====" << std::endl;
     for (auto& p : _lsFeatures) {
       if (p->has_vertical_walls() == true) {
-        std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
-        p->fix_bowtie(lsAdj);
+        p->fix_bowtie();
       }
     }
     std::clog << "=====  BOWTIES/ =====" << std::endl;
@@ -350,8 +365,7 @@ bool Map3d::threeDfy(bool triangulate) {
     std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
     for (auto& p : _lsFeatures) {
       if (p->has_vertical_walls() == true) {
-        std::vector<TopoFeature*> lsAdj = get_adjacent_features(p);
-        p->construct_vertical_walls(lsAdj, _nc);
+        p->construct_vertical_walls(_nc);
       }
     }
     std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
@@ -521,11 +535,11 @@ void Map3d::extract_feature(OGRFeature *f, const char *idfield, const char *heig
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Terrain") {
-    Terrain* p3 = new Terrain(wkt, f->GetFieldAsString(idfield), this->_terrain_simplification);
+    Terrain* p3 = new Terrain(wkt, f->GetFieldAsString(idfield), this->_terrain_simplification, this->_terrain_innerbuffer);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Forest") {
-    Forest* p3 = new Forest(wkt, f->GetFieldAsString(idfield), this->_forest_simplification);
+    Forest* p3 = new Forest(wkt, f->GetFieldAsString(idfield), this->_forest_simplification, this->_forest_innerbuffer);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Water") {
@@ -620,7 +634,7 @@ std::vector<TopoFeature*> Map3d::get_adjacent_features(TopoFeature* f) {
   for (auto& each : re) {
     TopoFeature* fadj = each.second;
     if (f != fadj && (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) || !bg::disjoint(*(f->get_Polygon2()), *(fadj->get_Polygon2())))) {
-      lsAdjacent.push_back(fadj);
+      f->add_adjacent_feature(fadj);
     }
   }
   return lsAdjacent;
@@ -632,26 +646,26 @@ void Map3d::stitch_lifted_features() {
   for (auto& f : _lsFeatures) {
     std::vector<PairIndexed> re;
     _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-    std::vector<TopoFeature*> lstouching;
+    std::vector<TopoFeature*> lstouching = f->get_adjacent_features();
 
-    //-- 1. store all touching top level (adjacent + incident)
-    for (auto& each : re) {
-      TopoFeature* fadj = each.second;
+    ////-- 1. store all touching top level (adjacent + incident)
+    //for (auto& each : re) {
+    //  TopoFeature* fadj = each.second;
 
-      // if (bg::intersects(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
-      // {
-      //   std::clog << f->get_id() << " intersects " << fadj->get_id() << std::endl;
-      // }
-      // if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
-      // {
-      //   std::clog << f->get_id() << " touches " << fadj->get_id() << std::endl;
-      // }
+    //  // if (bg::intersects(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
+    //  // {
+    //  //   std::clog << f->get_id() << " intersects " << fadj->get_id() << std::endl;
+    //  // }
+    //  // if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
+    //  // {
+    //  //   std::clog << f->get_id() << " touches " << fadj->get_id() << std::endl;
+    //  // }
 
-      //if (fadj->get_top_level() == true && bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
-      if (f != fadj && (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) || !bg::disjoint(*(f->get_Polygon2()), *(fadj->get_Polygon2())))) {
-        lstouching.push_back(fadj);
-      }
-    }
+    //  //if (fadj->get_top_level() == true && bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
+    //  if (f != fadj && (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) || !bg::disjoint(*(f->get_Polygon2()), *(fadj->get_Polygon2())))) {
+    //    lstouching.push_back(fadj);
+    //  }
+    //}
 
     //-- 2. build the node-column for each vertex
     // oring

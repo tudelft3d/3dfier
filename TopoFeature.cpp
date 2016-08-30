@@ -211,7 +211,7 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
   return true;
 }
 
-void TopoFeature::fix_bowtie(std::vector<TopoFeature*> lsAdj) {
+void TopoFeature::fix_bowtie() {
   //-- gather all rings
   std::vector<Ring2> therings;
   therings.push_back(bg::exterior_ring(*(_p2)));
@@ -244,7 +244,7 @@ void TopoFeature::fix_bowtie(std::vector<TopoFeature*> lsAdj) {
       int adj_a_pi = 0;
       int adj_b_ringi = 0;
       int adj_b_pi = 0;
-      for (auto& adj : lsAdj) {
+      for (auto& adj : _adjFeatures) {
         if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi) == true) {
           // if (adj->has_segment(b, a) == true) {
           fadj = adj;
@@ -308,7 +308,7 @@ void TopoFeature::fix_bowtie(std::vector<TopoFeature*> lsAdj) {
 }
 
 
-void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std::unordered_map<std::string, std::vector<int>> nc) {
+void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::vector<int>> nc) {
   if (this->has_vertical_walls() == false)
     return;
 
@@ -344,7 +344,7 @@ void TopoFeature::construct_vertical_walls(std::vector<TopoFeature*> lsAdj, std:
       int adj_a_pi = 0;
       int adj_b_ringi = 0;
       int adj_b_pi = 0;
-      for (auto& adj : lsAdj) {
+      for (auto& adj : _adjFeatures) {
         if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi) == true) {
           // if (adj->has_segment(b, a) == true) {
           fadj = adj;
@@ -531,7 +531,6 @@ bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& 
         return true;
       }
     }
-
   }
   return false;
 }
@@ -707,6 +706,18 @@ void TopoFeature::lift_all_boundary_vertices_same_height(int height) {
       _p2z[ringi][i] = height;
     ringi++;
   }
+}
+
+
+void TopoFeature::add_adjacent_feature(TopoFeature * adjFeature)
+{
+  _adjFeatures.push_back(adjFeature);
+}
+
+
+std::vector<TopoFeature*> TopoFeature::get_adjacent_features()
+{
+  return _adjFeatures;
 }
 
 
@@ -961,10 +972,11 @@ void Boundary3D::smooth_boundary(int passes) {
 //-------------------------------
 //-------------------------------
 
-TIN::TIN(char *wkt, std::string pid, int simplification) 
+TIN::TIN(char *wkt, std::string pid, int simplification, float innerbuffer) 
 : TopoFeature(wkt, pid) 
 {
   _simplification = simplification;
+  _innerbuffer = innerbuffer;
 }
 
 

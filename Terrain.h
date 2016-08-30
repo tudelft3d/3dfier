@@ -28,7 +28,7 @@
 class Terrain : public TIN
 {
 public:
-  Terrain (char *wkt, std::string pid, int simplification);
+  Terrain (char *wkt, std::string pid, int simplification, float innerbuffer);
   bool        lift();
   bool        add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
   std::string get_citygml();
