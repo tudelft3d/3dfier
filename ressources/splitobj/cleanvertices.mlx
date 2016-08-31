@@ -1,0 +1,5 @@
+<!DOCTYPE FilterScript>
+<FilterScript>
+ <filter name="Remove Duplicated Vertex"/>
+ <filter name="Remove Unreferenced Vertex"/>
+</FilterScript>
