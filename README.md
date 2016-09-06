@@ -32,7 +32,7 @@ If you use it, feedback is very much appreciated.
 
 ## LAS/LAZ Pointcloud
 
-We expect the LAS/LAZ to be classified according to the ASPRS Standard LIDAR Point Classes v1.4 (Table 29 of this [PDF](ASPRS Standard LIDAR Point Classes)), and at a minimum these should be defined:
+We expect the LAS/LAZ to be classified according to the ASPRS Standard LIDAR Point Classes v1.4 (Table 29 of this [PDF](http://www.asprs.org/wp-content/uploads/2010/12/LAS_1-4_R6.pdf)), and at a minimum these should be defined:
 
   - 0-1 : Created, never classified and/or Unclassified
   - 2 : Ground
