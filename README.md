@@ -8,6 +8,8 @@ Takes 2D GIS datasets (eg topographical datasets) and "3dfies" them (as in "maki
 The elevation is obtained from a point cloud (we support LAS/LAZ at this moment), and the semantics of every polygon is used to perform the lifting.
 That is, water polygons are extruded to horizontal polygons, buildings to LOD1 blocks, roads as smooth surfaces, etc.
 Every polygon is triangulated (constrained Delaunay triangulation) and the lifted polygons are "stitched" together so that one digital surface model (DSM) is constructed.
+Our aim is to obtain one DSM that is error-free, ie no intersecting triangles, no holes (the surface is watertight), where buildings are integrated in the surface, etc.
+This surface will then be used as input in simulation software for instance.
 
 The lifting options can be configured in the YAML file (`myconfig.yml`) provided.
 Any 2D input (which should be a planar partition) can be used as input, and each class must be mapped to one of the following:
