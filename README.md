@@ -1,20 +1,31 @@
 
 # 3dfier
 
-![](https://dl.dropboxusercontent.com/s/xko00snptbk7vyv/2015-11-16%20at%2009.00.png)
+![](https://dl.dropboxusercontent.com/s/vjp0m2rc06z17qe/2016-09-06%20at%2010.53.png)
 
 
 Takes 2D GIS datasets (eg topographical datasets) and "3dfies" them (as in "making them three-dimensional") by lifting every polygon to 3D.
 The elevation is obtained from a point cloud (we support LAS/LAZ at this moment), and the semantics of every polygon is used to perform the lifting.
-That is, water polygons are extruded to horizontal polygons, buildings to LOD1, roads , etc.
+That is, water polygons are extruded to horizontal polygons, buildings to LOD1 blocks, roads as smooth surfaces, etc.
 Every polygon is triangulated (constrained Delaunay triangulation) and the lifted polygons are "stitched" together so that one digital surface model (DSM) is constructed.
 
 The lifting options can be configured in the YAML file (`myconfig.yml`) provided.
+Any 2D input (which should be a planar partition) can be used as input, and each class must be mapped to one of the following:
+
+  1. Building
+  1. Terrain
+  1. Road
+  1. Water
+  1. Forest
+  1. Bridge
+  1. Separation (used for concrete slabs used along canals for instance, surely very "Dutch")
+
+It is possible to define new classes, although that would require a bit of programming.
 
 Output is at this moment in either OBJ or CityGML (and CVS for buildings only, ie their ID and height (ground+roof) are output).
 The ID of each polygon is preserved, and there is a 1-to-1 mapping between the input and the output. 
 
-Notice that this version is *early alpha*, and shouldn't really be used for anything except for testing.
+Notice that this version is very much a beta version..
 
 
 ## Compiling
@@ -27,36 +38,19 @@ cmake ..
 make
 ```
 
-And on ubuntu systems that come with GDAL 2, make sure the `libgdal1-dev` package is installed and replace `cmake ..` with 
-```
-cmake .. -DGDAL_CONFIG=/bin/gdal-config -DGDAL_LIBRARY=/usr/lib/libgdal.so -DGDAL_INCLUDE_DIR=/usr/include/gdal
-```
+The dependencies that are necessary (under Mac we suggest using [Homebrew](http://brew.sh)):
 
-To run:
+  1. LIBLAS *with* LASzip support (`brew install liblas --with-laszip`)
+  1. GDAL (`brew install gdal`)
+  1. Boost (`brew install boost`)
+  1. CGAL (`brew install cgal`)
+  4. yaml-cpp (`brew install yaml-cpp`)
+
+
+## To run:
 
 `$ ./3dfier myconfig.yml > output.obj`
 
-
-## Dependencies:
-
-Under Mac OSX they can all be installed with [Homebrew](http://brew.sh).
-
-  1. LIBLAS *with* LASzip support (`brew install liblas --with-laszip`)
-  2. GDAL (`brew install gdal`)
-  3. Boost (`brew install boost`)
-  4. yaml-cpp (`brew install yaml-cpp`)
-  5. [Shewchuk's Triangle](http://www.cs.cmu.edu/%7Equake/triangle.html) (`brew install homebrew/science/triangle`)
-
-## Data
-
-The first application is to create a 3D version of TOP10NL.
-Get (2D) TOP10NL there:
-
-  - https://www.pdok.nl/nl/producten/pdok-downloads/basis-registratie-topografie/topnl/topnl-actueel/top10nl
-
-Notice that OGR will not read it properly, it needs to be preprocessed with [nlextract](https://github.com/opengeogroep/NLExtract/tree/top10_v1_2/top10nl/etl).
-
-The LiDAR dataset AHN3 can be [freely downloaded](https://www.pdok.nl/nl/ahn3-downloads).
 
 
 
