@@ -27,8 +27,18 @@ It is possible to define new classes, although that would require a bit of progr
 Output is at this moment in either OBJ or CityGML (and CVS for buildings only, ie their ID and height (ground+roof) are output).
 The ID of each polygon is preserved, and there is a 1-to-1 mapping between the input and the output. 
 
-Notice that this version is very much a beta version..
+Notice that this version is very much a beta version, although it is in our opinion usable. 
+If you use it, feedback is very much appreciated.
 
+## LAS/LAZ Pointcloud
+
+We expect the LAS/LAZ to be classified according to the ASPRS Standard LIDAR Point Classes v1.4 (Table 29 of this [PDF](ASPRS Standard LIDAR Point Classes)), and at a minimum these should be defined:
+
+  - 0-1 : Created, never classified and/or Unclassified
+  - 2 : Ground
+  - 3-5: Vegetation
+
+If the vegetation is not classified or not filtered out, then buildings will be taller and there will be artefacts in the terrain.
 
 ## Compiling
 
