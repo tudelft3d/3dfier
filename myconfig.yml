@@ -1,4 +1,3 @@
-
 input_polygons:
   - datasets: 
       - /Users/elvis/data/campus/partof.shp
@@ -12,15 +11,25 @@ input_polygons:
       Gebouw: Building
       Terrein: Terrain
       Waterdeel: Water
+  - datasets: 
+      - /Users/elvis/data/bgt_overbruggingsdeel.sqlite
+    uniqueid: gml_id
+    lifting: Bridge/Overpass
+    height_field: relatievehoogteligging
+    handle_multiple_heights: true
   
 lifting_options: 
   Building:
-    height_roof: percentile-95 
-    height_floor: percentile-10 
+    height_roof: percentile-95
+    height_floor: percentile-10
     triangulate: true
   Water:
     height: percentile-10
   Road:
+    height: percentile-50
+  Separation:
+    height: percentile-80
+  Bridge/Overpass:
     height: percentile-50
   Terrain:
     simplification: 100
@@ -38,16 +47,15 @@ input_elevation:
     thinning: 10
 
 options:
+  building_radius_vertex_elevation: 3.0
   radius_vertex_elevation: 1.0
   threshold_jump_edges: 0.25
 
 output: 
-  format: OBJ # OBJ-NoID or CityGML or CSV-BUILDINGS
+  format: OBJ # OBJ-NoID, OBJ-BUILDINGS, CityGML, CSV-BUILDINGS or Shapefile
   building_floor: false
   vertical_exaggeration: 3
 
 buildings:
   horizontal_floor: true
   triangulated: false
-
-verbose: true

@@ -1,0 +1,75 @@
+input_polygons:
+  - datasets: 
+      - delft/bgt_waterdeel.sqlite
+      - delft/bgt_ondersteunendwaterdeel.sqlite
+    uniqueid: gml_id
+    lifting: Water
+    height_field: relatievehoogteligging
+  - datasets: 
+      - delft/bgt_onbegroeidterreindeel.sqlite
+    uniqueid: gml_id
+    lifting: Terrain
+    height_field: relatievehoogteligging
+  - datasets: 
+      - delft/bgt_wegdeel.sqlite
+      - delft/bgt_ondersteunendwegdeel.sqlite
+    uniqueid: gml_id
+    lifting: Road
+    height_field: relatievehoogteligging
+  - datasets: 
+      - delft/bgt_pand.sqlite
+      - delft/bgt_overigbouwwerk.sqlite
+    uniqueid: gml_id
+    lifting: Building
+    height_field: relatievehoogteligging
+  - datasets: 
+      - delft/bgt_begroeidterreindeel.sqlite
+    uniqueid: gml_id
+    lifting: Forest
+    height_field: relatievehoogteligging
+  - datasets: 
+      - delft/bgt_scheiding.sqlite
+    uniqueid: gml_id
+    lifting: Separation
+    height_field: relatievehoogteligging
+  - datasets: 
+      - delft/bgt_overbruggingsdeel.sqlite
+    uniqueid: gml_id
+    lifting: Bridge/Overpass
+    height_field: relatievehoogteligging
+    handle_multiple_heights: true
+
+lifting_options: 
+  Building:
+    height_roof: percentile-90
+    height_floor: percentile-10
+  Terrain:
+    simplification: 10
+  Forest:
+    simplification: 10
+  Water:
+    height: percentile-10
+  Road:
+    height: percentile-50
+  Separation:
+    height: percentile-80
+  Bridge/Overpass:
+    height: percentile-50
+
+input_elevation:
+  - datasets:
+      - delft/C_37EN1.laz
+      - delft/C_37EN2.laz
+    omit_LAS_classes:
+      - 1 # unclassified
+    thinning: 0
+
+options:
+  building_radius_vertex_elevation: 3.0
+  radius_vertex_elevation: 1.0
+  threshold_jump_edges: 0.5
+
+output: 
+  format: OBJ
+  building_floor: false
+  vertical_exaggeration: 0
