@@ -1,6 +1,6 @@
 When preparing the BGT GML files as input for 3dfier, the BGT_conversion.bat batch script can be used. 
 The script requires GDAL >2.0 to perform the filtering and conversion.
-OGR is used to select only to use polygons and stroke CurvePolygons to discretized polygons., it also filters the history of objects by only selecting those of which the 'eindregistratie' is not set.
+OGR is used to select only polygonal geometries and stroke CurvePolygons to discretized polygons., it also filters the history of objects by only selecting those of which the 'eindregistratie' is not set.
 
 Usage:
 - Extract the BGT GML files in a folder
