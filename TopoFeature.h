@@ -68,7 +68,7 @@ public:
   void         add_vertical_wall(); 
   bool         get_top_level();
   std::string  get_obj_v(std::vector<Point3>::size_type &idx, std::unordered_map< std::string, std::vector<Point3>::size_type > &vertices_map, int z_exaggeration);
-  std::string  get_obj_f(std::unordered_map< std::string, std::vector<Point3>::size_type > &vertices_map, bool usemtl);
+  std::string  get_obj_f(std::unordered_map< std::string, std::vector<Point3>::size_type > &vertices_map, bool useverticalwalls);
   std::string  get_wkt();
   bool         get_shape_features(OGRLayer* layer, std::string className);
 

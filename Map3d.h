@@ -78,11 +78,13 @@ public:
   void set_radius_vertex_elevation(float radius);
   void set_building_radius_vertex_elevation(float radius);
   void set_threshold_jump_edges(float threshold);
+  void set_use_vertical_walls(bool useverticalwalls);
 private:
   float       _building_heightref_roof;
   float       _building_heightref_floor;
   bool        _building_triangulate;
   bool        _building_include_floor;
+  bool        _use_vertical_walls;
   int         _terrain_simplification;
   int         _forest_simplification;
   float       _terrain_innerbuffer;

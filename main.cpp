@@ -130,6 +130,8 @@ int main(int argc, const char * argv[]) {
   }
   if (n["threshold_jump_edges"])
     map3d.set_threshold_jump_edges(n["threshold_jump_edges"].as<float>());
+  if (n["use_vertical_walls"] && n["use_vertical_walls"].as<std::string>() == "true")
+    map3d.set_use_vertical_walls(true);
 
   //-- add the polygons to the map3d
   std::vector<PolygonFile> files;

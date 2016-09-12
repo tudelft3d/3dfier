@@ -28,6 +28,7 @@
 Map3d::Map3d() {
   OGRRegisterAll();
   _building_include_floor = false;
+  _use_vertical_walls = false;
   _building_heightref_roof = 0.9;
   _building_heightref_floor = 0.1;
   _building_triangulate = true;
@@ -66,6 +67,10 @@ void Map3d::set_building_radius_vertex_elevation(float radius) {
 
 void Map3d::set_threshold_jump_edges(float threshold) {
   _threshold_jump_edges = int(threshold * 100);
+}
+
+void Map3d::set_use_vertical_walls(bool useverticalwalls) {
+  _use_vertical_walls = useverticalwalls;
 }
 
 void Map3d::set_building_include_floor(bool include) {
@@ -146,7 +151,7 @@ std::string Map3d::get_obj_per_feature(int z_exaggeration) {
   for (auto& p3 : _lsFeatures) {
     ss << "o " << p3->get_id() << std::endl;
     ss << p3->get_mtl();
-    ss << p3->get_obj_f(vertices_map, true);
+    ss << p3->get_obj_f(vertices_map, _use_vertical_walls);
     //-- TODO: floor for buildings
 //    if (_building_include_floor == true) {  
 //      Building* b = dynamic_cast<Building*>(p3);
@@ -197,7 +202,7 @@ std::string Map3d::get_obj_per_class(int z_exaggeration) {
     for (auto& p3 : _lsFeatures) {
       if (p3->get_class() == c) {
         ss << p3->get_mtl();
-        ss << p3->get_obj_f(vertices_map, false);
+        ss << p3->get_obj_f(vertices_map, _use_vertical_walls);
         if (_building_include_floor == true) {
           Building* b = dynamic_cast<Building*>(p3);
           if (b != nullptr)
