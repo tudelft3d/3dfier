@@ -1,25 +1,30 @@
 /*
- Copyright (c) 2015 Hugo Ledoux
- 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
- 
- The above copyright notice and this permission notice shall be included in all
- copies or substantial portions of the Software.
- 
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- SOFTWARE.
-*/
+  3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
+  
+  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
 
+  This file is part of 3dfier.
+
+  3dfier is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  3dfier is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with 3difer.  If not, see <http://www.gnu.org/licenses/>.
+
+  For any information or further details about the use of 3dfier, contact
+  Hugo Ledoux 
+  <h.ledoux@tudelft.nl>
+  Faculty of Architecture & the Built Environment
+  Delft University of Technology
+  Julianalaan 134, Delft 2628BL, the Netherlands
+*/
 
 //-- TODO: create the topo DS locally? to prevent cases where nodes on only in one polygon. Or pprepair before?
 //-- TODO: write output all polygons once the tile completely containing is closed?
@@ -36,6 +41,7 @@
 #include <chrono>
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
+void print_license();
 
 int main(int argc, const char * argv[]) {
   auto startTime = std::chrono::high_resolution_clock::now();
@@ -44,11 +50,32 @@ int main(int argc, const char * argv[]) {
   std::locale::global(loc);
   std::clog.imbue(loc);
 
-//-- reading the config file
-  if (argc != 2) {
+  std::string licensewarning = 
+  "3dfier Copyright (C) 2015-2016  3D geoinformation research group, TU Delft\n"
+  "This program comes with ABSOLUTELY NO WARRANTY.\n"
+  "This is free software, and you are welcome to redistribute it\n"
+  "under certain conditions; for details run 3dfier with the '--license' option.\n"; 
+
+  if (argc == 1) {
+    std::clog << licensewarning << std::endl;
+    std::cout << "Usage: 3dfier config.yml > myoutput.obj" << std::endl;
+    return 0;
+  }
+  //-- reading the config file
+  if (argc > 2) {
     std::cerr << "ERROR: the config file (*.yml) is not defined." << std::endl;
     return 0;
   }
+  //-- license
+  if (argc == 2) {
+    std::string s = argv[1];
+    if ( s == "--license") {
+      print_license();
+      return 0;
+    }
+  }
+
+  std::clog << licensewarning << std::endl;
   std::clog << "Reading and validating config file: " << argv[1] << std::endl;
 
 //-- allowed feature classes
@@ -266,6 +293,29 @@ int main(int argc, const char * argv[]) {
   return 1;
 }
 
+void print_license() {
+  std::string thelicense = 
+  "\n3dfier: takes 2D GIS datasets and '3dfies' to create 3D city models.\n\n"
+  "Copyright (C) 2015-2016  3D geoinformation research group, TU Delft\n\n"
+  "3dfier is free software: you can redistribute it and/or modify\n"
+  "it under the terms of the GNU General Public License as published by\n"
+  "the Free Software Foundation, either version 3 of the License, or\n"
+  "(at your option) any later version.\n\n"
+  "3dfier is distributed in the hope that it will be useful,\n"
+  "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+  "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+  "GNU General Public License for more details.\n\n"
+  "A copy of the GNU General Public License is available at\n"
+  "<http://www.gnu.org/licenses/> or\n" 
+  "<https://github.com/tudelft3d/3dfier/blob/master/LICENSE\n\n"
+  "For any information or further details about the use of 3dfier, contact:\n"
+  "Hugo Ledoux \n"
+  "<h.ledoux@tudelft.nl>\n"
+  "Faculty of Architecture & the Built Environment\n"
+  "Delft University of Technology\n"
+  "Julianalaan 134, Delft 2628BL, the Netherlands\n";
+  std::clog << thelicense << std::endl;
+}
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
   YAML::Node nodes = YAML::LoadFile(arg);
