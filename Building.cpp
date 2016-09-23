@@ -200,32 +200,42 @@ std::string Building::get_obj_f_floor(std::unordered_map<std::string, std::vecto
 
 std::string Building::get_citygml() {
   std::stringstream ss;
-  ss << "<cityObjectMember>";
-  ss << "<bldg:Building>";
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<bldg:Building>" << std::endl;
   ss << "<bldg:measuredHeight uom=\"#m\">";
   ss << this->get_height();
-  ss << "</bldg:measuredHeight>";
-  ss << "<bldg:lod1Solid>";
-  ss << "<gml:Solid>";
-  ss << "<gml:exterior>";
-  ss << "<gml:CompositeSurface>";
+  ss << "</bldg:measuredHeight>" << std::endl;
+  ss << "<bldg:lod1Solid>" << std::endl;
+  ss << "<gml:Solid>" << std::endl;
+  ss << "<gml:exterior>" << std::endl;
+  ss << "<gml:CompositeSurface>" << std::endl;
+  float h = float(this->get_height()) / 100;
+  float hbase = float(this->get_height_base()) / 100;
   //-- get floor
-  ss << get_polygon_lifted_gml(this->_p2, this->get_height_base(), false);
+  ss << get_polygon_lifted_gml(this->_p2, hbase, false);
   //-- get roof
-  ss << get_polygon_lifted_gml(this->_p2, this->get_height(), true);
+  ss << get_polygon_lifted_gml(this->_p2, h, true);
   //-- get the walls
   auto r = bg::exterior_ring(*(this->_p2));
-  for (int i = 0; i < (r.size() - 1); i++) 
-    ss << get_extruded_line_gml(&r[i], &r[i + 1], this->get_height(), 0, false);
-  ss << "</gml:CompositeSurface>";
-  ss << "</gml:exterior>";
-  ss << "</gml:Solid>";
-  ss << "</bldg:lod1Solid>";
-  ss << "</bldg:Building>";
-  ss << "</cityObjectMember>";
+  int i;
+  for (i = 0; i < (r.size() - 1); i++) 
+    ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
+  ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
+  //-- irings
+  auto irings = bg::interior_rings(*(this->_p2));
+  for (Ring2& r : irings) {
+    for (i = 0; i < (r.size() - 1); i++) 
+      ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
+    ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
+  }
+  ss << "</gml:CompositeSurface>" << std::endl;
+  ss << "</gml:exterior>" << std::endl;
+  ss << "</gml:Solid>" << std::endl;
+  ss << "</bldg:lod1Solid>" << std::endl;
+  ss << "</bldg:Building>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
   return ss.str(); 
 }
-
 
 bool Building::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Building");

@@ -122,13 +122,13 @@ void Map3d::set_bridge_heightref(float h) {
 
 std::string Map3d::get_citygml() {
   std::stringstream ss;
-  ss << get_xml_header();
-  ss << get_citygml_namespaces();
-  ss << "<gml:name>my3dmap</gml:name>";
+  ss << get_xml_header() << std::endl;
+  ss << get_citygml_namespaces() << std::endl;
+  ss << "<gml:name>my 3dfied map</gml:name>" << std::endl;
   for (auto& p3 : _lsFeatures) {
-    ss << p3->get_citygml();
+    ss << p3->get_citygml() << std::endl;
   }
-  ss << "</CityModel>";
+  ss << "</CityModel>" << std::endl;
   return ss.str();
 }
 
@@ -322,7 +322,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
 }
 
 
-bool Map3d::threeDfy(bool triangulate) {
+bool Map3d::threeDfy(bool stitching) {
   /*
     1. lift
     2. stitch
@@ -332,22 +332,9 @@ bool Map3d::threeDfy(bool triangulate) {
   std::clog << "===== /LIFTING =====" << std::endl;
   for (auto& p : _lsFeatures) {
     p->lift();
-    //if (p->get_top_level() == true) {
-    //  //std::clog << p->get_id() << std::endl;
-    //  p->lift();
-    //}
-    //else
-    //{
-    //  std::clog << "non-top-niveau " << p->get_id() << std::endl;
-    //  // Lift to height for bridges/overpass
-    //  //if (p->get_class() == BRIDGE)
-    //  //{
-    //  //  p->lift();
-    //  //}
-    //}
   }
   std::clog << "===== LIFTING/ =====" << std::endl;
-  if (triangulate == true) {
+  if (stitching == true) {
     std::clog << "=====  /ADJACENT FEATURES =====" << std::endl;
     for (auto& p : _lsFeatures) {
       get_adjacent_features(p);
@@ -381,28 +368,11 @@ bool Map3d::threeDfy(bool triangulate) {
       }
     }
     std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
-
-    std::clog << "=====  /CDT =====" << std::endl;
-    for (auto& p : _lsFeatures) {
-      p->buildCDT();
-    }
-    std::clog << "=====  CDT/ =====" << std::endl;
   }
   return true;
 }
 
-bool Map3d::threeDfy_building_volume() {
-  /*
-    1. lift
-    2. CDT
-  */
-  std::clog << "===== /LIFTING =====" << std::endl;
-  for (auto& p : _lsFeatures) {
-    std::clog << p->get_id() << std::endl;
-    p->lift();
-  }
-  std::clog << "===== LIFTING/ =====" << std::endl;
-
+bool Map3d::construct_CDT() {
   std::clog << "=====  /CDT =====" << std::endl;
   for (auto& p : _lsFeatures) {
     // std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
@@ -411,7 +381,6 @@ bool Map3d::threeDfy_building_volume() {
   std::clog << "=====  CDT/ =====" << std::endl;
   return true;
 }
-
 
 
 bool Map3d::construct_rtree() {

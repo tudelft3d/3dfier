@@ -56,8 +56,8 @@ public:
 
   void stitch_lifted_features();
   bool construct_rtree();
-  bool threeDfy(bool triangulate = true);
-  bool threeDfy_building_volume();
+  bool threeDfy(bool stitching = true);
+  bool construct_CDT();
   void add_elevation_point(liblas::Point const& laspt);
 
   unsigned long get_num_polygons();
