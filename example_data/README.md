@@ -17,4 +17,4 @@ The 2 files in the folder `ahn3` are part of the [AHN3](https://www.pdok.nl/nl/a
 What you should get when you run 3dfier is in `output/testarea.obj`.
 If you use [MeshLab](http://meshlab.sourceforge.net) to view the file, the colours for each class can be activated in the menu `Render/Color/Per Face`. It looks like that:
 
-![](https://www.dropbox.com/s/zjkqtoo1zyhn25p/Screenshot%202016-09-29%2011.43.39.png?dl=0)
+![](output/testarea.png)
