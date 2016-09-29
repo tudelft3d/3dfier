@@ -63,6 +63,8 @@ The dependencies that are necessary (under Mac we suggest using [Homebrew](http:
 
 `$ ./3dfier myconfig.yml > output.obj`
 
+In the folder `example_data` there is a small part of the [BGT datasets](http://www.kadaster.nl/web/Themas/Registraties/BGT.htm) (2D 1:1k topographic datasets of the Netherlands) and a part of the [AHN3 LIDAR dataset](https://www.pdok.nl/nl/ahn3-downloads) that can be used for testing. 
+The resulting model (in OBJ) can be seen in `example_data/output/test_area.obj`
 
 
 
