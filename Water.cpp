@@ -69,7 +69,39 @@ std::string Water::get_mtl() {
 
 
 std::string Water::get_citygml() {
-  return "<EMPTY/>";
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<wtr:WaterBody gml:id=\"";
+  ss << this->get_id();
+  ss << "\">" << std::endl;
+
+  ss << "<wtr:lod1MultiSurface>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+
+  // for (auto& t : _triangles) {
+  //   char* buf = new char[200];
+  //   //std::sprintf(buf, "f %i %i %i\n", t.v0 + 1 + offset, t.v1 + 1 + offset, t.v2 + 1 + offset);
+  //   std::sprintf(buf, "f %lu %lu %lu\n", map[t.v0], map[t.v1], map[t.v2]);
+  //   obj += std::string(buf);
+  // }
+
+//               <gml:surfaceMember>
+//                 <gml:Polygon gml:id="GUID_1CDBD3A1-F60E-49EB-9650-011F3F606343_1">
+//                   <gml:exterior>
+//                     <gml:LinearRing>
+//                       <gml:pos>78670.202 457787.426 13.189</gml:pos>
+//                       <gml:pos>78671.021 457791.768 13.189</gml:pos>
+//                       <gml:pos>78671.021 457791.768 6.58</gml:pos>
+//                       <gml:pos>78670.202 457787.426 6.58</gml:pos>
+//                       <gml:pos>78670.202 457787.426 13.189</gml:pos>
+//                     </gml:LinearRing>
+//                   </gml:exterior>
+//                 </gml:Polygon>
+//               </gml:surfaceMember>
+
+  ss << "</wtr:WaterBody>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
 }
 
 
