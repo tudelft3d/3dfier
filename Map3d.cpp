@@ -126,7 +126,7 @@ std::string Map3d::get_citygml() {
   ss << get_citygml_namespaces() << std::endl;
   ss << "<gml:name>my 3dfied map</gml:name>" << std::endl;
   for (auto& p3 : _lsFeatures) {
-    ss << p3->get_citygml() << std::endl;
+    ss << p3->get_citygml();
   }
   ss << "</CityModel>" << std::endl;
   return ss.str();

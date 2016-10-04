@@ -201,9 +201,11 @@ std::string Building::get_obj_f_floor(std::unordered_map<std::string, std::vecto
 std::string Building::get_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<bldg:Building>" << std::endl;
+  ss << "<bldg:Building gml:id=\"";
+  ss << this->get_id();
+  ss << "\">" << std::endl;
   ss << "<bldg:measuredHeight uom=\"#m\">";
-  ss << this->get_height();
+  ss << float(this->get_height()) / 100;
   ss << "</bldg:measuredHeight>" << std::endl;
   ss << "<bldg:lod1Solid>" << std::endl;
   ss << "<gml:Solid>" << std::endl;
