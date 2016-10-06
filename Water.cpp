@@ -78,26 +78,23 @@ std::string Water::get_citygml() {
   ss << "<wtr:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
 
-  // for (auto& t : _triangles) {
-  //   char* buf = new char[200];
-  //   //std::sprintf(buf, "f %i %i %i\n", t.v0 + 1 + offset, t.v1 + 1 + offset, t.v2 + 1 + offset);
-  //   std::sprintf(buf, "f %lu %lu %lu\n", map[t.v0], map[t.v1], map[t.v2]);
-  //   obj += std::string(buf);
-  // }
+  // std::clog << "# _triangles" << _triangles.size() << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles) {
+    std::clog << t.v0 << std::endl;
+    std::clog << t.v1 << std::endl;
+    std::clog << t.v2 << std::endl;
+    // ss << "<gml:surfaceMember>" << std::endl;
+    // ss << "<gml:Polygon>" << std::endl;
+    // ss << "<gml:exterior>" << std::endl;
+    // ss << "<gml:LinearRing>" << std::endl;
+    // ss << "<gml:pos>" << _vertices[t.v0] << " " << bg::get<1>(b) << " " << low << "</gml:pos>" << std::endl;
+    // ss << "</gml:LinearRing>" << std::endl;
+    // ss << "</gml:exterior>" << std::endl;
+    // ss << "</gml:Polygon>" << std::endl;
+    // ss << "</gml:surfaceMember>" << std::endl;
+  }
 
-//               <gml:surfaceMember>
-//                 <gml:Polygon gml:id="GUID_1CDBD3A1-F60E-49EB-9650-011F3F606343_1">
-//                   <gml:exterior>
-//                     <gml:LinearRing>
-//                       <gml:pos>78670.202 457787.426 13.189</gml:pos>
-//                       <gml:pos>78671.021 457791.768 13.189</gml:pos>
-//                       <gml:pos>78671.021 457791.768 6.58</gml:pos>
-//                       <gml:pos>78670.202 457787.426 6.58</gml:pos>
-//                       <gml:pos>78670.202 457787.426 13.189</gml:pos>
-//                     </gml:LinearRing>
-//                   </gml:exterior>
-//                 </gml:Polygon>
-//               </gml:surfaceMember>
 
   ss << "</wtr:WaterBody>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
