@@ -36,7 +36,7 @@ std::string gen_key_bucket(Point2* p) {
 
 
 std::string gen_key_bucket(Point3* p) {
-  return std::to_string(int(bg::get<0>(p) * 100)) + "-" + std::to_string(int(bg::get<1>(p) * 100)) + "-" + std::to_string(int(bg::get<2>(p) * 100));
+  return std::to_string(int(bg::get<0>(p) * 100)) + "/" + std::to_string(int(bg::get<1>(p) * 100)) + "/" + std::to_string(int(bg::get<2>(p) * 100));
 }
 
 
@@ -76,6 +76,7 @@ std::string get_citygml_namespaces() {
   ss << "xmlns:xlink=\"http://www.w3.org/1999/xlink\"" << std::endl;
   ss << "xmlns:gml=\"http://www.opengis.net/gml\"" << std::endl;
   ss << "xmlns:bldg=\"http://www.opengis.net/citygml/building/2.0\"" << std::endl; 
+  ss << "xmlns:wtr=\"http://www.opengis.net/citygml/waterbody/2.0\"" << std::endl; 
   ss << "xmlns:veg=\"http://www.opengis.net/citygml/vegetation/2.0\"" << std::endl; 
   ss << "xmlns:dem=\"http://www.opengis.net/citygml/relief/2.0\"" << std::endl; 
   ss << "xmlns:tran=\"http://www.opengis.net/citygml/transportation/2.0\"" << std::endl;

@@ -78,24 +78,43 @@ std::string Water::get_citygml() {
   ss << "<wtr:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
 
-  // std::clog << "# _triangles" << _triangles.size() << std::endl;
   ss << std::setprecision(3) << std::fixed;
   for (auto& t : _triangles) {
-    std::clog << t.v0 << std::endl;
-    std::clog << t.v1 << std::endl;
-    std::clog << t.v2 << std::endl;
-    // ss << "<gml:surfaceMember>" << std::endl;
-    // ss << "<gml:Polygon>" << std::endl;
-    // ss << "<gml:exterior>" << std::endl;
-    // ss << "<gml:LinearRing>" << std::endl;
-    // ss << "<gml:pos>" << _vertices[t.v0] << " " << bg::get<1>(b) << " " << low << "</gml:pos>" << std::endl;
-    // ss << "</gml:LinearRing>" << std::endl;
-    // ss << "</gml:exterior>" << std::endl;
-    // ss << "</gml:Polygon>" << std::endl;
-    // ss << "</gml:surfaceMember>" << std::endl;
+    ss << "<gml:surfaceMember>" << std::endl;
+    ss << "<gml:Polygon>" << std::endl;
+    ss << "<gml:exterior>" << std::endl;
+    ss << "<gml:LinearRing>" << std::endl;
+    // std::clog << t.v0 << std::endl;
+
+    int x = std::stoi(t.v0.substr(0, t.v0.find_first_of("/")));
+    int y = std::stoi(t.v0.substr(t.v0.find_first_of("/") + 1, t.v0.find_last_of("/")));
+    int z = std::stoi(t.v0.substr(t.v0.find_last_of("/") + 1));
+    ss << "<gml:pos>" << float(x) / 100 << " " << float(y) / 100 << " " << float(z) / 100 << "</gml:pos>" << std::endl;
+
+    x = std::stoi(t.v1.substr(0, t.v1.find_first_of("/")));
+    y = std::stoi(t.v1.substr(t.v1.find_first_of("/") + 1, t.v1.find_last_of("/")));
+    z = std::stoi(t.v1.substr(t.v1.find_last_of("/") + 1));
+    ss << "<gml:pos>" << float(x) / 100 << " " << float(y) / 100 << " " << float(z) / 100 << "</gml:pos>" << std::endl;
+
+    x = std::stoi(t.v2.substr(0, t.v2.find_first_of("/")));
+    y = std::stoi(t.v2.substr(t.v2.find_first_of("/") + 1, t.v2.find_last_of("/")));
+    z = std::stoi(t.v2.substr(t.v0.find_last_of("/") + 1));
+    ss << "<gml:pos>" << float(x) / 100 << " " << float(y) / 100 << " " << float(z) / 100 << "</gml:pos>" << std::endl;
+
+    x = std::stoi(t.v0.substr(0, t.v0.find_first_of("/")));
+    y = std::stoi(t.v0.substr(t.v0.find_first_of("/") + 1, t.v0.find_last_of("/")));
+    z = std::stoi(t.v0.substr(t.v0.find_last_of("/") + 1));
+    ss << "<gml:pos>" << float(x) / 100 << " " << float(y) / 100 << " " << float(z) / 100 << "</gml:pos>" << std::endl;
+
+    ss << "</gml:LinearRing>" << std::endl;
+    ss << "</gml:exterior>" << std::endl;
+    ss << "</gml:Polygon>" << std::endl;
+    ss << "</gml:surfaceMember>" << std::endl;
   }
 
 
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</wtr:lod1MultiSurface>" << std::endl;
   ss << "</wtr:WaterBody>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
