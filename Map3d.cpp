@@ -129,15 +129,19 @@ Box2 Map3d::get_bbox() {
 
 std::string Map3d::get_citygml() {
   std::stringstream ss;
+  ss << std::setprecision(3) << std::fixed;
   ss << get_xml_header() << std::endl;
   ss << get_citygml_namespaces() << std::endl;
-  // <gml:boundedBy>
-  //   <gml:Envelope srsDimension="3" srsName="urn:ogc:def:crs:EPSG::28992">
-  //     <gml:lowerCorner>0.55999838750406 0.639997993418552 7.91900318779109</gml:lowerCorner>
-  //     <gml:upperCorner>12.639972966384 7.67998377432623 9.09998103439141</gml:upperCorner>
-  //   </gml:Envelope>
-  // </gml:boundedBy>
-
+  ss << "<gml:boundedBy>" << std::endl;
+  ss << "<gml:Envelope srsDimension=\"3\" srsName=\"urn:ogc:def:crs:EPSG::7415\">" << std::endl;
+  ss << "<gml:lowerCorner>";
+  ss << bg::get<bg::min_corner, 0>(_bbox) << " " << bg::get<bg::min_corner, 1>(_bbox) << " 0";
+  ss << "</gml:lowerCorner>"<< std::endl;
+  ss << "<gml:upperCorner>";
+  ss << bg::get<bg::max_corner, 0>(_bbox) << " " << bg::get<bg::max_corner, 1>(_bbox) << " 100";
+  ss << "</gml:upperCorner>" << std::endl;
+  ss << "</gml:Envelope>" << std::endl;
+  ss << "</gml:boundedBy>" << std::endl;
   ss << "<gml:name>my 3dfied map</gml:name>" << std::endl;
   for (auto& p3 : _lsFeatures) {
     ss << p3->get_citygml();
