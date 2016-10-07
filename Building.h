@@ -41,17 +41,17 @@ public:
   std::string get_citygml();
   std::string get_csv();
   std::string get_mtl();
-  std::string get_obj_f_floor(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map);
-  std::string get_obj_v_building_volume(std::vector<Point3>::size_type &idx, std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, int z_exaggeration);
-  std::string get_obj_f_building_volume(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, bool usemtl);
+//  std::string get_obj_f_floor(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map);
+//  std::string get_obj_v_building_volume(std::vector<Point3>::size_type &idx, std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, int z_exaggeration);
+//  std::string get_obj_f_building_volume(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, bool usemtl);
   bool        get_shape(OGRLayer * layer);
   TopoClass   get_class();
   bool        is_hard();
   int         get_height_base();
 private: 
   std::vector<int>    _zvaluesground;
-  static float          _heightref_top;
-  static float          _heightref_base;
+  static float        _heightref_top;
+  static float        _heightref_base;
   int                 _height_base;
 };
 

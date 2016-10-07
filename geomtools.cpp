@@ -115,86 +115,58 @@ void mark_domains(CDT& cdt) {
 }
 
 bool getCDT(const Polygon2* pgn,
-	const std::vector< std::vector<int> > &z,
-	std::vector<Point3> &vertices,
-	std::vector<Triangle> &triangles,
-	const std::vector<Point3> &lidarpts) {
-	CDT cdt;
+  const std::vector< std::vector<int> > &z,
+  std::vector<Point3> &vertices,
+  std::vector<Triangle> &triangles,
+  const std::vector<Point3> &lidarpts) {
+  CDT cdt;
 
-	Ring2 oring = bg::exterior_ring(*pgn);
-	auto irings = bg::interior_rings(*pgn);
+  Ring2 oring = bg::exterior_ring(*pgn);
+  auto irings = bg::interior_rings(*pgn);
 
-	Polygon_2 poly;
-	int ringi = 0;
-	//-- add the outer ring as a constraint
-	for (int i = 0; i < oring.size(); i++) {
-		poly.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i]), (float(z[ringi][i]) / 100.0)));
-		//points.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i])));
-	}
-	cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
-	poly.clear();
-	ringi++;
+  Polygon_2 poly;
+  int ringi = 0;
+  //-- add the outer ring as a constraint
+  for (int i = 0; i < oring.size(); i++) {
+    poly.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i]), (float(z[ringi][i]) / 100.0)));
+    //points.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i])));
+  }
+  cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
+  poly.clear();
+  ringi++;
 
-	//-- add the inner ring(s) as a constraint
-	if (irings.size() > 0) {
-		for (auto iring : irings) {
-			for (int i = 0; i < iring.size(); i++) {
-				poly.push_back(Point(bg::get<0>(iring[i]), bg::get<1>(iring[i]), (float(z[ringi][i]) / 100.0)));
-			}
-			cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
-			poly.clear();
-			ringi++;
-		}
-	}
-
-	//-- add the lidar points to the CDT, if any
-	for (auto &pt : lidarpts) {
-		cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
-	}
-
-	//Mark facets that are inside the domain bounded by the polygon
-	mark_domains(cdt);
-
-	unsigned index = 0;
-	//int count = 0;
-
-	if (!cdt.is_valid()) {
-		std::clog << "CDT is invalid." << std::endl;
-  std::set<CDT::Vertex_handle> points;
-	}
-
-  // Create a unique list of vertices in this CDT
-  for (CDT::Finite_faces_iterator fit = cdt.finite_faces_begin();
-    fit != cdt.finite_faces_end(); ++fit) {
-    if (fit->info().in_domain()) {
-      Triangle t;
-      std::pair<std::set<Point3>::iterator, bool> ret;
-      std::string key;
-      points.insert(fit->vertex(0));
-      points.insert(fit->vertex(1));
-      points.insert(fit->vertex(2));
-        vertices.push_back(p);
-        vertices_map[key] = vertices.size() - 1;
+  //-- add the inner ring(s) as a constraint
+  if (irings.size() > 0) {
+    for (auto iring : irings) {
+      for (int i = 0; i < iring.size(); i++) {
+        poly.push_back(Point(bg::get<0>(iring[i]), bg::get<1>(iring[i]), (float(z[ringi][i]) / 100.0)));
       }
-      t.v0 = key;
+      cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
+      poly.clear();
+      ringi++;
+    }
+  }
 
-      ret = vertices.insert(Point3(fit->vertex(0)->point().x(), fit->vertex(0)->point().y(), fit->vertex(0)->point().z()));
-      fit->vertex(0)->info() = ret.first;
-      t.v0 = fit->vertex(0)->info();
-      }
-      t.v1 = key;
+  //-- add the lidar points to the CDT, if any
+  for (auto &pt : lidarpts) {
+    cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
+  }
 
-  // Create the id for each vertex
-  for (auto& vertex: points) {
-    vertices.push_back(Point3(vertex->point().x(), vertex->point().y(), vertex->point().z()));
-      key = gen_key_bucket(&p);
-    vertex->id() = index++;
-      t.v1 = fit->vertex(0)->info();
-        vertices_map[key] = vertices.size() - 1;
-      }
-      t.v2 = key;
+  //Mark facets that are inside the domain bounded by the polygon
+  mark_domains(cdt);
 
-  // Save the triangle and the corresponding vertex id's
+  unsigned index = 0;
+  int count = 0;
+
+  if (!cdt.is_valid()) {
+    std::clog << "CDT is invalid." << std::endl;
+  }
+  for (CDT::Finite_vertices_iterator vit = cdt.finite_vertices_begin();
+    vit != cdt.finite_vertices_end(); ++vit) {
+    vertices.push_back(Point3(vit->point().x(), vit->point().y(), vit->point().z()));
+    vit->id() = index++;
+  }
+
   for (CDT::Finite_faces_iterator fit = cdt.finite_faces_begin();
     fit != cdt.finite_faces_end(); ++fit) {
     if (fit->info().in_domain()) {
@@ -202,9 +174,21 @@ bool getCDT(const Polygon2* pgn,
       t.v0 = fit->vertex(0)->id();
       t.v1 = fit->vertex(1)->id();
       t.v2 = fit->vertex(2)->id();
-        triangles.push_back(t);
+      triangles.push_back(t);
+      count++;
     }
   }
 
-	return true;
+  // std::clog << "There are " << count << " facets in the domain." << std::endl;
+
+  return true;
 }
+
+std::string gen_key_bucket(Point2* p) {
+  return std::to_string(int(bg::get<0>(p) * 100)) + "/" + std::to_string(int(bg::get<1>(p) * 100));
+}
+
+std::string gen_key_bucket(Point3* p) {
+  return std::to_string(int(bg::get<0>(p) * 100)) + "/" + std::to_string(int(bg::get<1>(p) * 100)) + "/" + std::to_string(int(bg::get<2>(p) * 100));
+}
+

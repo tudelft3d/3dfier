@@ -64,8 +64,6 @@ bool Water::is_hard() {
 
 std::string Water::get_mtl() {
   return "usemtl Water\n";
-  ss << TopoFeature::get_obj_f(offset, usemtl);
-  return ss.str();
 }
 
 

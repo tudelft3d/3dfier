@@ -72,10 +72,11 @@ public:
   bool         has_vertical_walls(); 
   void         add_vertical_wall(); 
   bool         get_top_level();
-  std::string  get_obj_v(std::vector<Point3>::size_type &idx, std::unordered_map< std::string, std::vector<Point3>::size_type > &vertices_map, int z_exaggeration);
-  std::string  get_obj_f(std::unordered_map< std::string, std::vector<Point3>::size_type > &vertices_map, bool useverticalwalls);
+  // std::string  get_obj_v(std::vector<Point3>::size_type &idx, std::unordered_map< std::string, std::vector<Point3>::size_type > &vertices_map, int z_exaggeration);
+  // std::string  get_obj_f(std::unordered_map< std::string, std::vector<Point3>::size_type > &vertices_map, bool useverticalwalls);
   std::string  get_wkt();
   bool         get_shape_features(OGRLayer* layer, std::string className);
+  std::string  get_obj(std::unordered_map< std::string, int > &dPts);
 
 protected:
   Polygon2*                         _p2;

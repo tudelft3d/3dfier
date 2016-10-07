@@ -103,91 +103,91 @@ std::string Building::get_mtl() {
   return "usemtl Building\n";
 }
 
-std::string Building::get_obj_v_building_volume(int z_exaggeration) {
-  std::stringstream ss;
-  for (auto& v : _vertices)
-    std::string key = gen_key_bucket(&v);
-    if (vertices_map.find(key) == vertices_map.end()) {
-      vertices_map[key] = idx;
-      idx++;
-    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)) << std::endl;
-    }
-  }
-  for (auto& v : _vertices) {
-      float z = float(this->get_height_base()) / 100;
-    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * z) : z) << std::endl;
-    }
-  return ss.str();
-}
+//std::string Building::get_obj_v_building_volume(int z_exaggeration) {
+//  std::stringstream ss;
+//  for (auto& v : _vertices)
+//    std::string key = gen_key_bucket(&v);
+//    if (vertices_map.find(key) == vertices_map.end()) {
+//      vertices_map[key] = idx;
+//      idx++;
+//    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)) << std::endl;
+//    }
+//  }
+//  for (auto& v : _vertices) {
+//      float z = float(this->get_height_base()) / 100;
+//    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * z) : z) << std::endl;
+//    }
+//  return ss.str();
+//}
 
 
-std::string Building::get_obj_f_building_volume(int offset, bool usemtl) {
-  std::stringstream ss;
-  if (usemtl == true)
-    ss << "usemtl Building" << std::endl;
-//-- top surface
-  for (auto& t : _triangles)
-    ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
-//-- ground surface
-  for (auto& t : _triangles)
-    ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << std::endl;  
-//-- extract segments
-  std::vector<Segment> allsegments;
-  for (auto& curt : _triangles) {
-    bool issegment = false;
-    for (auto& t : _triangles) {
-      if (triangle_contains_segment(t, curt.v1, curt.v0) == true) {
-        issegment = true;
-        break;
-      }
-    }
-    if (issegment == false) {
-      Segment s;
-      s.v0 = curt.v0;
-      s.v1 = curt.v1;
-      allsegments.push_back(s);
-    }
-    issegment = false;
-    for (auto& t : _triangles) {
-      if (triangle_contains_segment(t, curt.v2, curt.v1) == true) {
-        issegment = true;
-        break;
-      }
-    }
-    if (issegment == false) {
-      Segment s;
-      s.v0 = curt.v1;
-      s.v1 = curt.v2;
-      allsegments.push_back(s);
-    }
-    issegment = false;
-    for (auto& t : _triangles) {
-      if (triangle_contains_segment(t, curt.v0, curt.v2) == true) {
-        issegment = true;
-        break;
-      }
-    }
-    if (issegment == false) {
-      Segment s;
-      s.v0 = curt.v2;
-      s.v1 = curt.v0;
-      allsegments.push_back(s);
-    }
-  }
-  //-- side surfaces walls
-  for (auto& s : allsegments) {
-    ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
-    ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
- }
-  return ss.str();
-}
+//std::string Building::get_obj_f_building_volume(int offset, bool usemtl) {
+//  std::stringstream ss;
+//  if (usemtl == true)
+//    ss << "usemtl Building" << std::endl;
+////-- top surface
+//  for (auto& t : _triangles)
+//    ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
+////-- ground surface
+//  for (auto& t : _triangles)
+//    ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << std::endl;  
+////-- extract segments
+//  std::vector<Segment> allsegments;
+//  for (auto& curt : _triangles) {
+//    bool issegment = false;
+//    for (auto& t : _triangles) {
+//      if (triangle_contains_segment(t, curt.v1, curt.v0) == true) {
+//        issegment = true;
+//        break;
+//      }
+//    }
+//    if (issegment == false) {
+//      Segment s;
+//      s.v0 = curt.v0;
+//      s.v1 = curt.v1;
+//      allsegments.push_back(s);
+//    }
+//    issegment = false;
+//    for (auto& t : _triangles) {
+//      if (triangle_contains_segment(t, curt.v2, curt.v1) == true) {
+//        issegment = true;
+//        break;
+//      }
+//    }
+//    if (issegment == false) {
+//      Segment s;
+//      s.v0 = curt.v1;
+//      s.v1 = curt.v2;
+//      allsegments.push_back(s);
+//    }
+//    issegment = false;
+//    for (auto& t : _triangles) {
+//      if (triangle_contains_segment(t, curt.v0, curt.v2) == true) {
+//        issegment = true;
+//        break;
+//      }
+//    }
+//    if (issegment == false) {
+//      Segment s;
+//      s.v0 = curt.v2;
+//      s.v1 = curt.v0;
+//      allsegments.push_back(s);
+//    }
+//  }
+//  //-- side surfaces walls
+//  for (auto& s : allsegments) {
+//    ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
+//    ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
+// }
+//  return ss.str();
+//}
 
-std::string Building::get_obj_f_floor(int offset) {
-  std::stringstream ss;
-  for (auto& t : _triangles)
-    ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << std::endl;  
-  return ss.str();
-}
+//std::string Building::get_obj_f_floor(int offset) {
+//  std::stringstream ss;
+//  for (auto& t : _triangles)
+//    ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << std::endl;  
+//  return ss.str();
+//}
 
 std::string Building::get_citygml() {
   std::stringstream ss;

@@ -44,6 +44,5 @@ std::string get_extruded_lod1_block_gml(Polygon2* p2, double high, double low = 
 
 bool is_string_integer(std::string s, int min = 0, int max = 1e6);
 
-std::string gen_key_bucket(Point2* p);
 
 #endif

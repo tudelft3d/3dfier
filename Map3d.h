@@ -68,7 +68,6 @@ public:
   std::string get_csv_buildings();
   std::string get_obj_per_feature(int z_exaggeration = 0);
   std::string get_obj_per_class(int z_exaggeration = 0);
-  std::string get_obj_building_volume(int z_exaggeration = 0);
   bool        get_shapefile(std::string filename);
      
   void set_building_heightref_roof(float heightref);

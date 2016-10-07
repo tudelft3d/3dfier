@@ -163,80 +163,53 @@ std::string Map3d::get_csv_buildings() {
   return ss.str();
 }
 
+
 std::string Map3d::get_obj_per_feature(int z_exaggeration) {
-  std::vector<int> offsets;
-  offsets.push_back(0);
-  std::stringstream ss;
-  ss << "mtllib ./3dfier.mtl" << std::endl;
-  for (auto& p3 : _lsFeatures) {
-    ss << p3->get_obj_v(z_exaggeration);
+  std::unordered_map< std::string, int > dPts;
+  std::stringstream ssf;
+  for (auto& p : _lsFeatures) {
+    ssf << "o " << p->get_id() << std::endl;
+    ssf << p->get_mtl();
+    ssf << p->get_obj(dPts);
   }
-  int i = 0;
-  int offset = 0;
-  for (auto& p3 : _lsFeatures) {
-    ss << "o " << p3->get_id() << std::endl;
-    ss << p3->get_mtl();
-    ss << p3->get_obj_f(vertices_map, _use_vertical_walls);
-    //-- TODO: floor for buildings
-//    if (_building_include_floor == true) {  
-//      Building* b = dynamic_cast<Building*>(p3);
-//      if (b != nullptr)
-//        ss << b->get_obj_f_floor(offset);
-//    }
-  }
-  return ss.str();
+
+  // TODO : handle vertical exaggeration
+  // ss << "mtllib ./3dfier.mtl" << std::endl;
+  //-- TODO: floor for buildings
+  return ssf.str();
 }
 
-std::string Map3d::get_obj_building_volume(int z_exaggeration) {
-  std::vector<int> offsets;
-  offsets.push_back(0);
-  std::stringstream ss;
-  ss << "mtllib ./3dfier.mtl" << std::endl;
-  for (auto& p3 : _lsFeatures) {
-    Building* b = dynamic_cast<Building*>(p3);
-    if (b != nullptr) {
-      ss << b->get_obj_v_building_volume(z_exaggeration);
-    }
-  }
-  for (auto& p3 : _lsFeatures) {
-    Building* b = dynamic_cast<Building*>(p3);
-    if (b != nullptr) {
-      ss << "o " << p3->get_id() << std::endl;
-      ss << b->get_obj_f_building_volume(offset, true);
-    }
-  }
-  return ss.str();
-}
 
 
 std::string Map3d::get_obj_per_class(int z_exaggeration) {
-  std::vector<int> offsets;
-  offsets.push_back(0);
-  std::stringstream ss;
-  ss << "mtllib ./3dfier.mtl" << std::endl;
-  //-- go class by class sequentially
-  for (int c = 0; c < 6; c++) {
-    for (auto& p3 : _lsFeatures) {
-      if (p3->get_class() == c) {
-        ss << p3->get_obj_v(z_exaggeration);
-      }
-    }
-  }
-  for (int c = 0; c < 6; c++) {
-    ss << "o " << c << std::endl;
-    for (auto& p3 : _lsFeatures) {
-      if (p3->get_class() == c) {
-        ss << p3->get_mtl();
-        ss << p3->get_obj_f(vertices_map, _use_vertical_walls);
-        if (_building_include_floor == true) {
-          Building* b = dynamic_cast<Building*>(p3);
-          if (b != nullptr)
-            ss << b->get_obj_f_floor(offset);
-        }
-      }
-    }
-  }
-  return ss.str();
+  // std::vector<int> offsets;
+  // offsets.push_back(0);
+  // std::stringstream ss;
+  // ss << "mtllib ./3dfier.mtl" << std::endl;
+  // //-- go class by class sequentially
+  // for (int c = 0; c < 6; c++) {
+  //   for (auto& p3 : _lsFeatures) {
+  //     if (p3->get_class() == c) {
+  //       ss << p3->get_obj_v(z_exaggeration);
+  //     }
+  //   }
+  // }
+  // for (int c = 0; c < 6; c++) {
+  //   ss << "o " << c << std::endl;
+  //   for (auto& p3 : _lsFeatures) {
+  //     if (p3->get_class() == c) {
+  //       ss << p3->get_mtl();
+  //       ss << p3->get_obj_f(vertices_map, _use_vertical_walls);
+  //       if (_building_include_floor == true) {
+  //         Building* b = dynamic_cast<Building*>(p3);
+  //         if (b != nullptr)
+  //           ss << b->get_obj_f_floor(offset);
+  //       }
+  //     }
+  //   }
+  // }
+  // return ss.str();
+  return "EMTPY"; // TODO: fix me
 }
 
 bool Map3d::get_shapefile(std::string filename) {

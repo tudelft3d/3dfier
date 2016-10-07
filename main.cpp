@@ -274,10 +274,6 @@ int main(int argc, const char * argv[]) {
     std::clog << "CSV output (only of the buildings)" << std::endl;
     std::cout << map3d.get_csv_buildings() << std::endl;
   }
-  else if (n["format"].as<std::string>() == "OBJ-BUILDINGS") {
-    std::clog << "OBJ output (only of the buildings)" << std::endl;
-    std::cout << map3d.get_obj_building_volume(z_exaggeration) << std::endl;
-  }
   else if (n["format"].as<std::string>() == "Shapefile") {
     std::clog << "Shapefile output" << std::endl;
     std::string filename = n["filename"].as<std::string>();

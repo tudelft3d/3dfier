@@ -88,127 +88,161 @@ Polygon2* TopoFeature::get_Polygon2() {
   return _p2;
 }
 
-std::string TopoFeature::get_obj_v(int z_exaggeration) {
-  std::string obj;
-  for (auto& v : _vertices) {
-      char* buf = new char[200];
-      std::sprintf(buf, "v %.3f %.3f %.3f\n", bg::get<0>(v),  bg::get<1>(v), 
-          (z_exaggeration > 0 ? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)));
-      obj += std::string(buf);
-    }
-  for (auto& v : _vertices_vw) {
-    char* buf = new char[200];
-    std::sprintf(buf, "v %.3f %.3f %.3f\n", bg::get<0>(v), bg::get<1>(v),
-        (z_exaggeration > 0 ? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)));
-    obj += std::string(buf);
-  }
-  return obj;
-}
 
-std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
-  std::string obj;
+std::string TopoFeature::get_obj(std::unordered_map< std::string, int > &dPts) {
+  std::stringstream ss;
   for (auto& t : _triangles) {
-    char* buf = new char[200];
-    std::sprintf(buf, "f %i %i %i\n", t.v0 + 1 + offset, t.v1 + 1 + offset, t.v2 + 1 + offset);
-    obj += std::string(buf);
+    ss << "f ";
+    auto it = dPts.find(gen_key_bucket(&_vertices[t.v0]));
+    if (it == dPts.end()) {
+      dPts[gen_key_bucket(&_vertices[t.v0])] = (dPts.size() + 1); 
+      ss << dPts.size();
+    }
+    else 
+      ss << it->second;
+    ss << " ";
+    it = dPts.find(gen_key_bucket(&_vertices[t.v1]));
+    if (it == dPts.end()) {
+      dPts[gen_key_bucket(&_vertices[t.v0])] = (dPts.size() + 1); 
+      ss << dPts.size();
+    }
+    else 
+      ss << it->second;
+    ss << " ";
+    it = dPts.find(gen_key_bucket(&_vertices[t.v2]));
+    if (it == dPts.end()) {
+      dPts[gen_key_bucket(&_vertices[t.v0])] = (dPts.size() + 1); 
+      ss << dPts.size();
+    }
+    else 
+      ss << it->second;
   }
-
-  if (useverticalwalls == true && _triangles_vw.size() > 0)
-    obj += "usemtl VerticalWalls\n";
-
-  unsigned long k = _vertices.size();
-  for (auto& t : _triangles_vw) {
-    char* buf = new char[200];
-    std::sprintf(buf, "f %lu %lu %lu\n", t.v0 + 1 + offset + k, t.v1 + 1 + offset + k, t.v2 + 1 + offset + k);
-    obj += std::string(buf);
-  }
-  return obj;
+  return ss.str();
 }
+
+
+// std::string TopoFeature::get_obj_v(int z_exaggeration) {
+//   std::string obj;
+//   for (auto& v : _vertices) {
+//       char* buf = new char[200];
+//       std::sprintf(buf, "v %.3f %.3f %.3f\n", bg::get<0>(v),  bg::get<1>(v), 
+//           (z_exaggeration > 0 ? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)));
+//       obj += std::string(buf);
+//     }
+//   for (auto& v : _vertices_vw) {
+//     char* buf = new char[200];
+//     std::sprintf(buf, "v %.3f %.3f %.3f\n", bg::get<0>(v), bg::get<1>(v),
+//         (z_exaggeration > 0 ? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)));
+//     obj += std::string(buf);
+//   }
+//   return obj;
+// }
+
+// std::string TopoFeature::get_obj_f(int offset, bool usemtl) {
+//   std::string obj;
+//   for (auto& t : _triangles) {
+//     char* buf = new char[200];
+//     std::sprintf(buf, "f %i %i %i\n", t.v0 + 1 + offset, t.v1 + 1 + offset, t.v2 + 1 + offset);
+//     obj += std::string(buf);
+//   }
+
+//   if (useverticalwalls == true && _triangles_vw.size() > 0)
+//     obj += "usemtl VerticalWalls\n";
+
+//   unsigned long k = _vertices.size();
+//   for (auto& t : _triangles_vw) {
+//     char* buf = new char[200];
+//     std::sprintf(buf, "f %lu %lu %lu\n", t.v0 + 1 + offset + k, t.v1 + 1 + offset + k, t.v2 + 1 + offset + k);
+//     obj += std::string(buf);
+//   }
+//   return obj;
+// }
 
 std::string TopoFeature::get_wkt() {
-  std::string wkt;
-  wkt = "MULTIPOLYGONZ (";
-
-  for (auto& t : _triangles) {
-    char* buf = new char[200];
-    Point3 p1 = _vertices[t.v0];
-    Point3 p2 = _vertices[t.v1];
-    Point3 p3 = _vertices[t.v2];
-    std::sprintf(buf, "((%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f)),",
-      p1.get<0>(), p1.get<1>(), p1.get<2>(),
-      p2.get<0>(), p2.get<1>(), p2.get<2>(),
-      p3.get<0>(), p3.get<1>(), p3.get<2>(),
-      p1.get<0>(), p1.get<1>(), p1.get<2>());
-    wkt += std::string(buf);
-  }
-
-  for (auto& t : _triangles_vw) {
-    char* buf = new char[200];
-    Point3 p1 = *t.v0;
-    Point3 p2 = *t.v1;
-    Point3 p3 = *t.v2;
-    std::sprintf(buf, "((%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f)),",
-      p1.get<0>(), p1.get<1>(), p1.get<2>(),
-      p2.get<0>(), p2.get<1>(), p2.get<2>(),
-      p3.get<0>(), p3.get<1>(), p3.get<2>(),
-      p1.get<0>(), p1.get<1>(), p1.get<2>());
-    wkt += std::string(buf);
-  }
-  wkt.pop_back();
-  wkt += ")";
-  return wkt;
+//  std::string wkt;
+//  wkt = "MULTIPOLYGONZ (";
+//
+//  for (auto& t : _triangles) {
+//    char* buf = new char[200];
+//    Point3 p1 = _vertices[t.v0];
+//    Point3 p2 = _vertices[t.v1];
+//    Point3 p3 = _vertices[t.v2];
+//    std::sprintf(buf, "((%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f)),",
+//      p1.get<0>(), p1.get<1>(), p1.get<2>(),
+//      p2.get<0>(), p2.get<1>(), p2.get<2>(),
+//      p3.get<0>(), p3.get<1>(), p3.get<2>(),
+//      p1.get<0>(), p1.get<1>(), p1.get<2>());
+//    wkt += std::string(buf);
+//  }
+//
+//  for (auto& t : _triangles_vw) {
+//    char* buf = new char[200];
+//    Point3 p1 = *t.v0;
+//    Point3 p2 = *t.v1;
+//    Point3 p3 = *t.v2;
+//    std::sprintf(buf, "((%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f)),",
+//      p1.get<0>(), p1.get<1>(), p1.get<2>(),
+//      p2.get<0>(), p2.get<1>(), p2.get<2>(),
+//      p3.get<0>(), p3.get<1>(), p3.get<2>(),
+//      p1.get<0>(), p1.get<1>(), p1.get<2>());
+//    wkt += std::string(buf);
+//  }
+//  wkt.pop_back();
+//  wkt += ")";
+//  return wkt;
+  return "";
 }
 
 bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
-  OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
-  OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
-  OGRMultiPolygon multipolygon = OGRMultiPolygon();
-  Point3 p;
-
-  //-- add all triangles to the layer
-  for (auto& t : _triangles) {
-    OGRPolygon polygon = OGRPolygon();
-    OGRLinearRing ring = OGRLinearRing();
-    
-    p = *t.v0;
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = *t.v1;
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = *t.v2;
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-
-    ring.closeRings();
-    polygon.addRing(&ring);
-    multipolygon.addGeometry(&polygon);
-  }
-
-  //-- add all vertical wall triangles to the layer
-  for (auto& t : _triangles_vw) {
-    OGRPolygon polygon = OGRPolygon();
-    OGRLinearRing ring = OGRLinearRing();
-
-    p = *t.v0;
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = *t.v1;
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = *t.v2;
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-
-    ring.closeRings();
-    polygon.addRing(&ring);
-    multipolygon.addGeometry(&polygon);
-  }
-
-  feature->SetGeometry(&multipolygon);
-  feature->SetField("Id", this->get_id().c_str());
-  feature->SetField("Class", className.c_str());
-
-  if (layer->CreateFeature(feature) != OGRERR_NONE)
-  {
-    std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
-    return false;
-  }
-  OGRFeature::DestroyFeature(feature);
+//  OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
+//  OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
+//  OGRMultiPolygon multipolygon = OGRMultiPolygon();
+//  Point3 p;
+//
+//  //-- add all triangles to the layer
+//  for (auto& t : _triangles) {
+//    OGRPolygon polygon = OGRPolygon();
+//    OGRLinearRing ring = OGRLinearRing();
+//    
+//    p = *t.v0;
+//    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+//    p = *t.v1;
+//    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+//    p = *t.v2;
+//    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+//
+//    ring.closeRings();
+//    polygon.addRing(&ring);
+//    multipolygon.addGeometry(&polygon);
+//  }
+//
+//  //-- add all vertical wall triangles to the layer
+//  for (auto& t : _triangles_vw) {
+//    OGRPolygon polygon = OGRPolygon();
+//    OGRLinearRing ring = OGRLinearRing();
+//
+//    p = *t.v0;
+//    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+//    p = *t.v1;
+//    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+//    p = *t.v2;
+//    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+//
+//    ring.closeRings();
+//    polygon.addRing(&ring);
+//    multipolygon.addGeometry(&polygon);
+//  }
+//
+//  feature->SetGeometry(&multipolygon);
+//  feature->SetField("Id", this->get_id().c_str());
+//  feature->SetField("Class", className.c_str());
+//
+//  if (layer->CreateFeature(feature) != OGRERR_NONE)
+//  {
+//    std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
+//    return false;
+//  }
+//  OGRFeature::DestroyFeature(feature);
   return true;
 }
 
@@ -424,66 +458,67 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       //}
 
       //-- iterate to triangulate
-      while (sbit != ebit && sbit != bnc.end() && (sbit+1) != bnc.end()) {
-        //if (anc.size() == 0 || sait == anc.end())
-        //  _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
-        //else
-        //  _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-        //_vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
-        Triangle t;
-        std::pair<std::set<Point3>::iterator, bool> ret;
-        if (anc.size() == 0 || sait == anc.end())
-          ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
-        else
-          ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-        t.v1 = ret.first;
-        ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
-        t.v0 = ret.first;
-        sbit++;
-        ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
-        t.v2 = ret.first;
-          _triangles_vw.push_back(t);
-      }
-      while (sait != eait && sait != anc.end() && (sait + 1) != anc.end()) {
-        //if (bnc.size() == 0 || ebit == bnc.end())
-        //  _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100));
-        //else
-        //  _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
-        //_vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-        Triangle t;
-        std::pair<std::set<Point3>::iterator, bool> ret;
-        if (bnc.size() == 0 || ebit == bnc.end())
-          ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100));
-        else
-          ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
-        t.v0 = ret.first;
-        ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-        t.v1 = ret.first;
-        sait++;
-        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-        Triangle t;
-        int size = int(_vertices_vw.size());
-        std::string key;
-        if (bnc.size() == 0 || ebit == bnc.end()) {
-          p = Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100);
-        }
-        else {
-          p = Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100);
-        }
-        key = gen_key_bucket(&p);
-        if (_vertices_map.find(key) == _vertices_map.end()) {
-        t.v0 = size - 3;
-          _vertices_map[key] = _vertices.size() - 1;
-        }
-        t.v0 = key;
-
-        ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-        t.v2 = ret.first;
-          _triangles_vw.push_back(t);
-        }
-      }
+//      while (sbit != ebit && sbit != bnc.end() && (sbit+1) != bnc.end()) {
+//        //if (anc.size() == 0 || sait == anc.end())
+//        //  _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
+//        //else
+//        //  _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+//        //_vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
+//        Triangle t;
+//        std::pair<std::set<Point3>::iterator, bool> ret;
+//        if (anc.size() == 0 || sait == anc.end())
+//          ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
+//        else
+//          ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+//        t.v1 = ret.first;
+//        ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
+//        t.v0 = ret.first;
+//        sbit++;
+//        ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
+//        t.v2 = ret.first;
+//          _triangles_vw.push_back(t);
+//      }
+//      while (sait != eait && sait != anc.end() && (sait + 1) != anc.end()) {
+//        //if (bnc.size() == 0 || ebit == bnc.end())
+//        //  _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100));
+//        //else
+//        //  _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
+//        //_vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+//        Triangle t;
+//        std::pair<std::set<Point3>::iterator, bool> ret;
+//        if (bnc.size() == 0 || ebit == bnc.end())
+//          ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100));
+//        else
+//          ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
+//        t.v0 = ret.first;
+//        ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+//        t.v1 = ret.first;
+//        sait++;
+//        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+//        Triangle t;
+//        int size = int(_vertices_vw.size());
+//        std::string key;
+//        if (bnc.size() == 0 || ebit == bnc.end()) {
+//          p = Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100);
+//        }
+//        else {
+//          p = Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100);
+//        }
+//        key = gen_key_bucket(&p);
+//        if (_vertices_map.find(key) == _vertices_map.end()) {
+//        t.v0 = size - 3;
+//          _vertices_map[key] = _vertices.size() - 1;
+//        }
+//        t.v0 = key;
+//
+//        ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+//        t.v2 = ret.first;
+//          _triangles_vw.push_back(t);
+//        }
+//      }
     }
-  } 
+  }
+}
 
 
 bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& bringi, int& bpi) {
