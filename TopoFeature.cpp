@@ -114,12 +114,12 @@ std::string TopoFeature::get_obj(std::unordered_map< std::string, int > &dPts) {
     }
     else 
       c = it->second;
-    
     if ( (a != b) && (a != c) && (b != c) ) 
       ss << "f " << a << " " << b << " " << c << std::endl;
     else
       std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
   }
+  // TODO : vertical triangles to process too!
   return ss.str();
 }
 
