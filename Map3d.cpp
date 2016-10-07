@@ -172,11 +172,24 @@ std::string Map3d::get_obj_per_feature(int z_exaggeration) {
     ssf << p->get_mtl();
     ssf << p->get_obj(dPts);
   }
-
-  // TODO : handle vertical exaggeration
-  // ss << "mtllib ./3dfier.mtl" << std::endl;
+  //-- sort the points in the map: simpler to copy to a vector
+  std::vector<std::string> thepts;
+  thepts.resize(dPts.size());
+  for (auto& p : dPts) 
+    thepts[p.second - 1] = p.first;
+  
+  std::stringstream ss;
+  ss << "mtllib ./3dfier.mtl" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& p : thepts) {
+    ss << "v ";
+    ss << (std::stof(p.substr(0, p.find_first_of("/")))) / 100 << " ";
+    ss << (std::stof(p.substr(p.find_first_of("/") + 1, p.find_last_of("/")))) / 100 << " ";
+    ss << (std::stof(p.substr(p.find_last_of("/") + 1))) / 100 << std::endl;
+  }
+  ss << ssf.str();
   //-- TODO: floor for buildings
-  return ssf.str();
+  return ss.str();
 }
 
 

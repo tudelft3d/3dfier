@@ -97,13 +97,14 @@ std::string TopoFeature::get_obj(std::unordered_map< std::string, int > &dPts) {
     if (it == dPts.end()) {
       dPts[gen_key_bucket(&_vertices[t.v0])] = (dPts.size() + 1); 
       ss << dPts.size();
+      
     }
     else 
       ss << it->second;
     ss << " ";
     it = dPts.find(gen_key_bucket(&_vertices[t.v1]));
     if (it == dPts.end()) {
-      dPts[gen_key_bucket(&_vertices[t.v0])] = (dPts.size() + 1); 
+      dPts[gen_key_bucket(&_vertices[t.v1])] = (dPts.size() + 1);
       ss << dPts.size();
     }
     else 
@@ -111,11 +112,12 @@ std::string TopoFeature::get_obj(std::unordered_map< std::string, int > &dPts) {
     ss << " ";
     it = dPts.find(gen_key_bucket(&_vertices[t.v2]));
     if (it == dPts.end()) {
-      dPts[gen_key_bucket(&_vertices[t.v0])] = (dPts.size() + 1); 
+      dPts[gen_key_bucket(&_vertices[t.v2])] = (dPts.size() + 1);
       ss << dPts.size();
     }
     else 
       ss << it->second;
+    ss << std::endl;
   }
   return ss.str();
 }
