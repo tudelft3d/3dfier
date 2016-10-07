@@ -28,7 +28,6 @@
 
 
 #include "geomtools.h"
-#include "io.h"
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>
 #include <CGAL/Projection_traits_xy_3.h>
@@ -117,8 +116,7 @@ void mark_domains(CDT& cdt) {
 
 bool getCDT(const Polygon2* pgn,
 	const std::vector< std::vector<int> > &z,
-	std::vector<Point3> &vertices,
-	std::unordered_map< std::string, std::vector<Point3>::size_type > &vertices_map,
+	std::set<Point3> &vertices,
 	std::vector<Triangle> &triangles,
 	const std::vector<Point3> &lidarpts) {
 	CDT cdt;
@@ -162,6 +160,7 @@ bool getCDT(const Polygon2* pgn,
 
 	if (!cdt.is_valid()) {
 		std::clog << "CDT is invalid." << std::endl;
+  std::set<CDT::Vertex_handle> points;
 	}
 
   // Create a unique list of vertices in this CDT
@@ -169,7 +168,7 @@ bool getCDT(const Polygon2* pgn,
     fit != cdt.finite_faces_end(); ++fit) {
     if (fit->info().in_domain()) {
       Triangle t;
-      Point3 p;
+      std::pair<std::set<Point3>::iterator, bool> ret;
       std::string key;
       points.insert(fit->vertex(0));
       points.insert(fit->vertex(1));
@@ -179,11 +178,9 @@ bool getCDT(const Polygon2* pgn,
       }
       t.v0 = key;
 
-      p = Point3(fit->vertex(1)->point().x(), fit->vertex(1)->point().y(), fit->vertex(1)->point().z());
-      key = gen_key_bucket(&p);
-      if (vertices_map.find(key) == vertices_map.end()) {
-        vertices.push_back(p);
-        vertices_map[key] = vertices.size() - 1;
+      ret = vertices.insert(Point3(fit->vertex(0)->point().x(), fit->vertex(0)->point().y(), fit->vertex(0)->point().z()));
+      fit->vertex(0)->info() = ret.first;
+      t.v0 = fit->vertex(0)->info();
       }
       t.v1 = key;
 
@@ -192,7 +189,7 @@ bool getCDT(const Polygon2* pgn,
     vertices.push_back(Point3(vertex->point().x(), vertex->point().y(), vertex->point().z()));
       key = gen_key_bucket(&p);
     vertex->id() = index++;
-        vertices.push_back(p);
+      t.v1 = fit->vertex(0)->info();
         vertices_map[key] = vertices.size() - 1;
       }
       t.v2 = key;
@@ -206,7 +203,6 @@ bool getCDT(const Polygon2* pgn,
       t.v1 = fit->vertex(1)->id();
       t.v2 = fit->vertex(2)->id();
         triangles.push_back(t);
-      }
     }
   }
 

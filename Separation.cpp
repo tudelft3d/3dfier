@@ -68,7 +68,6 @@ std::string Separation::get_mtl() {
   return "usemtl Separation\n";
 }
 
-
 std::string Separation::get_citygml()
 {
   return "<EMPTY/>";

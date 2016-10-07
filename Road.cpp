@@ -66,7 +66,6 @@ std::string Road::get_mtl() {
   return "usemtl Road\n";
 }
 
-
 std::string Road::get_citygml() {
   return "<EMPTY/>";
 }

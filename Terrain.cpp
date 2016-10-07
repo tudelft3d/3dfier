@@ -74,7 +74,6 @@ TopoClass Terrain::get_class() {
   return TERRAIN;
 }
 
-
 bool Terrain::is_hard() {
   return false;
 }

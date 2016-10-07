@@ -164,14 +164,14 @@ std::string Map3d::get_csv_buildings() {
 }
 
 std::string Map3d::get_obj_per_feature(int z_exaggeration) {
-  std::unordered_map<std::string, std::vector<Point3>::size_type> vertices_map;
-  std::vector<Point3>::size_type idx = 1;
+  std::vector<int> offsets;
+  offsets.push_back(0);
   std::stringstream ss;
   ss << "mtllib ./3dfier.mtl" << std::endl;
   for (auto& p3 : _lsFeatures) {
-    ss << p3->get_obj_v(idx, vertices_map, z_exaggeration);
+    ss << p3->get_obj_v(z_exaggeration);
   }
-
+  int i = 0;
   int offset = 0;
   for (auto& p3 : _lsFeatures) {
     ss << "o " << p3->get_id() << std::endl;
@@ -188,21 +188,21 @@ std::string Map3d::get_obj_per_feature(int z_exaggeration) {
 }
 
 std::string Map3d::get_obj_building_volume(int z_exaggeration) {
-  std::unordered_map<std::string, std::vector<Point3>::size_type> vertices_map;
-  std::vector<Point3>::size_type idx = 1;
+  std::vector<int> offsets;
+  offsets.push_back(0);
   std::stringstream ss;
   ss << "mtllib ./3dfier.mtl" << std::endl;
   for (auto& p3 : _lsFeatures) {
     Building* b = dynamic_cast<Building*>(p3);
     if (b != nullptr) {
-      ss << b->get_obj_v_building_volume(idx, vertices_map, z_exaggeration);
+      ss << b->get_obj_v_building_volume(z_exaggeration);
     }
   }
   for (auto& p3 : _lsFeatures) {
     Building* b = dynamic_cast<Building*>(p3);
     if (b != nullptr) {
       ss << "o " << p3->get_id() << std::endl;
-      ss << b->get_obj_f_building_volume(vertices_map, true);
+      ss << b->get_obj_f_building_volume(offset, true);
     }
   }
   return ss.str();
@@ -210,15 +210,15 @@ std::string Map3d::get_obj_building_volume(int z_exaggeration) {
 
 
 std::string Map3d::get_obj_per_class(int z_exaggeration) {
-  std::unordered_map<std::string, std::vector<Point3>::size_type> vertices_map;
-  std::vector<Point3>::size_type idx = 1;
+  std::vector<int> offsets;
+  offsets.push_back(0);
   std::stringstream ss;
   ss << "mtllib ./3dfier.mtl" << std::endl;
   //-- go class by class sequentially
   for (int c = 0; c < 6; c++) {
     for (auto& p3 : _lsFeatures) {
       if (p3->get_class() == c) {
-        ss << p3->get_obj_v(idx, vertices_map, z_exaggeration);
+        ss << p3->get_obj_v(z_exaggeration);
       }
     }
   }
@@ -231,7 +231,7 @@ std::string Map3d::get_obj_per_class(int z_exaggeration) {
         if (_building_include_floor == true) {
           Building* b = dynamic_cast<Building*>(p3);
           if (b != nullptr)
-            ss << b->get_obj_f_floor(vertices_map);
+            ss << b->get_obj_f_floor(offset);
         }
       }
     }
@@ -813,6 +813,10 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     }
     else {
       for (auto& each : zstar) {
+      if (std::get<1>(each)->get_id() == "b885ae8a0-fcfe-11e5-8acc-1fc21a78c5fd") {
+        std::clog << "break" << std::endl;
+      }
+
         std::get<0>(each) = heightperclass[std::get<1>(each)->get_class()] / classcount[std::get<1>(each)->get_class()];
       }
       for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it = zstar.begin(); it != zstar.end(); ++it) {

@@ -103,30 +103,25 @@ std::string Building::get_mtl() {
   return "usemtl Building\n";
 }
 
-std::string Building::get_obj_v_building_volume(std::vector<Point3>::size_type &idx, std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, int z_exaggeration) {
+std::string Building::get_obj_v_building_volume(int z_exaggeration) {
   std::stringstream ss;
-  for (auto& v : _vertices) {
+  for (auto& v : _vertices)
     std::string key = gen_key_bucket(&v);
     if (vertices_map.find(key) == vertices_map.end()) {
       vertices_map[key] = idx;
       idx++;
-      ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0 ? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)) << std::endl;
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)) << std::endl;
     }
   }
   for (auto& v : _vertices) {
-    std::string key = gen_key_bucket(&v);
-    if (vertices_map.find(key) == vertices_map.end()) {
-      vertices_map[key] = idx;
-      idx++;
       float z = float(this->get_height_base()) / 100;
-      ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0 ? (z_exaggeration * z) : z) << std::endl;
+    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * z) : z) << std::endl;
     }
-  }
   return ss.str();
 }
 
 
-std::string Building::get_obj_f_building_volume(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, bool usemtl) {
+std::string Building::get_obj_f_building_volume(int offset, bool usemtl) {
   std::stringstream ss;
   if (usemtl == true)
     ss << "usemtl Building" << std::endl;
@@ -187,7 +182,7 @@ std::string Building::get_obj_f_building_volume(std::unordered_map<std::string, 
   return ss.str();
 }
 
-std::string Building::get_obj_f_floor(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map) {
+std::string Building::get_obj_f_floor(int offset) {
   std::stringstream ss;
   for (auto& t : _triangles)
     ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << std::endl;  

@@ -77,7 +77,6 @@ std::string Forest::get_citygml() {
   return "<EMPTY/>";
 }
 
-
 std::string Forest::get_mtl() {
   return "usemtl Forest\n";
 }
