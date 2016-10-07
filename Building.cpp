@@ -132,10 +132,10 @@ std::string Building::get_obj_f_building_volume(std::unordered_map<std::string, 
     ss << "usemtl Building" << std::endl;
 //-- top surface
   for (auto& t : _triangles)
-    ss << "f " << _vertices_map[t.v0] << " " << _vertices_map[t.v1] << " " << _vertices_map[t.v2] << std::endl;
+    ss << "f " << (t.v0 + 1 + offset) << " " << (t.v1 + 1 + offset) << " " << (t.v2 + 1 + offset) << std::endl;
 //-- ground surface
   for (auto& t : _triangles)
-    ss << "f " << _vertices_map[t.v0] + _vertices.size() << " " << _vertices_map[t.v1] + _vertices.size() << " " << _vertices_map[t.v2] + _vertices.size() << std::endl;
+    ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << std::endl;  
 //-- extract segments
   std::vector<Segment> allsegments;
   for (auto& curt : _triangles) {
@@ -181,20 +181,16 @@ std::string Building::get_obj_f_building_volume(std::unordered_map<std::string, 
   }
   //-- side surfaces walls
   for (auto& s : allsegments) {
-    //ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
-    //ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
-    ss << "f " << _vertices_map[s.v1] << " " << _vertices_map[s.v0]  << " " << _vertices_map[s.v0] + _vertices.size() << std::endl;
-    ss << "f " << _vertices_map[s.v0] + _vertices.size() << " " << _vertices_map[s.v1] + _vertices.size() << " " << _vertices_map[s.v1] << std::endl;
+    ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
+    ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
  }
   return ss.str();
 }
 
 std::string Building::get_obj_f_floor(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map) {
   std::stringstream ss;
-  for (auto& t : _triangles) {
-    //ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << std::endl;
-    ss << "f " << _vertices_map[t.v0] + _vertices.size() << " " << _vertices_map[t.v2] + _vertices.size() << " " << _vertices_map[t.v1] + _vertices.size() << std::endl;
-  }
+  for (auto& t : _triangles)
+    ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << std::endl;  
   return ss.str();
 }
 
