@@ -92,32 +92,33 @@ Polygon2* TopoFeature::get_Polygon2() {
 std::string TopoFeature::get_obj(std::unordered_map< std::string, int > &dPts) {
   std::stringstream ss;
   for (auto& t : _triangles) {
-    ss << "f ";
+    int a, b, c;
     auto it = dPts.find(gen_key_bucket(&_vertices[t.v0]));
     if (it == dPts.end()) {
       dPts[gen_key_bucket(&_vertices[t.v0])] = (dPts.size() + 1); 
-      ss << dPts.size();
-      
+      a = dPts.size();
     }
     else 
-      ss << it->second;
-    ss << " ";
+      a = it->second;
     it = dPts.find(gen_key_bucket(&_vertices[t.v1]));
     if (it == dPts.end()) {
       dPts[gen_key_bucket(&_vertices[t.v1])] = (dPts.size() + 1);
-      ss << dPts.size();
+      b = dPts.size();
     }
     else 
-      ss << it->second;
-    ss << " ";
+      b = it->second;
     it = dPts.find(gen_key_bucket(&_vertices[t.v2]));
     if (it == dPts.end()) {
       dPts[gen_key_bucket(&_vertices[t.v2])] = (dPts.size() + 1);
-      ss << dPts.size();
+      c = dPts.size();
     }
     else 
-      ss << it->second;
-    ss << std::endl;
+      c = it->second;
+    
+    if ( (a != b) && (a != c) && (b != c) ) 
+      ss << "f " << a << " " << b << " " << c << std::endl;
+    else
+      std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
   }
   return ss.str();
 }

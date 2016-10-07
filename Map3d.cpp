@@ -177,7 +177,6 @@ std::string Map3d::get_obj_per_feature(int z_exaggeration) {
   thepts.resize(dPts.size());
   for (auto& p : dPts) 
     thepts[p.second - 1] = p.first;
-  
   std::stringstream ss;
   ss << "mtllib ./3dfier.mtl" << std::endl;
   ss << std::setprecision(3) << std::fixed;
