@@ -60,8 +60,9 @@ public:
   bool construct_CDT();
   void add_elevation_point(liblas::Point const& laspt);
 
-  unsigned long get_num_polygons();
-  const std::vector<TopoFeature*>& get_polygons3d();  
+  unsigned long                     get_num_polygons();
+  const std::vector<TopoFeature*>&  get_polygons3d();  
+  Box2                              get_bbox();
   
   std::string get_citygml();
   std::string get_csv_buildings();
@@ -103,8 +104,7 @@ private:
   float       _radius_vertex_elevation;
   float       _building_radius_vertex_elevation;
   int         _threshold_jump_edges; //-- in cm/integer
-  double      _minx;
-  double      _miny;
+  Box2        _bbox;
 
   std::unordered_map< std::string, std::vector<int> > _nc;
   std::vector<TopoFeature*>                 _lsFeatures;

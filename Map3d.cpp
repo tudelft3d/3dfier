@@ -46,8 +46,10 @@ Map3d::Map3d() {
   _radius_vertex_elevation = 1.0;
   _building_radius_vertex_elevation = 1.0;
   _threshold_jump_edges = 50;
-  _minx = 1e8;
-  _miny = 1e8;
+  bg::set<bg::min_corner, 0>(_bbox, 999999);
+  bg::set<bg::min_corner, 1>(_bbox, 999999);
+  bg::set<bg::max_corner, 0>(_bbox, -999999);
+  bg::set<bg::max_corner, 1>(_bbox, -999999);
 }
 
 
@@ -119,6 +121,11 @@ void Map3d::set_separation_heightref(float h) {
 void Map3d::set_bridge_heightref(float h) {
   _bridge_heightref = h;
 }
+
+Box2 Map3d::get_bbox() {
+  return _bbox;
+}
+
 
 std::string Map3d::get_citygml() {
   std::stringstream ss;
@@ -419,7 +426,6 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
       std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
       return false;
     }
-
     // if the file doesn't have layers specified, add all
     if (file->layers[0].first.empty())
     {
@@ -429,9 +435,21 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
       for (int i = 0; i < numberOfLayers; i++) {
         OGRLayer *dataLayer = dataSource->GetLayer(i);
         file->layers.emplace_back(dataLayer->GetName(), lifting);
+        if (dataLayer->GetFeatureCount(true) > 0) {
+          //-- update the 2D bbox of the dataset
+          OGREnvelope bbox;
+          dataLayer->GetExtent(&bbox);
+          if (bbox.MinX < bg::get<bg::min_corner, 0>(_bbox))
+            bg::set<bg::min_corner, 0>(_bbox, bbox.MinX);
+          if (bbox.MinY < bg::get<bg::min_corner, 1>(_bbox))
+            bg::set<bg::min_corner, 1>(_bbox, bbox.MinY);
+          if (bbox.MaxX > bg::get<bg::max_corner, 0>(_bbox))
+            bg::set<bg::max_corner, 0>(_bbox, bbox.MaxX);
+          if (bbox.MaxY > bg::get<bg::max_corner, 1>(_bbox))
+            bg::set<bg::max_corner, 1>(_bbox, bbox.MaxY);
+        }
       }
     }
-
     bool wentgood = this->extract_and_add_polygon(dataSource, &(*file));
 #if GDAL_VERSION_MAJOR < 2
     OGRDataSource::DestroyDataSource(dataSource);
