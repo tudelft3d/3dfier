@@ -490,7 +490,7 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       // }
 
       //-- iterate to triangulate
-      while (sbit != ebit && (sbit+1) != bnc.end()) {
+      while (sbit != ebit && sbit != bnc.end() && (sbit + 1) != bnc.end()) {
         if (anc.size() == 0 || sait == anc.end())
           _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
         else
@@ -505,7 +505,7 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
         t.v2 = size - 1;
         _triangles_vw.push_back(t);
       }
-      while (sait != eait && (sait + 1) != anc.end()) {
+      while (sait != eait && sait != anc.end() && (sait + 1) != anc.end()) {
         if (bnc.size() == 0 || ebit == bnc.end())
           _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100));
         else
