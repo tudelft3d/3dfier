@@ -394,6 +394,8 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
   Point2 a, b;
   TopoFeature* fadj;
   int ringi = -1;
+  if (this->get_id() == "107720546")
+    std::clog << "yo" << std::endl;
   for (auto& ring : therings) {
     ringi++;
     for (int ai = 0; ai < ring.size(); ai++) {
@@ -440,6 +442,8 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       //std::clog << "fadj_az: " << fadj_az << std::endl;
       //std::clog << "fadj_bz: " << fadj_bz << std::endl;
 
+      anc = nc[gen_key_bucket(&a)];
+      bnc = nc[gen_key_bucket(&b)];
 	    //-- find the height of the vertex in the node column
       std::vector<int>::iterator sait, eait, sbit, ebit;
       sait = std::find(anc.begin(), anc.end(), fadj_az);
@@ -447,98 +451,70 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       sbit = std::find(bnc.begin(), bnc.end(), fadj_bz);
       ebit = std::find(bnc.begin(), bnc.end(), bz);
 
-      //int wrongit = 0;
-      //if (sait == anc.end()) {
-      //  std::clog << "WRONG ITERATOR sait" << std::endl;
-      //  wrongit++;
-      //}
-      //else
-      //  std::clog << *sait << std::endl;
-      //if (eait == anc.end()) {
-      //  std::clog << "WRONG ITERATOR eait" << std::endl;
-      //  wrongit++;
-      //}
-      //else
-      //  std::clog << *eait << std::endl;
-      //if (sbit == bnc.end()) {
-      //  std::clog << "WRONG ITERATOR sbit" << std::endl;
-      //  wrongit++;
-      //}
-      //else
-      //  std::clog << *sbit << std::endl;
-      //if (ebit == bnc.end()) {
-      //  std::clog << "WRONG ITERATOR ebit" << std::endl;
-      //  wrongit++;
-      //}
-      //else
-      //  std::clog << *ebit << std::endl;
+      int wrongit = 0;
+      if (sait == anc.end()) {
+       std::clog << "WRONG ITERATOR sait" << std::endl;
+       wrongit++;
+      }
+      else
+       std::clog << *sait << std::endl;
+      if (eait == anc.end()) {
+       std::clog << "WRONG ITERATOR eait" << std::endl;
+       wrongit++;
+      }
+      else
+       std::clog << *eait << std::endl;
+      if (sbit == bnc.end()) {
+       std::clog << "WRONG ITERATOR sbit" << std::endl;
+       wrongit++;
+      }
+      else
+       std::clog << *sbit << std::endl;
+      if (ebit == bnc.end()) {
+       std::clog << "WRONG ITERATOR ebit" << std::endl;
+       wrongit++;
+      }
+      else
+       std::clog << *ebit << std::endl;
 
-      //if (wrongit == 3) { //check if there is an uneven amount of wrong iterators
-      //  std::clog << "WRONG AMOUNT OF ITERATORS" << std::endl;
-      //}
-      //if (wrongit != 4 && eait == anc.end() && ebit == bnc.end()) {
-      //  std::cerr << "BOTH ITERATORS END" << std::endl;
-      //}
+      if (wrongit == 3) { //check if there is an uneven amount of wrong iterators
+       std::clog << "WRONG AMOUNT OF ITERATORS" << std::endl;
+      }
+      if (wrongit != 4 && eait == anc.end() && ebit == bnc.end()) {
+       std::cerr << "BOTH ITERATORS END" << std::endl;
+      }
 
       //-- iterate to triangulate
-//      while (sbit != ebit && sbit != bnc.end() && (sbit+1) != bnc.end()) {
-//        //if (anc.size() == 0 || sait == anc.end())
-//        //  _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
-//        //else
-//        //  _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-//        //_vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
-//        Triangle t;
-//        std::pair<std::set<Point3>::iterator, bool> ret;
-//        if (anc.size() == 0 || sait == anc.end())
-//          ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
-//        else
-//          ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-//        t.v1 = ret.first;
-//        ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
-//        t.v0 = ret.first;
-//        sbit++;
-//        ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
-//        t.v2 = ret.first;
-//          _triangles_vw.push_back(t);
-//      }
-//      while (sait != eait && sait != anc.end() && (sait + 1) != anc.end()) {
-//        //if (bnc.size() == 0 || ebit == bnc.end())
-//        //  _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100));
-//        //else
-//        //  _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
-//        //_vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-//        Triangle t;
-//        std::pair<std::set<Point3>::iterator, bool> ret;
-//        if (bnc.size() == 0 || ebit == bnc.end())
-//          ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100));
-//        else
-//          ret = _vertices.insert(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
-//        t.v0 = ret.first;
-//        ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-//        t.v1 = ret.first;
-//        sait++;
-//        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-//        Triangle t;
-//        int size = int(_vertices_vw.size());
-//        std::string key;
-//        if (bnc.size() == 0 || ebit == bnc.end()) {
-//          p = Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100);
-//        }
-//        else {
-//          p = Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100);
-//        }
-//        key = gen_key_bucket(&p);
-//        if (_vertices_map.find(key) == _vertices_map.end()) {
-//        t.v0 = size - 3;
-//          _vertices_map[key] = _vertices.size() - 1;
-//        }
-//        t.v0 = key;
-//
-//        ret = _vertices.insert(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-//        t.v2 = ret.first;
-//          _triangles_vw.push_back(t);
-//        }
-//      }
+      while (sbit != ebit && (sbit+1) != bnc.end()) {
+        if (anc.size() == 0 || sait == anc.end())
+          _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
+        else
+          _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+        _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
+        sbit++;
+        _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
+        Triangle t;
+        int size = int(_vertices_vw.size());
+        t.v0 = size - 2;
+        t.v1 = size - 3;
+        t.v2 = size - 1;
+        _triangles_vw.push_back(t);
+      }
+      while (sait != eait && (sait + 1) != anc.end()) {
+        if (bnc.size() == 0 || ebit == bnc.end())
+          _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100));
+        else
+          _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
+        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+        sait++;
+        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+        Triangle t;
+        int size = int(_vertices_vw.size());
+        t.v0 = size - 3;
+        t.v1 = size - 2;
+        t.v2 = size - 1;
+        _triangles_vw.push_back(t);
+      }
     }
   }
 }
