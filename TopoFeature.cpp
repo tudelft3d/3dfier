@@ -89,10 +89,10 @@ Polygon2* TopoFeature::get_Polygon2() {
 }
 
 
-std::string TopoFeature::get_obj(std::unordered_map< std::string, int > &dPts) {
+std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts) {
   std::stringstream ss;
   for (auto& t : _triangles) {
-    int a, b, c;
+    unsigned long a, b, c;
     auto it = dPts.find(gen_key_bucket(&_vertices[t.v0]));
     if (it == dPts.end()) {
       dPts[gen_key_bucket(&_vertices[t.v0])] = (dPts.size() + 1); 
@@ -119,7 +119,40 @@ std::string TopoFeature::get_obj(std::unordered_map< std::string, int > &dPts) {
     else
       std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
   }
-  // TODO : vertical triangles to process too!
+  
+  //-- vertical triangles
+  if (_bVerticalWalls == true && _triangles_vw.size() > 0)
+    ss << "usemtl VerticalWalls" << std::endl;
+
+  for (auto& t : _triangles_vw) {
+    unsigned long a, b, c;
+    auto it = dPts.find(gen_key_bucket(&_vertices_vw[t.v0]));
+    if (it == dPts.end()) {
+      dPts[gen_key_bucket(&_vertices_vw[t.v0])] = (dPts.size() + 1); 
+      a = dPts.size();
+    }
+    else 
+      a = it->second;
+    it = dPts.find(gen_key_bucket(&_vertices_vw[t.v1]));
+    if (it == dPts.end()) {
+      dPts[gen_key_bucket(&_vertices_vw[t.v1])] = (dPts.size() + 1);
+      b = dPts.size();
+    }
+    else 
+      b = it->second;
+    it = dPts.find(gen_key_bucket(&_vertices_vw[t.v2]));
+    if (it == dPts.end()) {
+      dPts[gen_key_bucket(&_vertices_vw[t.v2])] = (dPts.size() + 1);
+      c = dPts.size();
+    }
+    else 
+      c = it->second;
+    if ( (a != b) && (a != c) && (b != c) ) 
+      ss << "f " << a << " " << b << " " << c << std::endl;
+    else
+      std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
+  }
+
   return ss.str();
 }
 
