@@ -340,7 +340,7 @@ bool Map3d::threeDfy(bool stitching) {
   if (stitching == true) {
     std::clog << "=====  /ADJACENT FEATURES =====" << std::endl;
     for (auto& f : _lsFeatures) {
-      this->build_adjacent_features(f);
+      this->collect_adjacent_features(f);
     }
     std::clog << "=====  ADJACENT FEATURES/ =====" << std::endl;
 
@@ -622,7 +622,7 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
 }
 
 
-void Map3d::build_adjacent_features(TopoFeature* f) {
+void Map3d::collect_adjacent_features(TopoFeature* f) {
   std::vector<PairIndexed> re;
   _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
   for (auto& each : re) {
@@ -637,32 +637,11 @@ void Map3d::build_adjacent_features(TopoFeature* f) {
 void Map3d::stitch_lifted_features() {
   std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
-    //-- 1. store all touching top level (adjacent + incident)
+
+  //-- 1. store all touching top level (adjacent + incident)
     std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
 
-
-    // std::vector<PairIndexed> re;
-    // _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-
-    //for (auto& each : re) {
-    //  TopoFeature* fadj = each.second;
-
-    //  // if (bg::intersects(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
-    //  // {
-    //  //   std::clog << f->get_id() << " intersects " << fadj->get_id() << std::endl;
-    //  // }
-    //  // if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
-    //  // {
-    //  //   std::clog << f->get_id() << " touches " << fadj->get_id() << std::endl;
-    //  // }
-
-    //  //if (fadj->get_top_level() == true && bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
-    //  if (f != fadj && (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) || !bg::disjoint(*(f->get_Polygon2()), *(fadj->get_Polygon2())))) {
-    //    lstouching.push_back(fadj);
-    //  }
-    //}
-
-    //-- 2. build the node-column for each vertex
+  //-- 2. build the node-column for each vertex
     // oring
     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2()));
     for (int i = 0; i < oring.size(); i++) {

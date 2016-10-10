@@ -1,4 +1,27 @@
 
+
+    // std::vector<PairIndexed> re;
+    // _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+
+    //for (auto& each : re) {
+    //  TopoFeature* fadj = each.second;
+
+    //  // if (bg::intersects(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
+    //  // {
+    //  //   std::clog << f->get_id() << " intersects " << fadj->get_id() << std::endl;
+    //  // }
+    //  // if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
+    //  // {
+    //  //   std::clog << f->get_id() << " touches " << fadj->get_id() << std::endl;
+    //  // }
+
+    //  //if (fadj->get_top_level() == true && bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
+    //  if (f != fadj && (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) || !bg::disjoint(*(f->get_Polygon2()), *(fadj->get_Polygon2())))) {
+    //    lstouching.push_back(fadj);
+    //  }
+    //}
+
+
 // unordered_map::insert
 #include <iostream>
 #include <string>

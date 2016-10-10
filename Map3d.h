@@ -106,9 +106,9 @@ private:
   Box2        _bbox;
 
   std::unordered_map< std::string, std::vector<int> > _nc;
-  std::vector<TopoFeature*>                 _lsFeatures;
-  std::vector<std::string>                  _allowed_layers;
-  bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
+  std::vector<TopoFeature*>                           _lsFeatures;
+  std::vector<std::string>                            _allowed_layers;
+  bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;
 
 #if GDAL_VERSION_MAJOR < 2
   bool extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file);
@@ -120,7 +120,7 @@ private:
   void stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star);
   void stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);
   void stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);
-  void build_adjacent_features(TopoFeature* f);
+  void collect_adjacent_features(TopoFeature* f);
 };
 
 #endif
