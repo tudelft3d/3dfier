@@ -165,7 +165,7 @@ std::string Map3d::get_csv_buildings() {
 
 
 std::string Map3d::get_obj_per_feature(int z_exaggeration) {
-  std::unordered_map< std::string, int > dPts;
+  std::unordered_map< std::string, unsigned long > dPts;
   std::stringstream ssf;
   for (auto& p : _lsFeatures) {
     ssf << "o " << p->get_id() << std::endl;
@@ -357,11 +357,12 @@ bool Map3d::threeDfy(bool stitching) {
     }
 
     std::clog << "=====  /BOWTIES =====" << std::endl;
-    for (auto& f : _lsFeatures) {
-      if (f->has_vertical_walls() == true) {
-        f->fix_bowtie();
-      }
-    }
+    // TODO: shouldn't bowties be fixed after the VW? or at same time?
+    // for (auto& f : _lsFeatures) {
+    //   if (f->has_vertical_walls() == true) {
+    //     f->fix_bowtie();
+    //   }
+    // }
     std::clog << "=====  BOWTIES/ =====" << std::endl;
 
     std::clog << "=====  /VERTICAL WALLS =====" << std::endl;

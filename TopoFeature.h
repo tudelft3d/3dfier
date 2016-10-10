@@ -76,7 +76,7 @@ public:
   // std::string  get_obj_f(std::unordered_map< std::string, std::vector<Point3>::size_type > &vertices_map, bool useverticalwalls);
   std::string  get_wkt();
   bool         get_shape_features(OGRLayer* layer, std::string className);
-  std::string  get_obj(std::unordered_map< std::string, int > &dPts);
+  std::string  get_obj(std::unordered_map< std::string, unsigned long > &dPts);
 
 protected:
   Polygon2*                         _p2;
