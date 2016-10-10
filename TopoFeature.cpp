@@ -435,19 +435,6 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       if ((az == fadj_az) && (bz == fadj_bz))
         continue;
 
-      try {
-        anc = nc.at(gen_key_bucket(&a));
-      }
-      catch (const std::out_of_range& oor) {
-        std::cerr << "Id: " << this->get_id() << " - Class: " << this->get_class() << " - Out of Range error anc - " << gen_key_bucket(&a) << std::endl;
-      }
-      try {
-        bnc = nc.at(gen_key_bucket(&b));
-      }
-      catch (const std::out_of_range& oor) {
-        std::cerr << "Id: " << this->get_id() << " - Class: " << this->get_class() << " - Out of Range error bnc - " << gen_key_bucket(&b) << std::endl;
-      }
-
       //std::clog << "az: " << az << std::endl;
       //std::clog << "bz: " << bz << std::endl;
       //std::clog << "fadj_az: " << fadj_az << std::endl;
