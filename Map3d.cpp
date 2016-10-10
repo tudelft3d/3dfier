@@ -333,14 +333,14 @@ bool Map3d::threeDfy(bool stitching) {
     4. CDT
   */
   std::clog << "===== /LIFTING =====" << std::endl;
-  for (auto& p : _lsFeatures) {
-    p->lift();
+  for (auto& f : _lsFeatures) {
+    f->lift();
   }
   std::clog << "===== LIFTING/ =====" << std::endl;
   if (stitching == true) {
     std::clog << "=====  /ADJACENT FEATURES =====" << std::endl;
-    for (auto& p : _lsFeatures) {
-      get_adjacent_features(p);
+    for (auto& f : _lsFeatures) {
+      this->build_adjacent_features(f);
     }
     std::clog << "=====  ADJACENT FEATURES/ =====" << std::endl;
 
@@ -357,17 +357,17 @@ bool Map3d::threeDfy(bool stitching) {
     }
 
     std::clog << "=====  /BOWTIES =====" << std::endl;
-    for (auto& p : _lsFeatures) {
-      if (p->has_vertical_walls() == true) {
-        p->fix_bowtie();
+    for (auto& f : _lsFeatures) {
+      if (f->has_vertical_walls() == true) {
+        f->fix_bowtie();
       }
     }
     std::clog << "=====  BOWTIES/ =====" << std::endl;
 
     std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
-    for (auto& p : _lsFeatures) {
-      if (p->has_vertical_walls() == true) {
-        p->construct_vertical_walls(_nc);
+    for (auto& f : _lsFeatures) {
+      if (f->has_vertical_walls() == true) {
+        f->construct_vertical_walls(_nc);
       }
     }
     std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
@@ -622,28 +622,28 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
 }
 
 
-std::vector<TopoFeature*> Map3d::get_adjacent_features(TopoFeature* f) {
+void Map3d::build_adjacent_features(TopoFeature* f) {
   std::vector<PairIndexed> re;
   _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-  std::vector<TopoFeature*> lsAdjacent;
   for (auto& each : re) {
     TopoFeature* fadj = each.second;
     if (f != fadj && (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) || !bg::disjoint(*(f->get_Polygon2()), *(fadj->get_Polygon2())))) {
       f->add_adjacent_feature(fadj);
     }
   }
-  return lsAdjacent;
 }
 
 
 void Map3d::stitch_lifted_features() {
   std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
-    std::vector<PairIndexed> re;
-    _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-    std::vector<TopoFeature*> lstouching = f->get_adjacent_features();
+    //-- 1. store all touching top level (adjacent + incident)
+    std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
 
-    ////-- 1. store all touching top level (adjacent + incident)
+
+    // std::vector<PairIndexed> re;
+    // _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+
     //for (auto& each : re) {
     //  TopoFeature* fadj = each.second;
 
@@ -669,7 +669,7 @@ void Map3d::stitch_lifted_features() {
       // std::cout << std::setprecision(3) << std::fixed << bg::get<0>(oring[i]) << " : " << bg::get<1>(oring[i]) << std::endl;
       std::vector< std::tuple<TopoFeature*, int, int> > star;
       bool toprocess = false;
-      for (auto& fadj : lstouching) {
+      for (auto& fadj : *lstouching) {
         ringis.clear();
         pis.clear();
         if (fadj->has_point2_(oring[i], ringis, pis) == true) {
@@ -696,7 +696,7 @@ void Map3d::stitch_lifted_features() {
       for (int i = 0; i < iring.size(); i++) {
         std::vector< std::tuple<TopoFeature*, int, int> > star;
         bool toprocess = false;
-        for (auto& fadj : lstouching) {
+        for (auto& fadj : *lstouching) {
           ringis.clear();
           pis.clear();
           if (fadj->has_point2_(iring[i], ringis, pis) == true) {

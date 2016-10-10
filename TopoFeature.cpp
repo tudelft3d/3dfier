@@ -43,7 +43,7 @@ TopoFeature::TopoFeature(char *wkt, std::string pid) {
   _bVerticalWalls = false;
   _p2 = new Polygon2();
   bg::read_wkt(wkt, *(_p2));
-  
+  _adjFeatures = new std::vector<TopoFeature*>;
   _p2z.resize(bg::num_interior_rings(*_p2) + 1);
   _p2z[0].resize(bg::num_points(_p2->outer()));
   _lidarelevs.resize(bg::num_interior_rings(*_p2) + 1);
@@ -282,7 +282,7 @@ void TopoFeature::fix_bowtie() {
       int adj_a_pi = 0;
       int adj_b_ringi = 0;
       int adj_b_pi = 0;
-      for (auto& adj : _adjFeatures) {
+      for (auto& adj : *(_adjFeatures)) {
         if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi) == true) {
           // if (adj->has_segment(b, a) == true) {
           fadj = adj;
@@ -382,7 +382,7 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       int adj_a_pi = 0;
       int adj_b_ringi = 0;
       int adj_b_pi = 0;
-      for (auto& adj : _adjFeatures) {
+      for (auto& adj : *(_adjFeatures)) {
         if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi) == true) {
           // if (adj->has_segment(b, a) == true) {
           fadj = adj;
@@ -719,13 +719,13 @@ void TopoFeature::lift_all_boundary_vertices_same_height(int height) {
 }
 
 
-void TopoFeature::add_adjacent_feature(TopoFeature * adjFeature)
+void TopoFeature::add_adjacent_feature(TopoFeature* adjFeature)
 {
-  _adjFeatures.push_back(adjFeature);
+  _adjFeatures->push_back(adjFeature);
 }
 
 
-std::vector<TopoFeature*> TopoFeature::get_adjacent_features()
+std::vector<TopoFeature*>* TopoFeature::get_adjacent_features()
 {
   return _adjFeatures;
 }

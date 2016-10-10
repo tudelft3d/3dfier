@@ -120,7 +120,7 @@ private:
   void stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star);
   void stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);
   void stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);
-  std::vector<TopoFeature*> get_adjacent_features(TopoFeature* f);
+  void build_adjacent_features(TopoFeature* f);
 };
 
 #endif
