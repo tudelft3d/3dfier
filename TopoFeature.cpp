@@ -380,8 +380,8 @@ void TopoFeature::fix_bowtie() {
 
 
 void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::vector<int>> nc) {
-  std::clog << this->get_id() << std::endl;
-  if (this->get_id() == "b37290f7f-2d2b-11e6-9a38-393caa90be70-1")
+  //std::clog << this->get_id() << std::endl;
+  if (this->get_id() == "bbdc52a89-00b3-11e6-b420-2bdcc4ab5d7f")
     std::clog << "break" << std::endl;
 
 
@@ -399,8 +399,8 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
   Point2 a, b;
   TopoFeature* fadj;
   int ringi = -1;
-  if (this->get_id() == "107720546")
-    std::clog << "yo" << std::endl;
+  //if (this->get_id() == "107720546")
+  //  std::clog << "yo" << std::endl;
   for (auto& ring : therings) {
     ringi++;
     for (int ai = 0; ai < ring.size(); ai++) {
@@ -761,7 +761,7 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
   }
   //-- 2. some vertices will have no values (no lidar point within tolerance thus)
   //--    assign them z value of next vertex in the ring
-  //--    put 0 elevation if none? they will be stitched later on I hope/guess
+  //--    put -99 elevation if none
   ringi = 0;
   oring = bg::exterior_ring(*(_p2));
   int pi;
@@ -775,7 +775,7 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
           break;
       }
       if (j == 1000)
-        _p2z[ringi][i] = 0;
+        _p2z[ringi][i] = -99;
       else
       _p2z[ringi][i] = _p2z[ringi][pi];
     } 
@@ -793,7 +793,7 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
             break;
         }
         if (j == 1000)
-          _p2z[ringi][i] = 0;
+          _p2z[ringi][i] = -99;
         else
         _p2z[ringi][i] = _p2z[ringi][pi];
       }    
@@ -817,7 +817,7 @@ int Flat::get_number_vertices() {
 }
 
 bool Flat::lift_percentile(float percentile) {
-  int z = 0;
+  int z = -99;
   if (_zvaluesinside.empty() == false) {
     std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
     z = _zvaluesinside[_zvaluesinside.size() * percentile];
