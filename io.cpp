@@ -153,3 +153,6 @@ bool is_string_integer(std::string s, int min, int max) {
 }
 
 
+float z_to_float(int z) {
+  return float(z) / 100;
+}

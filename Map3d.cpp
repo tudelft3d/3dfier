@@ -192,7 +192,6 @@ std::string Map3d::get_obj_per_feature(int z_exaggeration) {
 }
 
 
-
 std::string Map3d::get_obj_per_class(int z_exaggeration) {
   // std::vector<int> offsets;
   // offsets.push_back(0);

@@ -26,7 +26,7 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-
+#include "io.h"
 #include "geomtools.h"
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>
@@ -128,7 +128,7 @@ bool getCDT(const Polygon2* pgn,
   int ringi = 0;
   //-- add the outer ring as a constraint
   for (int i = 0; i < oring.size(); i++) {
-    poly.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i]), (float(z[ringi][i]) / 100.0)));
+    poly.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i]), z_to_float(z[ringi][i])));
     //points.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i])));
   }
   cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
@@ -139,7 +139,7 @@ bool getCDT(const Polygon2* pgn,
   if (irings.size() > 0) {
     for (auto iring : irings) {
       for (int i = 0; i < iring.size(); i++) {
-        poly.push_back(Point(bg::get<0>(iring[i]), bg::get<1>(iring[i]), (float(z[ringi][i]) / 100.0)));
+        poly.push_back(Point(bg::get<0>(iring[i]), bg::get<1>(iring[i]), z_to_float(z[ringi][i])));
       }
       cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
       poly.clear();
@@ -189,4 +189,3 @@ std::string gen_key_bucket(Point2* p) {
 std::string gen_key_bucket(Point3* p) {
   return std::to_string(int(bg::get<0>(p) * 100)) + "/" + std::to_string(int(bg::get<1>(p) * 100)) + "/" + std::to_string(int(bg::get<2>(p) * 100));
 }
-

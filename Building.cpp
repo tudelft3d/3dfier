@@ -114,7 +114,7 @@ std::string Building::get_mtl() {
 //    }
 //  }
 //  for (auto& v : _vertices) {
-//      float z = float(this->get_height_base()) / 100;
+//      float z = z_to_float(this->get_height_base());
 //    ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0? (z_exaggeration * z) : z) << std::endl;
 //    }
 //  return ss.str();
@@ -190,20 +190,21 @@ std::string Building::get_mtl() {
 //}
 
 std::string Building::get_citygml() {
+  float h = z_to_float(this->get_height());
+  float hbase = z_to_float(this->get_height_base());
+
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
   ss << "<bldg:Building gml:id=\"";
   ss << this->get_id();
   ss << "\">" << std::endl;
   ss << "<bldg:measuredHeight uom=\"#m\">";
-  ss << float(this->get_height()) / 100;
+  ss << h;
   ss << "</bldg:measuredHeight>" << std::endl;
   ss << "<bldg:lod1Solid>" << std::endl;
   ss << "<gml:Solid>" << std::endl;
   ss << "<gml:exterior>" << std::endl;
   ss << "<gml:CompositeSurface>" << std::endl;
-  float h = float(this->get_height()) / 100;
-  float hbase = float(this->get_height_base()) / 100;
   //-- get floor
   ss << get_polygon_lifted_gml(this->_p2, hbase, false);
   //-- get roof

@@ -492,12 +492,12 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       //-- iterate to triangulate
       while (sbit != ebit && sbit != bnc.end() && (sbit + 1) != bnc.end()) {
         if (anc.size() == 0 || sait == anc.end())
-          _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(az) / 100));
+          _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(az)));
         else
-          _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
-        _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
+          _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait)));
+        _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit)));
         sbit++;
-        _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*sbit) / 100));
+        _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit)));
         Triangle t;
         int size = int(_vertices_vw.size());
         t.v0 = size - 2;
@@ -507,12 +507,12 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       }
       while (sait != eait && sait != anc.end() && (sait + 1) != anc.end()) {
         if (bnc.size() == 0 || ebit == bnc.end())
-          _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(bz) / 100));
+          _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(bz)));
         else
-          _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), float(*ebit) / 100));
-        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+          _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*ebit)));
+        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait)));
         sait++;
-        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), float(*sait) / 100));
+        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait)));
         Triangle t;
         int size = int(_vertices_vw.size());
         t.v0 = size - 3;
