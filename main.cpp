@@ -40,8 +40,14 @@
 #include "boost/locale.hpp"
 #include <chrono>
 
+
+std::string VERSION = "0.7.1";
+
+
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 void print_license();
+
+
 
 int main(int argc, const char * argv[]) {
   auto startTime = std::chrono::high_resolution_clock::now();
@@ -72,7 +78,15 @@ int main(int argc, const char * argv[]) {
     if ( s == "--license") {
       print_license();
       return 0;
-    }
+    }  
+  }
+  //-- version
+  if (argc == 2) {
+    std::string s = argv[1];
+    if ( s == "--version") {
+      std::clog << "3dfier " << VERSION << std::endl;
+      return 0;
+    }  
   }
 
   std::clog << licensewarning << std::endl;

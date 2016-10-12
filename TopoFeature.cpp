@@ -116,8 +116,8 @@ std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long 
       c = it->second;
     if ( (a != b) && (a != c) && (b != c) ) 
       ss << "f " << a << " " << b << " " << c << std::endl;
-    else
-      std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
+    // else
+    //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
   }
   
   //-- vertical triangles
@@ -149,8 +149,8 @@ std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long 
       c = it->second;
     if ( (a != b) && (a != c) && (b != c) ) 
       ss << "f " << a << " " << b << " " << c << std::endl;
-    else
-      std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
+    // else
+    //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
   }
 
   return ss.str();
@@ -383,7 +383,6 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
   //std::clog << this->get_id() << std::endl;
   if (this->get_id() == "bbdc52a89-00b3-11e6-b420-2bdcc4ab5d7f")
     std::clog << "break" << std::endl;
-
 
   if (this->has_vertical_walls() == false)
     return;

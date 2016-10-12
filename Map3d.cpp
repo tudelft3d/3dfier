@@ -505,7 +505,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
             cf->SetGeometry((OGRPolygon*)multipolygon->getGeometryRef(i));
             extract_feature(cf, idfield, heightfield, l.second, multiple_heights);
           }
-          std::clog << "MultiPolygon with " << numGeom << " geometries processed" << std::endl;
+          std::clog << "\t(MultiPolygon split into " << numGeom << " Polygons)" << std::endl;
         }
         break;
       }
