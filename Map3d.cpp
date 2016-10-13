@@ -357,24 +357,25 @@ bool Map3d::threeDfy(bool stitching) {
 
     std::clog << "=====  /BOWTIES =====" << std::endl;
     // TODO: shouldn't bowties be fixed after the VW? or at same time?
-    // for (auto& f : _lsFeatures) {
-    //   if (f->has_vertical_walls() == true) {
-    //     f->fix_bowtie();
-    //   }
-    // }
+    for (auto& f : _lsFeatures) {
+      if (f->has_vertical_walls() == true) {
+        f->fix_bowtie();
+      }
+    }
     std::clog << "=====  BOWTIES/ =====" << std::endl;
 
     std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
     int i = 1;
     for (auto& f : _lsFeatures) {
-      if (i % 100 == 0)
-        std::clog << i << " | " <<  f->get_id() << std::endl;
       if (f->has_vertical_walls() == true) {
         f->construct_vertical_walls(_nc);
       }
+      if (i % 1000 == 0)
+        printProgressBar(100 * (i / double(_lsFeatures.size())));
       i++;
     }
-    std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
+    printProgressBar(100);
+    std::clog << std::endl << "=====  VERTICAL WALLS/ =====" << std::endl;
   }
   return true;
 }
@@ -781,10 +782,6 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     }
     else {
       for (auto& each : zstar) {
-      if (std::get<1>(each)->get_id() == "b885ae8a0-fcfe-11e5-8acc-1fc21a78c5fd") {
-        std::clog << "break" << std::endl;
-      }
-
         std::get<0>(each) = heightperclass[std::get<1>(each)->get_class()] / classcount[std::get<1>(each)->get_class()];
       }
       for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it = zstar.begin(); it != zstar.end(); ++it) {
