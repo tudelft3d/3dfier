@@ -365,10 +365,14 @@ bool Map3d::threeDfy(bool stitching) {
     std::clog << "=====  BOWTIES/ =====" << std::endl;
 
     std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
+    int i = 1;
     for (auto& f : _lsFeatures) {
+      if (i % 100 == 0)
+        std::clog << i << " | " <<  f->get_id() << std::endl;
       if (f->has_vertical_walls() == true) {
         f->construct_vertical_walls(_nc);
       }
+      i++;
     }
     std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
   }
