@@ -381,8 +381,8 @@ void TopoFeature::fix_bowtie() {
 
 void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::vector<int>> nc) {
   //std::clog << this->get_id() << std::endl;
-  if (this->get_id() == "bbdc52a89-00b3-11e6-b420-2bdcc4ab5d7f")
-    std::clog << "break" << std::endl;
+  // if (this->get_id() == "bbdc52a89-00b3-11e6-b420-2bdcc4ab5d7f")
+  //   std::clog << "break" << std::endl;
 
   if (this->has_vertical_walls() == false)
     return;
@@ -423,7 +423,6 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       int adj_b_pi = 0;
       for (auto& adj : *(_adjFeatures)) {
         if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi) == true) {
-          // if (adj->has_segment(b, a) == true) {
           fadj = adj;
           break;
         }
@@ -454,39 +453,6 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       eait = std::find(anc.begin(), anc.end(), az);
       sbit = std::find(bnc.begin(), bnc.end(), fadj_bz);
       ebit = std::find(bnc.begin(), bnc.end(), bz);
-
-      // int wrongit = 0;
-      // if (sait == anc.end()) {
-      //  std::clog << "WRONG ITERATOR sait" << std::endl;
-      //  wrongit++;
-      // }
-      // else
-      //  std::clog << *sait << std::endl;
-      // if (eait == anc.end()) {
-      //  std::clog << "WRONG ITERATOR eait" << std::endl;
-      //  wrongit++;
-      // }
-      // else
-      //  std::clog << *eait << std::endl;
-      // if (sbit == bnc.end()) {
-      //  std::clog << "WRONG ITERATOR sbit" << std::endl;
-      //  wrongit++;
-      // }
-      // else
-      //  std::clog << *sbit << std::endl;
-      // if (ebit == bnc.end()) {
-      //  std::clog << "WRONG ITERATOR ebit" << std::endl;
-      //  wrongit++;
-      // }
-      // else
-      //  std::clog << *ebit << std::endl;
-
-      // if (wrongit == 3) { //check if there is an uneven amount of wrong iterators
-      //  std::clog << "WRONG AMOUNT OF ITERATORS" << std::endl;
-      // }
-      // if (wrongit != 4 && eait == anc.end() && ebit == bnc.end()) {
-      //  std::cerr << "BOTH ITERATORS END" << std::endl;
-      // }
 
       //-- iterate to triangulate
       while (sbit != ebit && sbit != bnc.end() && (sbit + 1) != bnc.end()) {
