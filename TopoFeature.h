@@ -52,7 +52,7 @@ public:
   virtual bool          is_hard() = 0;
 
   std::string  get_id();
-  void         construct_vertical_walls(std::unordered_map< std::string, std::vector<int> > nc);
+  void         construct_vertical_walls(std::unordered_map< std::string, std::vector<int> > &nc);
   void         fix_bowtie();
   void         add_adjacent_feature(TopoFeature* adjFeature);
   std::vector<TopoFeature*>* get_adjacent_features();
@@ -62,7 +62,7 @@ public:
   Point2       get_point2(int ringi, int pi);
   bool         has_point2(const Point2& p);
   bool         has_point2_(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis);
-  bool         has_segment(Point2& a, Point2& b);
+  // bool         has_segment(Point2& a, Point2& b);
   bool         has_segment(Point2& a, Point2& b, int& aringi, int& api, int& bringi, int& bpi);
   float        get_distance_to_boundaries(Point2& p);
   int          get_vertex_elevation(int ringi, int pi);

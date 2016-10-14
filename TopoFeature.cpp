@@ -379,7 +379,7 @@ void TopoFeature::fix_bowtie() {
 }
 
 
-void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::vector<int>> nc) {
+void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::vector<int>> &nc) {
   //std::clog << this->get_id() << std::endl;
   // if (this->get_id() == "bbdc52a89-00b3-11e6-b420-2bdcc4ab5d7f")
   //   std::clog << "break" << std::endl;
@@ -390,11 +390,12 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
   //-- gather all rings
   std::vector<Ring2> therings;
   therings.push_back(bg::exterior_ring(*(_p2)));
-  for (auto& iring: bg::interior_rings(*(_p2))) 
+  for (auto& iring : bg::interior_rings(*(_p2)))
     therings.push_back(iring);
 
   //-- process each vertex of the polygon separately
-  std::vector<int> anc, bnc;
+  // std::vector<int> anc, bnc;
+  std::unordered_map<std::string, std::vector<int>>::const_iterator anc, bnc;
   Point2 a, b;
   TopoFeature* fadj;
   int ringi = -1;
@@ -415,6 +416,12 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
         b = ring[ai + 1];
         bi = ai + 1;
       }
+      //-- check if there's a nc for either
+      anc = nc.find(gen_key_bucket(&a));
+      bnc = nc.find(gen_key_bucket(&b));
+      if ((anc == nc.end()) && (bnc == nc.end()))
+        continue;
+
       //-- find the adjacent polygon to segment ab (fadj)
       fadj = nullptr;
       int adj_a_ringi = 0;
@@ -445,18 +452,18 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       //std::clog << "fadj_az: " << fadj_az << std::endl;
       //std::clog << "fadj_bz: " << fadj_bz << std::endl;
 
-      anc = nc[gen_key_bucket(&a)];
-      bnc = nc[gen_key_bucket(&b)];
-	    //-- find the height of the vertex in the node column
-      std::vector<int>::iterator sait, eait, sbit, ebit;
-      sait = std::find(anc.begin(), anc.end(), fadj_az);
-      eait = std::find(anc.begin(), anc.end(), az);
-      sbit = std::find(bnc.begin(), bnc.end(), fadj_bz);
-      ebit = std::find(bnc.begin(), bnc.end(), bz);
+      // anc = nc[gen_key_bucket(&a)];
+      // bnc = nc[gen_key_bucket(&b)];
+      //-- find the height of the vertex in the node column
+      std::vector<int>::const_iterator sait, eait, sbit, ebit;
+      sait = std::find(anc->second.begin(), anc->second.end(), fadj_az);
+      eait = std::find(anc->second.begin(), anc->second.end(), az);
+      sbit = std::find(bnc->second.begin(), bnc->second.end(), fadj_bz);
+      ebit = std::find(bnc->second.begin(), bnc->second.end(), bz);
 
       //-- iterate to triangulate
-      while (sbit != ebit && sbit != bnc.end() && (sbit + 1) != bnc.end()) {
-        if (anc.size() == 0 || sait == anc.end())
+      while (sbit != ebit && sbit != bnc->second.end() && (sbit + 1) != bnc->second.end()) {
+        if (anc->second.size() == 0 || sait == anc->second.end())
           _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(az)));
         else
           _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait)));
@@ -470,8 +477,8 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
         t.v2 = size - 1;
         _triangles_vw.push_back(t);
       }
-      while (sait != eait && sait != anc.end() && (sait + 1) != anc.end()) {
-        if (bnc.size() == 0 || ebit == bnc.end())
+      while (sait != eait && sait != anc->second.end() && (sait + 1) != anc->second.end()) {
+        if (bnc->second.size() == 0 || ebit == bnc->second.end())
           _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(bz)));
         else
           _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*ebit)));
@@ -500,6 +507,7 @@ bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& 
       nextpi = pis[k];
       tmp = this->get_next_point2_in_ring(ringis[k], nextpi);
       if (bg::distance(b, tmp) <= threshold) {
+      //if (b.x() == tmp.x() && b.y() == tmp.y()) {
         aringi = ringis[k];
         api = pis[k];
         bringi = ringis[k];
@@ -545,17 +553,17 @@ float TopoFeature::get_distance_to_boundaries(Point2& p) {
 }
 
 
-bool TopoFeature::has_segment(Point2& a, Point2& b) {
-  double threshold = 0.001;
-  std::vector<int> ringis, pis;
-  if (this->has_point2_(a, ringis, pis) == true) {
-    Point2 tmp;
-    tmp = this->get_next_point2_in_ring(ringis[0], pis[0]);
-    if (bg::distance(b, tmp) <= threshold)
-      return true;
-  }
-  return false;
-}
+//bool TopoFeature::has_segment(Point2& a, Point2& b) {
+//  double threshold = 0.001;
+//  std::vector<int> ringis, pis;
+//  if (this->has_point2_(a, ringis, pis) == true) {
+//    Point2 tmp;
+//    tmp = this->get_next_point2_in_ring(ringis[0], pis[0]);
+//    if (bg::distance(b, tmp) <= threshold)
+//      return true;
+//  }
+//  return false;
+//}
 
 
 bool TopoFeature::has_point2(const Point2& p) {
@@ -571,6 +579,7 @@ bool TopoFeature::has_point2_(const Point2& p, std::vector<int>& ringis, std::ve
   bool re = false;
   for (int i = 0; i < oring.size(); i++) {
     if (bg::distance(p, oring[i]) <= threshold) {
+    //if(p.x()==oring[i].x() && p.y() == oring[i].y()){
       ringis.push_back(ringi);
       pis.push_back(i);
       re = true;
@@ -582,6 +591,7 @@ bool TopoFeature::has_point2_(const Point2& p, std::vector<int>& ringis, std::ve
   for (Ring2& iring: irings) {
     for (int i = 0; i < iring.size(); i++) {
       if (bg::distance(p, iring[i]) <= threshold) {
+      //if (p.x() == iring[i].x() && p.y() == iring[i].y()) {
         ringis.push_back(ringi);
         pis.push_back(i);
         re = true;
