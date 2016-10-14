@@ -740,7 +740,7 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
           break;
       }
       if (j == 1000)
-        _p2z[ringi][i] = -99;
+        _p2z[ringi][i] = -9999;
       else
       _p2z[ringi][i] = _p2z[ringi][pi];
     } 
@@ -758,7 +758,7 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
             break;
         }
         if (j == 1000)
-          _p2z[ringi][i] = -99;
+          _p2z[ringi][i] = -9999;
         else
         _p2z[ringi][i] = _p2z[ringi][pi];
       }    

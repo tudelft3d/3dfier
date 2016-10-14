@@ -138,6 +138,8 @@ int main(int argc, const char * argv[]) {
       map3d.set_forest_simplification(n["Forest"]["simplification"].as<int>());
     if (n["Forest"]["innerbuffer"])
       map3d.set_forest_innerbuffer(n["Forest"]["innerbuffer"].as<float>());
+    if (n["Forest"]["ground_points_only"] && n["Forest"]["ground_points_only"].as<std::string>() == "true")
+      map3d.set_forest_ground_points_only(true);
   if (n["Water"]) 
     if (n["Water"]["height"]) {
       std::string height = n["Water"]["height"].as<std::string>();

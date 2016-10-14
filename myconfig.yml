@@ -33,7 +33,7 @@ lifting_options:
     height: percentile-50
   Terrain:
     simplification: 100
-  Vegetation:
+  Forest:
     simplification: 10
 
 input_elevation:

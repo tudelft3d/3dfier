@@ -44,7 +44,7 @@ Map3d::Map3d() {
   _terrain_innerbuffer = 0.0;
   _forest_innerbuffer = 0.0;
   _radius_vertex_elevation = 1.0;
-  _building_radius_vertex_elevation = 1.0;
+  _building_radius_vertex_elevation = 3.0;
   _threshold_jump_edges = 50;
   bg::set<bg::min_corner, 0>(_bbox, 999999);
   bg::set<bg::min_corner, 1>(_bbox, 999999);
@@ -104,7 +104,11 @@ void Map3d::set_terrain_innerbuffer(float innerbuffer) {
 
 void Map3d::set_forest_innerbuffer(float innerbuffer) {
   _forest_innerbuffer = innerbuffer;
-}  
+}
+
+void Map3d::set_forest_ground_points_only(bool ground_points_only) {
+  _forest_ground_points_only = ground_points_only;
+}
 
 void Map3d::set_water_heightref(float h) {
   _water_heightref = h;
@@ -539,7 +543,7 @@ void Map3d::extract_feature(OGRFeature *f, const char *idfield, const char *heig
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Forest") {
-    Forest* p3 = new Forest(wkt, f->GetFieldAsString(idfield), this->_forest_simplification, this->_forest_innerbuffer);
+    Forest* p3 = new Forest(wkt, f->GetFieldAsString(idfield), this->_forest_simplification, this->_forest_innerbuffer, this->_forest_ground_points_only);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Water") {

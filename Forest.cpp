@@ -30,9 +30,12 @@
  
 #include "Forest.h"
 
+bool Forest::_use_ground_points_only = false;
 
-Forest::Forest (char *wkt, std::string pid, int simplification, float innerbuffer) : TIN(wkt, pid, simplification, innerbuffer)
-{}
+Forest::Forest (char *wkt, std::string pid, int simplification, float innerbuffer, bool ground_points_only) : TIN(wkt, pid, simplification, innerbuffer)
+{
+  _use_ground_points_only = ground_points_only;
+}
 
 
 bool Forest::lift() {
@@ -52,7 +55,7 @@ bool Forest::add_elevation_point(double x, double y, double z, float radius, LAS
     if (dis(gen) == 1)
       toadd = true;
   }
-  if (toadd && lastreturn && lasclass != LAS_BUILDING) {
+  if (toadd && lastreturn && ((_use_ground_points_only && lasclass == LAS_GROUND) || (_use_ground_points_only == false && lasclass != LAS_BUILDING))) {
     Point2 p(x, y);
     if (bg::within(p, *(_p2)) && (this->get_distance_to_boundaries(p) > _innerbuffer)) {
       _lidarpts.push_back(Point3(x, y, z));

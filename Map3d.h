@@ -78,6 +78,7 @@ public:
   void set_forest_simplification(int simplification);
   void set_terrain_innerbuffer(float innerbuffer);
   void set_forest_innerbuffer(float innerbuffer);
+  void set_forest_ground_points_only(bool only_ground_points);
   void set_water_heightref(float heightref);
   void set_road_heightref(float heightref);
   void set_separation_heightref(float heightref);
@@ -96,6 +97,7 @@ private:
   int         _forest_simplification;
   float       _terrain_innerbuffer;
   float       _forest_innerbuffer;
+  bool        _forest_ground_points_only;
   float       _water_heightref;
   float       _road_heightref;
   float       _separation_heightref;

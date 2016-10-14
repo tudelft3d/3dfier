@@ -29,7 +29,7 @@
 
 #include "Bridge.h"
 
-float Bridge::_heightref = 0.8;
+float Bridge::_heightref = 0.5;
 
 Bridge::Bridge(char *wkt, std::string pid, float heightref)
   : Flat(wkt, pid)

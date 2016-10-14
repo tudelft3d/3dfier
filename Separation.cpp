@@ -29,7 +29,7 @@
 
 #include "Separation.h"
 
-float Separation::_heightref = 0.9;
+float Separation::_heightref = 0.8;
 
 Separation::Separation(char *wkt, std::string pid, float heightref)
   : Flat(wkt, pid)
