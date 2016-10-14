@@ -419,7 +419,8 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       //-- check if there's a nc for either
       anc = nc.find(gen_key_bucket(&a));
       bnc = nc.find(gen_key_bucket(&b));
-      if ((anc == nc.end()) && (bnc == nc.end()))
+
+      if ( (anc == nc.end()) && (bnc == nc.end()) )
         continue;
 
       //-- find the adjacent polygon to segment ab (fadj)
@@ -454,7 +455,7 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
 
       // anc = nc[gen_key_bucket(&a)];
       // bnc = nc[gen_key_bucket(&b)];
-      //-- find the height of the vertex in the node column
+	    //-- find the height of the vertex in the node column
       std::vector<int>::const_iterator sait, eait, sbit, ebit;
       sait = std::find(anc->second.begin(), anc->second.end(), fadj_az);
       eait = std::find(anc->second.begin(), anc->second.end(), az);
