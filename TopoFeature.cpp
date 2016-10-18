@@ -750,13 +750,11 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
       int j;
       for (j = 0; j < 1000; j++) {
         get_next_point2_in_ring(ringi, pi);
-        if (_p2z[ringi][pi] != -9999)
+        if (_p2z[ringi][pi] != -9999) {
+          _p2z[ringi][i] = _p2z[ringi][pi];
           break;
         }
-      if (j == 1000)
-        _p2z[ringi][i] = -9999;
-      else
-      _p2z[ringi][i] = _p2z[ringi][pi];
+      }
     }
   }
   ringi++;
@@ -768,13 +766,11 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
         int j;
         for (j = 0; j < 1000; j++) {
           get_next_point2_in_ring(ringi, pi);
-          if (_p2z[ringi][pi] != -9999)
+          if (_p2z[ringi][pi] != -9999) {
+            _p2z[ringi][i] = _p2z[ringi][pi];
             break;
           }
-        if (j == 1000)
-          _p2z[ringi][i] = -9999;
-        else
-        _p2z[ringi][i] = _p2z[ringi][pi];
+        }
       }
     }
     ringi++;
