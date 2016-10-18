@@ -282,6 +282,21 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
   // p.GetX(), p.GetY(), p.GetZ(), p.GetReturnNumber(), p.GetClassification()
 
   Point2 p(laspt.GetX(), laspt.GetY());
+  LAS14Class lasclass = LAS_UNKNOWN;
+  //-- get LAS class
+  if (laspt.GetClassification() == liblas::Classification(LAS_UNCLASSIFIED))
+    lasclass = LAS_UNCLASSIFIED;
+  else if (laspt.GetClassification() == liblas::Classification(LAS_GROUND))
+    lasclass = LAS_GROUND;
+  else if (laspt.GetClassification() == liblas::Classification(LAS_BUILDING))
+    lasclass = LAS_BUILDING;
+  else if (laspt.GetClassification() == liblas::Classification(LAS_WATER))
+    lasclass = LAS_WATER;
+  else if (laspt.GetClassification() == liblas::Classification(LAS_BRIDGE))
+    lasclass = LAS_BRIDGE;
+  else
+    lasclass = LAS_UNKNOWN;
+
   std::vector<PairIndexed> re;
   float radius = _radius_vertex_elevation;
   if (_building_radius_vertex_elevation > _radius_vertex_elevation) {
@@ -291,7 +306,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
   Point2 maxp(laspt.GetX() + radius, laspt.GetY() + radius);
   Box2 querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
-  LAS14Class lasclass = LAS_UNKNOWN;
+
   for (auto& v : re) {
     TopoFeature* f = v.second;
     if (f->get_class() == BUILDING)
@@ -303,20 +318,6 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
     }
 
     if (bg::distance(p, *(f->get_Polygon2())) < radius) {
-      //-- get LAS class
-      if (laspt.GetClassification() == liblas::Classification(LAS_UNCLASSIFIED))
-        lasclass = LAS_UNCLASSIFIED;
-      else if (laspt.GetClassification() == liblas::Classification(LAS_GROUND))
-        lasclass = LAS_GROUND;
-      else if (laspt.GetClassification() == liblas::Classification(LAS_BUILDING))
-        lasclass = LAS_BUILDING;
-      else if (laspt.GetClassification() == liblas::Classification(LAS_WATER))
-        lasclass = LAS_WATER;
-      else if (laspt.GetClassification() == liblas::Classification(LAS_BRIDGE))
-        lasclass = LAS_BRIDGE;
-      else
-        lasclass = LAS_UNKNOWN;
-
       f->add_elevation_point(laspt.GetX(),
         laspt.GetY(),
         laspt.GetZ(),

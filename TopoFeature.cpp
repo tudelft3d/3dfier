@@ -437,6 +437,7 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       }
       if (fadj == nullptr)
         continue;
+
       //-- check height differences: f > fadj for *both* Points a and b
       int az = this->get_vertex_elevation(ringi, ai);
       int bz = this->get_vertex_elevation(ringi, bi);
@@ -453,9 +454,7 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       //std::clog << "fadj_az: " << fadj_az << std::endl;
       //std::clog << "fadj_bz: " << fadj_bz << std::endl;
 
-      // anc = nc[gen_key_bucket(&a)];
-      // bnc = nc[gen_key_bucket(&b)];
-	    //-- find the height of the vertex in the node column
+      //-- find the height of the vertex in the node column
       std::vector<int>::const_iterator sait, eait, sbit, ebit;
       sait = std::find(anc->second.begin(), anc->second.end(), fadj_az);
       eait = std::find(anc->second.begin(), anc->second.end(), az);
@@ -731,13 +730,13 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
       else {
         std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
         _p2z[ringi][i] = l[l.size() * percentile];
-      }    
+      }
     }
     ringi++;
   }
   //-- 2. some vertices will have no values (no lidar point within tolerance thus)
   //--    assign them z value of next vertex in the ring
-  //--    put -99 elevation if none
+  //--    put -9999 elevation if none
   ringi = 0;
   oring = bg::exterior_ring(*(_p2));
   int pi;
@@ -747,14 +746,12 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
       int j;
       for (j = 0; j < 1000; j++) {
         get_next_point2_in_ring(ringi, pi);
-        if (_p2z[ringi][pi] != -9999)
+        if (_p2z[ringi][pi] != -9999) {
+          _p2z[ringi][i] = _p2z[ringi][pi];
           break;
+        }
       }
-      if (j == 1000)
-        _p2z[ringi][i] = -9999;
-      else
-      _p2z[ringi][i] = _p2z[ringi][pi];
-    } 
+    }
   }
   ringi++;
   irings = bg::interior_rings(*(_p2));
@@ -765,18 +762,16 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
         int j;
         for (j = 0; j < 1000; j++) {
           get_next_point2_in_ring(ringi, pi);
-          if (_p2z[ringi][pi] != -9999)
+          if (_p2z[ringi][pi] != -9999) {
+            _p2z[ringi][i] = _p2z[ringi][pi];
             break;
+          }
         }
-        if (j == 1000)
-          _p2z[ringi][i] = -9999;
-        else
-        _p2z[ringi][i] = _p2z[ringi][pi];
-      }    
+      }
     }
     ringi++;
   }
-}  
+}
   
 //-------------------------------
 //-------------------------------
