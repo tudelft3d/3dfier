@@ -394,8 +394,8 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
     therings.push_back(iring);
 
   //-- process each vertex of the polygon separately
-  // std::vector<int> anc, bnc;
-  std::unordered_map<std::string, std::vector<int>>::const_iterator anc, bnc;
+  std::vector<int> anc, bnc;
+  std::unordered_map<std::string, std::vector<int>>::const_iterator ncit;
   Point2 a, b;
   TopoFeature* fadj;
   int ringi = -1;
@@ -417,10 +417,14 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
         bi = ai + 1;
       }
       //-- check if there's a nc for either
-      anc = nc.find(gen_key_bucket(&a));
-      bnc = nc.find(gen_key_bucket(&b));
+      ncit = nc.find(gen_key_bucket(&a));
+      if (ncit != nc.end())
+        anc = ncit->second;
+      ncit = nc.find(gen_key_bucket(&b));
+      if (ncit != nc.end())
+        bnc = ncit->second;
 
-      if ( (anc == nc.end()) && (bnc == nc.end()) )
+      if ( (anc.empty() == true) && (bnc.empty() == true) )
         continue;
 
       //-- find the adjacent polygon to segment ab (fadj)
@@ -456,14 +460,14 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
 
       //-- find the height of the vertex in the node column
       std::vector<int>::const_iterator sait, eait, sbit, ebit;
-      sait = std::find(anc->second.begin(), anc->second.end(), fadj_az);
-      eait = std::find(anc->second.begin(), anc->second.end(), az);
-      sbit = std::find(bnc->second.begin(), bnc->second.end(), fadj_bz);
-      ebit = std::find(bnc->second.begin(), bnc->second.end(), bz);
+      sait = std::find(anc.begin(), anc.end(), fadj_az);
+      eait = std::find(anc.begin(), anc.end(), az);
+      sbit = std::find(bnc.begin(), bnc.end(), fadj_bz);
+      ebit = std::find(bnc.begin(), bnc.end(), bz);
 
       //-- iterate to triangulate
-      while (sbit != ebit && sbit != bnc->second.end() && (sbit + 1) != bnc->second.end()) {
-        if (anc->second.size() == 0 || sait == anc->second.end())
+      while ( (sbit != ebit) && (sbit != bnc.end()) && ((sbit + 1) != bnc.end()) ) {
+        if (anc.size() == 0 || sait == anc.end())
           _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(az)));
         else
           _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait)));
@@ -477,8 +481,8 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
         t.v2 = size - 1;
         _triangles_vw.push_back(t);
       }
-      while (sait != eait && sait != anc->second.end() && (sait + 1) != anc->second.end()) {
-        if (bnc->second.size() == 0 || ebit == bnc->second.end())
+      while (sait != eait && sait != anc.end() && (sait + 1) != anc.end()) {
+        if (bnc.size() == 0 || ebit == bnc.end())
           _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(bz)));
         else
           _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*ebit)));
@@ -736,7 +740,7 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
   }
   //-- 2. some vertices will have no values (no lidar point within tolerance thus)
   //--    assign them z value of next vertex in the ring
-  //--    put -9999 elevation if none
+  //--    put -99 elevation if none
   ringi = 0;
   oring = bg::exterior_ring(*(_p2));
   int pi;
@@ -746,11 +750,13 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
       int j;
       for (j = 0; j < 1000; j++) {
         get_next_point2_in_ring(ringi, pi);
-        if (_p2z[ringi][pi] != -9999) {
-          _p2z[ringi][i] = _p2z[ringi][pi];
+        if (_p2z[ringi][pi] != -9999)
           break;
         }
-      }
+      if (j == 1000)
+        _p2z[ringi][i] = -9999;
+      else
+      _p2z[ringi][i] = _p2z[ringi][pi];
     }
   }
   ringi++;
@@ -762,11 +768,13 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
         int j;
         for (j = 0; j < 1000; j++) {
           get_next_point2_in_ring(ringi, pi);
-          if (_p2z[ringi][pi] != -9999) {
-            _p2z[ringi][i] = _p2z[ringi][pi];
+          if (_p2z[ringi][pi] != -9999)
             break;
           }
-        }
+        if (j == 1000)
+          _p2z[ringi][i] = -9999;
+        else
+        _p2z[ringi][i] = _p2z[ringi][pi];
       }
     }
     ringi++;
