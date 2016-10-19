@@ -68,6 +68,8 @@ std::string get_citygml_namespaces() {
   ss << "xmlns:dem=\"http://www.opengis.net/citygml/relief/2.0\"" << std::endl; 
   ss << "xmlns:tran=\"http://www.opengis.net/citygml/transportation/2.0\"" << std::endl;
   ss << "xmlns:luse=\"http://www.opengis.net/citygml/landuse/2.0\"" << std::endl;
+  ss << "xmlns:gen=\"http://www.opengis.net/citygml/generics/2.0\"" << std::endl;
+  ss << "xmlns:brg=\"http://www.opengis.net/citygml/bridge/2.0\"" << std::endl;
   ss << "xmlns:app=\"http://www.opengis.net/citygml/appearance/2.0\"" << std::endl;
   ss << "xsi:schemaLocation=\"http://www.opengis.net/citygml/2.0 ./CityGML_2.0/CityGML.xsd\">";
   return ss.str();

@@ -28,6 +28,7 @@
 
 
 #include "Bridge.h"
+#include "io.h"
 
 float Bridge::_heightref = 0.5;
 
@@ -70,7 +71,23 @@ std::string Bridge::get_mtl() {
 
 
 std::string Bridge::get_citygml() {
-  return "<EMPTY/>";
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<brg:Bridge gml:id=\"";
+  ss << this->get_id();
+  ss << "\">" << std::endl;
+  ss << "<brg:lod1MultiSurface>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles)
+    ss << get_triangle_as_gml_surfacemember(t);
+  for (auto& t : _triangles_vw)
+    ss << get_triangle_as_gml_surfacemember(t);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</brg:lod1MultiSurface>" << std::endl;
+  ss << "</brg:Bridge>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
 }
 
 

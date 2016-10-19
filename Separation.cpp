@@ -28,6 +28,7 @@
 
 
 #include "Separation.h"
+#include "io.h"
 
 float Separation::_heightref = 0.8;
 
@@ -68,9 +69,24 @@ std::string Separation::get_mtl() {
   return "usemtl Separation\n";
 }
 
-std::string Separation::get_citygml()
-{
-  return "<EMPTY/>";
+std::string Separation::get_citygml() {
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<gen:GenericCityObject gml:id=\"";
+  ss << this->get_id();
+  ss << "\">" << std::endl;
+  ss << "<gen:lod1Geometry>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles)
+    ss << get_triangle_as_gml_surfacemember(t);
+  for (auto& t : _triangles_vw)
+    ss << get_triangle_as_gml_surfacemember(t);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</gen:lod1Geometry>" << std::endl;
+  ss << "</gen:GenericCityObject>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
 }
 
 
