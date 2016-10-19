@@ -95,18 +95,10 @@ std::string Terrain::get_citygml() {
   ss << "<dem:tin>" << std::endl;
   ss << "<gml:TriangulatedSurface>" << std::endl;
   ss << "<gml:trianglePatches>" << std::endl;
-  for (auto& t : _triangles) {
-    ss << "<gml:Triangle>" << std::endl;
-    ss << "<gml:exterior>" << std::endl;
-    ss << "<gml:LinearRing>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v1]) << " " << bg::get<1>(_vertices[t.v1]) << " " << z_to_float(bg::get<1>(_vertices[t.v1])) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v2]) << " " << bg::get<1>(_vertices[t.v2]) << " " << z_to_float(bg::get<1>(_vertices[t.v2])) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
-    ss << "</gml:LinearRing>" << std::endl;
-    ss << "</gml:exterior>" << std::endl;
-    ss << "</gml:Triangle>" << std::endl;
-  }
+  for (auto& t : _triangles) 
+    ss << get_triangle_as_gml_triangle(t);
+  for (auto& t : _triangles_vw) 
+    ss << get_triangle_as_gml_triangle(t);
   ss << "</gml:trianglePatches>" << std::endl;
   ss << "</gml:TriangulatedSurface>" << std::endl;
   ss << "</dem:tin>" << std::endl;

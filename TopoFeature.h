@@ -76,7 +76,7 @@ public:
   // std::string  get_obj_f(std::unordered_map< std::string, std::vector<Point3>::size_type > &vertices_map, bool useverticalwalls);
   std::string  get_wkt();
   bool         get_shape_features(OGRLayer* layer, std::string className);
-  std::string  get_obj(std::unordered_map< std::string, unsigned long > &dPts);
+  std::string  get_obj(std::unordered_map< std::string, unsigned long > &dPts); 
 
 protected:
   Polygon2*                         _p2;
@@ -100,6 +100,9 @@ protected:
   bool    assign_elevation_to_vertex(double x, double y, double z, float radius);
   void    lift_each_boundary_vertices(float percentile);
   void    lift_all_boundary_vertices_same_height(int height);
+
+  std::string get_triangle_as_gml_surfacemember(Triangle& t);
+  std::string get_triangle_as_gml_triangle(Triangle& t);
 };
 
 

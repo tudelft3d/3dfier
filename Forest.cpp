@@ -27,8 +27,8 @@
 */
 
 
- 
 #include "Forest.h"
+#include "io.h"
 
 bool Forest::_use_ground_points_only = false;
 
@@ -78,8 +78,25 @@ bool Forest::is_hard() {
 
 
 std::string Forest::get_citygml() {
-  return "<EMPTY/>";
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<veg:PlantCover gml:id=\"";
+  ss << this->get_id();
+  ss << "\">" << std::endl;
+  ss << "<veg:lod1MultiSurface>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles)
+    ss << get_triangle_as_gml_surfacemember(t);
+  for (auto& t : _triangles_vw)
+    ss << get_triangle_as_gml_surfacemember(t);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</veg:lod1MultiSurface>" << std::endl;
+  ss << "</veg:PlantCover>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
 }
+
 
 std::string Forest::get_mtl() {
   return "usemtl Forest\n";

@@ -683,6 +683,39 @@ bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float
   return true;
 }
 
+std::string TopoFeature::get_triangle_as_gml_surfacemember(Triangle& t) {
+  std::stringstream ss;
+  ss << std::setprecision(3) << std::fixed;  
+  ss << "<gml:surfaceMember>" << std::endl;
+  ss << "<gml:Polygon>" << std::endl;
+  ss << "<gml:exterior>" << std::endl;
+  ss << "<gml:LinearRing>" << std::endl;
+  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
+  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v1]) << " " << bg::get<1>(_vertices[t.v1]) << " " << z_to_float(bg::get<1>(_vertices[t.v1])) << "</gml:pos>" << std::endl;
+  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v2]) << " " << bg::get<1>(_vertices[t.v2]) << " " << z_to_float(bg::get<1>(_vertices[t.v2])) << "</gml:pos>" << std::endl;
+  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
+  ss << "</gml:LinearRing>" << std::endl;
+  ss << "</gml:exterior>" << std::endl;
+  ss << "</gml:Polygon>" << std::endl;
+  ss << "</gml:surfaceMember>" << std::endl;
+  return ss.str();  
+}
+
+std::string TopoFeature::get_triangle_as_gml_triangle(Triangle& t) {
+  std::stringstream ss;
+  ss << std::setprecision(3) << std::fixed;  
+  ss << "<gml:Triangle>" << std::endl;
+  ss << "<gml:exterior>" << std::endl;
+  ss << "<gml:LinearRing>" << std::endl;
+  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
+  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v1]) << " " << bg::get<1>(_vertices[t.v1]) << " " << z_to_float(bg::get<1>(_vertices[t.v1])) << "</gml:pos>" << std::endl;
+  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v2]) << " " << bg::get<1>(_vertices[t.v2]) << " " << z_to_float(bg::get<1>(_vertices[t.v2])) << "</gml:pos>" << std::endl;
+  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
+  ss << "</gml:LinearRing>" << std::endl;
+  ss << "</gml:exterior>" << std::endl;
+  ss << "</gml:Triangle>" << std::endl;  
+  return ss.str();  
+}
 
 void TopoFeature::lift_all_boundary_vertices_same_height(int height) {
   int ringi = 0;
