@@ -98,7 +98,7 @@ std::string Terrain::get_citygml() {
   for (auto& t : _triangles) 
     ss << get_triangle_as_gml_triangle(t);
   for (auto& t : _triangles_vw) 
-    ss << get_triangle_as_gml_triangle(t);
+    ss << get_triangle_as_gml_triangle(t, true);
   ss << "</gml:trianglePatches>" << std::endl;
   ss << "</gml:TriangulatedSurface>" << std::endl;
   ss << "</dem:tin>" << std::endl;

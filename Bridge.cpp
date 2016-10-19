@@ -82,7 +82,7 @@ std::string Bridge::get_citygml() {
   for (auto& t : _triangles)
     ss << get_triangle_as_gml_surfacemember(t);
   for (auto& t : _triangles_vw)
-    ss << get_triangle_as_gml_surfacemember(t);
+    ss << get_triangle_as_gml_surfacemember(t, true);
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</brg:lod1MultiSurface>" << std::endl;
   ss << "</brg:Bridge>" << std::endl;
