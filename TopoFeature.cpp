@@ -508,8 +508,9 @@ bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& 
   int nextpi;
   if (this->has_point2_(a, ringis, pis) == true) {
     for (int k = 0; k < ringis.size(); k++) {
-      nextpi = pis[k];
-      tmp = this->get_next_point2_in_ring(ringis[k], nextpi);
+      // nextpi = pis[k];
+      int nextpi;
+      tmp = this->get_next_point2_in_ring(ringis[k], pis[k], nextpi);
       if (bg::distance(b, tmp) <= threshold) {
       //if (b.x() == tmp.x() && b.y() == tmp.y()) {
         aringi = ringis[k];
@@ -616,19 +617,19 @@ Point2 TopoFeature::get_point2(int ringi, int pi) {
   return ring[pi];
 }
 
-Point2 TopoFeature::get_next_point2_in_ring(int ringi, int& pi) {
+Point2 TopoFeature::get_next_point2_in_ring(int ringi, int i, int& pi) {
   Ring2 ring;
   if (ringi == 0) 
     ring = _p2->outer();
   else
     ring = _p2->inners()[ringi - 1];
   
-  if (pi == (ring.size() - 1)) {
+  if (i == (ring.size() - 1)) {
     pi = 0;
     return ring.front();
   }
   else {
-    pi += 1;
+    pi = i + 1;
     return ring[pi];
   }
 }
@@ -683,17 +684,25 @@ bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float
   return true;
 }
 
-std::string TopoFeature::get_triangle_as_gml_surfacemember(Triangle& t) {
+std::string TopoFeature::get_triangle_as_gml_surfacemember(Triangle& t, bool verticalwall) {
   std::stringstream ss;
   ss << std::setprecision(3) << std::fixed;  
   ss << "<gml:surfaceMember>" << std::endl;
   ss << "<gml:Polygon>" << std::endl;
   ss << "<gml:exterior>" << std::endl;
   ss << "<gml:LinearRing>" << std::endl;
-  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
-  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v1]) << " " << bg::get<1>(_vertices[t.v1]) << " " << z_to_float(bg::get<1>(_vertices[t.v1])) << "</gml:pos>" << std::endl;
-  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v2]) << " " << bg::get<1>(_vertices[t.v2]) << " " << z_to_float(bg::get<1>(_vertices[t.v2])) << "</gml:pos>" << std::endl;
-  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
+  if (verticalwall == false) {
+    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v1]) << " " << bg::get<1>(_vertices[t.v1]) << " " << z_to_float(bg::get<1>(_vertices[t.v1])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v2]) << " " << bg::get<1>(_vertices[t.v2]) << " " << z_to_float(bg::get<1>(_vertices[t.v2])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
+  }
+  else {
+    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v0]) << " " << bg::get<1>(_vertices_vw[t.v0]) << " " << z_to_float(bg::get<1>(_vertices_vw[t.v0])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v1]) << " " << bg::get<1>(_vertices_vw[t.v1]) << " " << z_to_float(bg::get<1>(_vertices_vw[t.v1])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v2]) << " " << bg::get<1>(_vertices_vw[t.v2]) << " " << z_to_float(bg::get<1>(_vertices_vw[t.v2])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v0]) << " " << bg::get<1>(_vertices_vw[t.v0]) << " " << z_to_float(bg::get<1>(_vertices_vw[t.v0])) << "</gml:pos>" << std::endl;
+  }
   ss << "</gml:LinearRing>" << std::endl;
   ss << "</gml:exterior>" << std::endl;
   ss << "</gml:Polygon>" << std::endl;
@@ -701,16 +710,24 @@ std::string TopoFeature::get_triangle_as_gml_surfacemember(Triangle& t) {
   return ss.str();  
 }
 
-std::string TopoFeature::get_triangle_as_gml_triangle(Triangle& t) {
+std::string TopoFeature::get_triangle_as_gml_triangle(Triangle& t, bool verticalwall) {
   std::stringstream ss;
   ss << std::setprecision(3) << std::fixed;  
   ss << "<gml:Triangle>" << std::endl;
   ss << "<gml:exterior>" << std::endl;
   ss << "<gml:LinearRing>" << std::endl;
-  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
-  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v1]) << " " << bg::get<1>(_vertices[t.v1]) << " " << z_to_float(bg::get<1>(_vertices[t.v1])) << "</gml:pos>" << std::endl;
-  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v2]) << " " << bg::get<1>(_vertices[t.v2]) << " " << z_to_float(bg::get<1>(_vertices[t.v2])) << "</gml:pos>" << std::endl;
-  ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
+  if (verticalwall == false) {
+    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v1]) << " " << bg::get<1>(_vertices[t.v1]) << " " << z_to_float(bg::get<1>(_vertices[t.v1])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v2]) << " " << bg::get<1>(_vertices[t.v2]) << " " << z_to_float(bg::get<1>(_vertices[t.v2])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
+  }
+  else {
+    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v0]) << " " << bg::get<1>(_vertices_vw[t.v0]) << " " << z_to_float(bg::get<1>(_vertices_vw[t.v0])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v1]) << " " << bg::get<1>(_vertices_vw[t.v1]) << " " << z_to_float(bg::get<1>(_vertices_vw[t.v1])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v2]) << " " << bg::get<1>(_vertices_vw[t.v2]) << " " << z_to_float(bg::get<1>(_vertices_vw[t.v2])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v0]) << " " << bg::get<1>(_vertices_vw[t.v0]) << " " << z_to_float(bg::get<1>(_vertices_vw[t.v0])) << "</gml:pos>" << std::endl;
+  }
   ss << "</gml:LinearRing>" << std::endl;
   ss << "</gml:exterior>" << std::endl;
   ss << "</gml:Triangle>" << std::endl;  
@@ -771,44 +788,39 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
     }
     ringi++;
   }
-  //-- 2. some vertices will have no values (no lidar point within tolerance thus)
-  //--    assign them z value of next vertex in the ring
-  //--    put -99 elevation if none
+  //-- 2. find average height of the polygon
+  double totalheight = 0.0;
+  int noheight = 0;
+  oring = bg::exterior_ring(*(_p2));
+  for (int i = 0; i < oring.size(); i++) {
+    if (_p2z[0][i] != -9999) {
+      totalheight += double(_p2z[0][i]);
+      noheight += 1;
+    }
+  }
+  int avgheight;
+  if (noheight > 0)
+    avgheight = int(totalheight / double(noheight));
+  else
+    avgheight = 0;
+  // std::clog << "avg height: " << avgheight << std::endl;
+  // std::clog << "no height " << noheight << std::endl;
+    
+  //-- 3. some vertices will have no values (no lidar point within tolerance thus)
+  //--    assign them the avg
   ringi = 0;
   oring = bg::exterior_ring(*(_p2));
   int pi;
   for (int i = 0; i < oring.size(); i++) {
-    if (_p2z[ringi][i] == -9999) {
-      pi = i;
-      int j;
-      for (j = 0; j < 1000; j++) {
-        get_next_point2_in_ring(ringi, pi);
-        if (_p2z[ringi][pi] != -9999)
-          break;
-        }
-      if (j == 1000)
-        _p2z[ringi][i] = -9999;
-      else
-      _p2z[ringi][i] = _p2z[ringi][pi];
-    }
+    if (_p2z[ringi][i] == -9999) 
+        _p2z[ringi][i] = avgheight;
   }
   ringi++;
   irings = bg::interior_rings(*(_p2));
   for (Ring2& iring: irings) {
     for (int i = 0; i < iring.size(); i++) {
-      if (_p2z[ringi][i] == -9999) {
-        pi = i;
-        int j;
-        for (j = 0; j < 1000; j++) {
-          get_next_point2_in_ring(ringi, pi);
-          if (_p2z[ringi][pi] != -9999)
-            break;
-          }
-        if (j == 1000)
-          _p2z[ringi][i] = -9999;
-        else
-        _p2z[ringi][i] = _p2z[ringi][pi];
-      }
+      if (_p2z[ringi][i] == -9999) 
+          _p2z[ringi][i] = avgheight;
     }
     ringi++;
   }
@@ -829,7 +841,7 @@ int Flat::get_number_vertices() {
 }
 
 bool Flat::lift_percentile(float percentile) {
-  int z = -99;
+  int z = 0;
   if (_zvaluesinside.empty() == false) {
     std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
     z = _zvaluesinside[_zvaluesinside.size() * percentile];

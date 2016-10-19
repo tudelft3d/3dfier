@@ -96,13 +96,13 @@ protected:
   std::vector<Point3>   _vertices_vw;  //-- for vertical walls
   std::vector<Triangle> _triangles_vw; //-- for vertical walls
 
-  Point2  get_next_point2_in_ring(int ringi, int& pi);
+  Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(double x, double y, double z, float radius);
   void    lift_each_boundary_vertices(float percentile);
   void    lift_all_boundary_vertices_same_height(int height);
 
-  std::string get_triangle_as_gml_surfacemember(Triangle& t);
-  std::string get_triangle_as_gml_triangle(Triangle& t);
+  std::string get_triangle_as_gml_surfacemember(Triangle& t, bool verticalwall = false);
+  std::string get_triangle_as_gml_triangle(Triangle& t, bool verticalwall = false);
 };
 
 
