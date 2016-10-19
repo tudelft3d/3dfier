@@ -136,6 +136,7 @@ std::string Map3d::get_citygml() {
   ss << std::setprecision(3) << std::fixed;
   ss << get_xml_header() << std::endl;
   ss << get_citygml_namespaces() << std::endl;
+  ss << "<gml:name>my 3dfied map</gml:name>" << std::endl;
   ss << "<gml:boundedBy>" << std::endl;
   ss << "<gml:Envelope srsDimension=\"3\" srsName=\"urn:ogc:def:crs:EPSG::7415\">" << std::endl;
   ss << "<gml:lowerCorner>";
@@ -146,7 +147,6 @@ std::string Map3d::get_citygml() {
   ss << "</gml:upperCorner>" << std::endl;
   ss << "</gml:Envelope>" << std::endl;
   ss << "</gml:boundedBy>" << std::endl;
-  ss << "<gml:name>my 3dfied map</gml:name>" << std::endl;
   for (auto& p3 : _lsFeatures) {
     ss << p3->get_citygml();
   }
