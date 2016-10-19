@@ -108,7 +108,6 @@ std::string Building::get_mtl() {
 std::string Building::get_citygml() {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
-
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
   ss << "<bldg:Building gml:id=\"";

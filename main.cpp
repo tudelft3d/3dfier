@@ -221,6 +221,7 @@ int main(int argc, const char * argv[]) {
   map3d.add_polygons_files(files);
   std::clog << "\nTotal # of polygons: " << boost::locale::as::number << map3d.get_num_polygons() << std::endl;
   Box2 b = map3d.get_bbox();
+  std::clog << std::setprecision(3) << std::fixed;
   std::clog << "Spatial extent: (" 
     << bg::get<bg::min_corner, 0>(b) << ", "
     << bg::get<bg::min_corner, 1>(b) << ") ("
