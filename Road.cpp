@@ -28,6 +28,7 @@
 
  
 #include "Road.h"
+#include "io.h"
 
 float Road::_heightref = 0.5;
 
@@ -67,7 +68,33 @@ std::string Road::get_mtl() {
 }
 
 std::string Road::get_citygml() {
-  return "<EMPTY/>";
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<tran:Road gml:id=\"";
+  ss << this->get_id();
+  ss << "\">" << std::endl;
+  ss << "<tran:lod1MultiSurface>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles) {
+    ss << "<gml:surfaceMember>" << std::endl;
+    ss << "<gml:Polygon>" << std::endl;
+    ss << "<gml:exterior>" << std::endl;
+    ss << "<gml:LinearRing>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v1]) << " " << bg::get<1>(_vertices[t.v1]) << " " << z_to_float(bg::get<1>(_vertices[t.v1])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v2]) << " " << bg::get<1>(_vertices[t.v2]) << " " << z_to_float(bg::get<1>(_vertices[t.v2])) << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << z_to_float(bg::get<1>(_vertices[t.v0])) << "</gml:pos>" << std::endl;
+    ss << "</gml:LinearRing>" << std::endl;
+    ss << "</gml:exterior>" << std::endl;
+    ss << "</gml:Polygon>" << std::endl;
+    ss << "</gml:surfaceMember>" << std::endl;
+  }
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</tran:lod1MultiSurface>" << std::endl;
+  ss << "</tran:Road>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
 }
 
 
