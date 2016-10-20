@@ -29,6 +29,7 @@ input_polygons:
     height_field: relatievehoogteligging
   - datasets: 
       - bgt/bgt_scheiding.sqlite
+      - bgt/bgt_kunstwerkdeel.sqlite
     uniqueid: gml_id
     lifting: Separation
     height_field: relatievehoogteligging
@@ -71,5 +72,6 @@ options:
 
 output: 
   format: OBJ
+  # format: CityGML
   building_floor: false
   vertical_exaggeration: 0
