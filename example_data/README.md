@@ -3,6 +3,10 @@
 
 `$ ./3dfier testarea_config.yml > out/myoutput.obj`
 
+if you want CityGML output, change line 74 in `testarea_config.yml` to `format: CityGML` and run:
+
+`$ ./3dfier testarea_config.yml > out/myoutput.gml`
+
 
 ## 2D input data: the BGT
 
@@ -14,7 +18,7 @@ The 2 files in the folder `ahn3` are part of the [AHN3](https://www.pdok.nl/nl/a
 
 ## Example output 
 
-What you should get when you run 3dfier is in `output/testarea.obj`.
+What you should get when you run 3dfier is in `output/testarea.obj` and `output/testarea.gml`.
 If you use [MeshLab](http://meshlab.sourceforge.net) to view the file, the colours for each class can be activated in the menu `Render/Color/Per Face`. It looks like that:
 
 ![](output/testarea.png)
