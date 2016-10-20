@@ -352,9 +352,6 @@ bool Map3d::threeDfy(bool stitching) {
     this->stitch_lifted_features();
     std::clog << "=====  STITCHING/ =====" << std::endl;
 
-    // std::clog << "SIZE FEATURES: " << _lsFeatures.size() << std::endl;
-    // std::clog << "SIZE NC: " << _nc.size() << std::endl;
-
     //-- Sort all node column vectors
     for (auto& nc : _nc) {
       std::sort(nc.second.begin(), nc.second.end());
@@ -370,16 +367,11 @@ bool Map3d::threeDfy(bool stitching) {
     std::clog << "=====  BOWTIES/ =====" << std::endl;
 
     std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
-    int i = 1;
     for (auto& f : _lsFeatures) {
       if (f->has_vertical_walls() == true) {
         f->construct_vertical_walls(_nc);
       }
-      if (i % 1000 == 0)
-        printProgressBar(100 * (i / double(_lsFeatures.size())));
-      i++;
     }
-    printProgressBar(100);
     std::clog << std::endl << "=====  VERTICAL WALLS/ =====" << std::endl;
   }
   return true;
