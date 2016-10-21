@@ -157,6 +157,19 @@ std::string Building::get_citygml() {
   ss << "<bldg:measuredHeight uom=\"#m\">";
   ss << h;
   ss << "</bldg:measuredHeight>" << std::endl;
+//-- LOD0 footprint
+  ss << "<bldg:lod0FootPrint>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << get_polygon_lifted_gml(this->_p2, hbase, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</bldg:lod0FootPrint>" << std::endl;
+//-- LOD0 roofedge
+  ss << "<bldg:lod0RoofEdge>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << get_polygon_lifted_gml(this->_p2, h, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</bldg:lod0RoofEdge>" << std::endl;
+//-- LOD1 Solid
   ss << "<bldg:lod1Solid>" << std::endl;
   ss << "<gml:Solid>" << std::endl;
   ss << "<gml:exterior>" << std::endl;
@@ -186,6 +199,7 @@ std::string Building::get_citygml() {
   ss << "</cityObjectMember>" << std::endl;
   return ss.str(); 
 }
+
 
 bool Building::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Building");

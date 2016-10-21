@@ -72,7 +72,7 @@ options:
   threshold_jump_edges: 0.5
 
 output: 
-  format: OBJ
-  # format: CityGML
+  # format: OBJ
+  format: CityGML
   building_floor: false
   vertical_exaggeration: 0

@@ -152,8 +152,8 @@ std::string Map3d::get_citygml() {
   ss << "</gml:upperCorner>" << std::endl;
   ss << "</gml:Envelope>" << std::endl;
   ss << "</gml:boundedBy>" << std::endl;
-  for (auto& p3 : _lsFeatures) {
-    ss << p3->get_citygml();
+  for (auto& f : _lsFeatures) {
+    ss << f->get_citygml();
   }
   ss << "</CityModel>" << std::endl;
   return ss.str();
