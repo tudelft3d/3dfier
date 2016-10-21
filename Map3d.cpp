@@ -174,6 +174,10 @@ std::string Map3d::get_obj_per_feature(int z_exaggeration) {
   for (auto& p : _lsFeatures) {
     ssf << "o " << p->get_id() << std::endl;
     ssf << p->get_mtl();
+    if (p->get_class() == BUILDING) {
+      Building* b = dynamic_cast<Building*>(p);
+      ssf << b->get_obj(dPts, 1);
+    }
     ssf << p->get_obj(dPts);
   }
   //-- sort the points in the map: simpler to copy to a vector

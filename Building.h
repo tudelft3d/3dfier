@@ -36,18 +36,16 @@ class Building : public Flat
 {
 public:
   Building (char *wkt, std::string pid, float heightref_top, float heightref_base);
-  bool        lift();
-  bool        add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
-  std::string get_citygml();
-  std::string get_csv();
-  std::string get_mtl();
-//  std::string get_obj_f_floor(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map);
-//  std::string get_obj_v_building_volume(std::vector<Point3>::size_type &idx, std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, int z_exaggeration);
-//  std::string get_obj_f_building_volume(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, bool usemtl);
-  bool        get_shape(OGRLayer * layer);
-  TopoClass   get_class();
-  bool        is_hard();
-  int         get_height_base();
+  bool         lift();
+  bool         add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  std::string  get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod);
+  std::string  get_citygml();
+  std::string  get_csv();
+  std::string  get_mtl();
+  bool         get_shape(OGRLayer * layer);
+  TopoClass    get_class();
+  bool         is_hard();
+  int          get_height_base();
 private: 
   std::vector<int>    _zvaluesground;
   static float        _heightref_top;
