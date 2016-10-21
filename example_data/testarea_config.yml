@@ -44,6 +44,7 @@ lifting_options:
   Building:
     height_roof: percentile-90
     height_floor: percentile-10
+    lod: 0
   Terrain:
     simplification: 10
   Forest:

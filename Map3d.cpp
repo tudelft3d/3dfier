@@ -35,6 +35,7 @@
 Map3d::Map3d() {
   OGRRegisterAll();
   _building_include_floor = false;
+  _building_lod = 1;
   _use_vertical_walls = false;
   _building_heightref_roof = 0.9;
   _building_heightref_floor = 0.1;
@@ -88,6 +89,10 @@ void Map3d::set_building_include_floor(bool include) {
 
 void Map3d::set_building_triangulate(bool triangulate) {
   _building_triangulate = triangulate;
+}
+
+void Map3d::set_building_lod(int lod) {
+  _building_lod = lod;
 }
 
 void Map3d::set_terrain_simplification(int simplification) {
@@ -147,8 +152,8 @@ std::string Map3d::get_citygml() {
   ss << "</gml:upperCorner>" << std::endl;
   ss << "</gml:Envelope>" << std::endl;
   ss << "</gml:boundedBy>" << std::endl;
-  for (auto& p3 : _lsFeatures) {
-    ss << p3->get_citygml();
+  for (auto& f : _lsFeatures) {
+    ss << f->get_citygml();
   }
   ss << "</CityModel>" << std::endl;
   return ss.str();
@@ -174,7 +179,13 @@ std::string Map3d::get_obj_per_feature(int z_exaggeration) {
   for (auto& p : _lsFeatures) {
     ssf << "o " << p->get_id() << std::endl;
     ssf << p->get_mtl();
-    ssf << p->get_obj(dPts);
+    if (p->get_class() == BUILDING) {
+      Building* b = dynamic_cast<Building*>(p);
+      ssf << b->get_obj(dPts, _building_lod);
+    }
+    else {
+      ssf << p->get_obj(dPts);
+    }
   }
   //-- sort the points in the map: simpler to copy to a vector
   std::vector<std::string> thepts;
@@ -372,7 +383,7 @@ bool Map3d::threeDfy(bool stitching) {
         f->construct_vertical_walls(_nc);
       }
     }
-    std::clog << std::endl << "=====  VERTICAL WALLS/ =====" << std::endl;
+    std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
   }
   return true;
 }

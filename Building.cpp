@@ -104,6 +104,47 @@ std::string Building::get_mtl() {
 }
 
 
+std::string Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod) {
+  std::stringstream ss;
+  if (lod == 1) {
+    ss << TopoFeature::get_obj(dPts);
+  }
+  else if (lod == 0) {
+    for (auto& t : _triangles) {
+      unsigned long a, b, c;
+      int z = this->get_height_base();
+      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0], z));
+      if (it == dPts.end()) {
+        dPts[gen_key_bucket(&_vertices[t.v0], z)] = (dPts.size() + 1); 
+        a = dPts.size();
+      }
+      else {
+        a = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v1], z));
+      if (it == dPts.end()) {
+        dPts[gen_key_bucket(&_vertices[t.v1], z)] = (dPts.size() + 1); 
+        b = dPts.size();
+      }
+      else {
+        b = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v2], z));
+      if (it == dPts.end()) {
+        dPts[gen_key_bucket(&_vertices[t.v2], z)] = (dPts.size() + 1); 
+        c = dPts.size();
+      }
+      else {
+        c = it->second;
+      }
+      if ( (a != b) && (a != c) && (b != c) ) 
+        ss << "f " << a << " " << b << " " << c << std::endl;
+      // else
+      //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
+    }
+  }
+  return ss.str();
+}
 
 std::string Building::get_citygml() {
   float h = z_to_float(this->get_height());
@@ -116,6 +157,19 @@ std::string Building::get_citygml() {
   ss << "<bldg:measuredHeight uom=\"#m\">";
   ss << h;
   ss << "</bldg:measuredHeight>" << std::endl;
+//-- LOD0 footprint
+  ss << "<bldg:lod0FootPrint>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << get_polygon_lifted_gml(this->_p2, hbase, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</bldg:lod0FootPrint>" << std::endl;
+//-- LOD0 roofedge
+  ss << "<bldg:lod0RoofEdge>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << get_polygon_lifted_gml(this->_p2, h, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</bldg:lod0RoofEdge>" << std::endl;
+//-- LOD1 Solid
   ss << "<bldg:lod1Solid>" << std::endl;
   ss << "<gml:Solid>" << std::endl;
   ss << "<gml:exterior>" << std::endl;
@@ -145,6 +199,7 @@ std::string Building::get_citygml() {
   ss << "</cityObjectMember>" << std::endl;
   return ss.str(); 
 }
+
 
 bool Building::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Building");
