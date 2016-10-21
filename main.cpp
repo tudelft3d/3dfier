@@ -90,7 +90,7 @@ int main(int argc, const char * argv[]) {
   }
 
   std::clog << licensewarning << std::endl;
-  std::clog << "Reading and validating config file: " << argv[1] << std::endl;
+  std::clog << "Reading config file: " << argv[1] << std::endl;
 
 //-- allowed feature classes
   std::set<std::string> allowedFeatures;
@@ -107,6 +107,7 @@ int main(int argc, const char * argv[]) {
    std::cerr << "ERROR: config file (*.yml) is not valid. Aborting." << std::endl;
    return 0;
  }
+  std::clog << "Config file is valid." << std::endl;
   
   Map3d map3d;
   YAML::Node nodes = YAML::LoadFile(argv[1]);
@@ -121,6 +122,9 @@ int main(int argc, const char * argv[]) {
       std::string height = n["Building"]["height_floor"].as<std::string>();
       map3d.set_building_heightref_floor(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
+    if (n["Building"]["lod"]){
+      map3d.set_building_lod(n["Building"]["lod"].as<int>());
+    }    
     if (n["Building"]["triangulate"]) {
       if (n["Building"]["triangulate"].as<std::string>() == "true") 
         map3d.set_building_triangulate(true);
@@ -384,6 +388,12 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
         std::cerr << "\tOption 'Building.height_ground' invalid; must be 'percentile-XX'." << std::endl;
       }
     }
+    if (n["Building"]["lod"]) {
+     if (is_string_integer(n["Building"]["lod"].as<std::string>(), 0, 1) == false) {
+        wentgood = false;
+        std::cerr << "\tOption 'Building.lod' invalid; must be an integer between 0 and 1." << std::endl;
+      }
+    }    
     if (n["Building"]["triangulate"]) {
       std::string s = n["Building"]["triangulate"].as<std::string>();
       if ( (s != "true") && (s != "false") ) {

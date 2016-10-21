@@ -74,6 +74,7 @@ public:
   void set_building_heightref_floor(float heightref);
   void set_building_include_floor(bool include);
   void set_building_triangulate(bool triangulate);
+  void set_building_lod(int lod);
   void set_terrain_simplification(int simplification);
   void set_forest_simplification(int simplification);
   void set_terrain_innerbuffer(float innerbuffer);
@@ -91,6 +92,7 @@ private:
   float       _building_heightref_roof;
   float       _building_heightref_floor;
   bool        _building_triangulate;
+  int         _building_lod;
   bool        _building_include_floor;
   bool        _use_vertical_walls;
   int         _terrain_simplification;

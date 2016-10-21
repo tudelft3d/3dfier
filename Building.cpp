@@ -112,27 +112,31 @@ std::string Building::get_obj(std::unordered_map< std::string, unsigned long > &
   else if (lod == 0) {
     for (auto& t : _triangles) {
       unsigned long a, b, c;
-      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0]));
+      int z = this->get_height_base();
+      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0], z));
       if (it == dPts.end()) {
-        dPts[gen_key_bucket(&_vertices[t.v0])] = (dPts.size() + 1); 
+        dPts[gen_key_bucket(&_vertices[t.v0], z)] = (dPts.size() + 1); 
         a = dPts.size();
       }
-      else 
+      else {
         a = it->second;
-      it = dPts.find(gen_key_bucket(&_vertices[t.v1]));
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v1], z));
       if (it == dPts.end()) {
-        dPts[gen_key_bucket(&_vertices[t.v1])] = (dPts.size() + 1);
+        dPts[gen_key_bucket(&_vertices[t.v1], z)] = (dPts.size() + 1); 
         b = dPts.size();
       }
-      else 
+      else {
         b = it->second;
-      it = dPts.find(gen_key_bucket(&_vertices[t.v2]));
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v2], z));
       if (it == dPts.end()) {
-        dPts[gen_key_bucket(&_vertices[t.v2])] = (dPts.size() + 1);
+        dPts[gen_key_bucket(&_vertices[t.v2], z)] = (dPts.size() + 1); 
         c = dPts.size();
       }
-      else 
+      else {
         c = it->second;
+      }
       if ( (a != b) && (a != c) && (b != c) ) 
         ss << "f " << a << " " << b << " " << c << std::endl;
       // else

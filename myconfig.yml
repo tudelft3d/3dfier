@@ -22,7 +22,6 @@ lifting_options:
   Building:
     height_roof: percentile-95
     height_floor: percentile-10
-    lod: 1
     triangulate: true
   Water:
     height: percentile-10
