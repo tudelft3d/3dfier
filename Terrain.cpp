@@ -80,34 +80,24 @@ bool Terrain::is_hard() {
   return false;
 }
 
-
 std::string Terrain::get_citygml() {
   std::stringstream ss;
-  ss << std::setprecision(3) << std::fixed;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<dem:ReliefFeature gml:id=\"";
+  ss << "<luse:LandUse gml:id=\"";
   ss << this->get_id();
   ss << "\">" << std::endl;
-  ss << "<dem:lod>1</dem:lod>" << std::endl;
-  ss << "<dem:reliefComponent>" << std::endl;
-  ss << "<dem:TINRelief>" << std::endl;
-  ss << "<dem:lod>1</dem:lod>" << std::endl;
-  ss << "<dem:tin>" << std::endl;
-  ss << "<gml:TriangulatedSurface>" << std::endl;
-  ss << "<gml:trianglePatches>" << std::endl;
-  for (auto& t : _triangles) 
-    ss << get_triangle_as_gml_triangle(t);
-  for (auto& t : _triangles_vw) 
-    ss << get_triangle_as_gml_triangle(t, true);
-  ss << "</gml:trianglePatches>" << std::endl;
-  ss << "</gml:TriangulatedSurface>" << std::endl;
-  ss << "</dem:tin>" << std::endl;
-  ss << "</dem:TINRelief>" << std::endl;
-  ss << "</dem:reliefComponent>" << std::endl;
-  ss << "</dem:ReliefFeature>" << std::endl;
+  ss << "<luse:lod1MultiSurface>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles)
+    ss << get_triangle_as_gml_surfacemember(t);
+  for (auto& t : _triangles_vw)
+    ss << get_triangle_as_gml_surfacemember(t, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</luse:lod1MultiSurface>" << std::endl;
+  ss << "</luse:LandUse>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
-
 }
 
 
