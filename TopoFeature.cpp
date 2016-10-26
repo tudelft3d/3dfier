@@ -799,30 +799,29 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
     }
   }
   int avgheight;
-  if (noheight > 0)
+  if (noheight > 0) {
     avgheight = int(totalheight / double(noheight));
-  else
-    avgheight = 0;
-  // std::clog << "avg height: " << avgheight << std::endl;
-  // std::clog << "no height " << noheight << std::endl;
-    
-  //-- 3. some vertices will have no values (no lidar point within tolerance thus)
-  //--    assign them the avg
-  ringi = 0;
-  oring = bg::exterior_ring(*(_p2));
-  int pi;
-  for (int i = 0; i < oring.size(); i++) {
-    if (_p2z[ringi][i] == -9999) 
+    // std::clog << "avg height: " << avgheight << std::endl;
+    // std::clog << "no height " << noheight << std::endl;
+
+    //-- 3. some vertices will have no values (no lidar point within tolerance thus)
+    //--    assign them the avg
+    ringi = 0;
+    oring = bg::exterior_ring(*(_p2));
+    int pi;
+    for (int i = 0; i < oring.size(); i++) {
+      if (_p2z[ringi][i] == -9999)
         _p2z[ringi][i] = avgheight;
-  }
-  ringi++;
-  irings = bg::interior_rings(*(_p2));
-  for (Ring2& iring: irings) {
-    for (int i = 0; i < iring.size(); i++) {
-      if (_p2z[ringi][i] == -9999) 
-          _p2z[ringi][i] = avgheight;
     }
     ringi++;
+    irings = bg::interior_rings(*(_p2));
+    for (Ring2& iring : irings) {
+      for (int i = 0; i < iring.size(); i++) {
+        if (_p2z[ringi][i] == -9999)
+          _p2z[ringi][i] = avgheight;
+      }
+      ringi++;
+    }
   }
 }
   
