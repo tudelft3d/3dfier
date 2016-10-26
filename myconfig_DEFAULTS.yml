@@ -17,6 +17,7 @@ lifting_options:
   Forest:                       # Forest is percentile-50
     simplification: 0
     inner_buffer: 0.0
+    ground_points_only: false
 
 input_elevation:
   - datasets:

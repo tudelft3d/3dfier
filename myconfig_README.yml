@@ -37,6 +37,7 @@ lifting_options:                                        # Group for class liftin
   Forest:                                               # Class definition for Forest
     simplification: 10                                  # Simplification factor for points added within forest polygons, points are added random
     inner_buffer: 1.0                                   # Inner buffer in meters where no additional points will be added within the forest polygon
+    ground_points_only: true                            # Use only lidar points classified as ground points for lifting the forest polygons if set to true, use all but points classified as building if set to false
 
 input_elevation:                                        # Group for point clouds
   - datasets:                                           # List of data set with specific settings
