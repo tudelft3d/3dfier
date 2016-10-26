@@ -59,7 +59,7 @@ bool Terrain::add_elevation_point(double x, double y, double z, float radius, LA
     }
     Point2 p(x, y);
     // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
-    if (toadd && bg::within(p, *(_p2)) && (_innerbuffer > 0.0 && this->get_distance_to_boundaries(p) > _innerbuffer)) {
+    if (toadd && bg::within(p, *(_p2)) && (_innerbuffer == 0.0 || this->get_distance_to_boundaries(p) > _innerbuffer)) {
       _lidarpts.push_back(Point3(x, y, z));
     }
   }
