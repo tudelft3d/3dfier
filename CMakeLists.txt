@@ -15,6 +15,8 @@ if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" VERSION_GREATER 2.6)
 endif()
 
 set( CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true )
+
+set(CMAKE_CXX_FLAGS "-O3")
  
 if ( COMMAND cmake_policy )
   cmake_policy( SET CMP0003 NEW )  
