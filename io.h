@@ -42,9 +42,7 @@ std::string get_polygon_lifted_gml(Polygon2* p2, double height, bool reverse = f
 std::string get_extruded_line_gml(Point2* a, Point2* b, double high, double low, bool reverse = false);
 std::string get_extruded_lod1_block_gml(Polygon2* p2, double high, double low = 0.0);  
 
-bool is_string_integer(std::string s, int min = 0, int max = 1e6);
-
-std::string gen_key_bucket(Point2* p);
-std::string gen_key_bucket(Point3* p);
+bool  is_string_integer(std::string s, int min = 0, int max = 1e6);
+float z_to_float(int z);
 
 #endif

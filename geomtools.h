@@ -33,11 +33,15 @@
 #include "definitions.h"
 #include <random>
 
-bool triangle_contains_segment(Triangle t, std::string a, std::string b);
+std::string gen_key_bucket(Point2* p);
+std::string gen_key_bucket(Point3* p);
+std::string gen_key_bucket(Point3* p, int z);
+
+void get_point_inside(Ring2& ring, Point2& p);
+bool triangle_contains_segment(Triangle t, int a, int b);
 bool getCDT(const Polygon2* pgn,
             const std::vector< std::vector<int> > &z, 
-            std::vector<Point3> &vertices,
-            std::unordered_map< std::string, std::vector<Point3>::size_type > &vertices_map,
+            std::vector<Point3> &vertices, 
             std::vector<Triangle> &triangles, 
             const std::vector<Point3> &lidarpts = std::vector<Point3>());
 

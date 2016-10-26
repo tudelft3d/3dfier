@@ -26,13 +26,12 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-
-#include "geomtools.h"
 #include "io.h"
+#include "geomtools.h"
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>
 #include <CGAL/Projection_traits_xy_3.h>
-#include <CGAL/Triangulation_vertex_base_2.h>
+#include <CGAL/Triangulation_vertex_base_with_id_2.h>
 #include <CGAL/Triangulation_face_base_with_info_2.h>
 #include <CGAL/Polygon_2.h>
 #include <iostream>
@@ -48,7 +47,7 @@ struct FaceInfo2
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel			K;
 typedef CGAL::Projection_traits_xy_3<K>								Gt;
-typedef CGAL::Triangulation_vertex_base_2<Gt>				Vb;
+typedef CGAL::Triangulation_vertex_base_with_id_2<Gt>				Vb;
 typedef CGAL::Triangulation_face_base_with_info_2<FaceInfo2, Gt>	Fbb;
 typedef CGAL::Constrained_triangulation_face_base_2<Gt, Fbb>		Fb;
 typedef CGAL::Triangulation_data_structure_2<Vb, Fb>				Tds;
@@ -57,7 +56,7 @@ typedef CGAL::Constrained_Delaunay_triangulation_2<Gt, Tds, Itag>	CDT;
 typedef CDT::Point													Point;
 typedef CGAL::Polygon_2<Gt>											Polygon_2;
 
-bool triangle_contains_segment(Triangle t, std::string a, std::string b) {
+bool triangle_contains_segment(Triangle t, int a, int b) {
 	if ((t.v0 == a) && (t.v1 == b))
 		return true;
 	if ((t.v1 == a) && (t.v2 == b))
@@ -116,90 +115,81 @@ void mark_domains(CDT& cdt) {
 }
 
 bool getCDT(const Polygon2* pgn,
-	const std::vector< std::vector<int> > &z,
-	std::vector<Point3> &vertices,
-	std::unordered_map< std::string, std::vector<Point3>::size_type > &vertices_map,
-	std::vector<Triangle> &triangles,
-	const std::vector<Point3> &lidarpts) {
-	CDT cdt;
+  const std::vector< std::vector<int> > &z,
+  std::vector<Point3> &vertices,
+  std::vector<Triangle> &triangles,
+  const std::vector<Point3> &lidarpts) {
+  CDT cdt;
 
-	Ring2 oring = bg::exterior_ring(*pgn);
-	auto irings = bg::interior_rings(*pgn);
+  Ring2 oring = bg::exterior_ring(*pgn);
+  auto irings = bg::interior_rings(*pgn);
 
-	Polygon_2 poly;
-	int ringi = 0;
-	//-- add the outer ring as a constraint
-	for (int i = 0; i < oring.size(); i++) {
-		poly.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i]), (float(z[ringi][i]) / 100.0)));
-		//points.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i])));
-	}
-	cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
-	poly.clear();
-	ringi++;
+  Polygon_2 poly;
+  int ringi = 0;
+  //-- add the outer ring as a constraint
+  for (int i = 0; i < oring.size(); i++) {
+    poly.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i]), z_to_float(z[ringi][i])));
+    //points.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i])));
+  }
+  cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
+  poly.clear();
+  ringi++;
 
-	//-- add the inner ring(s) as a constraint
-	if (irings.size() > 0) {
-		for (auto iring : irings) {
-			for (int i = 0; i < iring.size(); i++) {
-				poly.push_back(Point(bg::get<0>(iring[i]), bg::get<1>(iring[i]), (float(z[ringi][i]) / 100.0)));
-			}
-			cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
-			poly.clear();
-			ringi++;
-		}
-	}
+  //-- add the inner ring(s) as a constraint
+  if (irings.size() > 0) {
+    for (auto iring : irings) {
+      for (int i = 0; i < iring.size(); i++) {
+        poly.push_back(Point(bg::get<0>(iring[i]), bg::get<1>(iring[i]), z_to_float(z[ringi][i])));
+      }
+      cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
+      poly.clear();
+      ringi++;
+    }
+  }
 
-	//-- add the lidar points to the CDT, if any
-	for (auto &pt : lidarpts) {
-		cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
-	}
+  //-- add the lidar points to the CDT, if any
+  for (auto &pt : lidarpts) {
+    cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
+  }
 
-	//Mark facets that are inside the domain bounded by the polygon
-	mark_domains(cdt);
+  //Mark facets that are inside the domain bounded by the polygon
+  mark_domains(cdt);
 
-	unsigned index = 0;
-	//int count = 0;
+  unsigned index = 0;
+  int count = 0;
 
-	if (!cdt.is_valid()) {
-		std::clog << "CDT is invalid." << std::endl;
-	}
+  if (!cdt.is_valid()) {
+    std::clog << "CDT is invalid." << std::endl;
+  }
+  for (CDT::Finite_vertices_iterator vit = cdt.finite_vertices_begin();
+    vit != cdt.finite_vertices_end(); ++vit) {
+    vertices.push_back(Point3(vit->point().x(), vit->point().y(), vit->point().z()));
+    vit->id() = index++;
+  }
 
-  // Create a unique list of vertices in this CDT and create the triangle
   for (CDT::Finite_faces_iterator fit = cdt.finite_faces_begin();
     fit != cdt.finite_faces_end(); ++fit) {
     if (fit->info().in_domain()) {
       Triangle t;
-      Point3 p;
-      std::string key;
-      p = Point3(fit->vertex(0)->point().x(), fit->vertex(0)->point().y(), fit->vertex(0)->point().z());
-      key = gen_key_bucket(&p);
-      if (vertices_map.find(key) == vertices_map.end()) {
-        vertices.push_back(p);
-        vertices_map[key] = vertices.size() - 1;
-      }
-      t.v0 = key;
-
-      p = Point3(fit->vertex(1)->point().x(), fit->vertex(1)->point().y(), fit->vertex(1)->point().z());
-      key = gen_key_bucket(&p);
-      if (vertices_map.find(key) == vertices_map.end()) {
-        vertices.push_back(p);
-        vertices_map[key] = vertices.size() - 1;
-      }
-      t.v1 = key;
-
-      p = Point3(fit->vertex(2)->point().x(), fit->vertex(2)->point().y(), fit->vertex(2)->point().z());
-      key = gen_key_bucket(&p);
-      if (vertices_map.find(key) == vertices_map.end()) {
-        vertices.push_back(p);
-        vertices_map[key] = vertices.size() - 1;
-      }
-      t.v2 = key;
-
-      if (t.v0 != t.v1 && t.v0 != t.v2 && t.v1 != t.v2) {
-        triangles.push_back(t);
-      }
+      t.v0 = fit->vertex(0)->id();
+      t.v1 = fit->vertex(1)->id();
+      t.v2 = fit->vertex(2)->id();
+      triangles.push_back(t);
+      count++;
     }
   }
 
-	return true;
+  return true;
+}
+
+std::string gen_key_bucket(Point2* p) {
+  return std::to_string(int(bg::get<0>(p) * 100)) + "/" + std::to_string(int(bg::get<1>(p) * 100));
+}
+
+std::string gen_key_bucket(Point3* p) {
+  return std::to_string(int(bg::get<0>(p) * 100)) + "/" + std::to_string(int(bg::get<1>(p) * 100)) + "/" + std::to_string(int(bg::get<2>(p) * 100));
+}
+
+std::string gen_key_bucket(Point3* p, int z) {
+  return std::to_string(int(bg::get<0>(p) * 100)) + "/" + std::to_string(int(bg::get<1>(p) * 100)) + "/" + std::to_string(z);
 }

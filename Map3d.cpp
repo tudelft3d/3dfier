@@ -35,6 +35,7 @@
 Map3d::Map3d() {
   OGRRegisterAll();
   _building_include_floor = false;
+  _building_lod = 1;
   _use_vertical_walls = false;
   _building_heightref_roof = 0.9;
   _building_heightref_floor = 0.1;
@@ -44,10 +45,12 @@ Map3d::Map3d() {
   _terrain_innerbuffer = 0.0;
   _forest_innerbuffer = 0.0;
   _radius_vertex_elevation = 1.0;
-  _building_radius_vertex_elevation = 1.0;
+  _building_radius_vertex_elevation = 3.0;
   _threshold_jump_edges = 50;
-  _minx = 1e8;
-  _miny = 1e8;
+  bg::set<bg::min_corner, 0>(_bbox, 999999);
+  bg::set<bg::min_corner, 1>(_bbox, 999999);
+  bg::set<bg::max_corner, 0>(_bbox, -999999);
+  bg::set<bg::max_corner, 1>(_bbox, -999999);
 }
 
 
@@ -88,6 +91,10 @@ void Map3d::set_building_triangulate(bool triangulate) {
   _building_triangulate = triangulate;
 }
 
+void Map3d::set_building_lod(int lod) {
+  _building_lod = lod;
+}
+
 void Map3d::set_terrain_simplification(int simplification) {
   _terrain_simplification = simplification;
 }
@@ -102,7 +109,11 @@ void Map3d::set_terrain_innerbuffer(float innerbuffer) {
 
 void Map3d::set_forest_innerbuffer(float innerbuffer) {
   _forest_innerbuffer = innerbuffer;
-}  
+}
+
+void Map3d::set_forest_ground_points_only(bool ground_points_only) {
+  _forest_ground_points_only = ground_points_only;
+}
 
 void Map3d::set_water_heightref(float h) {
   _water_heightref = h;
@@ -120,15 +131,31 @@ void Map3d::set_bridge_heightref(float h) {
   _bridge_heightref = h;
 }
 
+Box2 Map3d::get_bbox() {
+  return _bbox;
+}
+
+
 std::string Map3d::get_citygml() {
   std::stringstream ss;
-  ss << get_xml_header();
-  ss << get_citygml_namespaces();
-  ss << "<gml:name>my3dmap</gml:name>";
-  for (auto& p3 : _lsFeatures) {
-    ss << p3->get_citygml();
+  ss << std::setprecision(3) << std::fixed;
+  ss << get_xml_header() << std::endl;
+  ss << get_citygml_namespaces() << std::endl;
+  ss << "<gml:name>my 3dfied map</gml:name>" << std::endl;
+  ss << "<gml:boundedBy>" << std::endl;
+  ss << "<gml:Envelope srsDimension=\"3\" srsName=\"urn:ogc:def:crs:EPSG::7415\">" << std::endl;
+  ss << "<gml:lowerCorner>";
+  ss << bg::get<bg::min_corner, 0>(_bbox) << " " << bg::get<bg::min_corner, 1>(_bbox) << " 0";
+  ss << "</gml:lowerCorner>"<< std::endl;
+  ss << "<gml:upperCorner>";
+  ss << bg::get<bg::max_corner, 0>(_bbox) << " " << bg::get<bg::max_corner, 1>(_bbox) << " 100";
+  ss << "</gml:upperCorner>" << std::endl;
+  ss << "</gml:Envelope>" << std::endl;
+  ss << "</gml:boundedBy>" << std::endl;
+  for (auto& f : _lsFeatures) {
+    ss << f->get_citygml();
   }
-  ss << "</CityModel>";
+  ss << "</CityModel>" << std::endl;
   return ss.str();
 }
 
@@ -145,80 +172,70 @@ std::string Map3d::get_csv_buildings() {
   return ss.str();
 }
 
+
 std::string Map3d::get_obj_per_feature(int z_exaggeration) {
-  std::unordered_map<std::string, std::vector<Point3>::size_type> vertices_map;
-  std::vector<Point3>::size_type idx = 1;
-  std::stringstream ss;
-  ss << "mtllib ./3dfier.mtl" << std::endl;
-  for (auto& p3 : _lsFeatures) {
-    ss << p3->get_obj_v(idx, vertices_map, z_exaggeration);
-  }
-
-  int offset = 0;
-  for (auto& p3 : _lsFeatures) {
-    ss << "o " << p3->get_id() << std::endl;
-    ss << p3->get_mtl();
-    ss << p3->get_obj_f(vertices_map, _use_vertical_walls);
-    //-- TODO: floor for buildings
-//    if (_building_include_floor == true) {  
-//      Building* b = dynamic_cast<Building*>(p3);
-//      if (b != nullptr)
-//        ss << b->get_obj_f_floor(offset);
-//    }
-  }
-  return ss.str();
-}
-
-std::string Map3d::get_obj_building_volume(int z_exaggeration) {
-  std::unordered_map<std::string, std::vector<Point3>::size_type> vertices_map;
-  std::vector<Point3>::size_type idx = 1;
-  std::stringstream ss;
-  ss << "mtllib ./3dfier.mtl" << std::endl;
-  for (auto& p3 : _lsFeatures) {
-    Building* b = dynamic_cast<Building*>(p3);
-    if (b != nullptr) {
-      ss << b->get_obj_v_building_volume(idx, vertices_map, z_exaggeration);
+  std::unordered_map< std::string, unsigned long > dPts;
+  std::stringstream ssf;
+  for (auto& p : _lsFeatures) {
+    ssf << "o " << p->get_id() << std::endl;
+    ssf << p->get_mtl();
+    if (p->get_class() == BUILDING) {
+      Building* b = dynamic_cast<Building*>(p);
+      ssf << b->get_obj(dPts, _building_lod);
+    }
+    else {
+      ssf << p->get_obj(dPts);
     }
   }
-  for (auto& p3 : _lsFeatures) {
-    Building* b = dynamic_cast<Building*>(p3);
-    if (b != nullptr) {
-      ss << "o " << p3->get_id() << std::endl;
-      ss << b->get_obj_f_building_volume(vertices_map, true);
-    }
+  //-- sort the points in the map: simpler to copy to a vector
+  std::vector<std::string> thepts;
+  thepts.resize(dPts.size());
+  for (auto& p : dPts) 
+    thepts[p.second - 1] = p.first;
+  std::stringstream ss;
+  ss << "mtllib ./3dfier.mtl" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& p : thepts) {
+    ss << "v ";
+    ss << (std::stof(p.substr(0, p.find_first_of("/")))) / 100 << " ";
+    ss << (std::stof(p.substr(p.find_first_of("/") + 1, p.find_last_of("/")))) / 100 << " ";
+    ss << (std::stof(p.substr(p.find_last_of("/") + 1))) / 100 << std::endl;
   }
+  ss << ssf.str();
+  //-- TODO: floor for buildings
   return ss.str();
 }
 
 
 std::string Map3d::get_obj_per_class(int z_exaggeration) {
-  std::unordered_map<std::string, std::vector<Point3>::size_type> vertices_map;
-  std::vector<Point3>::size_type idx = 1;
-  std::stringstream ss;
-  ss << "mtllib ./3dfier.mtl" << std::endl;
-  //-- go class by class sequentially
-  for (int c = 0; c < 6; c++) {
-    for (auto& p3 : _lsFeatures) {
-      if (p3->get_class() == c) {
-        ss << p3->get_obj_v(idx, vertices_map, z_exaggeration);
-      }
-    }
-  }
-  for (int c = 0; c < 6; c++) {
-    ss << "o " << c << std::endl;
-    for (auto& p3 : _lsFeatures) {
-      if (p3->get_class() == c) {
-        ss << p3->get_mtl();
-        ss << p3->get_obj_f(vertices_map, _use_vertical_walls);
-        if (_building_include_floor == true) {
-          Building* b = dynamic_cast<Building*>(p3);
-          if (b != nullptr)
-            ss << b->get_obj_f_floor(vertices_map);
-        }
-      }
-    }
-  }
-  return ss.str();
+  // std::vector<int> offsets;
+  // offsets.push_back(0);
+  // std::stringstream ss;
+  // ss << "mtllib ./3dfier.mtl" << std::endl;
+  // //-- go class by class sequentially
+  // for (int c = 0; c < 6; c++) {
+  //   for (auto& p3 : _lsFeatures) {
+  //     if (p3->get_class() == c) {
+  //       ss << p3->get_obj_v(z_exaggeration);
+  //     }
+  //   }
+  // }
+  // for (int c = 0; c < 6; c++) {
+  //   ss << "o " << c << std::endl;
+  //   for (auto& p3 : _lsFeatures) {
+  //     if (p3->get_class() == c) {
+  //       ss << p3->get_mtl();
+  //       ss << p3->get_obj_f(vertices_map, _use_vertical_walls);
+  //       if (_building_include_floor == true) {
+  //         Building* b = dynamic_cast<Building*>(p3);
+  //         if (b != nullptr)
+  //           ss << b->get_obj_f_floor(offset);
+  //       }
+  //     }
+  //   }
+  // }
+  // return ss.str();
+  return "EMTPY"; // TODO: fix me
 }
 
 bool Map3d::get_shapefile(std::string filename) {
@@ -276,6 +293,21 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
   // p.GetX(), p.GetY(), p.GetZ(), p.GetReturnNumber(), p.GetClassification()
 
   Point2 p(laspt.GetX(), laspt.GetY());
+  LAS14Class lasclass = LAS_UNKNOWN;
+  //-- get LAS class
+  if (laspt.GetClassification() == liblas::Classification(LAS_UNCLASSIFIED))
+    lasclass = LAS_UNCLASSIFIED;
+  else if (laspt.GetClassification() == liblas::Classification(LAS_GROUND))
+    lasclass = LAS_GROUND;
+  else if (laspt.GetClassification() == liblas::Classification(LAS_BUILDING))
+    lasclass = LAS_BUILDING;
+  else if (laspt.GetClassification() == liblas::Classification(LAS_WATER))
+    lasclass = LAS_WATER;
+  else if (laspt.GetClassification() == liblas::Classification(LAS_BRIDGE))
+    lasclass = LAS_BRIDGE;
+  else
+    lasclass = LAS_UNKNOWN;
+
   std::vector<PairIndexed> re;
   float radius = _radius_vertex_elevation;
   if (_building_radius_vertex_elevation > _radius_vertex_elevation) {
@@ -285,7 +317,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
   Point2 maxp(laspt.GetX() + radius, laspt.GetY() + radius);
   Box2 querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
-  LAS14Class lasclass = LAS_UNKNOWN;
+
   for (auto& v : re) {
     TopoFeature* f = v.second;
     if (f->get_class() == BUILDING)
@@ -297,20 +329,6 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
     }
 
     if (bg::distance(p, *(f->get_Polygon2())) < radius) {
-      //-- get LAS class
-      if (laspt.GetClassification() == liblas::Classification(LAS_UNCLASSIFIED))
-        lasclass = LAS_UNCLASSIFIED;
-      else if (laspt.GetClassification() == liblas::Classification(LAS_GROUND))
-        lasclass = LAS_GROUND;
-      else if (laspt.GetClassification() == liblas::Classification(LAS_BUILDING))
-        lasclass = LAS_BUILDING;
-      else if (laspt.GetClassification() == liblas::Classification(LAS_WATER))
-        lasclass = LAS_WATER;
-      else if (laspt.GetClassification() == liblas::Classification(LAS_BRIDGE))
-        lasclass = LAS_BRIDGE;
-      else
-        lasclass = LAS_UNKNOWN;
-
       f->add_elevation_point(laspt.GetX(),
         laspt.GetY(),
         laspt.GetZ(),
@@ -322,7 +340,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
 }
 
 
-bool Map3d::threeDfy(bool triangulate) {
+bool Map3d::threeDfy(bool stitching) {
   /*
     1. lift
     2. stitch
@@ -330,27 +348,14 @@ bool Map3d::threeDfy(bool triangulate) {
     4. CDT
   */
   std::clog << "===== /LIFTING =====" << std::endl;
-  for (auto& p : _lsFeatures) {
-    p->lift();
-    //if (p->get_top_level() == true) {
-    //  //std::clog << p->get_id() << std::endl;
-    //  p->lift();
-    //}
-    //else
-    //{
-    //  std::clog << "non-top-niveau " << p->get_id() << std::endl;
-    //  // Lift to height for bridges/overpass
-    //  //if (p->get_class() == BRIDGE)
-    //  //{
-    //  //  p->lift();
-    //  //}
-    //}
+  for (auto& f : _lsFeatures) {
+    f->lift();
   }
   std::clog << "===== LIFTING/ =====" << std::endl;
-  if (triangulate == true) {
+  if (stitching == true) {
     std::clog << "=====  /ADJACENT FEATURES =====" << std::endl;
-    for (auto& p : _lsFeatures) {
-      get_adjacent_features(p);
+    for (auto& f : _lsFeatures) {
+      this->collect_adjacent_features(f);
     }
     std::clog << "=====  ADJACENT FEATURES/ =====" << std::endl;
 
@@ -358,51 +363,32 @@ bool Map3d::threeDfy(bool triangulate) {
     this->stitch_lifted_features();
     std::clog << "=====  STITCHING/ =====" << std::endl;
 
-    // std::clog << "SIZE FEATURES: " << _lsFeatures.size() << std::endl;
-    // std::clog << "SIZE NC: " << _nc.size() << std::endl;
-
     //-- Sort all node column vectors
     for (auto& nc : _nc) {
       std::sort(nc.second.begin(), nc.second.end());
     }
 
     std::clog << "=====  /BOWTIES =====" << std::endl;
-    for (auto& p : _lsFeatures) {
-      if (p->has_vertical_walls() == true) {
-        p->fix_bowtie();
+    // TODO: shouldn't bowties be fixed after the VW? or at same time?
+    for (auto& f : _lsFeatures) {
+      if (f->has_vertical_walls() == true) {
+        f->fix_bowtie();
       }
     }
     std::clog << "=====  BOWTIES/ =====" << std::endl;
 
     std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
-    for (auto& p : _lsFeatures) {
-      if (p->has_vertical_walls() == true) {
-        p->construct_vertical_walls(_nc);
+    for (auto& f : _lsFeatures) {
+      if (f->has_vertical_walls() == true) {
+        f->construct_vertical_walls(_nc);
       }
     }
     std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
-
-    std::clog << "=====  /CDT =====" << std::endl;
-    for (auto& p : _lsFeatures) {
-      p->buildCDT();
-    }
-    std::clog << "=====  CDT/ =====" << std::endl;
   }
   return true;
 }
 
-bool Map3d::threeDfy_building_volume() {
-  /*
-    1. lift
-    2. CDT
-  */
-  std::clog << "===== /LIFTING =====" << std::endl;
-  for (auto& p : _lsFeatures) {
-    std::clog << p->get_id() << std::endl;
-    p->lift();
-  }
-  std::clog << "===== LIFTING/ =====" << std::endl;
-
+bool Map3d::construct_CDT() {
   std::clog << "=====  /CDT =====" << std::endl;
   for (auto& p : _lsFeatures) {
     // std::clog << p->get_id() << " (" << p->get_class() << ")" << std::endl;
@@ -411,7 +397,6 @@ bool Map3d::threeDfy_building_volume() {
   std::clog << "=====  CDT/ =====" << std::endl;
   return true;
 }
-
 
 
 bool Map3d::construct_rtree() {
@@ -443,7 +428,6 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
       std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
       return false;
     }
-
     // if the file doesn't have layers specified, add all
     if (file->layers[0].first.empty())
     {
@@ -453,9 +437,21 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
       for (int i = 0; i < numberOfLayers; i++) {
         OGRLayer *dataLayer = dataSource->GetLayer(i);
         file->layers.emplace_back(dataLayer->GetName(), lifting);
+        if (dataLayer->GetFeatureCount(true) > 0) {
+          //-- update the 2D bbox of the dataset
+          OGREnvelope bbox;
+          dataLayer->GetExtent(&bbox);
+          if (bbox.MinX < bg::get<bg::min_corner, 0>(_bbox))
+            bg::set<bg::min_corner, 0>(_bbox, bbox.MinX);
+          if (bbox.MinY < bg::get<bg::min_corner, 1>(_bbox))
+            bg::set<bg::min_corner, 1>(_bbox, bbox.MinY);
+          if (bbox.MaxX > bg::get<bg::max_corner, 0>(_bbox))
+            bg::set<bg::max_corner, 0>(_bbox, bbox.MaxX);
+          if (bbox.MaxY > bg::get<bg::max_corner, 1>(_bbox))
+            bg::set<bg::max_corner, 1>(_bbox, bbox.MaxY);
+        }
       }
     }
-
     bool wentgood = this->extract_and_add_polygon(dataSource, &(*file));
 #if GDAL_VERSION_MAJOR < 2
     OGRDataSource::DestroyDataSource(dataSource);
@@ -522,7 +518,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
             cf->SetGeometry((OGRPolygon*)multipolygon->getGeometryRef(i));
             extract_feature(cf, idfield, heightfield, l.second, multiple_heights);
           }
-          std::clog << "MultiPolygon with " << numGeom << " geometries processed" << std::endl;
+          std::clog << "\t(MultiPolygon split into " << numGeom << " Polygons)" << std::endl;
         }
         break;
       }
@@ -551,7 +547,7 @@ void Map3d::extract_feature(OGRFeature *f, const char *idfield, const char *heig
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Forest") {
-    Forest* p3 = new Forest(wkt, f->GetFieldAsString(idfield), this->_forest_simplification, this->_forest_innerbuffer);
+    Forest* p3 = new Forest(wkt, f->GetFieldAsString(idfield), this->_forest_simplification, this->_forest_innerbuffer, this->_forest_ground_points_only);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Water") {
@@ -639,54 +635,33 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
 }
 
 
-std::vector<TopoFeature*> Map3d::get_adjacent_features(TopoFeature* f) {
+void Map3d::collect_adjacent_features(TopoFeature* f) {
   std::vector<PairIndexed> re;
   _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-  std::vector<TopoFeature*> lsAdjacent;
   for (auto& each : re) {
     TopoFeature* fadj = each.second;
     if (f != fadj && (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) || !bg::disjoint(*(f->get_Polygon2()), *(fadj->get_Polygon2())))) {
       f->add_adjacent_feature(fadj);
     }
   }
-  return lsAdjacent;
 }
 
 
 void Map3d::stitch_lifted_features() {
   std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
-    std::vector<PairIndexed> re;
-    _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-    std::vector<TopoFeature*> lstouching = f->get_adjacent_features();
 
-    ////-- 1. store all touching top level (adjacent + incident)
-    //for (auto& each : re) {
-    //  TopoFeature* fadj = each.second;
+  //-- 1. store all touching top level (adjacent + incident)
+    std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
 
-    //  // if (bg::intersects(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
-    //  // {
-    //  //   std::clog << f->get_id() << " intersects " << fadj->get_id() << std::endl;
-    //  // }
-    //  // if (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())))
-    //  // {
-    //  //   std::clog << f->get_id() << " touches " << fadj->get_id() << std::endl;
-    //  // }
-
-    //  //if (fadj->get_top_level() == true && bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) == true) {
-    //  if (f != fadj && (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) || !bg::disjoint(*(f->get_Polygon2()), *(fadj->get_Polygon2())))) {
-    //    lstouching.push_back(fadj);
-    //  }
-    //}
-
-    //-- 2. build the node-column for each vertex
+  //-- 2. build the node-column for each vertex
     // oring
     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2()));
     for (int i = 0; i < oring.size(); i++) {
       // std::cout << std::setprecision(3) << std::fixed << bg::get<0>(oring[i]) << " : " << bg::get<1>(oring[i]) << std::endl;
       std::vector< std::tuple<TopoFeature*, int, int> > star;
       bool toprocess = false;
-      for (auto& fadj : lstouching) {
+      for (auto& fadj : *lstouching) {
         ringis.clear();
         pis.clear();
         if (fadj->has_point2_(oring[i], ringis, pis) == true) {
@@ -713,7 +688,7 @@ void Map3d::stitch_lifted_features() {
       for (int i = 0; i < iring.size(); i++) {
         std::vector< std::tuple<TopoFeature*, int, int> > star;
         bool toprocess = false;
-        for (auto& fadj : lstouching) {
+        for (auto& fadj : *lstouching) {
           ringis.clear();
           pis.clear();
           if (fadj->has_point2_(iring[i], ringis, pis) == true) {

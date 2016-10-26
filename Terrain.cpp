@@ -28,6 +28,7 @@
 
 
 #include "Terrain.h"
+#include "io.h"
 #include <algorithm>
 
 
@@ -45,21 +46,22 @@ bool Terrain::lift() {
 
 bool Terrain::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   bool toadd = false;
-  if (_simplification <= 1)
-    toadd = true;
-  else {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> dis(1, _simplification);
-    if (dis(gen) == 1)
+  if (lastreturn && lasclass == LAS_GROUND) {
+    assign_elevation_to_vertex(x, y, z, radius);
+    if (_simplification <= 1)
       toadd = true;
-  }
-  if (toadd && lastreturn && lasclass == LAS_GROUND) {
+    else {
+      std::random_device rd;
+      std::mt19937 gen(rd());
+      std::uniform_int_distribution<int> dis(1, _simplification);
+      if (dis(gen) == 1)
+        toadd = true;
+    }
     Point2 p(x, y);
-    if (bg::within(p, *(_p2)) && (this->get_distance_to_boundaries(p) > _innerbuffer)) {
+    // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
+    if (toadd && bg::within(p, *(_p2)) && (_innerbuffer == 0.0 || this->get_distance_to_boundaries(p) > _innerbuffer)) {
       _lidarpts.push_back(Point3(x, y, z));
     }
-    assign_elevation_to_vertex(x, y, z, radius);
   }
   return toadd;
 }
@@ -74,14 +76,28 @@ TopoClass Terrain::get_class() {
   return TERRAIN;
 }
 
-
 bool Terrain::is_hard() {
   return false;
 }
 
-
 std::string Terrain::get_citygml() {
-  return "<EMPTY/>";
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<luse:LandUse gml:id=\"";
+  ss << this->get_id();
+  ss << "\">" << std::endl;
+  ss << "<luse:lod1MultiSurface>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles)
+    ss << get_triangle_as_gml_surfacemember(t);
+  for (auto& t : _triangles_vw)
+    ss << get_triangle_as_gml_surfacemember(t, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</luse:lod1MultiSurface>" << std::endl;
+  ss << "</luse:LandUse>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
 }
 
 

@@ -40,8 +40,14 @@
 #include "boost/locale.hpp"
 #include <chrono>
 
+
+std::string VERSION = "0.7.1";
+
+
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 void print_license();
+
+
 
 int main(int argc, const char * argv[]) {
   auto startTime = std::chrono::high_resolution_clock::now();
@@ -72,11 +78,19 @@ int main(int argc, const char * argv[]) {
     if ( s == "--license") {
       print_license();
       return 0;
-    }
+    }  
+  }
+  //-- version
+  if (argc == 2) {
+    std::string s = argv[1];
+    if ( s == "--version") {
+      std::clog << "3dfier " << VERSION << std::endl;
+      return 0;
+    }  
   }
 
   std::clog << licensewarning << std::endl;
-  std::clog << "Reading and validating config file: " << argv[1] << std::endl;
+  std::clog << "Reading config file: " << argv[1] << std::endl;
 
 //-- allowed feature classes
   std::set<std::string> allowedFeatures;
@@ -93,6 +107,7 @@ int main(int argc, const char * argv[]) {
    std::cerr << "ERROR: config file (*.yml) is not valid. Aborting." << std::endl;
    return 0;
  }
+  std::clog << "Config file is valid." << std::endl;
   
   Map3d map3d;
   YAML::Node nodes = YAML::LoadFile(argv[1]);
@@ -107,6 +122,9 @@ int main(int argc, const char * argv[]) {
       std::string height = n["Building"]["height_floor"].as<std::string>();
       map3d.set_building_heightref_floor(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
+    if (n["Building"]["lod"]){
+      map3d.set_building_lod(n["Building"]["lod"].as<int>());
+    }    
     if (n["Building"]["triangulate"]) {
       if (n["Building"]["triangulate"].as<std::string>() == "true") 
         map3d.set_building_triangulate(true);
@@ -124,6 +142,8 @@ int main(int argc, const char * argv[]) {
       map3d.set_forest_simplification(n["Forest"]["simplification"].as<int>());
     if (n["Forest"]["innerbuffer"])
       map3d.set_forest_innerbuffer(n["Forest"]["innerbuffer"].as<float>());
+    if (n["Forest"]["ground_points_only"] && n["Forest"]["ground_points_only"].as<std::string>() == "true")
+      map3d.set_forest_ground_points_only(true);
   if (n["Water"]) 
     if (n["Water"]["height"]) {
       std::string height = n["Water"]["height"].as<std::string>();
@@ -146,19 +166,19 @@ int main(int argc, const char * argv[]) {
     }
 
   n = nodes["options"];
+  bool bStitching = true;
   if (n["radius_vertex_elevation"])
     map3d.set_radius_vertex_elevation(n["radius_vertex_elevation"].as<float>());
-  if (n["building_radius_vertex_elevation"]) {
+  if (n["building_radius_vertex_elevation"]) 
     map3d.set_building_radius_vertex_elevation(n["building_radius_vertex_elevation"].as<float>());
-  }
-  else if (n["radius_vertex_elevation"]) {
-    // Set the building vertex radius equal to the general vertex radius
-    map3d.set_building_radius_vertex_elevation(n["radius_vertex_elevation"].as<float>());
-  }
   if (n["threshold_jump_edges"])
     map3d.set_threshold_jump_edges(n["threshold_jump_edges"].as<float>());
   if (n["use_vertical_walls"] && n["use_vertical_walls"].as<std::string>() == "true")
     map3d.set_use_vertical_walls(true);
+  if (n["stitching"]) {
+    if (n["stitching"].as<std::string>() == "false")
+      bStitching = false;
+  }
 
   //-- add the polygons to the map3d
   std::vector<PolygonFile> files;
@@ -204,6 +224,13 @@ int main(int argc, const char * argv[]) {
 
   map3d.add_polygons_files(files);
   std::clog << "\nTotal # of polygons: " << boost::locale::as::number << map3d.get_num_polygons() << std::endl;
+  Box2 b = map3d.get_bbox();
+  std::clog << std::setprecision(3) << std::fixed;
+  std::clog << "Spatial extent: (" 
+    << bg::get<bg::min_corner, 0>(b) << ", "
+    << bg::get<bg::min_corner, 1>(b) << ") ("
+    << bg::get<bg::max_corner, 0>(b) << ", "
+    << bg::get<bg::max_corner, 1>(b) << ")" << std::endl;
   
   //-- spatially index the polygons
   map3d.construct_rtree();
@@ -235,10 +262,14 @@ int main(int argc, const char * argv[]) {
   std::clog << "Lifting all input polygons to 3D..." << std::endl;
   if (n["format"].as<std::string>() == "CSV-BUILDINGS")
     map3d.threeDfy(false);
-  else if (n["format"].as<std::string>() == "OBJ-BUILDINGS")
-    map3d.threeDfy_building_volume();
-  else
-    map3d.threeDfy();
+  else if (n["format"].as<std::string>() == "OBJ-BUILDINGS") {
+    map3d.threeDfy(false);
+    map3d.construct_CDT();
+  }
+  else {
+    map3d.threeDfy(bStitching);
+    map3d.construct_CDT();
+  }
   std::clog << "done." << std::endl;
   
   
@@ -263,10 +294,6 @@ int main(int argc, const char * argv[]) {
   else if (n["format"].as<std::string>() == "CSV-BUILDINGS") {
     std::clog << "CSV output (only of the buildings)" << std::endl;
     std::cout << map3d.get_csv_buildings() << std::endl;
-  }
-  else if (n["format"].as<std::string>() == "OBJ-BUILDINGS") {
-    std::clog << "OBJ output (only of the buildings)" << std::endl;
-    std::cout << map3d.get_obj_building_volume(z_exaggeration) << std::endl;
   }
   else if (n["format"].as<std::string>() == "Shapefile") {
     std::clog << "Shapefile output" << std::endl;
@@ -361,6 +388,12 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
         std::cerr << "\tOption 'Building.height_ground' invalid; must be 'percentile-XX'." << std::endl;
       }
     }
+    if (n["Building"]["lod"]) {
+     if (is_string_integer(n["Building"]["lod"].as<std::string>(), 0, 1) == false) {
+        wentgood = false;
+        std::cerr << "\tOption 'Building.lod' invalid; must be an integer between 0 and 1." << std::endl;
+      }
+    }    
     if (n["Building"]["triangulate"]) {
       std::string s = n["Building"]["triangulate"].as<std::string>();
       if ( (s != "true") && (s != "false") ) {

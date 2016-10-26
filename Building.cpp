@@ -103,126 +103,100 @@ std::string Building::get_mtl() {
   return "usemtl Building\n";
 }
 
-std::string Building::get_obj_v_building_volume(std::vector<Point3>::size_type &idx, std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, int z_exaggeration) {
-  std::stringstream ss;
-  for (auto& v : _vertices) {
-    std::string key = gen_key_bucket(&v);
-    if (vertices_map.find(key) == vertices_map.end()) {
-      vertices_map[key] = idx;
-      idx++;
-      ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0 ? (z_exaggeration * bg::get<2>(v)) : bg::get<2>(v)) << std::endl;
-    }
-  }
-  for (auto& v : _vertices) {
-    std::string key = gen_key_bucket(&v);
-    if (vertices_map.find(key) == vertices_map.end()) {
-      vertices_map[key] = idx;
-      idx++;
-      float z = float(this->get_height_base()) / 100;
-      ss << std::setprecision(3) << std::fixed << "v " << bg::get<0>(v) << " " << bg::get<1>(v) << " " << (z_exaggeration > 0 ? (z_exaggeration * z) : z) << std::endl;
-    }
-  }
-  return ss.str();
-}
 
-
-std::string Building::get_obj_f_building_volume(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map, bool usemtl) {
+std::string Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod) {
   std::stringstream ss;
-  if (usemtl == true)
-    ss << "usemtl Building" << std::endl;
-//-- top surface
-  for (auto& t : _triangles)
-    ss << "f " << _vertices_map[t.v0] << " " << _vertices_map[t.v1] << " " << _vertices_map[t.v2] << std::endl;
-//-- ground surface
-  for (auto& t : _triangles)
-    ss << "f " << _vertices_map[t.v0] + _vertices.size() << " " << _vertices_map[t.v1] + _vertices.size() << " " << _vertices_map[t.v2] + _vertices.size() << std::endl;
-//-- extract segments
-  std::vector<Segment> allsegments;
-  for (auto& curt : _triangles) {
-    bool issegment = false;
-    for (auto& t : _triangles) {
-      if (triangle_contains_segment(t, curt.v1, curt.v0) == true) {
-        issegment = true;
-        break;
-      }
-    }
-    if (issegment == false) {
-      Segment s;
-      s.v0 = curt.v0;
-      s.v1 = curt.v1;
-      allsegments.push_back(s);
-    }
-    issegment = false;
-    for (auto& t : _triangles) {
-      if (triangle_contains_segment(t, curt.v2, curt.v1) == true) {
-        issegment = true;
-        break;
-      }
-    }
-    if (issegment == false) {
-      Segment s;
-      s.v0 = curt.v1;
-      s.v1 = curt.v2;
-      allsegments.push_back(s);
-    }
-    issegment = false;
-    for (auto& t : _triangles) {
-      if (triangle_contains_segment(t, curt.v0, curt.v2) == true) {
-        issegment = true;
-        break;
-      }
-    }
-    if (issegment == false) {
-      Segment s;
-      s.v0 = curt.v2;
-      s.v1 = curt.v0;
-      allsegments.push_back(s);
-    }
+  if (lod == 1) {
+    ss << TopoFeature::get_obj(dPts);
   }
-  //-- side surfaces walls
-  for (auto& s : allsegments) {
-    //ss << "f " << (s.v1 + 1 + offset) << " " << (s.v0 + 1 + offset) << " " << (s.v0 + 1 + offset + _vertices.size()) << std::endl;  
-    //ss << "f " << (s.v0 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset + _vertices.size()) << " " << (s.v1 + 1 + offset) << std::endl;  
-    ss << "f " << _vertices_map[s.v1] << " " << _vertices_map[s.v0]  << " " << _vertices_map[s.v0] + _vertices.size() << std::endl;
-    ss << "f " << _vertices_map[s.v0] + _vertices.size() << " " << _vertices_map[s.v1] + _vertices.size() << " " << _vertices_map[s.v1] << std::endl;
- }
-  return ss.str();
-}
-
-std::string Building::get_obj_f_floor(std::unordered_map<std::string, std::vector<Point3>::size_type> &vertices_map) {
-  std::stringstream ss;
-  for (auto& t : _triangles) {
-    //ss << "f " << (t.v0 + 1 + offset + _vertices.size()) << " " << (t.v2 + 1 + offset + _vertices.size()) << " " << (t.v1 + 1 + offset + _vertices.size()) << std::endl;
-    ss << "f " << _vertices_map[t.v0] + _vertices.size() << " " << _vertices_map[t.v2] + _vertices.size() << " " << _vertices_map[t.v1] + _vertices.size() << std::endl;
+  else if (lod == 0) {
+    for (auto& t : _triangles) {
+      unsigned long a, b, c;
+      int z = this->get_height_base();
+      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0], z));
+      if (it == dPts.end()) {
+        dPts[gen_key_bucket(&_vertices[t.v0], z)] = (dPts.size() + 1); 
+        a = dPts.size();
+      }
+      else {
+        a = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v1], z));
+      if (it == dPts.end()) {
+        dPts[gen_key_bucket(&_vertices[t.v1], z)] = (dPts.size() + 1); 
+        b = dPts.size();
+      }
+      else {
+        b = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v2], z));
+      if (it == dPts.end()) {
+        dPts[gen_key_bucket(&_vertices[t.v2], z)] = (dPts.size() + 1); 
+        c = dPts.size();
+      }
+      else {
+        c = it->second;
+      }
+      if ( (a != b) && (a != c) && (b != c) ) 
+        ss << "f " << a << " " << b << " " << c << std::endl;
+      // else
+      //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
+    }
   }
   return ss.str();
 }
 
 std::string Building::get_citygml() {
+  float h = z_to_float(this->get_height());
+  float hbase = z_to_float(this->get_height_base());
   std::stringstream ss;
-  ss << "<cityObjectMember>";
-  ss << "<bldg:Building>";
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<bldg:Building gml:id=\"";
+  ss << this->get_id();
+  ss << "\">" << std::endl;
   ss << "<bldg:measuredHeight uom=\"#m\">";
-  ss << this->get_height();
-  ss << "</bldg:measuredHeight>";
-  ss << "<bldg:lod1Solid>";
-  ss << "<gml:Solid>";
-  ss << "<gml:exterior>";
-  ss << "<gml:CompositeSurface>";
+  ss << h;
+  ss << "</bldg:measuredHeight>" << std::endl;
+//-- LOD0 footprint
+  ss << "<bldg:lod0FootPrint>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << get_polygon_lifted_gml(this->_p2, hbase, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</bldg:lod0FootPrint>" << std::endl;
+//-- LOD0 roofedge
+  ss << "<bldg:lod0RoofEdge>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << get_polygon_lifted_gml(this->_p2, h, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</bldg:lod0RoofEdge>" << std::endl;
+//-- LOD1 Solid
+  ss << "<bldg:lod1Solid>" << std::endl;
+  ss << "<gml:Solid>" << std::endl;
+  ss << "<gml:exterior>" << std::endl;
+  ss << "<gml:CompositeSurface>" << std::endl;
   //-- get floor
-  ss << get_polygon_lifted_gml(this->_p2, this->get_height_base(), false);
+  ss << get_polygon_lifted_gml(this->_p2, hbase, false);
   //-- get roof
-  ss << get_polygon_lifted_gml(this->_p2, this->get_height(), true);
+  ss << get_polygon_lifted_gml(this->_p2, h, true);
   //-- get the walls
   auto r = bg::exterior_ring(*(this->_p2));
-  for (int i = 0; i < (r.size() - 1); i++) 
-    ss << get_extruded_line_gml(&r[i], &r[i + 1], this->get_height(), 0, false);
-  ss << "</gml:CompositeSurface>";
-  ss << "</gml:exterior>";
-  ss << "</gml:Solid>";
-  ss << "</bldg:lod1Solid>";
-  ss << "</bldg:Building>";
-  ss << "</cityObjectMember>";
+  int i;
+  for (i = 0; i < (r.size() - 1); i++) 
+    ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
+  ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
+  //-- irings
+  auto irings = bg::interior_rings(*(this->_p2));
+  for (Ring2& r : irings) {
+    for (i = 0; i < (r.size() - 1); i++) 
+      ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
+    ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
+  }
+  ss << "</gml:CompositeSurface>" << std::endl;
+  ss << "</gml:exterior>" << std::endl;
+  ss << "</gml:Solid>" << std::endl;
+  ss << "</bldg:lod1Solid>" << std::endl;
+  ss << "</bldg:Building>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
   return ss.str(); 
 }
 

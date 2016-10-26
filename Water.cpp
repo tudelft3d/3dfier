@@ -29,6 +29,7 @@
 
  
 #include "Water.h"
+#include "io.h"
 
 float Water::_heightref = 0.1;
 
@@ -57,7 +58,6 @@ TopoClass Water::get_class() {
   return WATER;
 }
 
-
 bool Water::is_hard() {
   return true;
 }
@@ -69,7 +69,23 @@ std::string Water::get_mtl() {
 
 
 std::string Water::get_citygml() {
-  return "<EMPTY/>";
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<wtr:WaterBody gml:id=\"";
+  ss << this->get_id();
+  ss << "\">" << std::endl;
+  ss << "<wtr:lod1MultiSurface>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles)
+    ss << get_triangle_as_gml_surfacemember(t);
+  for (auto& t : _triangles_vw)
+    ss << get_triangle_as_gml_surfacemember(t, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</wtr:lod1MultiSurface>" << std::endl;
+  ss << "</wtr:WaterBody>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
 }
 
 

@@ -30,15 +30,6 @@
 #include "io.h"
 
 
-std::string gen_key_bucket(Point2* p) {
-  return std::to_string(int(bg::get<0>(p) * 100)) + std::to_string(int(bg::get<1>(p) * 100));
-}
-
-
-std::string gen_key_bucket(Point3* p) {
-  return std::to_string(int(bg::get<0>(p) * 100)) + "-" + std::to_string(int(bg::get<1>(p) * 100)) + "-" + std::to_string(int(bg::get<2>(p) * 100));
-}
-
 
 void printProgressBar( int percent ) {
   std::string bar;
@@ -65,26 +56,54 @@ std::string get_xml_header() {
 
 
 std::string get_citygml_namespaces() {
-  return "<CityModel xmlns:veg=\"http://www.opengis.net/citygml/vegetation/2.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xAL=\"urn:oasis:names:tc:ciq:xsdschema:xAL:2.0\" xmlns:dem=\"http://www.opengis.net/citygml/relief/2.0\" xmlns:gml=\"http://www.opengis.net/gml\" xmlns:fme=\"http://www.safe.com/xml/xmltables\" xmlns:tran=\"http://www.opengis.net/citygml/transportation/2.0\" xmlns:bldg=\"http://www.opengis.net/citygml/building/2.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.opengis.net/citygml/2.0\">";
+  std::stringstream ss;
+  ss << "<CityModel xmlns=\"http://www.opengis.net/citygml/2.0\"" << std::endl;
+  ss << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" << std::endl; 
+  ss << "xmlns:xAL=\"urn:oasis:names:tc:ciq:xsdschema:xAL:2.0\"" << std::endl; 
+  ss << "xmlns:xlink=\"http://www.w3.org/1999/xlink\"" << std::endl;
+  ss << "xmlns:gml=\"http://www.opengis.net/gml\"" << std::endl;
+  ss << "xmlns:bldg=\"http://www.opengis.net/citygml/building/2.0\"" << std::endl; 
+  ss << "xmlns:wtr=\"http://www.opengis.net/citygml/waterbody/2.0\"" << std::endl; 
+  ss << "xmlns:veg=\"http://www.opengis.net/citygml/vegetation/2.0\"" << std::endl; 
+  ss << "xmlns:dem=\"http://www.opengis.net/citygml/relief/2.0\"" << std::endl; 
+  ss << "xmlns:tran=\"http://www.opengis.net/citygml/transportation/2.0\"" << std::endl;
+  ss << "xmlns:luse=\"http://www.opengis.net/citygml/landuse/2.0\"" << std::endl;
+  ss << "xmlns:gen=\"http://www.opengis.net/citygml/generics/2.0\"" << std::endl;
+  ss << "xmlns:brg=\"http://www.opengis.net/citygml/bridge/2.0\"" << std::endl;
+  ss << "xmlns:app=\"http://www.opengis.net/citygml/appearance/2.0\"" << std::endl;
+  ss << "xsi:schemaLocation=\"http://www.opengis.net/citygml/2.0 ./CityGML_2.0/CityGML.xsd\">";
+  return ss.str();
 }
 
 std::string get_polygon_lifted_gml(Polygon2* p2, double height, bool reverse) {
   std::stringstream ss;
-  ss << "<gml:surfaceMember>";
-  ss << "<gml:Polygon>";
-  ss << "<gml:exterior>";
-  ss << "<gml:LinearRing>";
+  ss << std::setprecision(3) << std::fixed;
   if (reverse)
     bg::reverse(*p2);
-  // TODO : also do the interior rings for extrusion
+  ss << "<gml:surfaceMember>" << std::endl;
+  ss << "<gml:Polygon>" << std::endl;
+  //-- oring  
   auto r = bg::exterior_ring(*p2);
+  ss << "<gml:exterior>" << std::endl;
+  ss << "<gml:LinearRing>" << std::endl;
   for (int i = 0; i < r.size(); i++)
-    ss << "<gml:pos>" << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << "</gml:pos>";
-  ss << "<gml:pos>" << bg::get<0>(r[r.size() - 1]) << " " << bg::get<1>(r[r.size() - 1]) << " " << height << "</gml:pos>";
-  ss << "</gml:LinearRing>";
-  ss << "</gml:exterior>";
-  ss << "</gml:Polygon>";
-  ss << "</gml:surfaceMember>";
+    ss << "<gml:pos>" << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << "</gml:pos>" << std::endl;
+  ss << "<gml:pos>" << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << height << "</gml:pos>" << std::endl;
+  ss << "</gml:LinearRing>" << std::endl;
+  ss << "</gml:exterior>" << std::endl;
+  //-- irings
+  auto irings = bg::interior_rings(*p2);
+  for (Ring2& r : irings) {
+    ss << "<gml:interior>" << std::endl;
+    ss << "<gml:LinearRing>" << std::endl;
+    for (int i = 0; i < r.size(); i++) 
+      ss << "<gml:pos>" << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << "</gml:pos>" << std::endl;
+    ss << "<gml:pos>" << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << height << "</gml:pos>" << std::endl;
+    ss << "</gml:LinearRing>" << std::endl;
+    ss << "</gml:interior>" << std::endl;
+  }
+  ss << "</gml:Polygon>" << std::endl;
+  ss << "</gml:surfaceMember>" << std::endl;
   if (reverse)
     bg::reverse(*p2);
   return ss.str();
@@ -92,19 +111,20 @@ std::string get_polygon_lifted_gml(Polygon2* p2, double height, bool reverse) {
 
 std::string get_extruded_line_gml(Point2* a, Point2* b, double high, double low, bool reverse) {
   std::stringstream ss;
-  ss << "<gml:surfaceMember>";
-  ss << "<gml:Polygon>";
-  ss << "<gml:exterior>";
-  ss << "<gml:LinearRing>";
-  ss << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low << "</gml:pos>";
-  ss << "<gml:pos>" << bg::get<0>(a) << " " << bg::get<1>(a) << " " << low << "</gml:pos>";
-  ss << "<gml:pos>" << bg::get<0>(a) << " " << bg::get<1>(a) << " " << high << "</gml:pos>";
-  ss << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << high << "</gml:pos>";
-  ss << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low << "</gml:pos>";
-  ss << "</gml:LinearRing>";
-  ss << "</gml:exterior>";
-  ss << "</gml:Polygon>";
-  ss << "</gml:surfaceMember>";
+  ss << std::setprecision(3) << std::fixed;
+  ss << "<gml:surfaceMember>" << std::endl;
+  ss << "<gml:Polygon>" << std::endl;
+  ss << "<gml:exterior>" << std::endl;
+  ss << "<gml:LinearRing>" << std::endl;
+  ss << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low << "</gml:pos>" << std::endl;
+  ss << "<gml:pos>" << bg::get<0>(a) << " " << bg::get<1>(a) << " " << low << "</gml:pos>" << std::endl;
+  ss << "<gml:pos>" << bg::get<0>(a) << " " << bg::get<1>(a) << " " << high << "</gml:pos>" << std::endl;
+  ss << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << high << "</gml:pos>" << std::endl;
+  ss << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low << "</gml:pos>" << std::endl;
+  ss << "</gml:LinearRing>" << std::endl;
+  ss << "</gml:exterior>" << std::endl;
+  ss << "</gml:Polygon>" << std::endl;
+  ss << "</gml:surfaceMember>" << std::endl;
   return ss.str();
 }
 
@@ -135,3 +155,6 @@ bool is_string_integer(std::string s, int min, int max) {
 }
 
 
+float z_to_float(int z) {
+  return float(z) / 100;
+}

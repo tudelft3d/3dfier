@@ -34,7 +34,7 @@
 class Forest : public TIN
 {
 public:
-  Forest (char *wkt, std::string pid, int simplification, float innerbuffer);
+  Forest (char *wkt, std::string pid, int simplification, float innerbuffer, bool only_ground_points);
   bool          lift();
   bool          add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
   std::string   get_citygml();
@@ -42,6 +42,8 @@ public:
   bool          get_shape(OGRLayer * layer);
   TopoClass     get_class();
   bool          is_hard();
+private:
+  static bool          _use_ground_points_only;
 };
 
 

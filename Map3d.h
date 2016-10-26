@@ -56,28 +56,30 @@ public:
 
   void stitch_lifted_features();
   bool construct_rtree();
-  bool threeDfy(bool triangulate = true);
-  bool threeDfy_building_volume();
+  bool threeDfy(bool stitching = true);
+  bool construct_CDT();
   void add_elevation_point(liblas::Point const& laspt);
 
-  unsigned long get_num_polygons();
-  const std::vector<TopoFeature*>& get_polygons3d();  
+  unsigned long                     get_num_polygons();
+  const std::vector<TopoFeature*>&  get_polygons3d();  
+  Box2                              get_bbox();
   
   std::string get_citygml();
   std::string get_csv_buildings();
   std::string get_obj_per_feature(int z_exaggeration = 0);
   std::string get_obj_per_class(int z_exaggeration = 0);
-  std::string get_obj_building_volume(int z_exaggeration = 0);
   bool        get_shapefile(std::string filename);
      
   void set_building_heightref_roof(float heightref);
   void set_building_heightref_floor(float heightref);
   void set_building_include_floor(bool include);
   void set_building_triangulate(bool triangulate);
+  void set_building_lod(int lod);
   void set_terrain_simplification(int simplification);
   void set_forest_simplification(int simplification);
   void set_terrain_innerbuffer(float innerbuffer);
   void set_forest_innerbuffer(float innerbuffer);
+  void set_forest_ground_points_only(bool only_ground_points);
   void set_water_heightref(float heightref);
   void set_road_heightref(float heightref);
   void set_separation_heightref(float heightref);
@@ -90,12 +92,14 @@ private:
   float       _building_heightref_roof;
   float       _building_heightref_floor;
   bool        _building_triangulate;
+  int         _building_lod;
   bool        _building_include_floor;
   bool        _use_vertical_walls;
   int         _terrain_simplification;
   int         _forest_simplification;
   float       _terrain_innerbuffer;
   float       _forest_innerbuffer;
+  bool        _forest_ground_points_only;
   float       _water_heightref;
   float       _road_heightref;
   float       _separation_heightref;
@@ -103,13 +107,12 @@ private:
   float       _radius_vertex_elevation;
   float       _building_radius_vertex_elevation;
   int         _threshold_jump_edges; //-- in cm/integer
-  double      _minx;
-  double      _miny;
+  Box2        _bbox;
 
   std::unordered_map< std::string, std::vector<int> > _nc;
-  std::vector<TopoFeature*>                 _lsFeatures;
-  std::vector<std::string>                  _allowed_layers;
-  bgi::rtree< PairIndexed, bgi::rstar<16> > _rtree;
+  std::vector<TopoFeature*>                           _lsFeatures;
+  std::vector<std::string>                            _allowed_layers;
+  bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;
 
 #if GDAL_VERSION_MAJOR < 2
   bool extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file);
@@ -121,7 +124,7 @@ private:
   void stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star);
   void stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);
   void stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);
-  std::vector<TopoFeature*> get_adjacent_features(TopoFeature* f);
+  void collect_adjacent_features(TopoFeature* f);
 };
 
 #endif
