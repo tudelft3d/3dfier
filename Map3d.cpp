@@ -44,6 +44,7 @@ Map3d::Map3d() {
   _forest_simplification = 0;
   _terrain_innerbuffer = 0.0;
   _forest_innerbuffer = 0.0;
+  _forest_ground_points_only = false;
   _radius_vertex_elevation = 1.0;
   _building_radius_vertex_elevation = 3.0;
   _threshold_jump_edges = 50;
