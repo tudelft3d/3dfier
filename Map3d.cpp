@@ -534,11 +534,10 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
 }
 
 void Map3d::extract_feature(OGRFeature *f, const char *idfield, const char *heightfield, std::string layertype, bool multiple_heights) {
-  Polygon2* p2 = new Polygon2();
   char *wkt;
-  f->GetGeometryRef()->flattenTo2D();
-  f->GetGeometryRef()->exportToWkt(&wkt);
-  bg::unique(*p2); //-- remove duplicate vertices
+  OGRGeometry *geom = f->GetGeometryRef();
+  geom->flattenTo2D();
+  geom->exportToWkt(&wkt);
   if (layertype == "Building") {
     Building* p3 = new Building(wkt, f->GetFieldAsString(idfield), _building_heightref_roof, _building_heightref_floor);
     _lsFeatures.push_back(p3);
