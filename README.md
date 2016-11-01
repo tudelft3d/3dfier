@@ -47,8 +47,13 @@ To build you'll normally do (from 3dfier root directory):
 ```
 mkdir build && cd build
 cmake ..
+cmake .. 
 make
 ```
+
+Notice that cmake is indeed called *twice*, we have noticed that on some machines the compiler optimisation is activated only when you cmake twice.
+Why that is we are not sure, but to be sure do it twice.
+With the optimisation, the test dataset should take around 20s to produce; if more (>5min) then the optimisation is not activated properly.
 
 The dependencies that are necessary (under Mac we suggest using [Homebrew](http://brew.sh)):
 
