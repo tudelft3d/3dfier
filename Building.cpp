@@ -201,6 +201,58 @@ std::string Building::get_citygml() {
 }
 
 
+std::string Building::get_citygml_imgeo() {
+  float h = z_to_float(this->get_height());
+  float hbase = z_to_float(this->get_height_base());
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<bldg:BuildingPart gml:id=\"" << this->get_id() << "\">" << std::endl;
+  //-- IMGeo ADE
+//  ss << "<creationDate>" /*<< creationdate*/ << "0001-01-01" << "</creationDate>" << std::endl;
+  ss << "<imgeo:identificatie>" << std::endl;
+  ss << "<imgeo:NEN3610ID>" << std::endl;
+  ss << "<imgeo:namespace>NL.IMGeo</imgeo:namespace>" << std::endl;
+  ss << "<imgeo:lokaalID>" /*<< lokaalid*/ << this->get_id() << "</imgeo:lokaalID>" << std::endl;
+  ss << "</imgeo:NEN3610ID>" << std::endl;
+  ss << "</imgeo:identificatie>" << std::endl;
+  ss << "<imgeo:tijdstipRegistratie>" /*<< tijstipregistratie*/ << "0001-01-01T00:00:00" << "</imgeo:tijdstipRegistratie>" << std::endl;
+  ss << "<imgeo:bronhouder>" /*<< bronhouder*/ << "0" << "</imgeo:bronhouder>" << std::endl;
+  ss << "<imgeo:inOnderzoek>" /*<< inonderzoek*/ << "0" << "</imgeo:inOnderzoek>" << std::endl;
+  ss << "<imgeo:relatieveHoogteligging>" /*<< relatievehoogteligging*/ << "0" << "</imgeo:relatieveHoogteligging>" << std::endl;
+  ss << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" /*<< bgtstatus*/ << "bestaand" << "</imgeo:bgt-status>" << std::endl;
+  ss << "<imgeo:identificatieBAGPND>" /*<< bagpnd*/ << "0" << "</imgeo:identificatieBAGPND>" << std::endl;
+  //-- LOD1 Solid
+  ss << "<bldg:lod1Solid>" << std::endl;
+  ss << "<gml:Solid>" << std::endl;
+  ss << "<gml:exterior>" << std::endl;
+  ss << "<gml:CompositeSurface>" << std::endl;
+  //-- get floor
+  ss << get_polygon_lifted_gml(this->_p2, hbase, false);
+  //-- get roof
+  ss << get_polygon_lifted_gml(this->_p2, h, true);
+  //-- get the walls
+  auto r = bg::exterior_ring(*(this->_p2));
+  int i;
+  for (i = 0; i < (r.size() - 1); i++)
+    ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
+  ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
+  //-- irings
+  auto irings = bg::interior_rings(*(this->_p2));
+  for (Ring2& r : irings) {
+    for (i = 0; i < (r.size() - 1); i++)
+      ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
+    ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
+  }
+  ss << "</gml:CompositeSurface>" << std::endl;
+  ss << "</gml:exterior>" << std::endl;
+  ss << "</gml:Solid>" << std::endl;
+  ss << "</bldg:lod1Solid>" << std::endl;
+  ss << "</bldg:BuildingPart>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
+}
+
+
 bool Building::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Building");
 }

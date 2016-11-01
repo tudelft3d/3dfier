@@ -101,6 +101,11 @@ std::string Terrain::get_citygml() {
 }
 
 
+std::string Terrain::get_citygml_imgeo() {
+  return get_citygml();
+}
+
+
 bool Terrain::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Terrain");
 }

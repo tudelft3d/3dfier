@@ -90,6 +90,11 @@ std::string Separation::get_citygml() {
 }
 
 
+std::string Separation::get_citygml_imgeo() {
+  return get_citygml();
+}
+
+
 bool Separation::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Separation");
 }

@@ -45,6 +45,7 @@ public:
   virtual bool          buildCDT();
   virtual bool          add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) = 0;
   virtual std::string   get_citygml() = 0;
+  virtual std::string   get_citygml_imgeo() = 0;
   virtual std::string   get_mtl() = 0;
   virtual bool          get_shape(OGRLayer*) = 0;
   virtual int           get_number_vertices() = 0;

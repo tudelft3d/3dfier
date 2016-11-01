@@ -160,6 +160,29 @@ std::string Map3d::get_citygml() {
   return ss.str();
 }
 
+std::string Map3d::get_citygml_imgeo() {
+  std::stringstream ss;
+  ss << std::setprecision(3) << std::fixed;
+  ss << get_xml_header() << std::endl;
+  ss << get_citygml_imgeo_namespaces() << std::endl;
+  ss << "<gml:name>my 3dfied map</gml:name>" << std::endl;
+  ss << "<gml:boundedBy>" << std::endl;
+  ss << "<gml:Envelope srsDimension=\"3\" srsName=\"urn:ogc:def:crs:EPSG::7415\">" << std::endl;
+  ss << "<gml:lowerCorner>";
+  ss << bg::get<bg::min_corner, 0>(_bbox) << " " << bg::get<bg::min_corner, 1>(_bbox) << " 0";
+  ss << "</gml:lowerCorner>" << std::endl;
+  ss << "<gml:upperCorner>";
+  ss << bg::get<bg::max_corner, 0>(_bbox) << " " << bg::get<bg::max_corner, 1>(_bbox) << " 100";
+  ss << "</gml:upperCorner>" << std::endl;
+  ss << "</gml:Envelope>" << std::endl;
+  ss << "</gml:boundedBy>" << std::endl;
+  for (auto& f : _lsFeatures) {
+    ss << f->get_citygml_imgeo();
+  }
+  ss << "</CityModel>" << std::endl;
+  return ss.str();
+}
+
 std::string Map3d::get_csv_buildings() {
   std::stringstream ss;
   ss << "id;roof;floor" << std::endl;

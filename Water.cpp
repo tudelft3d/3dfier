@@ -89,6 +89,11 @@ std::string Water::get_citygml() {
 }
 
 
+std::string Water::get_citygml_imgeo() {
+  return get_citygml();
+}
+
+
 bool Water::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Water");
 }

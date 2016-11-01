@@ -98,6 +98,11 @@ std::string Forest::get_citygml() {
 }
 
 
+std::string Forest::get_citygml_imgeo() {
+  return get_citygml();
+}
+
+
 std::string Forest::get_mtl() {
   return "usemtl Forest\n";
 }
