@@ -11,9 +11,7 @@ Every polygon is triangulated (constrained Delaunay triangulation) and the lifte
 Our aim is to obtain one DSM that is error-free, i.e. no intersecting triangles, no holes (the surface is watertight), where buildings are integrated in the surface, etc.
 This surface will then be used as input in simulation software for instance.
 
-The following <a href="https://vimeo.com/181421237">video</a> illustrates the process and what 3dfier is about:
-
-<iframe src="https://player.vimeo.com/video/181421237" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+<a href="https://vimeo.com/181421237">This video</a> illustrates the process and what 3dfier is about.
 
 The lifting options can be configured in the YAML file (`myconfig.yml`) provided.
 Any 2D input (which should be a planar partition) can be used as input, and each class must be mapped to one of the following:
