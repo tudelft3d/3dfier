@@ -46,7 +46,7 @@ bool Forest::lift() {
 
 bool Forest::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   bool toadd = false;
-  if (lastreturn && ((_use_ground_points_only && lasclass == LAS_GROUND) || (_use_ground_points_only == false && (lasclass != LAS_GROUND && lasclass != LAS_BUILDING)))) {
+  if (lastreturn && ((_use_ground_points_only && lasclass == LAS_GROUND) || (_use_ground_points_only == false && lasclass != LAS_BUILDING))) {
     assign_elevation_to_vertex(x, y, z, radius);
     if (_simplification <= 1)
       toadd = true;
