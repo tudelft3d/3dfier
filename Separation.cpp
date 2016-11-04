@@ -91,7 +91,23 @@ std::string Separation::get_citygml() {
 
 
 std::string Separation::get_citygml_imgeo() {
-  return get_citygml();
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<gen:GenericCityObject gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << get_imgeo_object_info(this->get_id());
+  ss << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOverigeConstructie\">" /*<< plus-fysiekVoorkomen*/ << "0" << "</imgeo:plus-fysiekVoorkomen>" << std::endl;
+  ss << "<gen:lod1Geometry>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles)
+    ss << get_triangle_as_gml_surfacemember(t);
+  for (auto& t : _triangles_vw)
+    ss << get_triangle_as_gml_surfacemember(t, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</gen:lod1Geometry>" << std::endl;
+  ss << "</gen:GenericCityObject>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
 }
 
 

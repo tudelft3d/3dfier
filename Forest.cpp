@@ -46,7 +46,7 @@ bool Forest::lift() {
 
 bool Forest::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   bool toadd = false;
-  if (lastreturn && ((_use_ground_points_only && lasclass == LAS_GROUND) || (_use_ground_points_only == false && (lasclass != LAS_GROUND && lasclass != LAS_BUILDING)))) {
+  if (lastreturn && ((_use_ground_points_only && lasclass == LAS_GROUND) || (_use_ground_points_only == false && lasclass != LAS_BUILDING))) {
     assign_elevation_to_vertex(x, y, z, radius);
     if (_simplification <= 1)
       toadd = true;
@@ -99,7 +99,25 @@ std::string Forest::get_citygml() {
 
 
 std::string Forest::get_citygml_imgeo() {
-  return get_citygml();
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << get_imgeo_object_info(this->get_id());
+  ss << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" /*<< FysiekVoorkomenBegroeidTerrein*/ "x" << "</veg:class>" << std::endl;
+  ss << "<imgeo:begroeidTerreindeelOpTalud>" /*<< begroeidTerreindeelOpTalud*/ << "0" << "</imgeo:begroeidTerreindeelOpTalud>" << std::endl;
+  ss << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" /*<< plus-fysiekVoorkomen*/ << "0" << "</imgeo:plus-fysiekVoorkomen>" << std::endl;
+  ss << "<imgeo:lod0MultiSurfaceBegroeidTerreindeel>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles)
+    ss << get_triangle_as_gml_surfacemember(t);
+  for (auto& t : _triangles_vw)
+    ss << get_triangle_as_gml_surfacemember(t, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</imgeo:lod0MultiSurfaceBegroeidTerreindeel>" << std::endl;
+  ss << "</veg:PlantCover>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
 }
 
 

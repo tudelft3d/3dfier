@@ -206,21 +206,13 @@ std::string Building::get_citygml_imgeo() {
   float hbase = z_to_float(this->get_height_base());
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<bldg:BuildingPart gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << "<bldg:Building gml:id=\"" << this->get_id() << "\">" << std::endl;
   //-- IMGeo ADE
-//  ss << "<creationDate>" /*<< creationdate*/ << "0001-01-01" << "</creationDate>" << std::endl;
-  ss << "<imgeo:identificatie>" << std::endl;
-  ss << "<imgeo:NEN3610ID>" << std::endl;
-  ss << "<imgeo:namespace>NL.IMGeo</imgeo:namespace>" << std::endl;
-  ss << "<imgeo:lokaalID>" /*<< lokaalid*/ << this->get_id() << "</imgeo:lokaalID>" << std::endl;
-  ss << "</imgeo:NEN3610ID>" << std::endl;
-  ss << "</imgeo:identificatie>" << std::endl;
-  ss << "<imgeo:tijdstipRegistratie>" /*<< tijstipregistratie*/ << "0001-01-01T00:00:00" << "</imgeo:tijdstipRegistratie>" << std::endl;
-  ss << "<imgeo:bronhouder>" /*<< bronhouder*/ << "0" << "</imgeo:bronhouder>" << std::endl;
-  ss << "<imgeo:inOnderzoek>" /*<< inonderzoek*/ << "0" << "</imgeo:inOnderzoek>" << std::endl;
-  ss << "<imgeo:relatieveHoogteligging>" /*<< relatievehoogteligging*/ << "0" << "</imgeo:relatieveHoogteligging>" << std::endl;
+  //ss << "<creationDate>" /*<< creationdate*/ << "0001-01-01" << "</creationDate>" << std::endl;
+  ss << get_imgeo_object_info(this->get_id());
   ss << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" /*<< bgtstatus*/ << "bestaand" << "</imgeo:bgt-status>" << std::endl;
-  ss << "<imgeo:identificatieBAGPND>" /*<< bagpnd*/ << "0" << "</imgeo:identificatieBAGPND>" << std::endl;
+  // Todo: fix the identificatieBAGPND to be valid in the schema
+  //ss << "<imgeo:identificatieBAGPND>" /*<< bagpnd*/ << "0" << "</imgeo:identificatieBAGPND>" << std::endl;
   //-- LOD1 Solid
   ss << "<bldg:lod1Solid>" << std::endl;
   ss << "<gml:Solid>" << std::endl;
@@ -247,7 +239,7 @@ std::string Building::get_citygml_imgeo() {
   ss << "</gml:exterior>" << std::endl;
   ss << "</gml:Solid>" << std::endl;
   ss << "</bldg:lod1Solid>" << std::endl;
-  ss << "</bldg:BuildingPart>" << std::endl;
+  ss << "</bldg:Building>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }

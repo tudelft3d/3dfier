@@ -89,7 +89,25 @@ std::string Road::get_citygml() {
 
 
 std::string Road::get_citygml_imgeo() {
-  return get_citygml();
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<tran:Road gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << "<tra:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWeg\">" /*<< FunctieWeg*/ "x" << "</tra:function>" << std::endl;
+  ss << "<tra:surfaceMaterial codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWeg\">" /*<< FysiekVoorkomenWeg*/ "x" << "</tra:surfaceMaterial>" << std::endl;
+  ss << "<imgeo:wegdeelOpTalud>" /*<< wegdeelOpTalud*/ "0" << "</imgeo:wegdeelOpTalud>" << std::endl;
+  ss << "<imgeo:plus-fysiekVoorkomenWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWegPlus\">" /*<< FysiekVoorkomenWegPlus*/ "x" << "</imgeo:plus-fysiekVoorkomenWegdeel>" << std::endl;
+  ss << "<imgeo:lod0SurfaceWegdeel>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles)
+    ss << get_triangle_as_gml_surfacemember(t);
+  for (auto& t : _triangles_vw)
+    ss << get_triangle_as_gml_surfacemember(t, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</imgeo:lod0SurfaceWegdeel>" << std::endl;
+  ss << "</tran:Road>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
 }
 
 

@@ -159,6 +159,31 @@ std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long 
   return ss.str();
 }
 
+std::string TopoFeature::get_imgeo_object_info(std::string id) {
+  std::stringstream ss;
+  ss << "<imgeo:identificatie>" << std::endl;
+  ss << "<imgeo:NEN3610ID>" << std::endl;
+  ss << "<imgeo:namespace>NL.IMGeo</imgeo:namespace>" << std::endl;
+  ss << "<imgeo:lokaalID>" /*<< lokaalid*/ << id << "</imgeo:lokaalID>" << std::endl;
+  ss << "</imgeo:NEN3610ID>" << std::endl;
+  ss << "</imgeo:identificatie>" << std::endl;
+  ss << "<imgeo:tijdstipRegistratie>" /*<< tijstipregistratie*/ << "0001-01-01T00:00:00" << "</imgeo:tijdstipRegistratie>" << std::endl;
+  if (true /*eindRegistratie*/) {
+    ss << "<imgeo:eindRegistratie>" /*<< eindRegistratie*/ << "0001-01-01T00:00:00" << "</imgeo:eindRegistratie>" << std::endl;
+  }
+  if (true /*LV-publicatiedatum*/) {
+    ss << "<imgeo:LV-publicatiedatum>" /*<< LV-publicatiedatum*/ << "0001-01-01T00:00:00" << "</imgeo:LV-publicatiedatum>" << std::endl;
+  }
+  ss << "<imgeo:bronhouder>" /*<< bronhouder*/ << "0" << "</imgeo:bronhouder>" << std::endl;
+  ss << "<imgeo:inOnderzoek>" /*<< inonderzoek*/ << "0" << "</imgeo:inOnderzoek>" << std::endl;
+  ss << "<imgeo:relatieveHoogteligging>" /*<< relatievehoogteligging*/ << "0" << "</imgeo:relatieveHoogteligging>" << std::endl;
+  ss << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" /*<< bgtstatus*/ << "bestaand" << "</imgeo:bgt-status>" << std::endl;
+  if (true /*plus-status*/) {
+    ss << "<imgeo:plus-status>" /*<< plus-status*/ << "0001-01-01T00:00:00" << "</imgeo:plus-status>" << std::endl;
+  }
+  return ss.str();
+}
+
 
 // std::string TopoFeature::get_obj_v(int z_exaggeration) {
 //   std::string obj;
