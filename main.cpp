@@ -285,7 +285,7 @@ int main(int argc, const char * argv[]) {
   }
   else if (n["format"].as<std::string>() == "OBJ") {
     std::clog << "OBJ output" << std::endl;
-    std::cout << map3d.get_obj_per_feature(z_exaggeration) << std::endl;
+    map3d.get_obj_per_feature(z_exaggeration);
   }
   else if (n["format"].as<std::string>() == "OBJ-NoID") {
     std::clog << "OBJ (without IDs) output" << std::endl;

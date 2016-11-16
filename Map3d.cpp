@@ -26,7 +26,6 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-
 #include "Map3d.h"
 #include "io.h"
 #include "boost/locale.hpp"
@@ -175,7 +174,7 @@ std::string Map3d::get_csv_buildings() {
 }
 
 
-std::string Map3d::get_obj_per_feature(int z_exaggeration) {
+void Map3d::get_obj_per_feature(int z_exaggeration) {  
   std::unordered_map< std::string, unsigned long > dPts;
   std::stringstream ssf;
   for (auto& p : _lsFeatures) {
@@ -189,23 +188,19 @@ std::string Map3d::get_obj_per_feature(int z_exaggeration) {
       ssf << p->get_obj(dPts);
     }
   }
+
   //-- sort the points in the map: simpler to copy to a vector
   std::vector<std::string> thepts;
   thepts.resize(dPts.size());
   for (auto& p : dPts) 
     thepts[p.second - 1] = p.first;
-  std::stringstream ss;
-  ss << "mtllib ./3dfier.mtl" << std::endl;
-  ss << std::setprecision(3) << std::fixed;
+  dPts.clear();
+
+  std::cout << "mtllib ./3dfier.mtl" << std::endl;
   for (auto& p : thepts) {
-    ss << "v ";
-    ss << (std::stof(p.substr(0, p.find_first_of("/")))) / 100 << " ";
-    ss << (std::stof(p.substr(p.find_first_of("/") + 1, p.find_last_of("/")))) / 100 << " ";
-    ss << (std::stof(p.substr(p.find_last_of("/") + 1))) / 100 << std::endl;
+    std::cout << "v " << p << std::endl;
   }
-  ss << ssf.str();
-  //-- TODO: floor for buildings
-  return ss.str();
+  std::cout << ssf.str() << std::endl;
 }
 
 

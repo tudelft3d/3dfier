@@ -66,7 +66,7 @@ public:
   
   std::string get_citygml();
   std::string get_csv_buildings();
-  std::string get_obj_per_feature(int z_exaggeration = 0);
+  void get_obj_per_feature(int z_exaggeration = 0);
   std::string get_obj_per_class(int z_exaggeration = 0);
   bool        get_shapefile(std::string filename);
      
