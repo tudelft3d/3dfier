@@ -324,14 +324,11 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
     else {
       radius = _radius_vertex_elevation;
     }
-
-    if (bg::distance(p, *(f->get_Polygon2())) < radius) {
-      f->add_elevation_point(p,
-        laspt.GetZ(),
-        radius,
-        lasclass,
-        (laspt.GetReturnNumber() == laspt.GetNumberOfReturns()));
-    }
+    f->add_elevation_point(p,
+      laspt.GetZ(),
+      radius,
+      lasclass,
+      (laspt.GetReturnNumber() == laspt.GetNumberOfReturns()));
   }
 }
 

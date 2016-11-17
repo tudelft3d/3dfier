@@ -925,11 +925,13 @@ int Flat::get_height() {
 
 
 bool Flat::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  int zcm = int(z * 100);
-  //-- 1. assign to polygon since within the threshold value (buffering of polygon)
-  _zvaluesinside.push_back(zcm);
-  //-- 2. add to the vertices of the pgn to find their heights
-  assign_elevation_to_vertex(p, z, radius);
+  if (bg::distance(p, *(_p2)) <= radius) {
+    int zcm = int(z * 100);
+    //-- 1. assign to polygon since within the threshold value (buffering of polygon)
+    _zvaluesinside.push_back(zcm);
+    //-- 2. add to the vertices of the pgn to find their heights
+    assign_elevation_to_vertex(p, z, radius);
+  }
   return true;
 }
 
@@ -951,7 +953,9 @@ int Boundary3D::get_number_vertices() {
 
 
 bool Boundary3D::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  assign_elevation_to_vertex(p, z, radius);
+  if (bg::distance(p, *(_p2)) <= radius) {
+    assign_elevation_to_vertex(p, z, radius);
+  }
   return true;
 }
 

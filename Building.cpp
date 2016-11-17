@@ -64,12 +64,12 @@ bool Building::lift() {
 
 bool Building::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn) {
-    int zcm = int(z * 100);
-    //-- 1. Save the ground points seperate for base height
-    if (lasclass == LAS_GROUND || lasclass == LAS_WATER) {
-      _zvaluesground.push_back(zcm);
-    }
     if (bg::distance(p, *(_p2)) <= radius) {
+      int zcm = int(z * 100);
+      //-- 1. Save the ground points seperate for base height
+      if (lasclass == LAS_GROUND || lasclass == LAS_WATER) {
+        _zvaluesground.push_back(zcm);
+      }
       //-- 2. assign to polygon since within
       _zvaluesinside.push_back(zcm);
     }
