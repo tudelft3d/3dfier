@@ -115,24 +115,24 @@ std::string Building::get_obj(std::unordered_map< std::string, unsigned long > &
       int z = this->get_height_base();
       auto it = dPts.find(gen_key_bucket(&_vertices[t.v0], z));
       if (it == dPts.end()) {
-        dPts[gen_key_bucket(&_vertices[t.v0], z)] = (dPts.size() + 1); 
-        a = dPts.size();
+        a = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v0], z)] = a;
       }
       else {
         a = it->second;
       }
       it = dPts.find(gen_key_bucket(&_vertices[t.v1], z));
       if (it == dPts.end()) {
-        dPts[gen_key_bucket(&_vertices[t.v1], z)] = (dPts.size() + 1); 
-        b = dPts.size();
+        b = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v1], z)] = b;
       }
       else {
         b = it->second;
       }
       it = dPts.find(gen_key_bucket(&_vertices[t.v2], z));
       if (it == dPts.end()) {
-        dPts[gen_key_bucket(&_vertices[t.v2], z)] = (dPts.size() + 1); 
-        c = dPts.size();
+        c = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v2], z)] = c;
       }
       else {
         c = it->second;

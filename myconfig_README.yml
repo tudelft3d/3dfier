@@ -23,6 +23,7 @@ lifting_options:                                        # Group for class liftin
     height_roof: percentile-90                          # Percentile of points within radius of building vertices for roof height lifting, building_radius_vertex_elevation is defined in options
     height_floor: percentile-10                         # Percentile of points within radius of building vertices for floor height lifting
     triangulate: true                                   # Triangulate building faces | false; create polygons | true; triangulate polygons
+    lod: 1                                              # Define the Level Of Detail for Buildings (0 and 1 possible)
   Water:                                                # Class definition for Water
     height: percentile-10                               # Percentile of points within radius of water vertices for lifting, radius_vertex_elevation is defined in options
   Road:
