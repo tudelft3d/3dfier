@@ -116,7 +116,7 @@ std::string Building::get_obj(std::unordered_map< std::string, unsigned long > &
       auto it = dPts.find(gen_key_bucket(&_vertices[t.v0], z));
       if (it == dPts.end()) {
         a = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v0], z)] = a; 
+        dPts[gen_key_bucket(&_vertices[t.v0], z)] = a;
       }
       else {
         a = it->second;
@@ -124,7 +124,7 @@ std::string Building::get_obj(std::unordered_map< std::string, unsigned long > &
       it = dPts.find(gen_key_bucket(&_vertices[t.v1], z));
       if (it == dPts.end()) {
         b = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v1], z)] = b; 
+        dPts[gen_key_bucket(&_vertices[t.v1], z)] = b;
       }
       else {
         b = it->second;
@@ -132,7 +132,7 @@ std::string Building::get_obj(std::unordered_map< std::string, unsigned long > &
       it = dPts.find(gen_key_bucket(&_vertices[t.v2], z));
       if (it == dPts.end()) {
         c = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v2], z)] = c; 
+        dPts[gen_key_bucket(&_vertices[t.v2], z)] = c;
       }
       else {
         c = it->second;

@@ -509,7 +509,6 @@ bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& 
   double threshold = 0.001;
   std::vector<int> ringis, pis;
   Point2 tmp;
-  int nextpi;
   if (this->has_point2_(a, ringis, pis) == true) {
     for (int k = 0; k < ringis.size(); k++) {
       // nextpi = pis[k];
@@ -814,7 +813,6 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
   //--    assign them the avg
   ringi = 0;
   oring = bg::exterior_ring(*(_p2));
-  int pi;
   for (int i = 0; i < oring.size(); i++) {
     if (_p2z[ringi][i] == -9999)
       _p2z[ringi][i] = avgheight;
