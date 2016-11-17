@@ -37,7 +37,7 @@ class Separation : public Flat
 public:
               Separation(char *wkt, std::string pid, float heightref);
   bool        lift();
-  bool        add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  bool        add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   std::string get_citygml();
   std::string get_mtl();
   bool        get_shape(OGRLayer * layer);

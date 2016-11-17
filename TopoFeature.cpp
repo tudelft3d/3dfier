@@ -665,8 +665,7 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
 
 //-- used to collect all LiDAR points linked to the polygon
 //-- later all these values are used to lift the polygon (and put values in _p2z)
-bool TopoFeature::assign_elevation_to_vertex(double x, double y, double z, float radius) {
-  Point2 p(x, y);
+bool TopoFeature::assign_elevation_to_vertex(Point2 p, double z, float radius) {
   int zcm = int(z * 100);
   int ringi = 0;
   Ring2 oring = bg::exterior_ring(*(_p2));
@@ -925,12 +924,12 @@ int Flat::get_height() {
 // }
 
 
-bool Flat::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool Flat::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   int zcm = int(z * 100);
   //-- 1. assign to polygon since within the threshold value (buffering of polygon)
   _zvaluesinside.push_back(zcm);
   //-- 2. add to the vertices of the pgn to find their heights
-  assign_elevation_to_vertex(x, y, z, radius);
+  assign_elevation_to_vertex(p, z, radius);
   return true;
 }
 
@@ -951,8 +950,8 @@ int Boundary3D::get_number_vertices() {
 }
 
 
-bool Boundary3D::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  assign_elevation_to_vertex(x, y, z, radius);
+bool Boundary3D::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+  assign_elevation_to_vertex(p, z, radius);
   return true;
 }
 
@@ -1026,7 +1025,7 @@ int TIN::get_number_vertices() {
 }
 
 
-// bool TIN::add_elevation_point(double x, double y, double z, float radius, bool lastreturn) {
+// bool TIN::add_elevation_point(Point2 p, double z, float radius, bool lastreturn) {
 //   bool toadd = false;
 //   float distance = 4.0;
 //   if (_simplification <= 1)
@@ -1039,7 +1038,6 @@ int TIN::get_number_vertices() {
 //       toadd = true;
 //   }
 //   if (toadd == true) {
-//     Point2 p(x, y);
 //     if ( (bg::within(p, *(_p2)) == true) && (this->get_distance_to_boundaries(p) > (radius * 1.5)) ) 
 //       _lidarpts.push_back(Point3(x, y, z));
 //   }

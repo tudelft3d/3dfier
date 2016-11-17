@@ -326,8 +326,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
     }
 
     if (bg::distance(p, *(f->get_Polygon2())) < radius) {
-      f->add_elevation_point(laspt.GetX(),
-        laspt.GetY(),
+      f->add_elevation_point(p,
         laspt.GetZ(),
         radius,
         lasclass,

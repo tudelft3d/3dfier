@@ -46,9 +46,9 @@ bool Road::lift() {
 }
 
 
-bool Road::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool Road::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn == true && lasclass == LAS_GROUND)
-    assign_elevation_to_vertex(x, y, z, radius);
+    assign_elevation_to_vertex(p, z, radius);
   return true;
 }
 

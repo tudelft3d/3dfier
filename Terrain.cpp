@@ -44,10 +44,10 @@ bool Terrain::lift() {
 }
 
 
-bool Terrain::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool Terrain::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   bool toadd = false;
   if (lastreturn && lasclass == LAS_GROUND) {
-    assign_elevation_to_vertex(x, y, z, radius);
+    assign_elevation_to_vertex(p, z, radius);
     if (_simplification <= 1)
       toadd = true;
     else {
@@ -57,10 +57,9 @@ bool Terrain::add_elevation_point(double x, double y, double z, float radius, LA
       if (dis(gen) == 1)
         toadd = true;
     }
-    Point2 p(x, y);
     // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
     if (toadd && bg::within(p, *(_p2)) && (_innerbuffer == 0.0 || this->get_distance_to_boundaries(p) > _innerbuffer)) {
-      _lidarpts.push_back(Point3(x, y, z));
+      _lidarpts.push_back(Point3(p.x(), p.y(), z));
     }
   }
   return toadd;
