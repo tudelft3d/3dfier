@@ -929,8 +929,6 @@ bool Flat::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasc
     int zcm = int(z * 100);
     //-- 1. assign to polygon since within the threshold value (buffering of polygon)
     _zvaluesinside.push_back(zcm);
-    //-- 2. add to the vertices of the pgn to find their heights
-    assign_elevation_to_vertex(p, z, radius);
   }
   return true;
 }

@@ -46,12 +46,15 @@ bool Water::lift() {
 }
 
 
-//bool Water::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-//  if (lastreturn == true && lasclass == LAS_WATER) {
-//    Flat::add_elevation_point(x, y, z, radius, lasclass, lastreturn);
-//  }
-//  return true;
-//}
+bool Water::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+  if (lastreturn == true && lasclass == LAS_WATER) {
+    if (bg::distance(p, *(_p2)) <= radius) {
+      int zcm = int(z * 100);
+      _zvaluesinside.push_back(zcm);
+    }
+  }
+  return true;
+}
 
 
 TopoClass Water::get_class() {
