@@ -41,7 +41,7 @@
 #include <chrono>
 
 
-std::string VERSION = "0.7.1";
+std::string VERSION = "0.7.2";
 
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
