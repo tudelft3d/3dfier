@@ -26,7 +26,6 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-
  
 #include "Water.h"
 #include "io.h"
@@ -48,10 +47,7 @@ bool Water::lift() {
 
 bool Water::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn == true && lasclass == LAS_WATER) {
-    if (bg::distance(p, *(_p2)) <= radius) {
-      int zcm = int(z * 100);
-      _zvaluesinside.push_back(zcm);
-    }
+    Flat::add_elevation_point(p, z, radius, lasclass, lastreturn);
   }
   return true;
 }

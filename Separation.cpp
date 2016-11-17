@@ -33,13 +33,11 @@
 float Separation::_heightref = 0.8;
 
 Separation::Separation(char *wkt, std::string pid, float heightref)
-  : Flat(wkt, pid)
-{
+  : Flat(wkt, pid) {
   _heightref = heightref;
 }
 
-bool Separation::lift()
-{
+bool Separation::lift() {
   lift_percentile(_heightref);
   return true;
 }
@@ -47,23 +45,18 @@ bool Separation::lift()
 
 bool Separation::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn == true && lasclass != LAS_BUILDING && lasclass != LAS_WATER) {
-    if (bg::distance(p, *(_p2)) <= radius) {
-      int zcm = int(z * 100);
-      _zvaluesinside.push_back(zcm);
-    }
+    Flat::add_elevation_point(p, z, radius, lasclass, lastreturn);
   }
   return true;
 }
 
 
-TopoClass Separation::get_class()
-{
+TopoClass Separation::get_class() {
   return SEPARATION;
 }
 
 
-bool Separation::is_hard()
-{
+bool Separation::is_hard() {
   return true;
 }
 

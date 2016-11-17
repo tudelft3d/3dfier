@@ -152,7 +152,7 @@ public:
   virtual std::string get_citygml() = 0;
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;
-  virtual bool        add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) = 0;
+  bool                add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   int                 get_number_vertices();
   bool                buildCDT();
 protected:

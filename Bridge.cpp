@@ -49,10 +49,7 @@ bool Bridge::lift() {
 
 bool Bridge::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn == true && lasclass != LAS_BUILDING && lasclass != LAS_WATER) {
-    if (bg::distance(p, *(_p2)) <= radius) {
-      int zcm = int(z * 100);
-      _zvaluesinside.push_back(zcm);
-    }
+    Flat::add_elevation_point(p, z, radius, lasclass, lastreturn);
   }
   return true;
 }

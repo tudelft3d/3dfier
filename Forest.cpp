@@ -32,7 +32,8 @@
 
 bool Forest::_use_ground_points_only = false;
 
-Forest::Forest (char *wkt, std::string pid, int simplification, float innerbuffer, bool ground_points_only) : TIN(wkt, pid, simplification, innerbuffer)
+Forest::Forest(char *wkt, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
+  : TIN(wkt, pid, simplification, innerbuffer)
 {
   _use_ground_points_only = ground_points_only;
 }
@@ -47,23 +48,7 @@ bool Forest::lift() {
 bool Forest::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   bool toadd = false;
   if (lastreturn && ((_use_ground_points_only && lasclass == LAS_GROUND) || (_use_ground_points_only == false && lasclass != LAS_BUILDING))) {
-    double distance = bg::distance(p, *(_p2));
-    if (distance <= radius) {
-      assign_elevation_to_vertex(p, z, radius);
-      if (_simplification <= 1)
-        toadd = true;
-      else {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<int> dis(1, _simplification);
-        if (dis(gen) == 1)
-          toadd = true;
-      }
-      // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
-      if (toadd && distance == 0.0 && (_innerbuffer == 0.0 || (distance > _innerbuffer && this->get_distance_to_boundaries(p) > _innerbuffer))) {
-        _lidarpts.push_back(Point3(p.x(), p.y(), z));
-      }
-    }
+    toadd = TIN::add_elevation_point(p, z, radius, lasclass, lastreturn);
   }
   return toadd;
 }

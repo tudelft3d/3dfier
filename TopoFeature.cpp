@@ -935,8 +935,6 @@ bool Flat::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasc
 
 
 
-
-
 //-------------------------------
 //-------------------------------
 
@@ -1027,27 +1025,24 @@ int TIN::get_number_vertices() {
 }
 
 
-// bool TIN::add_elevation_point(Point2 p, double z, float radius, bool lastreturn) {
-//   bool toadd = false;
-//   float distance = 4.0;
-//   if (_simplification <= 1)
-//     toadd = true;
-//   else {
-//     std::random_device rd;
-//     std::mt19937 gen(rd());
-//     std::uniform_int_distribution<int> dis(1, _simplification);
-//     if (dis(gen) == 1)
-//       toadd = true;
-//   }
-//   if (toadd == true) {
-//     if ( (bg::within(p, *(_p2)) == true) && (this->get_distance_to_boundaries(p) > (radius * 1.5)) ) 
-//       _lidarpts.push_back(Point3(x, y, z));
-//   }
-//   if (lastreturn == true)
-//     assign_elevation_to_vertex(x, y, z, radius);
-//   return toadd;
-// }
-
-
-
-
+bool TIN::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+  bool toadd = false;
+  double distance = bg::distance(p, *(_p2));
+  if (distance <= radius) {
+    assign_elevation_to_vertex(p, z, radius);
+    if (_simplification <= 1)
+      toadd = true;
+    else {
+      std::random_device rd;
+      std::mt19937 gen(rd());
+      std::uniform_int_distribution<int> dis(1, _simplification);
+      if (dis(gen) == 1)
+        toadd = true;
+    }
+    // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
+    if (toadd && distance == 0.0 && (_innerbuffer == 0.0 || (distance > _innerbuffer && this->get_distance_to_boundaries(p) > _innerbuffer))) {
+      _lidarpts.push_back(Point3(p.x(), p.y(), z));
+    }
+  }
+  return toadd;
+}
