@@ -98,22 +98,23 @@ std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long 
     unsigned long a, b, c;
     auto it = dPts.find(gen_key_bucket(&_vertices[t.v0]));
     if (it == dPts.end()) {
-      dPts[gen_key_bucket(&_vertices[t.v0])] = (dPts.size() + 1); 
-      a = dPts.size();
+      // first get the size + 1 and then store the size in dPts due to unspecified order of execution
+      a = dPts.size() + 1;
+      dPts[gen_key_bucket(&_vertices[t.v0])] = a;
     }
     else 
       a = it->second;
     it = dPts.find(gen_key_bucket(&_vertices[t.v1]));
     if (it == dPts.end()) {
-      dPts[gen_key_bucket(&_vertices[t.v1])] = (dPts.size() + 1);
-      b = dPts.size();
+      b = dPts.size() + 1;
+      dPts[gen_key_bucket(&_vertices[t.v1])] = b;
     }
     else 
       b = it->second;
     it = dPts.find(gen_key_bucket(&_vertices[t.v2]));
     if (it == dPts.end()) {
-      dPts[gen_key_bucket(&_vertices[t.v2])] = (dPts.size() + 1);
-      c = dPts.size();
+      c = dPts.size() + 1;
+      dPts[gen_key_bucket(&_vertices[t.v2])] = c;
     }
     else 
       c = it->second;
@@ -131,22 +132,22 @@ std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long 
     unsigned long a, b, c;
     auto it = dPts.find(gen_key_bucket(&_vertices_vw[t.v0]));
     if (it == dPts.end()) {
-      dPts[gen_key_bucket(&_vertices_vw[t.v0])] = (dPts.size() + 1); 
-      a = dPts.size();
+      a = dPts.size() + 1;
+      dPts[gen_key_bucket(&_vertices_vw[t.v0])] = a;
     }
     else 
       a = it->second;
     it = dPts.find(gen_key_bucket(&_vertices_vw[t.v1]));
     if (it == dPts.end()) {
-      dPts[gen_key_bucket(&_vertices_vw[t.v1])] = (dPts.size() + 1);
-      b = dPts.size();
+      b = dPts.size() + 1;
+      dPts[gen_key_bucket(&_vertices_vw[t.v1])] = b;
     }
     else 
       b = it->second;
     it = dPts.find(gen_key_bucket(&_vertices_vw[t.v2]));
     if (it == dPts.end()) {
-      dPts[gen_key_bucket(&_vertices_vw[t.v2])] = (dPts.size() + 1);
-      c = dPts.size();
+      c = dPts.size() + 1;
+      dPts[gen_key_bucket(&_vertices_vw[t.v2])] = c;
     }
     else 
       c = it->second;
@@ -552,7 +553,7 @@ float TopoFeature::get_distance_to_boundaries(Point2& p) {
       bg::set<0, 1>(s, bg::get<1>(a));
       bg::set<1, 0>(s, bg::get<0>(b));
       bg::set<1, 1>(s, bg::get<1>(b));
-      float d = boost::geometry::distance(p, s);
+      double d = boost::geometry::distance(p, s);
       if (d < dmin)
           dmin = d;
     }
