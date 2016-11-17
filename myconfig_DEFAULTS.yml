@@ -3,6 +3,7 @@ lifting_options:
     height_roof: percentile-90
     height_floor: percentile-10
     triangulate: true
+    lod: 1
   Water:
     height: percentile-10
   Road:
