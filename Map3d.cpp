@@ -133,7 +133,7 @@ Box2 Map3d::get_bbox() {
   return _bbox;
 }
 
-std::string Map3d::get_citygml() {
+void Map3d::get_citygml(std::ofstream &outputfile) {
   std::stringstream ss;
   ss << std::setprecision(3) << std::fixed;
   ss << get_xml_header() << std::endl;
@@ -150,27 +150,25 @@ std::string Map3d::get_citygml() {
   ss << "</gml:upperCorner>" << std::endl;
   ss << "</gml:Envelope>" << std::endl;
   ss << "</gml:boundedBy>" << std::endl;
+  outputfile << ss.str();
   for (auto& f : _lsFeatures) {
-    ss << f->get_citygml();
+    outputfile << f->get_citygml();
   }
-  ss << "</CityModel>" << std::endl;
-  return ss.str();
+  outputfile << "</CityModel>" << std::endl;
 }
 
-std::string Map3d::get_csv_buildings() {
-  std::stringstream ss;
-  ss << "id;roof;floor" << std::endl;
+void Map3d::get_csv_buildings(std::ofstream &outputfile) {
+  outputfile << "id;roof;floor" << std::endl;
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
       // if (b != nullptr)
-      ss << b->get_csv();
+      outputfile << b->get_csv();
     }
   }
-  return ss.str();
 }
 
-void Map3d::get_obj_per_feature(int z_exaggeration) {
+void Map3d::get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration) {
   std::unordered_map< std::string, unsigned long > dPts;
   std::stringstream ssf;
   for (auto& p : _lsFeatures) {
@@ -192,42 +190,43 @@ void Map3d::get_obj_per_feature(int z_exaggeration) {
     thepts[p.second - 1] = p.first;
   dPts.clear();
 
-  std::cout << "mtllib ./3dfier.mtl" << std::endl;
+  outputfile << "mtllib ./3dfier.mtl" << std::endl;
   for (auto& p : thepts) {
-    std::cout << "v " << p << std::endl;
+    outputfile << "v " << p << std::endl;
   }
-  std::cout << ssf.str() << std::endl;
+  outputfile << ssf.str() << std::endl;
 }
 
-std::string Map3d::get_obj_per_class(int z_exaggeration) {
-  // std::vector<int> offsets;
-  // offsets.push_back(0);
-  // std::stringstream ss;
-  // ss << "mtllib ./3dfier.mtl" << std::endl;
-  // //-- go class by class sequentially
-  // for (int c = 0; c < 6; c++) {
-  //   for (auto& p3 : _lsFeatures) {
-  //     if (p3->get_class() == c) {
-  //       ss << p3->get_obj_v(z_exaggeration);
-  //     }
-  //   }
-  // }
-  // for (int c = 0; c < 6; c++) {
-  //   ss << "o " << c << std::endl;
-  //   for (auto& p3 : _lsFeatures) {
-  //     if (p3->get_class() == c) {
-  //       ss << p3->get_mtl();
-  //       ss << p3->get_obj_f(vertices_map, _use_vertical_walls);
-  //       if (_building_include_floor == true) {
-  //         Building* b = dynamic_cast<Building*>(p3);
-  //         if (b != nullptr)
-  //           ss << b->get_obj_f_floor(offset);
-  //       }
-  //     }
-  //   }
-  // }
-  // return ss.str();
-  return "EMTPY"; // TODO: fix me
+void Map3d::get_obj_per_class(std::ofstream &outputfile, int z_exaggeration) {
+  std::unordered_map< std::string, unsigned long > dPts;
+  std::stringstream ssf;
+  for (int c = 0; c < 6; c++) {
+    for (auto& p : _lsFeatures) {
+      if (p->get_class() == c) {
+        ssf << p->get_mtl();
+        if (p->get_class() == BUILDING) {
+          Building* b = dynamic_cast<Building*>(p);
+          ssf << b->get_obj(dPts, _building_lod);
+        }
+        else {
+          ssf << p->get_obj(dPts);
+        }
+      }
+    }
+  }
+
+  //-- sort the points in the map: simpler to copy to a vector
+  std::vector<std::string> thepts;
+  thepts.resize(dPts.size());
+  for (auto& p : dPts)
+    thepts[p.second - 1] = p.first;
+  dPts.clear();
+
+  outputfile << "mtllib ./3dfier.mtl" << std::endl;
+  for (auto& p : thepts) {
+    outputfile << "v " << p << std::endl;
+  }
+  outputfile << ssf.str() << std::endl;
 }
 
 bool Map3d::get_shapefile(std::string filename) {

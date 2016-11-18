@@ -60,11 +60,11 @@ public:
   const std::vector<TopoFeature*>&  get_polygons3d();
   Box2 get_bbox();
 
-  std::string   get_citygml();
-  std::string   get_csv_buildings();
-  void          get_obj_per_feature(int z_exaggeration = 0);
-  std::string   get_obj_per_class(int z_exaggeration = 0);
-  bool          get_shapefile(std::string filename);
+  void get_citygml(std::ofstream &outputfile);
+  void get_csv_buildings(std::ofstream &outputfile);
+  void get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration = 0);
+  void get_obj_per_class(std::ofstream &outputfile, int z_exaggeration = 0);
+  bool get_shapefile(std::string filename);
 
   void set_building_heightref_roof(float heightref);
   void set_building_heightref_floor(float heightref);

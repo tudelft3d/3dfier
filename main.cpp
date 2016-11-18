@@ -40,14 +40,10 @@
 #include "boost/locale.hpp"
 #include <chrono>
 
-
-std::string VERSION = "0.7.2";
-
+std::string VERSION = "0.8";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 void print_license();
-
-
 
 int main(int argc, const char * argv[]) {
   auto startTime = std::chrono::high_resolution_clock::now();
@@ -62,31 +58,31 @@ int main(int argc, const char * argv[]) {
     "This is free software, and you are welcome to redistribute it\n"
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
 
+  std::string filename;
+
+  //-- reading the config file
   if (argc == 1) {
     std::clog << licensewarning << std::endl;
-    std::cout << "Usage: 3dfier config.yml > myoutput.obj" << std::endl;
+    std::clog << "Usage: 3dfier config.yml > myoutput.obj" << std::endl;
     return 0;
   }
-  //-- reading the config file
-  if (argc > 2) {
-    std::cerr << "ERROR: the config file (*.yml) is not defined." << std::endl;
-    return 0;
-  }
-  //-- license
-  if (argc == 2) {
+  else if (argc == 2) {
     std::string s = argv[1];
     if (s == "--license") {
       print_license();
       return 0;
     }
-  }
-  //-- version
-  if (argc == 2) {
-    std::string s = argv[1];
     if (s == "--version") {
       std::clog << "3dfier " << VERSION << std::endl;
       return 0;
     }
+  }
+  else if (argc == 3) {
+    filename = argv[2];
+  }
+  else {
+    std::cerr << "Usage: 3dfier config.yml output-filename" << std::endl;
+    return 0;
   }
 
   std::clog << licensewarning << std::endl;
@@ -265,10 +261,11 @@ int main(int argc, const char * argv[]) {
   }
 
   n = nodes["output"];
+  std::string format = n["format"].as<std::string>();
   std::clog << "Lifting all input polygons to 3D..." << std::endl;
-  if (n["format"].as<std::string>() == "CSV-BUILDINGS")
+  if (format == "CSV-BUILDINGS")
     map3d.threeDfy(false);
-  else if (n["format"].as<std::string>() == "OBJ-BUILDINGS") {
+  else if (format == "OBJ-BUILDINGS") {
     map3d.threeDfy(false);
     map3d.construct_CDT();
   }
@@ -285,25 +282,29 @@ int main(int argc, const char * argv[]) {
   int z_exaggeration = 0;
   if (n["vertical_exaggeration"])
     z_exaggeration = n["vertical_exaggeration"].as<int>();
-  if (n["format"].as<std::string>() == "CityGML") {
+
+  std::ofstream outputfile;
+  if (format != "Shapefile")
+    outputfile.open(filename);
+
+  if (format == "CityGML") {
     std::clog << "CityGML output" << std::endl;
-    std::cout << map3d.get_citygml() << std::endl;
+    map3d.get_citygml(outputfile);
   }
-  else if (n["format"].as<std::string>() == "OBJ") {
+  else if (format == "OBJ") {
     std::clog << "OBJ output" << std::endl;
-    map3d.get_obj_per_feature(z_exaggeration);
+    map3d.get_obj_per_feature(outputfile, z_exaggeration);
   }
-  else if (n["format"].as<std::string>() == "OBJ-NoID") {
+  else if (format == "OBJ-NoID") {
     std::clog << "OBJ (without IDs) output" << std::endl;
-    std::cout << map3d.get_obj_per_class(z_exaggeration) << std::endl;
+    map3d.get_obj_per_class(outputfile, z_exaggeration);
   }
-  else if (n["format"].as<std::string>() == "CSV-BUILDINGS") {
+  else if (format == "CSV-BUILDINGS") {
     std::clog << "CSV output (only of the buildings)" << std::endl;
-    std::cout << map3d.get_csv_buildings() << std::endl;
+    map3d.get_csv_buildings(outputfile);
   }
-  else if (n["format"].as<std::string>() == "Shapefile") {
+  else if (format == "Shapefile") {
     std::clog << "Shapefile output" << std::endl;
-    std::string filename = n["filename"].as<std::string>();
     if (map3d.get_shapefile(filename)) {
       std::clog << "Shapefile written" << std::endl;
     }
@@ -313,6 +314,7 @@ int main(int argc, const char * argv[]) {
       return 0;
     }
   }
+  outputfile.close();
 
   //-- bye-bye
   long totalTime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - startTime).count();
@@ -503,17 +505,18 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
   }
   //-- 5. output
   n = nodes["output"];
-  if ((n["format"].as<std::string>() != "OBJ") &&
-      (n["format"].as<std::string>() != "OBJ-NoID") &&
-      (n["format"].as<std::string>() != "CityGML") &&
-      (n["format"].as<std::string>() != "OBJ-BUILDINGS") &&
-      (n["format"].as<std::string>() != "CSV-BUILDINGS") &&
-      (n["format"].as<std::string>() != "Shapefile")) {
+  std::string format = n["format"].as<std::string>();
+  if ((format != "OBJ") &&
+    (format != "OBJ-NoID") &&
+    (format != "CityGML") &&
+    (format != "OBJ-BUILDINGS") &&
+    (format != "CSV-BUILDINGS") &&
+    (format != "Shapefile")) {
     wentgood = false;
     std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CSV-BUILDINGS | Shapefile)" << std::endl;
   }
   //-- Shapefile type filename check
-  if (n["format"].as<std::string>() == "Shapefile" && !n["filename"]) {
+  if (format == "Shapefile" && !n["filename"]) {
     wentgood = false;
     std::cerr << "\tOption 'output.format' Shapefile needs an output.filename" << std::endl;
   }

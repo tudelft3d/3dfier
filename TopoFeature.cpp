@@ -56,7 +56,7 @@ TopoFeature::TopoFeature(char *wkt, std::string pid) {
 
 TopoFeature::~TopoFeature() {
   // TODO: clear memory properly
-  std::cout << "I am dead now." << std::endl;
+  std::clog << "I am dead now." << std::endl;
 }
 
 Box2 TopoFeature::get_bbox2d() {
