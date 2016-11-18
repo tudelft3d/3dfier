@@ -1,6 +1,6 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
-  
+
   Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
@@ -19,30 +19,31 @@
   along with 3difer.  If not, see <http://www.gnu.org/licenses/>.
 
   For any information or further details about the use of 3dfier, contact
-  Hugo Ledoux 
+  Hugo Ledoux
   <h.ledoux@tudelft.nl>
   Faculty of Architecture & the Built Environment
   Delft University of Technology
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-
 #include "Terrain.h"
 #include "io.h"
 #include <algorithm>
 
+Terrain::Terrain(char *wkt, std::string pid, int simplification, float innerbuffer)
+  : TIN(wkt, pid, simplification, innerbuffer) {}
 
-Terrain::Terrain (char *wkt, std::string pid, int simplification, float innerbuffer)
-: TIN(wkt, pid, simplification, innerbuffer)
-{}
-
-
-bool Terrain::lift() {
-  //-- lift vertices to their median of lidar points
-  TopoFeature::lift_each_boundary_vertices(0.5);
-  return true;
+TopoClass Terrain::get_class() {
+  return TERRAIN;
 }
 
+bool Terrain::is_hard() {
+  return false;
+}
+
+std::string Terrain::get_mtl() {
+  return "usemtl Terrain\n";
+}
 
 bool Terrain::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   bool toadd = false;
@@ -52,18 +53,10 @@ bool Terrain::add_elevation_point(Point2 p, double z, float radius, LAS14Class l
   return toadd;
 }
 
-
-std::string Terrain::get_mtl() {
-  return "usemtl Terrain\n";
-}
-
-
-TopoClass Terrain::get_class() {
-  return TERRAIN;
-}
-
-bool Terrain::is_hard() {
-  return false;
+bool Terrain::lift() {
+  //-- lift vertices to their median of lidar points
+  TopoFeature::lift_each_boundary_vertices(0.5);
+  return true;
 }
 
 std::string Terrain::get_citygml() {
@@ -86,8 +79,6 @@ std::string Terrain::get_citygml() {
   return ss.str();
 }
 
-
 bool Terrain::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Terrain");
 }
-

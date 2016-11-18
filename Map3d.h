@@ -1,6 +1,6 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
-  
+
   Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
@@ -19,15 +19,13 @@
   along with 3difer.  If not, see <http://www.gnu.org/licenses/>.
 
   For any information or further details about the use of 3dfier, contact
-  Hugo Ledoux 
+  Hugo Ledoux
   <h.ledoux@tudelft.nl>
   Faculty of Architecture & the Built Environment
   Delft University of Technology
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-
- 
 #ifndef __3dfier__Map3d__
 #define __3dfier__Map3d__
 
@@ -44,14 +42,12 @@
 
 typedef std::pair<Box2, TopoFeature*> PairIndexed;
 
-class Map3d
-{
+class Map3d {
 public:
-  Map3d  ();
-  ~Map3d ();
+  Map3d();
+  ~Map3d();
 
   bool add_polygons_files(std::vector<PolygonFile> &files);
-
   bool add_las_file(std::string ifile, std::vector<int> lasomits, int skip = 0);
 
   void stitch_lifted_features();
@@ -60,16 +56,16 @@ public:
   bool construct_CDT();
   void add_elevation_point(liblas::Point const& laspt);
 
-  unsigned long                     get_num_polygons();
-  const std::vector<TopoFeature*>&  get_polygons3d();  
-  Box2                              get_bbox();
-  
-  std::string get_citygml();
-  std::string get_csv_buildings();
-  void get_obj_per_feature(int z_exaggeration = 0);
-  std::string get_obj_per_class(int z_exaggeration = 0);
-  bool        get_shapefile(std::string filename);
-     
+  unsigned long get_num_polygons();
+  const std::vector<TopoFeature*>&  get_polygons3d();
+  Box2 get_bbox();
+
+  std::string   get_citygml();
+  std::string   get_csv_buildings();
+  void          get_obj_per_feature(int z_exaggeration = 0);
+  std::string   get_obj_per_class(int z_exaggeration = 0);
+  bool          get_shapefile(std::string filename);
+
   void set_building_heightref_roof(float heightref);
   void set_building_heightref_floor(float heightref);
   void set_building_include_floor(bool include);
@@ -120,7 +116,6 @@ private:
   bool extract_and_add_polygon(GDALDataset *dataSource, PolygonFile *file);
 #endif
   void extract_feature(OGRFeature * f, const char * idfield, const char * heightfield, std::string layertype, bool multiple_heights);
-
   void stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star);
   void stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);
   void stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);

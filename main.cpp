@@ -1,6 +1,6 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
-  
+
   Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
@@ -19,7 +19,7 @@
   along with 3difer.  If not, see <http://www.gnu.org/licenses/>.
 
   For any information or further details about the use of 3dfier, contact
-  Hugo Ledoux 
+  Hugo Ledoux
   <h.ledoux@tudelft.nl>
   Faculty of Architecture & the Built Environment
   Delft University of Technology
@@ -56,11 +56,11 @@ int main(int argc, const char * argv[]) {
   std::locale::global(loc);
   std::clog.imbue(loc);
 
-  std::string licensewarning = 
-  "3dfier Copyright (C) 2015-2016  3D geoinformation research group, TU Delft\n"
-  "This program comes with ABSOLUTELY NO WARRANTY.\n"
-  "This is free software, and you are welcome to redistribute it\n"
-  "under certain conditions; for details run 3dfier with the '--license' option.\n"; 
+  std::string licensewarning =
+    "3dfier Copyright (C) 2015-2016  3D geoinformation research group, TU Delft\n"
+    "This program comes with ABSOLUTELY NO WARRANTY.\n"
+    "This is free software, and you are welcome to redistribute it\n"
+    "under certain conditions; for details run 3dfier with the '--license' option.\n";
 
   if (argc == 1) {
     std::clog << licensewarning << std::endl;
@@ -75,24 +75,24 @@ int main(int argc, const char * argv[]) {
   //-- license
   if (argc == 2) {
     std::string s = argv[1];
-    if ( s == "--license") {
+    if (s == "--license") {
       print_license();
       return 0;
-    }  
+    }
   }
   //-- version
   if (argc == 2) {
     std::string s = argv[1];
-    if ( s == "--version") {
+    if (s == "--version") {
       std::clog << "3dfier " << VERSION << std::endl;
       return 0;
-    }  
+    }
   }
 
   std::clog << licensewarning << std::endl;
   std::clog << "Reading config file: " << argv[1] << std::endl;
 
-//-- allowed feature classes
+  //-- allowed feature classes
   std::set<std::string> allowedFeatures;
   allowedFeatures.insert("Building");
   allowedFeatures.insert("Water");
@@ -102,74 +102,80 @@ int main(int argc, const char * argv[]) {
   allowedFeatures.insert("Separation");
   allowedFeatures.insert("Bridge/Overpass");
 
-//-- validate the YAML file right now, nicer for the user
- if (validate_yaml(argv[1], allowedFeatures) == false) {
-   std::cerr << "ERROR: config file (*.yml) is not valid. Aborting." << std::endl;
-   return 0;
- }
+  //-- validate the YAML file right now, nicer for the user
+  if (validate_yaml(argv[1], allowedFeatures) == false) {
+    std::cerr << "ERROR: config file (*.yml) is not valid. Aborting." << std::endl;
+    return 0;
+  }
   std::clog << "Config file is valid." << std::endl;
-  
+
   Map3d map3d;
   YAML::Node nodes = YAML::LoadFile(argv[1]);
-//-- store the lifting options in the Map3d
+  //-- store the lifting options in the Map3d
   YAML::Node n = nodes["lifting_options"];
   if (n["Building"]) {
     if (n["Building"]["height_roof"]) {
       std::string height = n["Building"]["height_roof"].as<std::string>();
       map3d.set_building_heightref_roof(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
-    if (n["Building"]["height_floor"]){
+    if (n["Building"]["height_floor"]) {
       std::string height = n["Building"]["height_floor"].as<std::string>();
       map3d.set_building_heightref_floor(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
-    if (n["Building"]["lod"]){
+    if (n["Building"]["lod"]) {
       map3d.set_building_lod(n["Building"]["lod"].as<int>());
-    }    
+    }
     if (n["Building"]["triangulate"]) {
-      if (n["Building"]["triangulate"].as<std::string>() == "true") 
+      if (n["Building"]["triangulate"].as<std::string>() == "true")
         map3d.set_building_triangulate(true);
       else
         map3d.set_building_triangulate(false);
     }
   }
-  if (n["Terrain"])
+  if (n["Terrain"]) {
     if (n["Terrain"]["simplification"])
       map3d.set_terrain_simplification(n["Terrain"]["simplification"].as<int>());
     if (n["Terrain"]["innerbuffer"])
       map3d.set_terrain_innerbuffer(n["Terrain"]["innerbuffer"].as<float>());
-  if (n["Forest"]) 
+  }
+  if (n["Forest"]) {
     if (n["Forest"]["simplification"])
       map3d.set_forest_simplification(n["Forest"]["simplification"].as<int>());
     if (n["Forest"]["innerbuffer"])
       map3d.set_forest_innerbuffer(n["Forest"]["innerbuffer"].as<float>());
     if (n["Forest"]["ground_points_only"] && n["Forest"]["ground_points_only"].as<std::string>() == "true")
       map3d.set_forest_ground_points_only(true);
-  if (n["Water"]) 
+  }
+  if (n["Water"]) {
     if (n["Water"]["height"]) {
       std::string height = n["Water"]["height"].as<std::string>();
       map3d.set_water_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
-  if (n["Road"]) 
+  }
+  if (n["Road"]) {
     if (n["Road"]["height"]) {
       std::string height = n["Road"]["height"].as<std::string>();
       map3d.set_road_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
-  if (n["Separation"])
+  }
+  if (n["Separation"]) {
     if (n["Separation"]["height"]) {
       std::string height = n["Separation"]["height"].as<std::string>();
       map3d.set_separation_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
-  if (n["Bridge/Overpass"])
+  }
+  if (n["Bridge/Overpass"]) {
     if (n["Bridge/Overpass"]["height"]) {
       std::string height = n["Bridge/Overpass"]["height"].as<std::string>();
       map3d.set_bridge_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
+  }
 
   n = nodes["options"];
   bool bStitching = true;
   if (n["radius_vertex_elevation"])
     map3d.set_radius_vertex_elevation(n["radius_vertex_elevation"].as<float>());
-  if (n["building_radius_vertex_elevation"]) 
+  if (n["building_radius_vertex_elevation"])
     map3d.set_building_radius_vertex_elevation(n["building_radius_vertex_elevation"].as<float>());
   if (n["threshold_jump_edges"])
     map3d.set_threshold_jump_edges(n["threshold_jump_edges"].as<float>());
@@ -226,12 +232,12 @@ int main(int argc, const char * argv[]) {
   std::clog << "\nTotal # of polygons: " << boost::locale::as::number << map3d.get_num_polygons() << std::endl;
   Box2 b = map3d.get_bbox();
   std::clog << std::setprecision(3) << std::fixed;
-  std::clog << "Spatial extent: (" 
+  std::clog << "Spatial extent: ("
     << bg::get<bg::min_corner, 0>(b) << ", "
     << bg::get<bg::min_corner, 1>(b) << ") ("
     << bg::get<bg::max_corner, 0>(b) << ", "
     << bg::get<bg::max_corner, 1>(b) << ")" << std::endl;
-  
+
   //-- spatially index the polygons
   map3d.construct_rtree();
 
@@ -241,12 +247,12 @@ int main(int argc, const char * argv[]) {
   for (auto it = n.begin(); it != n.end(); ++it) {
     YAML::Node tmp = (*it)["omit_LAS_classes"];
     std::vector<int> lasomits;
-    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) 
+    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
       lasomits.push_back(it2->as<int>());
     tmp = (*it)["datasets"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
       bElevData = true;
-      if ((*it)["thinning"]) 
+      if ((*it)["thinning"])
         map3d.add_las_file(it2->as<std::string>(), lasomits, (*it)["thinning"].as<int>());
       else
         map3d.add_las_file(it2->as<std::string>(), lasomits, 1);
@@ -271,13 +277,13 @@ int main(int argc, const char * argv[]) {
     map3d.construct_CDT();
   }
   std::clog << "done." << std::endl;
-  
-  
+
+
   //-- output
-  if (n["building_floor"].as<std::string>() == "true") 
+  if (n["building_floor"].as<std::string>() == "true")
     map3d.set_building_include_floor(true);
   int z_exaggeration = 0;
-  if (n["vertical_exaggeration"]) 
+  if (n["vertical_exaggeration"])
     z_exaggeration = n["vertical_exaggeration"].as<int>();
   if (n["format"].as<std::string>() == "CityGML") {
     std::clog << "CityGML output" << std::endl;
@@ -316,38 +322,38 @@ int main(int argc, const char * argv[]) {
   int minutes = totalTime / 60;
   totalTime -= minutes * 60;
   int seconds = totalTime;
-  std::clog << " seconds || " << hours <<  ":" << minutes << ":" << seconds <<"." << std::endl;
+  std::clog << " seconds || " << hours << ":" << minutes << ":" << seconds << "." << std::endl;
   return 1;
 }
 
 void print_license() {
-  std::string thelicense = 
-  "\n3dfier: takes 2D GIS datasets and '3dfies' to create 3D city models.\n\n"
-  "Copyright (C) 2015-2016  3D geoinformation research group, TU Delft\n\n"
-  "3dfier is free software: you can redistribute it and/or modify\n"
-  "it under the terms of the GNU General Public License as published by\n"
-  "the Free Software Foundation, either version 3 of the License, or\n"
-  "(at your option) any later version.\n\n"
-  "3dfier is distributed in the hope that it will be useful,\n"
-  "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-  "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-  "GNU General Public License for more details.\n\n"
-  "A copy of the GNU General Public License is available at\n"
-  "<http://www.gnu.org/licenses/> or\n" 
-  "<https://github.com/tudelft3d/3dfier/blob/master/LICENSE\n\n"
-  "For any information or further details about the use of 3dfier, contact:\n"
-  "Hugo Ledoux \n"
-  "<h.ledoux@tudelft.nl>\n"
-  "Faculty of Architecture & the Built Environment\n"
-  "Delft University of Technology\n"
-  "Julianalaan 134, Delft 2628BL, the Netherlands\n";
+  std::string thelicense =
+    "\n3dfier: takes 2D GIS datasets and '3dfies' to create 3D city models.\n\n"
+    "Copyright (C) 2015-2016  3D geoinformation research group, TU Delft\n\n"
+    "3dfier is free software: you can redistribute it and/or modify\n"
+    "it under the terms of the GNU General Public License as published by\n"
+    "the Free Software Foundation, either version 3 of the License, or\n"
+    "(at your option) any later version.\n\n"
+    "3dfier is distributed in the hope that it will be useful,\n"
+    "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+    "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+    "GNU General Public License for more details.\n\n"
+    "A copy of the GNU General Public License is available at\n"
+    "<http://www.gnu.org/licenses/> or\n"
+    "<https://github.com/tudelft3d/3dfier/blob/master/LICENSE\n\n"
+    "For any information or further details about the use of 3dfier, contact:\n"
+    "Hugo Ledoux \n"
+    "<h.ledoux@tudelft.nl>\n"
+    "Faculty of Architecture & the Built Environment\n"
+    "Delft University of Technology\n"
+    "Julianalaan 134, Delft 2628BL, the Netherlands\n";
   std::clog << thelicense << std::endl;
 }
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
   YAML::Node nodes = YAML::LoadFile(arg);
   bool wentgood = true;
-//-- 1. input polygons classes
+  //-- 1. input polygons classes
   YAML::Node n = nodes["input_polygons"];
   for (auto it = n.begin(); it != n.end(); ++it) {
     if ((*it)["lifting_per_layer"]) {
@@ -368,35 +374,35 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
         }
       }
     }
-  }  
-//-- 2. lifting_options
+  }
+  //-- 2. lifting_options
   n = nodes["lifting_options"];
   if (n["Building"]) {
     if (n["Building"]["height_roof"]) {
       std::string s = n["Building"]["height_roof"].as<std::string>();
-      if ( (s.substr(0, s.find_first_of("-")) != "percentile") ||
-          (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false) ) {
+      if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
+        (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
         wentgood = false;
         std::cerr << "\tOption 'Building.height_roof' invalid; must be 'percentile-XX'." << std::endl;
       }
     }
     if (n["Building"]["height_ground"]) {
       std::string s = n["Building"]["height_ground"].as<std::string>();
-      if ( (s.substr(0, s.find_first_of("-")) != "percentile") ||
-          (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false) ) {
+      if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
+        (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
         wentgood = false;
         std::cerr << "\tOption 'Building.height_ground' invalid; must be 'percentile-XX'." << std::endl;
       }
     }
     if (n["Building"]["lod"]) {
-     if (is_string_integer(n["Building"]["lod"].as<std::string>(), 0, 1) == false) {
+      if (is_string_integer(n["Building"]["lod"].as<std::string>(), 0, 1) == false) {
         wentgood = false;
         std::cerr << "\tOption 'Building.lod' invalid; must be an integer between 0 and 1." << std::endl;
       }
-    }    
+    }
     if (n["Building"]["triangulate"]) {
       std::string s = n["Building"]["triangulate"].as<std::string>();
-      if ( (s != "true") && (s != "false") ) {
+      if ((s != "true") && (s != "false")) {
         wentgood = false;
         std::cerr << "\tOption 'Building.triangulate' invalid; must be 'true' or 'false'." << std::endl;
       }
@@ -405,18 +411,18 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
   if (n["Water"]) {
     if (n["Water"]["height"]) {
       std::string s = n["Water"]["height"].as<std::string>();
-      if ( (s.substr(0, s.find_first_of("-")) != "percentile") ||
-          (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false) ) {
+      if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
+        (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
         wentgood = false;
         std::cerr << "\tOption 'Water.height' invalid; must be 'percentile-XX'." << std::endl;
       }
     }
-  }  
+  }
   if (n["Road"]) {
     if (n["Road"]["height"]) {
       std::string s = n["Road"]["height"].as<std::string>();
-      if ( (s.substr(0, s.find_first_of("-")) != "percentile") ||
-          (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false) ) {
+      if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
+        (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
         wentgood = false;
         std::cerr << "\tOption 'Road.height' invalid; must be 'percentile-XX'." << std::endl;
       }
@@ -429,7 +435,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
         std::cerr << "\tOption 'Terrain.simplification' invalid; must be an integer." << std::endl;
       }
     }
-  }  
+  }
   if (n["Forest"]) {
     if (n["Forest"]["simplification"]) {
       if (is_string_integer(n["Forest"]["simplification"].as<std::string>()) == false) {
@@ -458,7 +464,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       }
     }
   }
-//-- 3. input_elevation
+  //-- 3. input_elevation
   n = nodes["input_elevation"];
   for (auto it = n.begin(); it != n.end(); ++it) {
     YAML::Node tmp = (*it)["omit_LAS_classes"];
@@ -475,13 +481,13 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       }
     }
   }
-//-- 4. options
+  //-- 4. options
   n = nodes["options"];
   if (n["radius_vertex_elevation"]) {
     try {
       boost::lexical_cast<float>(n["radius_vertex_elevation"].as<std::string>());
     }
-    catch(boost::bad_lexical_cast& e) {
+    catch (boost::bad_lexical_cast& e) {
       wentgood = false;
       std::cerr << "\tOption 'options.radius_vertex_elevation' invalid." << std::endl;
     }
@@ -490,19 +496,19 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     try {
       boost::lexical_cast<float>(n["threshold_jump_edges"].as<std::string>());
     }
-    catch(boost::bad_lexical_cast& e) {
+    catch (boost::bad_lexical_cast& e) {
       wentgood = false;
       std::cerr << "\tOption 'options.threshold_jump_edges' invalid." << std::endl;
     }
   }
-//-- 5. output
+  //-- 5. output
   n = nodes["output"];
-  if ( (n["format"].as<std::string>() != "OBJ") &&
-       (n["format"].as<std::string>() != "OBJ-NoID") &&
-       (n["format"].as<std::string>() != "CityGML") &&
-       (n["format"].as<std::string>() != "OBJ-BUILDINGS") &&
-       (n["format"].as<std::string>() != "CSV-BUILDINGS")  &&
-       (n["format"].as<std::string>() != "Shapefile") ) {
+  if ((n["format"].as<std::string>() != "OBJ") &&
+      (n["format"].as<std::string>() != "OBJ-NoID") &&
+      (n["format"].as<std::string>() != "CityGML") &&
+      (n["format"].as<std::string>() != "OBJ-BUILDINGS") &&
+      (n["format"].as<std::string>() != "CSV-BUILDINGS") &&
+      (n["format"].as<std::string>() != "Shapefile")) {
     wentgood = false;
     std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CSV-BUILDINGS | Shapefile)" << std::endl;
   }

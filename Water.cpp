@@ -1,6 +1,6 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
-  
+
   Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
@@ -19,54 +19,45 @@
   along with 3difer.  If not, see <http://www.gnu.org/licenses/>.
 
   For any information or further details about the use of 3dfier, contact
-  Hugo Ledoux 
+  Hugo Ledoux
   <h.ledoux@tudelft.nl>
   Faculty of Architecture & the Built Environment
   Delft University of Technology
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
- 
 #include "Water.h"
 #include "io.h"
 
 float Water::_heightref = 0.1;
 
-Water::Water (char *wkt, std::string pid, float heightref) 
-: Flat(wkt, pid)
-{
+Water::Water(char *wkt, std::string pid, float heightref)
+  : Flat(wkt, pid) {
   _heightref = heightref;
 }
 
-
-bool Water::lift() {
-  Flat::lift_percentile(_heightref);
-  return true;
-}
-
-
-bool Water::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  //if (lastreturn == true && lasclass == LAS_WATER) {
-  // Add elevation points with radius 0.0 to be inside the water polygon
-  Flat::add_elevation_point(p, z, 0.0, lasclass, lastreturn);
-  //}
-  return true;
-}
-
-
 TopoClass Water::get_class() {
   return WATER;
+}
+
+std::string Water::get_mtl() {
+  return "usemtl Water\n";
 }
 
 bool Water::is_hard() {
   return true;
 }
 
-
-std::string Water::get_mtl() {
-  return "usemtl Water\n";
+bool Water::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+  // Add elevation points with radius 0.0 to be inside the water polygon
+  Flat::add_elevation_point(p, z, 0.0, lasclass, lastreturn);
+  return true;
 }
 
+bool Water::lift() {
+  Flat::lift_percentile(_heightref);
+  return true;
+}
 
 std::string Water::get_citygml() {
   std::stringstream ss;
@@ -87,7 +78,6 @@ std::string Water::get_citygml() {
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }
-
 
 bool Water::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Water");

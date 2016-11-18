@@ -1,6 +1,6 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
-  
+
   Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
@@ -19,40 +19,36 @@
   along with 3difer.  If not, see <http://www.gnu.org/licenses/>.
 
   For any information or further details about the use of 3dfier, contact
-  Hugo Ledoux 
+  Hugo Ledoux
   <h.ledoux@tudelft.nl>
   Faculty of Architecture & the Built Environment
   Delft University of Technology
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
-    
+
 #ifndef Building_h
 #define Building_h
 
 #include "TopoFeature.h"
 
-
-class Building : public Flat
-{
+class Building: public Flat {
 public:
-  Building (char *wkt, std::string pid, float heightref_top, float heightref_base);
-  bool         lift();
-  bool         add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
-  std::string  get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod);
-  std::string  get_citygml();
-  std::string  get_csv();
-  std::string  get_mtl();
-  bool         get_shape(OGRLayer * layer);
-  TopoClass    get_class();
-  bool         is_hard();
-  int          get_height_base();
-private: 
+  Building(char *wkt, std::string pid, float heightref_top, float heightref_base);
+  bool          lift();
+  bool          add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  std::string   get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod);
+  std::string   get_citygml();
+  std::string   get_csv();
+  std::string   get_mtl();
+  bool          get_shape(OGRLayer * layer);
+  TopoClass     get_class();
+  bool          is_hard();
+  int           get_height_base();
+private:
   std::vector<int>    _zvaluesground;
   static float        _heightref_top;
   static float        _heightref_base;
   int                 _height_base;
 };
 
-
 #endif /* Building_h */
-

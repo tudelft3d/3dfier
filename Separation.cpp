@@ -1,6 +1,6 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
-  
+
   Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
@@ -19,13 +19,12 @@
   along with 3difer.  If not, see <http://www.gnu.org/licenses/>.
 
   For any information or further details about the use of 3dfier, contact
-  Hugo Ledoux 
+  Hugo Ledoux
   <h.ledoux@tudelft.nl>
   Faculty of Architecture & the Built Environment
   Delft University of Technology
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
-
 
 #include "Separation.h"
 #include "io.h"
@@ -37,11 +36,17 @@ Separation::Separation(char *wkt, std::string pid, float heightref)
   _heightref = heightref;
 }
 
-bool Separation::lift() {
-  lift_percentile(_heightref);
+TopoClass Separation::get_class() {
+  return SEPARATION;
+}
+
+bool Separation::is_hard() {
   return true;
 }
 
+std::string Separation::get_mtl() {
+  return "usemtl Separation\n";
+}
 
 bool Separation::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn == true && lasclass != LAS_BUILDING && lasclass != LAS_WATER) {
@@ -50,19 +55,9 @@ bool Separation::add_elevation_point(Point2 p, double z, float radius, LAS14Clas
   return true;
 }
 
-
-TopoClass Separation::get_class() {
-  return SEPARATION;
-}
-
-
-bool Separation::is_hard() {
+bool Separation::lift() {
+  lift_percentile(_heightref);
   return true;
-}
-
-
-std::string Separation::get_mtl() {
-  return "usemtl Separation\n";
 }
 
 std::string Separation::get_citygml() {
@@ -84,7 +79,6 @@ std::string Separation::get_citygml() {
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }
-
 
 bool Separation::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Separation");
