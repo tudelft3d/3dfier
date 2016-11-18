@@ -46,9 +46,10 @@ bool Water::lift() {
 
 
 bool Water::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  if (lastreturn == true && lasclass == LAS_WATER) {
-    Flat::add_elevation_point(p, z, radius, lasclass, lastreturn);
-  }
+  //if (lastreturn == true && lasclass == LAS_WATER) {
+  // Add elevation points with radius 0.0 to be inside the water polygon
+  Flat::add_elevation_point(p, z, 0.0, lasclass, lastreturn);
+  //}
   return true;
 }
 
