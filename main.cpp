@@ -38,7 +38,7 @@
 #include "TopoFeature.h"
 #include "Map3d.h"
 #include "boost/locale.hpp"
-#include <chrono>
+#include "boost/chrono.hpp"
 
 std::string VERSION = "0.8";
 
@@ -46,7 +46,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 void print_license();
 
 int main(int argc, const char * argv[]) {
-  auto startTime = std::chrono::high_resolution_clock::now();
+  auto startTime = boost::chrono::high_resolution_clock::now();
   boost::locale::generator gen;
   std::locale loc = gen("en_US.UTF-8");
   std::locale::global(loc);
@@ -61,12 +61,7 @@ int main(int argc, const char * argv[]) {
   std::string filename;
 
   //-- reading the config file
-  if (argc == 1) {
-    std::clog << licensewarning << std::endl;
-    std::clog << "Usage: 3dfier config.yml > myoutput.obj" << std::endl;
-    return 0;
-  }
-  else if (argc == 2) {
+  if (argc == 2) {
     std::string s = argv[1];
     if (s == "--license") {
       print_license();
@@ -77,11 +72,12 @@ int main(int argc, const char * argv[]) {
       return 0;
     }
   }
-  else if (argc == 3) {
-    filename = argv[2];
+  else if (argc == 4 && (std::string)argv[2] == "-o") {
+    filename = argv[3];
   }
   else {
-    std::cerr << "Usage: 3dfier config.yml output-filename" << std::endl;
+    std::clog << licensewarning << std::endl;
+    std::cerr << "Usage: 3dfier config.yml -o output.ext" << std::endl;
     return 0;
   }
 
@@ -89,14 +85,7 @@ int main(int argc, const char * argv[]) {
   std::clog << "Reading config file: " << argv[1] << std::endl;
 
   //-- allowed feature classes
-  std::set<std::string> allowedFeatures;
-  allowedFeatures.insert("Building");
-  allowedFeatures.insert("Water");
-  allowedFeatures.insert("Terrain");
-  allowedFeatures.insert("Road");
-  allowedFeatures.insert("Forest");
-  allowedFeatures.insert("Separation");
-  allowedFeatures.insert("Bridge/Overpass");
+  std::set<std::string> allowedFeatures{"Building", "Water", "Terrain", "Road", "Forest", "Separation", "Bridge/Overpass"};
 
   //-- validate the YAML file right now, nicer for the user
   if (validate_yaml(argv[1], allowedFeatures) == false) {
@@ -317,14 +306,12 @@ int main(int argc, const char * argv[]) {
   outputfile.close();
 
   //-- bye-bye
-  long totalTime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - startTime).count();
-  std::clog << "Successfully terminated in " << totalTime;
-  int hours = totalTime / 3600;
-  totalTime -= hours * 3600;
-  int minutes = totalTime / 60;
-  totalTime -= minutes * 60;
-  int seconds = totalTime;
-  std::clog << " seconds || " << hours << ":" << minutes << ":" << seconds << "." << std::endl;
+  auto duration = boost::chrono::high_resolution_clock::now() - startTime;
+  std::clog << "Successfully terminated in " 
+    << boost::chrono::duration_cast<boost::chrono::seconds>(duration) << " || "
+    << boost::chrono::duration_cast<boost::chrono::hours>(duration).count() << ":" 
+    << boost::chrono::duration_cast<boost::chrono::minutes>(duration).count() << ":" 
+    << boost::chrono::duration_cast<boost::chrono::seconds>(duration).count() << std::endl;
   return 1;
 }
 
