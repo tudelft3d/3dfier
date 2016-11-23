@@ -84,7 +84,7 @@ std::string Water::get_citygml_imgeo() {
   ss << "<cityObjectMember>" << std::endl;
   ss << "<wtr:WaterBody gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << get_imgeo_object_info(this->get_id());
-  ss << "<wat:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWater\">" << "waterloop" << "</wat:class>" << std::endl;
+  ss << "<wtr:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWater\">" << "waterloop" << "</wtr:class>" << std::endl;
   ss << "<wtr:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;

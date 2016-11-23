@@ -87,7 +87,7 @@ std::string Bridge::get_citygml_imgeo() {
   ss << "<cityObjectMember>" << std::endl;
   ss << "<brg:Bridge gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << get_imgeo_object_info(this->get_id());
-  ss << "<bri:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbruggingsdeel\">" /*<< TypeOverbruggingsdeel*/ "x" << "</bri:function>" << std::endl;
+  ss << "<brg:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbruggingsdeel\">" /*<< TypeOverbruggingsdeel*/ "x" << "</brg:function>" << std::endl;
   ss << "<imgeo:hoortBijTypeOverbrugging codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbrugging\">" /*<< TypeOverbrugging*/ "x" << "</imgeo:hoortBijTypeOverbrugging>" << std::endl;
   ss << "<imgeo:overbruggingIsBeweegbaar>" /*<< overbruggingIsBeweegbaar*/ "0" << "</imgeo:overbruggingIsBeweegbaar>" << std::endl;
   ss << "<brg:lod1MultiSurface>" << std::endl;

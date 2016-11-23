@@ -85,8 +85,8 @@ std::string Road::get_citygml_imgeo() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
   ss << "<tran:Road gml:id=\"" << this->get_id() << "\">" << std::endl;
-  ss << "<tra:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWeg\">" /*<< FunctieWeg*/ "x" << "</tra:function>" << std::endl;
-  ss << "<tra:surfaceMaterial codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWeg\">" /*<< FysiekVoorkomenWeg*/ "x" << "</tra:surfaceMaterial>" << std::endl;
+  ss << "<tran:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWeg\">" /*<< FunctieWeg*/ "x" << "</tran:function>" << std::endl;
+  ss << "<tran:surfaceMaterial codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWeg\">" /*<< FysiekVoorkomenWeg*/ "x" << "</tran:surfaceMaterial>" << std::endl;
   ss << "<imgeo:wegdeelOpTalud>" /*<< wegdeelOpTalud*/ "0" << "</imgeo:wegdeelOpTalud>" << std::endl;
   ss << "<imgeo:plus-fysiekVoorkomenWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWegPlus\">" /*<< FysiekVoorkomenWegPlus*/ "x" << "</imgeo:plus-fysiekVoorkomenWegdeel>" << std::endl;
   ss << "<imgeo:lod0SurfaceWegdeel>" << std::endl;

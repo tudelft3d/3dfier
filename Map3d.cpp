@@ -175,7 +175,7 @@ void Map3d::get_citygml_imgeo(std::ofstream &outputfile) {
   ss << "</gml:boundedBy>" << std::endl;
   outputfile << ss.str();
   for (auto& f : _lsFeatures) {
-    outputfile << f->get_citygml();
+    outputfile << f->get_citygml_imgeo();
   }
   outputfile << "</CityModel>" << std::endl;
 }
