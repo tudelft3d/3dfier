@@ -1,4 +1,3 @@
-
 # 3dfier
 
 ![](https://dl.dropboxusercontent.com/s/tojiay8cmomu2v5/Delft_3dfier-3.png)
@@ -42,7 +41,7 @@ We expect the LAS/LAZ to be classified according to the ASPRS Standard LIDAR Poi
 
 If the vegetation is not classified or not filtered out, then buildings might be taller and there might be artefacts in the terrain.
 
-## Compiling
+## Compiling Mac OS X/Linux
 
 To build you'll normally do (from 3dfier root directory):
 
@@ -65,11 +64,19 @@ The dependencies that are necessary (under Mac we suggest using [Homebrew](http:
   1. CGAL (`brew install cgal`)
   4. yaml-cpp (`brew install yaml-cpp`)
 
+## Compiling Windows 10 using Visual Studio
+
+1. Download and install Boost precompiled binaries https://sourceforge.net/projects/boost/files/boost-binaries (`Visual Studio 2015, 64-bit; boost_1_62_0-msvc-14.0-64.exe`)
+2. Download and install OSGeo4W64 https://trac.osgeo.org/osgeo4w/
+3. Compile your own copies of Yaml-cpp and CGAL
+4. Set the path to the include folders in `Project->C/C++->General->Additional Include Directories`
+5. Set the path to the boost binaries in `Project->Linker->General->Additional Library Directories`
+6. Set the path to other libraries in `Project->Linker->Input->Additional Dependencies`
+7. Build solution
 
 ## To run:
 
 `$ ./3dfier myconfig.yml > output.obj`
-
 
 ## Test data
 
