@@ -1,10 +1,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "3dfier", "3dfier.vcxproj", "{1B42089A-84AD-3A0E-B9AA-67E4F75795D6}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "yaml-cpp", "..\..\yaml-cpp\vs_build\yaml-cpp.vcxproj", "{BEDBC2DE-23C7-3769-90B4-97589A504B92}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,12 +18,6 @@ Global
 		{1B42089A-84AD-3A0E-B9AA-67E4F75795D6}.Release|x64.ActiveCfg = Release|x64
 		{1B42089A-84AD-3A0E-B9AA-67E4F75795D6}.Release|x64.Build.0 = Release|x64
 		{1B42089A-84AD-3A0E-B9AA-67E4F75795D6}.Release|x86.ActiveCfg = Release|x64
-		{BEDBC2DE-23C7-3769-90B4-97589A504B92}.Debug|x64.ActiveCfg = Debug|x64
-		{BEDBC2DE-23C7-3769-90B4-97589A504B92}.Debug|x64.Build.0 = Debug|x64
-		{BEDBC2DE-23C7-3769-90B4-97589A504B92}.Debug|x86.ActiveCfg = Debug|x64
-		{BEDBC2DE-23C7-3769-90B4-97589A504B92}.Release|x64.ActiveCfg = Release|x64
-		{BEDBC2DE-23C7-3769-90B4-97589A504B92}.Release|x64.Build.0 = Release|x64
-		{BEDBC2DE-23C7-3769-90B4-97589A504B92}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

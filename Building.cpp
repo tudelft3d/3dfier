@@ -1,6 +1,6 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
-  
+
   Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
@@ -19,22 +19,21 @@
   along with 3difer.  If not, see <http://www.gnu.org/licenses/>.
 
   For any information or further details about the use of 3dfier, contact
-  Hugo Ledoux 
+  Hugo Ledoux
   <h.ledoux@tudelft.nl>
   Faculty of Architecture & the Built Environment
   Delft University of Technology
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-
 #include "Building.h"
 #include "io.h"
 
-float Building::_heightref_top  = 0.9;
+float Building::_heightref_top = 0.9;
 float Building::_heightref_base = 0.1;
 
 Building::Building(char *wkt, std::string pid, float heightref_top, float heightref_base)
-: Flat(wkt, pid)
+  : Flat(wkt, pid)
 {
   _heightref_top = heightref_top;
   _heightref_base = heightref_base;
@@ -47,7 +46,7 @@ bool Building::lift() {
     std::nth_element(_zvaluesground.begin(), _zvaluesground.begin() + (_zvaluesground.size() * _heightref_base), _zvaluesground.end());
     _height_base = _zvaluesground[_zvaluesground.size() * _heightref_base];
   }
-  else if(_zvaluesinside.empty() == false) {
+  else if (_zvaluesinside.empty() == false) {
     std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * _heightref_base), _zvaluesinside.end());
     _height_base = _zvaluesinside[_zvaluesinside.size() * _heightref_base];
   }
@@ -61,23 +60,20 @@ bool Building::lift() {
   return true;
 }
 
-
-bool Building::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool Building::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn) {
-    int zcm = int(z * 100);
-    //-- 1. Save the ground points seperate for base height
-    if (lasclass == LAS_GROUND || lasclass == LAS_WATER) {
-      _zvaluesground.push_back(zcm);
-    }
-    Point2 p(x, y);
     if (bg::distance(p, *(_p2)) <= radius) {
+      int zcm = int(z * 100);
+      //-- 1. Save the ground points seperate for base height
+      if (lasclass == LAS_GROUND || lasclass == LAS_WATER) {
+        _zvaluesground.push_back(zcm);
+      }
       //-- 2. assign to polygon since within
       _zvaluesinside.push_back(zcm);
     }
   }
   return true;
 }
-
 
 int Building::get_height_base() {
   return _height_base;
@@ -87,11 +83,9 @@ TopoClass Building::get_class() {
   return BUILDING;
 }
 
-
 bool Building::is_hard() {
   return true;
 }
-
 
 std::string Building::get_csv() {
   std::stringstream ss;
@@ -102,7 +96,6 @@ std::string Building::get_csv() {
 std::string Building::get_mtl() {
   return "usemtl Building\n";
 }
-
 
 std::string Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod) {
   std::stringstream ss;
@@ -137,7 +130,7 @@ std::string Building::get_obj(std::unordered_map< std::string, unsigned long > &
       else {
         c = it->second;
       }
-      if ( (a != b) && (a != c) && (b != c) ) 
+      if ((a != b) && (a != c) && (b != c))
         ss << "f " << a << " " << b << " " << c << std::endl;
       // else
       //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
@@ -157,19 +150,19 @@ std::string Building::get_citygml() {
   ss << "<bldg:measuredHeight uom=\"#m\">";
   ss << h;
   ss << "</bldg:measuredHeight>" << std::endl;
-//-- LOD0 footprint
+  //-- LOD0 footprint
   ss << "<bldg:lod0FootPrint>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << get_polygon_lifted_gml(this->_p2, hbase, true);
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</bldg:lod0FootPrint>" << std::endl;
-//-- LOD0 roofedge
+  //-- LOD0 roofedge
   ss << "<bldg:lod0RoofEdge>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << get_polygon_lifted_gml(this->_p2, h, true);
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</bldg:lod0RoofEdge>" << std::endl;
-//-- LOD1 Solid
+  //-- LOD1 Solid
   ss << "<bldg:lod1Solid>" << std::endl;
   ss << "<gml:Solid>" << std::endl;
   ss << "<gml:exterior>" << std::endl;
@@ -181,13 +174,13 @@ std::string Building::get_citygml() {
   //-- get the walls
   auto r = bg::exterior_ring(*(this->_p2));
   int i;
-  for (i = 0; i < (r.size() - 1); i++) 
+  for (i = 0; i < (r.size() - 1); i++)
     ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
   ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
   //-- irings
   auto irings = bg::interior_rings(*(this->_p2));
   for (Ring2& r : irings) {
-    for (i = 0; i < (r.size() - 1); i++) 
+    for (i = 0; i < (r.size() - 1); i++)
       ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
     ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
   }
@@ -197,7 +190,7 @@ std::string Building::get_citygml() {
   ss << "</bldg:lod1Solid>" << std::endl;
   ss << "</bldg:Building>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
-  return ss.str(); 
+  return ss.str();
 }
 
 

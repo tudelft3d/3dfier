@@ -20,31 +20,28 @@
 #include <boost/geometry/geometries/polygon.hpp>
 #include <boost/geometry/index/rtree.hpp>
 
-namespace bg  = boost::geometry;
+namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 typedef bg::model::d2::point_xy<double> Point2;
 typedef bg::model::segment<Point2> Segment2;
-typedef bg::model::linestring<Point2> Linestring2; 
+typedef bg::model::linestring<Point2> Linestring2;
 typedef bg::model::polygon<Point2, true, false> Polygon2; //-- cw, first!=last
 typedef bg::model::ring<Point2, true, false> Ring2; //-- cw, first!=last
 typedef bg::model::box<Point2> Box2;
 typedef bg::model::point<double, 3, bg::cs::cartesian> Point3;
 
-typedef struct Segment
-{
+typedef struct Segment {
   int v0;
   int v1;
 } Segment;
 
-typedef struct Triangle
-{
+typedef struct Triangle {
   int v0;
   int v1;
   int v2;
 } Triangle;
 
-typedef struct PolygonFile
-{
+typedef struct PolygonFile {
   std::string filename;
   std::string idfield;
   std::string heightfield;
@@ -52,8 +49,7 @@ typedef struct PolygonFile
   std::vector< std::pair<std::string, std::string> > layers;
 } PolygonFile;
 
-typedef enum
-{
+typedef enum {
    BUILDING   = 0,
    WATER      = 1,
    BRIDGE     = 2,
@@ -63,8 +59,7 @@ typedef enum
    SEPARATION = 6
 } TopoClass;
 
-typedef enum
-{
+typedef enum {
   LAS_UNKNOWN      =  0,
   LAS_UNCLASSIFIED =  1,
   LAS_GROUND       =  2,

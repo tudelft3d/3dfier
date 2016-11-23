@@ -1,6 +1,6 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
-  
+
   Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
@@ -19,58 +19,19 @@
   along with 3difer.  If not, see <http://www.gnu.org/licenses/>.
 
   For any information or further details about the use of 3dfier, contact
-  Hugo Ledoux 
+  Hugo Ledoux
   <h.ledoux@tudelft.nl>
   Faculty of Architecture & the Built Environment
   Delft University of Technology
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-
 #include "Terrain.h"
 #include "io.h"
 #include <algorithm>
 
-
-Terrain::Terrain (char *wkt, std::string pid, int simplification, float innerbuffer)
-: TIN(wkt, pid, simplification, innerbuffer)
-{}
-
-
-bool Terrain::lift() {
-  //-- lift vertices to their median of lidar points
-  TopoFeature::lift_each_boundary_vertices(0.5);
-  return true;
-}
-
-
-bool Terrain::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  bool toadd = false;
-  if (lastreturn && lasclass == LAS_GROUND) {
-    assign_elevation_to_vertex(x, y, z, radius);
-    if (_simplification <= 1)
-      toadd = true;
-    else {
-      std::random_device rd;
-      std::mt19937 gen(rd());
-      std::uniform_int_distribution<int> dis(1, _simplification);
-      if (dis(gen) == 1)
-        toadd = true;
-    }
-    Point2 p(x, y);
-    // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
-    if (toadd && bg::within(p, *(_p2)) && (_innerbuffer == 0.0 || this->get_distance_to_boundaries(p) > _innerbuffer)) {
-      _lidarpts.push_back(Point3(x, y, z));
-    }
-  }
-  return toadd;
-}
-
-
-std::string Terrain::get_mtl() {
-  return "usemtl Terrain\n";
-}
-
+Terrain::Terrain(char *wkt, std::string pid, int simplification, float innerbuffer)
+  : TIN(wkt, pid, simplification, innerbuffer) {}
 
 TopoClass Terrain::get_class() {
   return TERRAIN;
@@ -78,6 +39,24 @@ TopoClass Terrain::get_class() {
 
 bool Terrain::is_hard() {
   return false;
+}
+
+std::string Terrain::get_mtl() {
+  return "usemtl Terrain\n";
+}
+
+bool Terrain::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+  bool toadd = false;
+  if (lastreturn && lasclass == LAS_GROUND) {
+    toadd = TIN::add_elevation_point(p, z, radius, lasclass, lastreturn);
+  }
+  return toadd;
+}
+
+bool Terrain::lift() {
+  //-- lift vertices to their median of lidar points
+  TopoFeature::lift_each_boundary_vertices(0.5);
+  return true;
 }
 
 std::string Terrain::get_citygml() {
@@ -100,8 +79,6 @@ std::string Terrain::get_citygml() {
   return ss.str();
 }
 
-
 bool Terrain::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Terrain");
 }
-
