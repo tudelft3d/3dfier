@@ -205,5 +205,7 @@ std::string gen_key_bucket(Point3* p, int z) {
   x = x.substr(0, x.find_first_of(".") + 4);
   std::string y = std::to_string(bg::get<1>(p));
   y = y.substr(0, y.find_first_of(".") + 4);
-  return (x + " " + y + " " + std::to_string(z));
+  std::string zstr = std::to_string(z_to_float(z));
+  zstr = zstr.substr(0, zstr.find_first_of(".") + 4);
+  return (x + " " + y + " " + zstr);
 }
