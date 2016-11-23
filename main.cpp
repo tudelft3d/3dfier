@@ -287,7 +287,7 @@ int main(int argc, const char * argv[]) {
   }
   else if (format == "CityGML-IMGeo") {
     std::clog << "CityGML-IMGeo output" << std::endl;
-    map3d.get_citygml_imgeo();
+    map3d.get_citygml_imgeo(outputfile);
   }
   else if (format == "OBJ") {
     std::clog << "OBJ output" << std::endl;
