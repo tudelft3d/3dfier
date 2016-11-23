@@ -71,6 +71,11 @@ int main(int argc, const char * argv[]) {
       std::clog << "3dfier " << VERSION << std::endl;
       return 0;
     }
+    else {
+      std::clog << licensewarning << std::endl;
+      std::cerr << "Usage: 3dfier config.yml -o output.ext" << std::endl;
+      return 0;
+    }
   }
   else if (argc == 4 && (std::string)argv[2] == "-o") {
     filename = argv[3];
