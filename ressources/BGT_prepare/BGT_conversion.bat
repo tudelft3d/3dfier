@@ -9,3 +9,4 @@ ogr2ogr -nlt CONVERT_TO_LINEAR -where "eindregistratie is NULL and OGR_GEOMETRY=
 ogr2ogr -nlt CONVERT_TO_LINEAR -where "eindregistratie is NULL and OGR_GEOMETRY='CURVEPOLYGON'" -f sqlite bgt_wegdeel.sqlite bgt_wegdeel.gml
 ogr2ogr -nlt CONVERT_TO_LINEAR -where "eindregistratie is NULL and OGR_GEOMETRY='CURVEPOLYGON'" -f sqlite bgt_waterdeel.sqlite bgt_waterdeel.gml
 ogr2ogr -nlt CONVERT_TO_LINEAR -where "eindregistratie is NULL and OGR_GEOMETRY='CURVEPOLYGON'" -f sqlite bgt_tunneldeel.sqlite bgt_tunneldeel.gml
+ogr2ogr -nlt CONVERT_TO_LINEAR -where "eindregistratie is NULL and OGR_GEOMETRY='CURVEPOLYGON'" -f sqlite bgt_kunstwerkdeel.sqlite bgt_kunstwerkdeel.gml
