@@ -87,7 +87,7 @@
     </Midl>
     <Link>
       <AdditionalOptions>%(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>C:\OSGeo4W64\lib\gdal_i.lib;C:\OSGeo4W64\lib\liblas.lib;C:\OSGeo4W64\lib\laszip.lib;..\..\CGAL-4.8\build\lib\libCGAL_Core-vc140-mt-gd-4.8.lib;..\..\CGAL-4.8\build\lib\libCGAL-vc140-mt-gd-4.8.lib;..\..\CGAL-4.8\auxiliary\gmp\lib\libgmp-10.lib;..\..\CGAL-4.8\auxiliary\gmp\lib\libmpfr-4.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\OSGeo4W64\lib\gdal_i.lib;C:\OSGeo4W64\lib\liblas.lib;C:\OSGeo4W64\lib\laszip.lib;..\..\CGAL-4.8\build\lib\libCGAL_Core-vc140-mt-gd-4.8.lib;..\..\CGAL-4.8\build\lib\libCGAL-vc140-mt-gd-4.8.lib;..\..\CGAL-4.8\auxiliary\gmp\lib\libgmp-10.lib;..\..\CGAL-4.8\auxiliary\gmp\lib\libmpfr-4.lib;..\..\yaml-cpp\vs_build\lib\yaml-cpp-mdd.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\boost_1_60_0\lib64-msvc-14.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -135,9 +135,9 @@
     </Midl>
     <Link>
       <AdditionalOptions> /machine:x64 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>C:\OSGeo4W64\lib\gdal_i.lib;C:\OSGeo4W64\lib\liblas.lib;C:\OSGeo4W64\lib\laszip.lib;..\..\CGAL-4.8\build\lib\libCGAL_Core-vc140-mt-4.8.lib;..\..\CGAL-4.8\build\lib\libCGAL-vc140-mt-4.8.lib;..\..\CGAL-4.8\auxiliary\gmp\lib\libgmp-10.lib;..\..\CGAL-4.8\auxiliary\gmp\lib\libmpfr-4.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\OSGeo4W64\lib\gdal_i.lib;C:\OSGeo4W64\lib\liblas.lib;C:\OSGeo4W64\lib\laszip.lib;..\..\CGAL-4.8\build\lib\libCGAL_Core-vc140-mt-4.8.lib;..\..\CGAL-4.8\build\lib\libCGAL-vc140-mt-4.8.lib;..\..\CGAL-4.8\auxiliary\gmp\lib\libgmp-10.lib;..\..\CGAL-4.8\auxiliary\gmp\lib\libmpfr-4.lib;..\..\yaml-cpp\vs_build\lib\yaml-cpp-md.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\boost_1_60_0\lib64-msvc-14.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>No</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImportLibrary>
       </ImportLibrary>
@@ -146,6 +146,7 @@
       <Version>
       </Version>
       <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -164,11 +165,6 @@
     <ClCompile Include="..\..\3dfier\geomtools.cpp" />
     <ClCompile Include="..\Bridge.cpp" />
     <ClCompile Include="..\Separation.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\yaml-cpp\vs_build\yaml-cpp.vcxproj">
-      <Project>{bedbc2de-23c7-3769-90b4-97589a504b92}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Bridge.h" />
