@@ -1,6 +1,6 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
-  
+
   Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
@@ -19,18 +19,16 @@
   along with 3difer.  If not, see <http://www.gnu.org/licenses/>.
 
   For any information or further details about the use of 3dfier, contact
-  Hugo Ledoux 
+  Hugo Ledoux
   <h.ledoux@tudelft.nl>
   Faculty of Architecture & the Built Environment
   Delft University of Technology
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-
 #include "Map3d.h"
 #include "io.h"
 #include "boost/locale.hpp"
-
 
 Map3d::Map3d() {
   OGRRegisterAll();
@@ -53,7 +51,6 @@ Map3d::Map3d() {
   bg::set<bg::max_corner, 0>(_bbox, -999999);
   bg::set<bg::max_corner, 1>(_bbox, -999999);
 }
-
 
 Map3d::~Map3d() {
   // TODO : destructor Map3d
@@ -102,7 +99,7 @@ void Map3d::set_terrain_simplification(int simplification) {
 
 void Map3d::set_forest_simplification(int simplification) {
   _forest_simplification = simplification;
-} 
+}
 
 void Map3d::set_terrain_innerbuffer(float innerbuffer) {
   _terrain_innerbuffer = innerbuffer;
@@ -136,8 +133,7 @@ Box2 Map3d::get_bbox() {
   return _bbox;
 }
 
-
-std::string Map3d::get_citygml() {
+void Map3d::get_citygml(std::ofstream &outputfile) {
   std::stringstream ss;
   ss << std::setprecision(3) << std::fixed;
   ss << get_xml_header() << std::endl;
@@ -148,20 +144,20 @@ std::string Map3d::get_citygml() {
   ss << "<gml:Envelope srsDimension=\"3\" srsName=\"urn:ogc:def:crs:EPSG::7415\">" << std::endl;
   ss << "<gml:lowerCorner>";
   ss << bg::get<bg::min_corner, 0>(_bbox) << " " << bg::get<bg::min_corner, 1>(_bbox) << " 0";
-  ss << "</gml:lowerCorner>"<< std::endl;
+  ss << "</gml:lowerCorner>" << std::endl;
   ss << "<gml:upperCorner>";
   ss << bg::get<bg::max_corner, 0>(_bbox) << " " << bg::get<bg::max_corner, 1>(_bbox) << " 100";
   ss << "</gml:upperCorner>" << std::endl;
   ss << "</gml:Envelope>" << std::endl;
   ss << "</gml:boundedBy>" << std::endl;
+  outputfile << ss.str();
   for (auto& f : _lsFeatures) {
-    ss << f->get_citygml();
+    outputfile << f->get_citygml();
   }
-  ss << "</CityModel>" << std::endl;
-  return ss.str();
+  outputfile << "</CityModel>" << std::endl;
 }
 
-std::string Map3d::get_citygml_imgeo() {
+void Map3d::get_citygml_imgeo(std::ofstream &outputfile) {
   std::stringstream ss;
   ss << std::setprecision(3) << std::fixed;
   ss << get_xml_header() << std::endl;
@@ -177,28 +173,25 @@ std::string Map3d::get_citygml_imgeo() {
   ss << "</gml:upperCorner>" << std::endl;
   ss << "</gml:Envelope>" << std::endl;
   ss << "</gml:boundedBy>" << std::endl;
+  outputfile << ss.str();
   for (auto& f : _lsFeatures) {
-    ss << f->get_citygml_imgeo();
+    outputfile << f->get_citygml();
   }
-  ss << "</CityModel>" << std::endl;
-  return ss.str();
+  outputfile << "</CityModel>" << std::endl;
 }
 
-std::string Map3d::get_csv_buildings() {
-  std::stringstream ss;
-  ss << "id;roof;floor" << std::endl;
+void Map3d::get_csv_buildings(std::ofstream &outputfile) {
+  outputfile << "id;roof;floor" << std::endl;
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
       // if (b != nullptr)
-      ss << b->get_csv();
+      outputfile << b->get_csv();
     }
   }
-  return ss.str();
 }
 
-
-std::string Map3d::get_obj_per_feature(int z_exaggeration) {
+void Map3d::get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration) {
   std::unordered_map< std::string, unsigned long > dPts;
   std::stringstream ssf;
   for (auto& p : _lsFeatures) {
@@ -212,55 +205,51 @@ std::string Map3d::get_obj_per_feature(int z_exaggeration) {
       ssf << p->get_obj(dPts);
     }
   }
+
   //-- sort the points in the map: simpler to copy to a vector
   std::vector<std::string> thepts;
   thepts.resize(dPts.size());
-  for (auto& p : dPts) 
+  for (auto& p : dPts)
     thepts[p.second - 1] = p.first;
-  std::stringstream ss;
-  ss << "mtllib ./3dfier.mtl" << std::endl;
-  ss << std::setprecision(3) << std::fixed;
+  dPts.clear();
+
+  outputfile << "mtllib ./3dfier.mtl" << std::endl;
   for (auto& p : thepts) {
-    ss << "v ";
-    ss << (std::stof(p.substr(0, p.find_first_of("/")))) / 100 << " ";
-    ss << (std::stof(p.substr(p.find_first_of("/") + 1, p.find_last_of("/")))) / 100 << " ";
-    ss << (std::stof(p.substr(p.find_last_of("/") + 1))) / 100 << std::endl;
+    outputfile << "v " << p << std::endl;
   }
-  ss << ssf.str();
-  //-- TODO: floor for buildings
-  return ss.str();
+  outputfile << ssf.str() << std::endl;
 }
 
+void Map3d::get_obj_per_class(std::ofstream &outputfile, int z_exaggeration) {
+  std::unordered_map< std::string, unsigned long > dPts;
+  std::stringstream ssf;
+  for (int c = 0; c < 6; c++) {
+    for (auto& p : _lsFeatures) {
+      if (p->get_class() == c) {
+        ssf << p->get_mtl();
+        if (p->get_class() == BUILDING) {
+          Building* b = dynamic_cast<Building*>(p);
+          ssf << b->get_obj(dPts, _building_lod);
+        }
+        else {
+          ssf << p->get_obj(dPts);
+        }
+      }
+    }
+  }
 
-std::string Map3d::get_obj_per_class(int z_exaggeration) {
-  // std::vector<int> offsets;
-  // offsets.push_back(0);
-  // std::stringstream ss;
-  // ss << "mtllib ./3dfier.mtl" << std::endl;
-  // //-- go class by class sequentially
-  // for (int c = 0; c < 6; c++) {
-  //   for (auto& p3 : _lsFeatures) {
-  //     if (p3->get_class() == c) {
-  //       ss << p3->get_obj_v(z_exaggeration);
-  //     }
-  //   }
-  // }
-  // for (int c = 0; c < 6; c++) {
-  //   ss << "o " << c << std::endl;
-  //   for (auto& p3 : _lsFeatures) {
-  //     if (p3->get_class() == c) {
-  //       ss << p3->get_mtl();
-  //       ss << p3->get_obj_f(vertices_map, _use_vertical_walls);
-  //       if (_building_include_floor == true) {
-  //         Building* b = dynamic_cast<Building*>(p3);
-  //         if (b != nullptr)
-  //           ss << b->get_obj_f_floor(offset);
-  //       }
-  //     }
-  //   }
-  // }
-  // return ss.str();
-  return "EMTPY"; // TODO: fix me
+  //-- sort the points in the map: simpler to copy to a vector
+  std::vector<std::string> thepts;
+  thepts.resize(dPts.size());
+  for (auto& p : dPts)
+    thepts[p.second - 1] = p.first;
+  dPts.clear();
+
+  outputfile << "mtllib ./3dfier.mtl" << std::endl;
+  for (auto& p : thepts) {
+    outputfile << "v " << p << std::endl;
+  }
+  outputfile << ssf.str() << std::endl;
 }
 
 bool Map3d::get_shapefile(std::string filename) {
@@ -303,19 +292,14 @@ unsigned long Map3d::get_num_polygons() {
   return _lsFeatures.size();
 }
 
-
 const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
   return _lsFeatures;
 }
 
-
-// void Map3d::add_elevation_point(double x, double y, double z, int returnno, liblas::Classification lasclass) {
 void Map3d::add_elevation_point(liblas::Point const& laspt) {
   //-- filter out vegetation TODO: shouldn't be here me thinks, but in each specific classes
   // if ( (laspt.GetClassification() == liblas::Classification(1)) && (laspt.GetReturnNumber() != 1) )
     // return;
-
-  // p.GetX(), p.GetY(), p.GetZ(), p.GetReturnNumber(), p.GetClassification()
 
   Point2 p(laspt.GetX(), laspt.GetY());
   LAS14Class lasclass = LAS_UNKNOWN;
@@ -352,18 +336,13 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
     else {
       radius = _radius_vertex_elevation;
     }
-
-    if (bg::distance(p, *(f->get_Polygon2())) < radius) {
-      f->add_elevation_point(laspt.GetX(),
-        laspt.GetY(),
-        laspt.GetZ(),
-        radius,
-        lasclass,
-        (laspt.GetReturnNumber() == laspt.GetNumberOfReturns()));
-    }
+    f->add_elevation_point(p,
+      laspt.GetZ(),
+      radius,
+      lasclass,
+      (laspt.GetReturnNumber() == laspt.GetNumberOfReturns()));
   }
 }
-
 
 bool Map3d::threeDfy(bool stitching) {
   /*
@@ -423,7 +402,6 @@ bool Map3d::construct_CDT() {
   return true;
 }
 
-
 bool Map3d::construct_rtree() {
   std::clog << "Constructing the R-tree...";
   for (auto p : _lsFeatures)
@@ -431,7 +409,6 @@ bool Map3d::construct_rtree() {
   std::clog << " done." << std::endl;
   return true;
 }
-
 
 bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
 #if GDAL_VERSION_MAJOR < 2
@@ -491,7 +468,6 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
   }
   return true;
 }
-
 
 #if GDAL_VERSION_MAJOR < 2
 bool Map3d::extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file)
@@ -602,7 +578,6 @@ void Map3d::extract_feature(OGRFeature *f, const char *idfield, const char *heig
   }
 }
 
-
 //-- http://www.liblas.org/tutorial/cpp.html#applying-filters-to-a-reader-to-extract-specified-classes
 bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip) {
   std::clog << "Reading LAS/LAZ file: " << ifile << std::endl;
@@ -658,7 +633,6 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
   return true;
 }
 
-
 void Map3d::collect_adjacent_features(TopoFeature* f) {
   std::vector<PairIndexed> re;
   _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
@@ -670,16 +644,15 @@ void Map3d::collect_adjacent_features(TopoFeature* f) {
   }
 }
 
-
 void Map3d::stitch_lifted_features() {
   std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
 
-  //-- 1. store all touching top level (adjacent + incident)
+    //-- 1. store all touching top level (adjacent + incident)
     std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
 
-  //-- 2. build the node-column for each vertex
-    // oring
+    //-- 2. build the node-column for each vertex
+      // oring
     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2()));
     for (int i = 0; i < oring.size(); i++) {
       // std::cout << std::setprecision(3) << std::fixed << bg::get<0>(oring[i]) << " : " << bg::get<1>(oring[i]) << std::endl;
@@ -881,7 +854,6 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     }
   }
 }
-
 
 void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
   Point2 p = f1->get_point2(ringi1, pi1);

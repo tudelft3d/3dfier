@@ -1,6 +1,6 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
-  
+
   Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
@@ -19,52 +19,46 @@
   along with 3difer.  If not, see <http://www.gnu.org/licenses/>.
 
   For any information or further details about the use of 3dfier, contact
-  Hugo Ledoux 
+  Hugo Ledoux
   <h.ledoux@tudelft.nl>
   Faculty of Architecture & the Built Environment
   Delft University of Technology
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
- 
 #include "Road.h"
 #include "io.h"
 
 float Road::_heightref = 0.5;
 
-Road::Road (char *wkt, std::string pid, float heightref)
-: Boundary3D(wkt, pid)
-{
-    _heightref = heightref;
+Road::Road(char *wkt, std::string pid, float heightref)
+  : Boundary3D(wkt, pid) {
+  _heightref = heightref;
 }
-
-
-bool Road::lift() {
-  lift_each_boundary_vertices(_heightref);
-  smooth_boundary(5);
-  return true;
-}
-
-
-bool Road::add_elevation_point(double x, double y, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  if (lastreturn == true && lasclass == LAS_GROUND)
-    assign_elevation_to_vertex(x, y, z, radius);
-  return true;
-}
-
 
 TopoClass Road::get_class() {
   return ROAD;
 }
 
-
 bool Road::is_hard() {
   return true;
 }
 
-
 std::string Road::get_mtl() {
   return "usemtl Road\n";
+}
+
+bool Road::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+  if (lastreturn == true && lasclass == LAS_GROUND) {
+    Boundary3D::add_elevation_point(p, z, radius, lasclass, lastreturn);
+  }
+  return true;
+}
+
+bool Road::lift() {
+  lift_each_boundary_vertices(_heightref);
+  smooth_boundary(5);
+  return true;
 }
 
 std::string Road::get_citygml() {
@@ -87,7 +81,6 @@ std::string Road::get_citygml() {
   return ss.str();
 }
 
-
 std::string Road::get_citygml_imgeo() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
@@ -109,7 +102,6 @@ std::string Road::get_citygml_imgeo() {
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }
-
 
 bool Road::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Road");
