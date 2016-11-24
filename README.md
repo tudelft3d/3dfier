@@ -76,9 +76,12 @@ The dependencies that are necessary (under Mac we suggest using [Homebrew](http:
 
 ## To run:
 
-`$ ./3dfier myconfig.yml > output.obj`
+`$ ./3dfier myconfig.yml -o output.ext`
 
 ## Test data
 
 In the folder `example_data` there is a small part of the [BGT datasets](http://www.kadaster.nl/web/Themas/Registraties/BGT.htm) (2D 1:1k topographic datasets of the Netherlands), and a part of the [AHN3 LIDAR dataset](https://www.pdok.nl/nl/ahn3-downloads) that can be used for testing. 
 The resulting model (in OBJ) can be found in `example_data/output/test_area.obj`
+
+## Prepare BGT data
+For preparing BGT data as input for 3dfier look at <a href="https://github.com/tudelft3d/3dfier/blob/master/ressources/BGT_prepare/Readme.txt">ressources/BGT_prepare/Readme.txt</a>
