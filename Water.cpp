@@ -62,9 +62,7 @@ bool Water::lift() {
 std::string Water::get_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<wtr:WaterBody gml:id=\"";
-  ss << this->get_id();
-  ss << "\">" << std::endl;
+  ss << "<wtr:WaterBody gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << "<wtr:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;
@@ -82,9 +80,9 @@ std::string Water::get_citygml() {
 std::string Water::get_citygml_imgeo() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<wtr:WaterBody gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << "<imgeo:Waterdeel gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << get_imgeo_object_info(this->get_id());
-  ss << "<wtr:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWater\">" << "waterloop" << "</wtr:class>" << std::endl;
+  ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWater\">" << "waterloop" << "</imgeo:plus-type>" << std::endl;
   ss << "<wtr:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;
@@ -94,7 +92,7 @@ std::string Water::get_citygml_imgeo() {
     ss << get_triangle_as_gml_surfacemember(t, true);
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</wtr:lod1MultiSurface>" << std::endl;
-  ss << "</wtr:WaterBody>" << std::endl;
+  ss << "</imgeo:Waterdeel>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }

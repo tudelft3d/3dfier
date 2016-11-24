@@ -62,9 +62,7 @@ bool Terrain::lift() {
 std::string Terrain::get_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<luse:LandUse gml:id=\"";
-  ss << this->get_id();
-  ss << "\">" << std::endl;
+  ss << "<luse:LandUse gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << "<luse:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;
@@ -82,7 +80,7 @@ std::string Terrain::get_citygml() {
 std::string Terrain::get_citygml_imgeo() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<luse:LandUse gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << "<imgeo:OnbegroeidTerreindeel gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << get_imgeo_object_info(this->get_id());
   ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" /*<< FysiekVoorkomenOnbegroeidTerrein*/ "erf" << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
   ss << "<imgeo:onbegroeidTerreindeelOpTalud>" /*<< onbegroeidTerreindeelOpTalud*/ "0" << "</imgeo:onbegroeidTerreindeelOpTalud>" << std::endl;
@@ -96,7 +94,7 @@ std::string Terrain::get_citygml_imgeo() {
     ss << get_triangle_as_gml_surfacemember(t, true);
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</luse:lod1MultiSurface>" << std::endl;
-  ss << "</luse:LandUse>" << std::endl;
+  ss << "</imgeo:OnbegroeidTerreindeel>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }

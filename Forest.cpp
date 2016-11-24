@@ -88,10 +88,10 @@ std::string Forest::get_citygml_imgeo() {
   ss << "<cityObjectMember>" << std::endl;
   ss << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << get_imgeo_object_info(this->get_id());
-  ss << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" /*<< FysiekVoorkomenBegroeidTerrein*/ "x" << "</veg:class>" << std::endl;
+  ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" /*<< FysiekVoorkomenBegroeidTerrein*/ "x" << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
   ss << "<imgeo:begroeidTerreindeelOpTalud>" /*<< begroeidTerreindeelOpTalud*/ << "0" << "</imgeo:begroeidTerreindeelOpTalud>" << std::endl;
   ss << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" /*<< plus-fysiekVoorkomen*/ << "0" << "</imgeo:plus-fysiekVoorkomen>" << std::endl;
-  ss << "<imgeo:lod0MultiSurfaceBegroeidTerreindeel>" << std::endl;
+  ss << "<veg:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;
   for (auto& t : _triangles)
@@ -99,7 +99,7 @@ std::string Forest::get_citygml_imgeo() {
   for (auto& t : _triangles_vw)
     ss << get_triangle_as_gml_surfacemember(t, true);
   ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</imgeo:lod0MultiSurfaceBegroeidTerreindeel>" << std::endl;
+  ss << "</veg:lod1MultiSurface>" << std::endl;
   ss << "</veg:PlantCover>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();

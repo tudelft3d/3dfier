@@ -64,9 +64,7 @@ bool Road::lift() {
 std::string Road::get_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<tran:Road gml:id=\"";
-  ss << this->get_id();
-  ss << "\">" << std::endl;
+  ss << "<tran:Road gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << "<tran:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;
@@ -84,12 +82,12 @@ std::string Road::get_citygml() {
 std::string Road::get_citygml_imgeo() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<tran:Road gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << "<tran:TrafficArea gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << "<tran:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWeg\">" /*<< FunctieWeg*/ "x" << "</tran:function>" << std::endl;
-  ss << "<tran:surfaceMaterial codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWeg\">" /*<< FysiekVoorkomenWeg*/ "x" << "</tran:surfaceMaterial>" << std::endl;
+  ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWeg\">" /*<< FysiekVoorkomenWeg*/ "x" << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
   ss << "<imgeo:wegdeelOpTalud>" /*<< wegdeelOpTalud*/ "0" << "</imgeo:wegdeelOpTalud>" << std::endl;
   ss << "<imgeo:plus-fysiekVoorkomenWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWegPlus\">" /*<< FysiekVoorkomenWegPlus*/ "x" << "</imgeo:plus-fysiekVoorkomenWegdeel>" << std::endl;
-  ss << "<imgeo:lod0SurfaceWegdeel>" << std::endl;
+  ss << "<tran:lod2MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;
   for (auto& t : _triangles)
@@ -97,8 +95,8 @@ std::string Road::get_citygml_imgeo() {
   for (auto& t : _triangles_vw)
     ss << get_triangle_as_gml_surfacemember(t, true);
   ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</imgeo:lod0SurfaceWegdeel>" << std::endl;
-  ss << "</tran:Road>" << std::endl;
+  ss << "</tran:lod2MultiSurface>" << std::endl;
+  ss << "</tran:TrafficArea>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }
