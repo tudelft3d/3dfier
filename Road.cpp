@@ -82,12 +82,9 @@ std::string Road::get_citygml() {
 std::string Road::get_citygml_imgeo() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<tran:TrafficArea gml:id=\"" << this->get_id() << "\">" << std::endl;
-  ss << "<tran:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWeg\">" /*<< FunctieWeg*/ "x" << "</tran:function>" << std::endl;
-  ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWeg\">" /*<< FysiekVoorkomenWeg*/ "x" << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
-  ss << "<imgeo:wegdeelOpTalud>" /*<< wegdeelOpTalud*/ "0" << "</imgeo:wegdeelOpTalud>" << std::endl;
-  ss << "<imgeo:plus-fysiekVoorkomenWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWegPlus\">" /*<< FysiekVoorkomenWegPlus*/ "x" << "</imgeo:plus-fysiekVoorkomenWegdeel>" << std::endl;
-  ss << "<tran:lod2MultiSurface>" << std::endl;
+  ss << "<tra:TrafficArea gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << get_imgeo_object_info(this->get_id());
+  ss << "<tra:lod2MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;
   for (auto& t : _triangles)
@@ -95,8 +92,13 @@ std::string Road::get_citygml_imgeo() {
   for (auto& t : _triangles_vw)
     ss << get_triangle_as_gml_surfacemember(t, true);
   ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</tran:lod2MultiSurface>" << std::endl;
-  ss << "</tran:TrafficArea>" << std::endl;
+  ss << "</tra:lod2MultiSurface>" << std::endl;
+  //ss << "<imgeo:bgt-functie codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWeg\">" << /*bgt-Functie*/ "x" << "</imgeo:bgt-functie>" << std::endl;
+  //ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWeg\">" << /*FysiekVoorkomenWeg*/ "x" << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
+  ss << "<imgeo:wegdeelOpTalud>" << /*wegdeelOpTalud*/ "false" << "</imgeo:wegdeelOpTalud>" << std::endl;
+  ss << "<imgeo:plus-functieWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWegPlus\">" << /*FunctieWeg*/ "x" << "</imgeo:plus-functieWegdeel>" << std::endl;
+  ss << "<imgeo:plus-fysiekVoorkomenWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWegPlus\">" << /*FysiekVoorkomenWegPlus*/ "x" << "</imgeo:plus-fysiekVoorkomenWegdeel>" << std::endl;
+  ss << "</tra:TrafficArea>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }

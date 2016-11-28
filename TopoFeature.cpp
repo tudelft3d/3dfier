@@ -33,7 +33,7 @@ int TopoFeature::_count = 0;
 
 //-----------------------------------------------------------------------------
 
-TopoFeature::TopoFeature(char *wkt, std::string pid) {
+TopoFeature::TopoFeature(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid) {
   _id = pid;
   _counter = _count++;
   _toplevel = true;

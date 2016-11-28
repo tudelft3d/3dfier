@@ -85,12 +85,9 @@ std::string Bridge::get_citygml() {
 std::string Bridge::get_citygml_imgeo() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<brg:Bridge gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << "<bri:BridgeConstructionElement gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << get_imgeo_object_info(this->get_id());
-  ss << "<brg:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbruggingsdeel\">" /*<< TypeOverbruggingsdeel*/ "x" << "</brg:function>" << std::endl;
-  ss << "<imgeo:hoortBijTypeOverbrugging codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbrugging\">" /*<< TypeOverbrugging*/ "x" << "</imgeo:hoortBijTypeOverbrugging>" << std::endl;
-  ss << "<imgeo:overbruggingIsBeweegbaar>" /*<< overbruggingIsBeweegbaar*/ "0" << "</imgeo:overbruggingIsBeweegbaar>" << std::endl;
-  ss << "<brg:lod1MultiSurface>" << std::endl;
+  ss << "<bri:lod1Geometry>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;
   for (auto& t : _triangles)
@@ -98,8 +95,11 @@ std::string Bridge::get_citygml_imgeo() {
   for (auto& t : _triangles_vw)
     ss << get_triangle_as_gml_surfacemember(t, true);
   ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</brg:lod1MultiSurface>" << std::endl;
-  ss << "</brg:Bridge>" << std::endl;
+  ss << "</bri:lod1Geometry>" << std::endl;
+  //ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbruggingsdeel\">" << /*TypeOverbruggingsdeel*/ "x" << "</imgeo:bgt-type>" << std::endl;
+  ss << "<imgeo:hoortBijTypeOverbrugging codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbrugging\">" << /*TypeOverbrugging*/ "x" << "</imgeo:hoortBijTypeOverbrugging>" << std::endl;
+  ss << "<imgeo:overbruggingIsBeweegbaar>" << /*overbruggingIsBeweegbaar*/ "false" << "</imgeo:overbruggingIsBeweegbaar>" << std::endl;
+  ss << "</bri:BridgeConstructionElement>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }

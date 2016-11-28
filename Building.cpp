@@ -199,15 +199,10 @@ std::string Building::get_citygml_imgeo() {
   float hbase = z_to_float(this->get_height_base());
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<bldg:Building gml:id=\"" << this->get_id() << "\">" << std::endl;
-  //-- IMGeo ADE
-  //ss << "<creationDate>" /*<< creationdate*/ << "0001-01-01" << "</creationDate>" << std::endl;
+  ss << "<bui:BuildingPart gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << get_imgeo_object_info(this->get_id());
-  ss << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" /*<< bgtstatus*/ << "bestaand" << "</imgeo:bgt-status>" << std::endl;
-  // Todo: fix the identificatieBAGPND to be valid in the schema
-  //ss << "<imgeo:identificatieBAGPND>" /*<< bagpnd*/ << "0" << "</imgeo:identificatieBAGPND>" << std::endl;
   //-- LOD1 Solid
-  ss << "<bldg:lod1Solid>" << std::endl;
+  ss << "<bui:lod1Solid>" << std::endl;
   ss << "<gml:Solid>" << std::endl;
   ss << "<gml:exterior>" << std::endl;
   ss << "<gml:CompositeSurface>" << std::endl;
@@ -231,8 +226,30 @@ std::string Building::get_citygml_imgeo() {
   ss << "</gml:CompositeSurface>" << std::endl;
   ss << "</gml:exterior>" << std::endl;
   ss << "</gml:Solid>" << std::endl;
-  ss << "</bldg:lod1Solid>" << std::endl;
-  ss << "</bldg:Building>" << std::endl;
+  ss << "</bui:lod1Solid>" << std::endl;
+  ss << "<imgeo:identificatieBAGPND>" << /*bagpnd*/ "0" << "</imgeo:identificatieBAGPND>" << std::endl;
+  ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
+  ss << "<imgeo:Nummeraanduidingreeks>" << std::endl;
+  ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
+  ss << "<imgeo:Label>" << std::endl;
+  ss << "<imgeo:tekst>" << "Tekst" << "</imgeo:tekst>" << std::endl;
+  ss << "<imgeo:positie>" << std::endl;
+  ss << "<imgeo:Labelpositie>" << std::endl;
+  ss << "<imgeo:plaatsingspunt>" << std::endl;
+  ss << "<gml:Point srsDimension=\"2\">" << std::endl;
+  ss << "<gml:pos>" << /*x-posistion*/ "0" << " " << /*y-position*/ "0" << "</gml:pos>" << std::endl;
+  ss << "</gml:Point>" << std::endl;
+  ss << "</imgeo:plaatsingspunt>" << std::endl;
+  ss << "<imgeo:hoek>" << /*hoek*/ "0" << "</imgeo:hoek>" << std::endl;
+  ss << "</imgeo:Labelpositie>" << std::endl;
+  ss << "</imgeo:positie>" << std::endl;
+  ss << "</imgeo:Label>" << std::endl;
+  ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
+  ss << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << /*laagsteHuisnummer*/ "identificatieBAGVBOLaagsteHuisnummer0" << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>" << std::endl;
+  ss << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << /*hoogsteHuisnummer*/ "identificatieBAGVBOHoogsteHuisnummer0" << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>" << std::endl;
+  ss << "</imgeo:Nummeraanduidingreeks>" << std::endl;
+  ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
+  ss << "</bui:BuildingPart>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }

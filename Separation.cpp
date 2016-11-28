@@ -83,8 +83,7 @@ std::string Separation::get_citygml_imgeo() {
   ss << "<cityObjectMember>" << std::endl;
   ss << "<imgeo:Scheiding gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << get_imgeo_object_info(this->get_id());
-  ss << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOverigeConstructie\">" /*<< plus-fysiekVoorkomen*/ << "0" << "</imgeo:plus-fysiekVoorkomen>" << std::endl;
-  ss << "<gen:lod1Geometry>" << std::endl;
+  ss << "<imgeo:lod1Geometry>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;
   for (auto& t : _triangles)
@@ -92,7 +91,9 @@ std::string Separation::get_citygml_imgeo() {
   for (auto& t : _triangles_vw)
     ss << get_triangle_as_gml_surfacemember(t, true);
   ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</gen:lod1Geometry>" << std::endl;
+  ss << "</imgeo:lod1Geometry>" << std::endl;
+  ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheiding\">" << /*TypeScheiding*/ "x" << "</imgeo:bgt-type>" << std::endl;
+  ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheidingPlus\">" << /*TypeScheidingPlus*/ "x" << "</imgeo:plus-type>" << std::endl;
   ss << "</imgeo:Scheiding>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();

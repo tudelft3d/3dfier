@@ -82,10 +82,7 @@ std::string Terrain::get_citygml_imgeo() {
   ss << "<cityObjectMember>" << std::endl;
   ss << "<imgeo:OnbegroeidTerreindeel gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << get_imgeo_object_info(this->get_id());
-  ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" /*<< FysiekVoorkomenOnbegroeidTerrein*/ "erf" << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
-  ss << "<imgeo:onbegroeidTerreindeelOpTalud>" /*<< onbegroeidTerreindeelOpTalud*/ "0" << "</imgeo:onbegroeidTerreindeelOpTalud>" << std::endl;
-  ss << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" /*<< plus-fysiekVoorkomen*/ << "0" << "</imgeo:plus-fysiekVoorkomen>" << std::endl;
-  ss << "<luse:lod1MultiSurface>" << std::endl;
+  ss << "<lu:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;
   for (auto& t : _triangles)
@@ -93,7 +90,10 @@ std::string Terrain::get_citygml_imgeo() {
   for (auto& t : _triangles_vw)
     ss << get_triangle_as_gml_surfacemember(t, true);
   ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</luse:lod1MultiSurface>" << std::endl;
+  ss << "</lu:lod1MultiSurface>" << std::endl;
+  ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" << /*FysiekVoorkomenOnbegroeidTerrein*/ "erf" << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
+  ss << "<imgeo:onbegroeidTerreindeelOpTalud>" /*<< onbegroeidTerreindeelOpTalud*/ "false" << "</imgeo:onbegroeidTerreindeelOpTalud>" << std::endl;
+  ss << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" << /*plus-fysiekVoorkomen*/ "x" << "</imgeo:plus-fysiekVoorkomen>" << std::endl;
   ss << "</imgeo:OnbegroeidTerreindeel>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
