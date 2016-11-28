@@ -31,8 +31,8 @@
 
 float Water::_heightref = 0.1;
 
-Water::Water(char *wkt, std::string pid, float heightref)
-  : Flat(wkt, pid) {
+Water::Water(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref)
+  : Flat(wkt, attributes, pid) {
   _heightref = heightref;
 }
 
@@ -91,8 +91,13 @@ std::string Water::get_citygml_imgeo() {
     ss << get_triangle_as_gml_surfacemember(t, true);
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</wtr:lod1MultiSurface>" << std::endl;
-  //ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWater\">" << /*TypeWater*/ "x" << "</imgeo:bgt-type>" << std::endl;
-  ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWaterPlus\">" << /*TypeWaterPlus*/ "x" << "</imgeo:plus-type>" << std::endl;
+  std::string attribute;
+  //if (get_attribute("bgt_type", attribute)) {
+  //  ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWater\">" << attribute << "</imgeo:bgt-type>" << std::endl;
+  //}
+  if (get_attribute("plus_type", attribute)) {
+    ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWaterPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
+  }
   ss << "</imgeo:Waterdeel>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();

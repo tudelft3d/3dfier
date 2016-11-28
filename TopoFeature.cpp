@@ -52,6 +52,7 @@ TopoFeature::TopoFeature(char *wkt, std::unordered_map<std::string, std::string>
     _p2z[i + 1].resize(bg::num_points(_p2->inners()[i]));
     _lidarelevs[i + 1].resize(bg::num_points(_p2->inners()[i]));
   }
+  _attributes = attributes;
 }
 
 TopoFeature::~TopoFeature() {
@@ -157,25 +158,38 @@ std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long 
 
 std::string TopoFeature::get_imgeo_object_info(std::string id) {
   std::stringstream ss;
-  ss << "<imgeo:identificatie>" << std::endl;
-  ss << "<imgeo:NEN3610ID>" << std::endl;
-  ss << "<imgeo:namespace>NL.IMGeo</imgeo:namespace>" << std::endl;
-  ss << "<imgeo:lokaalID>" /*<< lokaalid*/ << id << "</imgeo:lokaalID>" << std::endl;
-  ss << "</imgeo:NEN3610ID>" << std::endl;
-  ss << "</imgeo:identificatie>" << std::endl;
-  ss << "<imgeo:tijdstipRegistratie>" /*<< tijstipregistratie*/ << "0001-01-01T00:00:00" << "</imgeo:tijdstipRegistratie>" << std::endl;
-  if (true /*eindRegistratie*/) {
-    ss << "<imgeo:eindRegistratie>" /*<< eindRegistratie*/ << "0001-01-01T00:00:00" << "</imgeo:eindRegistratie>" << std::endl;
+  std::string attribute;
+  if (get_attribute("lokaalid", attribute)) {
+    ss << "<imgeo:identificatie>" << std::endl;
+    ss << "<imgeo:NEN3610ID>" << std::endl;
+    ss << "<imgeo:namespace>NL.IMGeo</imgeo:namespace>" << std::endl;
+    ss << "<imgeo:lokaalID>" << attribute << "</imgeo:lokaalID>" << std::endl;
+    ss << "</imgeo:NEN3610ID>" << std::endl;
+    ss << "</imgeo:identificatie>" << std::endl;
   }
-  if (true /*LV-publicatiedatum*/) {
-    ss << "<imgeo:LV-publicatiedatum>" /*<< LV-publicatiedatum*/ << "0001-01-01T00:00:00" << "</imgeo:LV-publicatiedatum>" << std::endl;
+  if (get_attribute("tijdstipregistratie", attribute)) {
+    ss << "<imgeo:tijdstipRegistratie>" << attribute << "</imgeo:tijdstipRegistratie>" << std::endl;
   }
-  ss << "<imgeo:bronhouder>" /*<< bronhouder*/ << "0" << "</imgeo:bronhouder>" << std::endl;
-  ss << "<imgeo:inOnderzoek>" /*<< inonderzoek*/ << "0" << "</imgeo:inOnderzoek>" << std::endl;
-  ss << "<imgeo:relatieveHoogteligging>" /*<< relatievehoogteligging*/ << "0" << "</imgeo:relatieveHoogteligging>" << std::endl;
-  ss << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" /*<< bgtstatus*/ << "bestaand" << "</imgeo:bgt-status>" << std::endl;
-  if (true /*plus-status*/) {
-    ss << "<imgeo:plus-status>" /*<< plus-status*/ << "0001-01-01T00:00:00" << "</imgeo:plus-status>" << std::endl;
+  if (get_attribute("eindregistratie", attribute)) {
+    ss << "<imgeo:eindRegistratie>" << attribute << "</imgeo:eindRegistratie>" << std::endl;
+  }
+  if (get_attribute("lv_publicatiedatum", attribute)) {
+    ss << "<imgeo:LV-publicatiedatum>" << attribute << "</imgeo:LV-publicatiedatum>" << std::endl;
+  }
+  if (get_attribute("bronhouder", attribute)) {
+    ss << "<imgeo:bronhouder>" << attribute << "</imgeo:bronhouder>" << std::endl;
+  }
+  if (get_attribute("inonderzoek", attribute)) {
+    ss << "<imgeo:inOnderzoek>" << attribute << "</imgeo:inOnderzoek>" << std::endl;
+  }
+  if (get_attribute("relatievehoogteligging", attribute)) {
+    ss << "<imgeo:relatieveHoogteligging>" << attribute << "</imgeo:relatieveHoogteligging>" << std::endl;
+  }
+  if (get_attribute("bgt_status", attribute)) {
+    ss << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" << attribute << "</imgeo:bgt-status>" << std::endl;
+  }
+  if (get_attribute("plus_status", attribute)) {
+    ss << "<imgeo:plus-status>" << attribute << "</imgeo:plus-status>" << std::endl;
   }
   return ss.str();
 }
@@ -705,6 +719,19 @@ std::string TopoFeature::get_triangle_as_gml_triangle(Triangle& t, bool vertical
   return ss.str();
 }
 
+bool TopoFeature::get_attribute(std::string attributeName, std::string &attribute)
+{
+  std::unordered_map<std::string, std::string>::const_iterator it = _attributes.find(attributeName);
+
+  if (it != _attributes.end() && it->second != "") {
+    attribute = it->second;
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
 void TopoFeature::lift_all_boundary_vertices_same_height(int height) {
   int ringi = 0;
   Ring2 oring = bg::exterior_ring(*(_p2));
@@ -794,8 +821,8 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
 //-------------------------------
 //-------------------------------
 
-Flat::Flat(char *wkt, std::string pid)
-  : TopoFeature(wkt, pid) {}
+Flat::Flat(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid)
+  : TopoFeature(wkt, attributes, pid) {}
 
 int Flat::get_number_vertices() {
   // return int(2 * _vertices.size());
@@ -830,8 +857,8 @@ bool Flat::lift_percentile(float percentile) {
 //-------------------------------
 //-------------------------------
 
-Boundary3D::Boundary3D(char *wkt, std::string pid)
-  : TopoFeature(wkt, pid) {}
+Boundary3D::Boundary3D(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid)
+  : TopoFeature(wkt, attributes, pid) {}
 
 int Boundary3D::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
@@ -891,8 +918,8 @@ void Boundary3D::smooth_boundary(int passes) {
 //-------------------------------
 //-------------------------------
 
-TIN::TIN(char *wkt, std::string pid, int simplification, float innerbuffer)
-  : TopoFeature(wkt, pid) {
+TIN::TIN(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification, float innerbuffer)
+  : TopoFeature(wkt, attributes, pid) {
   _simplification = simplification;
   _innerbuffer = innerbuffer;
 }

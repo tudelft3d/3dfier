@@ -35,7 +35,7 @@
 
 class TopoFeature {
 public:
-  TopoFeature(char *wkt, std::string pid);
+  TopoFeature(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid);
   ~TopoFeature();
 
   virtual bool          lift() = 0;
@@ -82,6 +82,7 @@ protected:
   static int                        _count;
   bool                              _bVerticalWalls;
   bool                              _toplevel;
+  std::unordered_map<std::string, std::string> _attributes;
 
   std::vector< std::vector< std::vector<int> > > _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
   std::vector<Point3>   _vertices;  //-- output of Triangle
@@ -96,13 +97,14 @@ protected:
 
   std::string get_triangle_as_gml_surfacemember(Triangle& t, bool verticalwall = false);
   std::string get_triangle_as_gml_triangle(Triangle& t, bool verticalwall = false);
+  bool get_attribute(std::string attributeName, std::string &attribute);
 };
 
 //---------------------------------------------
 
 class Flat: public TopoFeature {
 public:
-  Flat(char *wkt, std::string pid);
+  Flat(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid);
   int                 get_number_vertices();
   bool                add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   int                 get_height();
@@ -119,7 +121,7 @@ protected:
 
 class Boundary3D: public TopoFeature {
 public:
-  Boundary3D(char *wkt, std::string pid);
+  Boundary3D(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid);
   int                  get_number_vertices();
   bool                 add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   virtual TopoClass    get_class() = 0;
@@ -135,7 +137,7 @@ protected:
 
 class TIN: public TopoFeature {
 public:
-  TIN(char *wkt, std::string pid, int simplification = 0, float innerbuffer = 0);
+  TIN(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification = 0, float innerbuffer = 0);
   int                 get_number_vertices();
   bool                add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   virtual TopoClass   get_class() = 0;

@@ -32,8 +32,8 @@
 float Building::_heightref_top = 0.9;
 float Building::_heightref_base = 0.1;
 
-Building::Building(char *wkt, std::string pid, float heightref_top, float heightref_base)
-  : Flat(wkt, pid)
+Building::Building(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref_top, float heightref_base)
+  : Flat(wkt, attributes, pid)
 {
   _heightref_top = heightref_top;
   _heightref_base = heightref_base;
@@ -227,33 +227,46 @@ std::string Building::get_citygml_imgeo() {
   ss << "</gml:exterior>" << std::endl;
   ss << "</gml:Solid>" << std::endl;
   ss << "</bui:lod1Solid>" << std::endl;
-  ss << "<imgeo:identificatieBAGPND>" << /*bagpnd*/ "0" << "</imgeo:identificatieBAGPND>" << std::endl;
-  ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
-  ss << "<imgeo:Nummeraanduidingreeks>" << std::endl;
-  ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
-  ss << "<imgeo:Label>" << std::endl;
-  ss << "<imgeo:tekst>" << "Tekst" << "</imgeo:tekst>" << std::endl;
-  ss << "<imgeo:positie>" << std::endl;
-  ss << "<imgeo:Labelpositie>" << std::endl;
-  ss << "<imgeo:plaatsingspunt>" << std::endl;
-  ss << "<gml:Point srsDimension=\"2\">" << std::endl;
-  ss << "<gml:pos>" << /*x-posistion*/ "0" << " " << /*y-position*/ "0" << "</gml:pos>" << std::endl;
-  ss << "</gml:Point>" << std::endl;
-  ss << "</imgeo:plaatsingspunt>" << std::endl;
-  ss << "<imgeo:hoek>" << /*hoek*/ "0" << "</imgeo:hoek>" << std::endl;
-  ss << "</imgeo:Labelpositie>" << std::endl;
-  ss << "</imgeo:positie>" << std::endl;
-  ss << "</imgeo:Label>" << std::endl;
-  ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
-  ss << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << /*laagsteHuisnummer*/ "identificatieBAGVBOLaagsteHuisnummer0" << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>" << std::endl;
-  ss << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << /*hoogsteHuisnummer*/ "identificatieBAGVBOHoogsteHuisnummer0" << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>" << std::endl;
-  ss << "</imgeo:Nummeraanduidingreeks>" << std::endl;
-  ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
+  std::string attribute;
+  if (get_attribute("identificatiebagpnd", attribute)) {
+    ss << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>" << std::endl;
+  }
+  bool btekst, bplaatsingspunt, bhoek, blaagnr, bhoognr;
+  std::string tekst, plaatsingspunt, hoek, laagnr, hoognr;
+  btekst = get_attribute("tekst", tekst);
+  bplaatsingspunt = get_attribute("plaatsingspunt", plaatsingspunt);
+  bhoek = get_attribute("hoek", hoek);
+  blaagnr = get_attribute("identificatiebagvbolaagstehuisnummer", laagnr);
+  bhoognr = get_attribute("identificatiebagvbohoogstehuisnummer", hoognr);
+  
+  if (btekst && bplaatsingspunt && bhoek && blaagnr && bhoognr) {
+    ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
+    ss << "<imgeo:Nummeraanduidingreeks>" << std::endl;
+    ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
+    ss << "<imgeo:Label>" << std::endl;
+    ss << "<imgeo:tekst>" << tekst << "</imgeo:tekst>" << std::endl;
+    ss << "<imgeo:positie>" << std::endl;
+    ss << "<imgeo:Labelpositie>" << std::endl;
+    ss << "<imgeo:plaatsingspunt>" << std::endl;
+    ss << "<gml:Point srsDimension=\"2\">" << std::endl;
+    ss << "<gml:pos>" << plaatsingspunt << "</gml:pos>" << std::endl;
+    ss << "</gml:Point>" << std::endl;
+    ss << "</imgeo:plaatsingspunt>" << std::endl;
+    ss << "<imgeo:hoek>" << hoek << "</imgeo:hoek>" << std::endl;
+    ss << "</imgeo:Labelpositie>" << std::endl;
+    ss << "</imgeo:positie>" << std::endl;
+    ss << "</imgeo:Label>" << std::endl;
+    ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
+    ss << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << laagnr << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>" << std::endl;
+    ss << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << hoognr << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>" << std::endl;
+    ss << "</imgeo:Nummeraanduidingreeks>" << std::endl;
+    ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
+  }
+
   ss << "</bui:BuildingPart>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }
-
 
 bool Building::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Building");

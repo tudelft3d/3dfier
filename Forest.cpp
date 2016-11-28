@@ -32,8 +32,8 @@
 
 bool Forest::_use_ground_points_only = false;
 
-Forest::Forest(char *wkt, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
-  : TIN(wkt, pid, simplification, innerbuffer)
+Forest::Forest(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
+  : TIN(wkt, attributes, pid, simplification, innerbuffer)
 {
   _use_ground_points_only = ground_points_only;
 }
@@ -97,9 +97,16 @@ std::string Forest::get_citygml_imgeo() {
     ss << get_triangle_as_gml_surfacemember(t, true);
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</veg:lod1MultiSurface>" << std::endl;
-  //ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" /*<< FysiekVoorkomenBegroeidTerrein*/ "x" << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
-  ss << "<imgeo:begroeidTerreindeelOpTalud>" /*<< begroeidTerreindeelOpTalud*/ << "false" << "</imgeo:begroeidTerreindeelOpTalud>" << std::endl;
-  ss << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" /*<< plus-fysiekVoorkomen*/ << "x" << "</imgeo:plus-fysiekVoorkomen>" << std::endl;
+  std::string attribute;
+  //if (get_attribute("bgt_fysiekvoorkomen", attribute)) {
+  //  ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
+  //}
+  if (get_attribute("begroeidterreindeeloptalud", attribute)) {
+    ss << "<imgeo:begroeidTerreindeelOpTalud>" << attribute << "</imgeo:begroeidTerreindeelOpTalud>" << std::endl;
+  }
+  if (get_attribute("plus_fysiekvoorkomen", attribute)) {
+    ss << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>" << std::endl;
+  }
   ss << "</veg:PlantCover>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();

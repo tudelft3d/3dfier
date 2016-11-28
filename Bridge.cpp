@@ -31,8 +31,8 @@
 
 float Bridge::_heightref = 0.5;
 
-Bridge::Bridge(char *wkt, std::string pid, float heightref)
-  : Flat(wkt, pid) {
+Bridge::Bridge(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref)
+  : Flat(wkt, attributes, pid) {
   _heightref = heightref;
 }
 
@@ -96,9 +96,16 @@ std::string Bridge::get_citygml_imgeo() {
     ss << get_triangle_as_gml_surfacemember(t, true);
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</bri:lod1Geometry>" << std::endl;
-  //ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbruggingsdeel\">" << /*TypeOverbruggingsdeel*/ "x" << "</imgeo:bgt-type>" << std::endl;
-  ss << "<imgeo:hoortBijTypeOverbrugging codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbrugging\">" << /*TypeOverbrugging*/ "x" << "</imgeo:hoortBijTypeOverbrugging>" << std::endl;
-  ss << "<imgeo:overbruggingIsBeweegbaar>" << /*overbruggingIsBeweegbaar*/ "false" << "</imgeo:overbruggingIsBeweegbaar>" << std::endl;
+  std::string attribute;
+  //if (get_attribute("bgt_type", attribute)) {
+  //  ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbruggingsdeel\">" << attribute << "</imgeo:bgt-type>" << std::endl;
+  //}
+  if (get_attribute("hoortbijtypeoverbrugging", attribute)) {
+    ss << "<imgeo:hoortBijTypeOverbrugging codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbrugging\">" << attribute << "</imgeo:hoortBijTypeOverbrugging>" << std::endl;
+  }
+  if (get_attribute("overbruggingisbeweegbaar", attribute)) {
+    ss << "<imgeo:overbruggingIsBeweegbaar>" << attribute << "</imgeo:overbruggingIsBeweegbaar>" << std::endl;
+  }
   ss << "</bri:BridgeConstructionElement>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();

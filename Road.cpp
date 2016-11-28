@@ -31,8 +31,8 @@
 
 float Road::_heightref = 0.5;
 
-Road::Road(char *wkt, std::string pid, float heightref)
-  : Boundary3D(wkt, pid) {
+Road::Road(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref)
+  : Boundary3D(wkt, attributes, pid) {
   _heightref = heightref;
 }
 
@@ -93,11 +93,22 @@ std::string Road::get_citygml_imgeo() {
     ss << get_triangle_as_gml_surfacemember(t, true);
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</tra:lod2MultiSurface>" << std::endl;
-  //ss << "<imgeo:bgt-functie codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWeg\">" << /*bgt-Functie*/ "x" << "</imgeo:bgt-functie>" << std::endl;
-  //ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWeg\">" << /*FysiekVoorkomenWeg*/ "x" << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
-  ss << "<imgeo:wegdeelOpTalud>" << /*wegdeelOpTalud*/ "false" << "</imgeo:wegdeelOpTalud>" << std::endl;
-  ss << "<imgeo:plus-functieWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWegPlus\">" << /*FunctieWeg*/ "x" << "</imgeo:plus-functieWegdeel>" << std::endl;
-  ss << "<imgeo:plus-fysiekVoorkomenWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWegPlus\">" << /*FysiekVoorkomenWegPlus*/ "x" << "</imgeo:plus-fysiekVoorkomenWegdeel>" << std::endl;
+  std::string attribute;
+  //if (get_attribute("bgt_functie", attribute)) {
+  //  ss << "<imgeo:bgt-functie codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWeg\">" << attribute << "</imgeo:bgt-functie>" << std::endl;
+  //}
+  //if (get_attribute("bgt_fysiekvoorkomen", attribute)) {
+  //  ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWeg\">" << attribute << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
+  //}
+  if (get_attribute("wegdeeloptalud", attribute)) {
+    ss << "<imgeo:wegdeelOpTalud>" << attribute << "</imgeo:wegdeelOpTalud>" << std::endl;
+  }
+  if (get_attribute("plus_functiewegdeel", attribute)) {
+    ss << "<imgeo:plus-functieWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWegPlus\">" << attribute << "</imgeo:plus-functieWegdeel>" << std::endl;
+  }
+  if (get_attribute("plus_fysiekvoorkomenwegdeel", attribute)) {
+    ss << "<imgeo:plus-fysiekVoorkomenWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWegPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomenWegdeel>" << std::endl;
+  }
   ss << "</tra:TrafficArea>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
