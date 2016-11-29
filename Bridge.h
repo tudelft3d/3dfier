@@ -33,7 +33,7 @@
 
 class Bridge: public Flat {
 public:
-  Bridge(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref);
+  Bridge(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref);
 
   bool          lift();
   bool          add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);

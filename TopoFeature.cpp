@@ -33,7 +33,7 @@ int TopoFeature::_count = 0;
 
 //-----------------------------------------------------------------------------
 
-TopoFeature::TopoFeature(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid) {
+TopoFeature::TopoFeature(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid) {
   _id = pid;
   _counter = _count++;
   _toplevel = true;
@@ -53,6 +53,7 @@ TopoFeature::TopoFeature(char *wkt, std::unordered_map<std::string, std::string>
     _lidarelevs[i + 1].resize(bg::num_points(_p2->inners()[i]));
   }
   _attributes = attributes;
+  _layername = layername;
 }
 
 TopoFeature::~TopoFeature() {
@@ -719,15 +720,22 @@ std::string TopoFeature::get_triangle_as_gml_triangle(Triangle& t, bool vertical
   return ss.str();
 }
 
-bool TopoFeature::get_attribute(std::string attributeName, std::string &attribute)
+bool TopoFeature::get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue)
 {
   std::unordered_map<std::string, std::string>::const_iterator it = _attributes.find(attributeName);
 
-  if (it != _attributes.end() && it->second != "") {
-    attribute = it->second;
+  // Return attribute if exists and not empty, else return defaultValue if given
+  if (it != _attributes.end()){
+    if (it->second == "" && defaultValue != "") {
+      attribute = defaultValue;
+    }
+    else {
+      attribute = it->second;
+    }
     return true;
   }
   else {
+    // Return false if attribute does not exist
     return false;
   }
 }
@@ -821,8 +829,8 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
 //-------------------------------
 //-------------------------------
 
-Flat::Flat(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid)
-  : TopoFeature(wkt, attributes, pid) {}
+Flat::Flat(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid)
+  : TopoFeature(wkt, layername, attributes, pid) {}
 
 int Flat::get_number_vertices() {
   // return int(2 * _vertices.size());
@@ -857,8 +865,8 @@ bool Flat::lift_percentile(float percentile) {
 //-------------------------------
 //-------------------------------
 
-Boundary3D::Boundary3D(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid)
-  : TopoFeature(wkt, attributes, pid) {}
+Boundary3D::Boundary3D(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid)
+  : TopoFeature(wkt, layername, attributes, pid) {}
 
 int Boundary3D::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
@@ -918,8 +926,8 @@ void Boundary3D::smooth_boundary(int passes) {
 //-------------------------------
 //-------------------------------
 
-TIN::TIN(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification, float innerbuffer)
-  : TopoFeature(wkt, attributes, pid) {
+TIN::TIN(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification, float innerbuffer)
+  : TopoFeature(wkt, layername, attributes, pid) {
   _simplification = simplification;
   _innerbuffer = innerbuffer;
 }

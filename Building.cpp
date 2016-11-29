@@ -32,8 +32,8 @@
 float Building::_heightref_top = 0.9;
 float Building::_heightref_base = 0.1;
 
-Building::Building(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref_top, float heightref_base)
-  : Flat(wkt, attributes, pid)
+Building::Building(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref_top, float heightref_base)
+  : Flat(wkt, layername, attributes, pid)
 {
   _heightref_top = heightref_top;
   _heightref_base = heightref_base;
@@ -238,7 +238,6 @@ std::string Building::get_citygml_imgeo() {
   bhoek = get_attribute("hoek", hoek);
   blaagnr = get_attribute("identificatiebagvbolaagstehuisnummer", laagnr);
   bhoognr = get_attribute("identificatiebagvbohoogstehuisnummer", hoognr);
-  
   if (btekst && bplaatsingspunt && bhoek && blaagnr && bhoognr) {
     ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
     ss << "<imgeo:Nummeraanduidingreeks>" << std::endl;
@@ -262,7 +261,6 @@ std::string Building::get_citygml_imgeo() {
     ss << "</imgeo:Nummeraanduidingreeks>" << std::endl;
     ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
   }
-
   ss << "</bui:BuildingPart>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();

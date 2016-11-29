@@ -30,8 +30,8 @@
 #include "io.h"
 #include <algorithm>
 
-Terrain::Terrain(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification, float innerbuffer)
-  : TIN(wkt, attributes, pid, simplification, innerbuffer) {}
+Terrain::Terrain(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification, float innerbuffer)
+  : TIN(wkt, layername, attributes, pid, simplification, innerbuffer) {}
 
 TopoClass Terrain::get_class() {
   return TERRAIN;
@@ -95,7 +95,7 @@ std::string Terrain::get_citygml_imgeo() {
   if (get_attribute("bgt_fysiekvoorkomen", attribute)) {
     ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" << attribute /*"erf"*/ << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
   }
-  if (get_attribute("onbegroeidterreindeeloptalud", attribute)) {
+  if (get_attribute("onbegroeidterreindeeloptalud", attribute, "false")) {
     ss << "<imgeo:onbegroeidTerreindeelOpTalud>" << attribute << "</imgeo:onbegroeidTerreindeelOpTalud>" << std::endl;
   }
   if (get_attribute("plus_fysiekvoorkomen", attribute)) {

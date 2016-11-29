@@ -32,8 +32,8 @@
 
 bool Forest::_use_ground_points_only = false;
 
-Forest::Forest(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
-  : TIN(wkt, attributes, pid, simplification, innerbuffer)
+Forest::Forest(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
+  : TIN(wkt, layername, attributes, pid, simplification, innerbuffer)
 {
   _use_ground_points_only = ground_points_only;
 }
@@ -101,7 +101,7 @@ std::string Forest::get_citygml_imgeo() {
   //if (get_attribute("bgt_fysiekvoorkomen", attribute)) {
   //  ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
   //}
-  if (get_attribute("begroeidterreindeeloptalud", attribute)) {
+  if (get_attribute("begroeidterreindeeloptalud", attribute, "false")) {
     ss << "<imgeo:begroeidTerreindeelOpTalud>" << attribute << "</imgeo:begroeidTerreindeelOpTalud>" << std::endl;
   }
   if (get_attribute("plus_fysiekvoorkomen", attribute)) {

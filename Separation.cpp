@@ -31,8 +31,8 @@
 
 float Separation::_heightref = 0.8;
 
-Separation::Separation(char *wkt, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref)
-  : Flat(wkt, attributes, pid) {
+Separation::Separation(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref)
+  : Flat(wkt, layername, attributes, pid) {
   _heightref = heightref;
 }
 
@@ -79,9 +79,19 @@ std::string Separation::get_citygml() {
 }
 
 std::string Separation::get_citygml_imgeo() {
+  bool kunstwerkdeel = _layername == "kunstwerkdeel";
+  bool overigbouwwerk = _layername == "overigbouwwerk";
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<imgeo:Scheiding gml:id=\"" << this->get_id() << "\">" << std::endl;
+  if (kunstwerkdeel) {
+    ss << "<imgeo:Kunstwerkdeel gml:id=\"" << this->get_id() << "\">" << std::endl;
+  }
+  else if (overigbouwwerk) {
+    ss << "<imgeo:OverigBouwwerk gml:id=\"" << this->get_id() << "\">" << std::endl;
+  }
+  else {
+    ss << "<imgeo:Scheiding gml:id=\"" << this->get_id() << "\">" << std::endl;
+  }
   ss << get_imgeo_object_info(this->get_id());
   ss << "<imgeo:lod1Geometry>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
@@ -93,13 +103,33 @@ std::string Separation::get_citygml_imgeo() {
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</imgeo:lod1Geometry>" << std::endl;
   std::string attribute;
-  if (get_attribute("bgt_type", attribute)) {
-    ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheiding\">" << attribute << "</imgeo:bgt-type>" << std::endl;
+  if (kunstwerkdeel) {
+    if (get_attribute("bgt_type", attribute)) {
+      ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerk\">" << attribute << "</imgeo:bgt-type>" << std::endl;
+    }
+    if (get_attribute("plus_type", attribute)) {
+      ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerkPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
+    }
+    ss << "</imgeo:Kunstwerkdeel>" << std::endl;
   }
-  if (get_attribute("plus_type", attribute)) {
-    ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheidingPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
+  else if (overigbouwwerk) {
+    if (get_attribute("bgt_type", attribute)) {
+      ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerk\">" << attribute << "</imgeo:bgt-type>" << std::endl;
+    }
+    if (get_attribute("plus_type", attribute)) {
+      ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerkPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
+    }
+    ss << "</imgeo:OverigBouwwerk>" << std::endl;
   }
-  ss << "</imgeo:Scheiding>" << std::endl;
+  else {
+    if (get_attribute("bgt_type", attribute)) {
+      ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheiding\">" << attribute << "</imgeo:bgt-type>" << std::endl;
+    }
+    if (get_attribute("plus_type", attribute)) {
+      ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheidingPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
+    }
+    ss << "</imgeo:Scheiding>" << std::endl;
+  }
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }
