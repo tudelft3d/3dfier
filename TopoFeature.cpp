@@ -725,12 +725,12 @@ bool TopoFeature::get_attribute(std::string attributeName, std::string &attribut
   std::unordered_map<std::string, std::string>::const_iterator it = _attributes.find(attributeName);
 
   // Return attribute if exists and not empty, else return defaultValue if given
-  if (it != _attributes.end()){
-    if (it->second == "" && defaultValue != "") {
-      attribute = defaultValue;
-    }
-    else {
+  if (it != _attributes.end()) {
+    if (it->second != "") {
       attribute = it->second;
+    }
+    else if (defaultValue != "") {
+      attribute = defaultValue;
     }
     return true;
   }
