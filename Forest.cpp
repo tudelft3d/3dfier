@@ -98,9 +98,9 @@ std::string Forest::get_citygml_imgeo() {
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</veg:lod1MultiSurface>" << std::endl;
   std::string attribute;
-  //if (get_attribute("bgt_fysiekvoorkomen", attribute)) {
-  //  ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
-  //}
+  if (get_attribute("bgt_fysiekvoorkomen", attribute)) {
+    ss << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</veg:class>" << std::endl;
+  }
   if (get_attribute("begroeidterreindeeloptalud", attribute, "false")) {
     ss << "<imgeo:begroeidTerreindeelOpTalud>" << attribute << "</imgeo:begroeidTerreindeelOpTalud>" << std::endl;
   }

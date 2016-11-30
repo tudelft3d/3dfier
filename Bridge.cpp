@@ -97,9 +97,9 @@ std::string Bridge::get_citygml_imgeo() {
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</bri:lod1Geometry>" << std::endl;
   std::string attribute;
-  //if (get_attribute("bgt_type", attribute)) {
-  //  ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbruggingsdeel\">" << attribute << "</imgeo:bgt-type>" << std::endl;
-  //}
+  if (get_attribute("bgt_type", attribute)) {
+    ss << "<bri:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbruggingsdeel\">" << attribute << "</bri:function>" << std::endl;
+  }
   if (get_attribute("hoortbijtypeoverbrugging", attribute)) {
     ss << "<imgeo:hoortBijTypeOverbrugging codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbrugging\">" << attribute << "</imgeo:hoortBijTypeOverbrugging>" << std::endl;
   }

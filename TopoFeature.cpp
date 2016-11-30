@@ -160,6 +160,12 @@ std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long 
 std::string TopoFeature::get_imgeo_object_info(std::string id) {
   std::stringstream ss;
   std::string attribute;
+  if (get_attribute("creationDate", attribute)) {
+    ss << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>" << std::endl;
+  }
+  if (get_attribute("terminationDate", attribute)) {
+    ss << "<imgeo:terminationDate>" << attribute << "</imgeo:terminationDate>" << std::endl;
+  }
   if (get_attribute("lokaalid", attribute)) {
     ss << "<imgeo:identificatie>" << std::endl;
     ss << "<imgeo:NEN3610ID>" << std::endl;
@@ -186,7 +192,7 @@ std::string TopoFeature::get_imgeo_object_info(std::string id) {
   if (get_attribute("relatievehoogteligging", attribute)) {
     ss << "<imgeo:relatieveHoogteligging>" << attribute << "</imgeo:relatieveHoogteligging>" << std::endl;
   }
-  if (get_attribute("bgt_status", attribute)) {
+  if (get_attribute("bgt_status", attribute, "bestaand")) {
     ss << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" << attribute << "</imgeo:bgt-status>" << std::endl;
   }
   if (get_attribute("plus_status", attribute)) {
@@ -728,16 +734,15 @@ bool TopoFeature::get_attribute(std::string attributeName, std::string &attribut
   if (it != _attributes.end()) {
     if (it->second != "") {
       attribute = it->second;
+      return true;
     }
     else if (defaultValue != "") {
       attribute = defaultValue;
+      return true;
     }
-    return true;
   }
-  else {
-    // Return false if attribute does not exist
-    return false;
-  }
+  // Return false if attribute does not exist
+  return false;
 }
 
 void TopoFeature::lift_all_boundary_vertices_same_height(int height) {
