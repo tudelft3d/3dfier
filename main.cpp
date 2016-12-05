@@ -59,7 +59,6 @@ int main(int argc, const char * argv[]) {
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
 
   std::string filename;
-  std::string argString = argv[1];
 
   //-- reading the config file
   if (argc == 2) {
@@ -78,7 +77,7 @@ int main(int argc, const char * argv[]) {
       return 0;
     }
   }
-  else if (argc == 4 && (std::string)argv[2] == "-o" && argString.substr(argString.length() - 3) == "yml") {
+  else if (argc == 4 && ((std::string)argv[1]).substr(((std::string)argv[1]).length()-3) == "yml" && (std::string)argv[2] == "-o") {
     filename = argv[3];
   }
   else {
