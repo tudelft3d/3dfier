@@ -35,7 +35,7 @@
 
 class TopoFeature {
 public:
-  TopoFeature(char *wkt, std::string pid);
+  TopoFeature(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid);
   ~TopoFeature();
 
   virtual bool          lift() = 0;
@@ -46,6 +46,7 @@ public:
   virtual bool          is_hard() = 0;
   virtual std::string   get_mtl() = 0;
   virtual std::string   get_citygml() = 0;
+  virtual std::string   get_citygml_imgeo() = 0;
   virtual bool          get_shape(OGRLayer*) = 0;
 
   std::string  get_id();
@@ -71,6 +72,7 @@ public:
   std::string  get_wkt();
   bool         get_shape_features(OGRLayer* layer, std::string className);
   std::string  get_obj(std::unordered_map< std::string, unsigned long > &dPts);
+  std::string  get_imgeo_object_info(std::string id);
 protected:
   Polygon2*                         _p2;
   std::vector< std::vector<int> >   _p2z;
@@ -80,6 +82,8 @@ protected:
   static int                        _count;
   bool                              _bVerticalWalls;
   bool                              _toplevel;
+  std::string                       _layername;
+  std::unordered_map<std::string, std::string> _attributes;
 
   std::vector< std::vector< std::vector<int> > > _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
   std::vector<Point3>   _vertices;  //-- output of Triangle
@@ -94,13 +98,14 @@ protected:
 
   std::string get_triangle_as_gml_surfacemember(Triangle& t, bool verticalwall = false);
   std::string get_triangle_as_gml_triangle(Triangle& t, bool verticalwall = false);
+  bool get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue = "");
 };
 
 //---------------------------------------------
 
 class Flat: public TopoFeature {
 public:
-  Flat(char *wkt, std::string pid);
+  Flat(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid);
   int                 get_number_vertices();
   bool                add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   int                 get_height();
@@ -117,7 +122,7 @@ protected:
 
 class Boundary3D: public TopoFeature {
 public:
-  Boundary3D(char *wkt, std::string pid);
+  Boundary3D(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid);
   int                  get_number_vertices();
   bool                 add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   virtual TopoClass    get_class() = 0;
@@ -133,7 +138,7 @@ protected:
 
 class TIN: public TopoFeature {
 public:
-  TIN(char *wkt, std::string pid, int simplification = 0, float innerbuffer = 0);
+  TIN(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification = 0, float innerbuffer = 0);
   int                 get_number_vertices();
   bool                add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   virtual TopoClass   get_class() = 0;

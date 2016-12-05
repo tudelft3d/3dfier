@@ -31,8 +31,8 @@
 
 float Bridge::_heightref = 0.5;
 
-Bridge::Bridge(char *wkt, std::string pid, float heightref)
-  : Flat(wkt, pid) {
+Bridge::Bridge(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref)
+  : Flat(wkt, layername, attributes, pid) {
   _heightref = heightref;
 }
 
@@ -78,6 +78,35 @@ std::string Bridge::get_citygml() {
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</brg:lod1MultiSurface>" << std::endl;
   ss << "</brg:Bridge>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
+}
+
+std::string Bridge::get_citygml_imgeo() {
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<bri:BridgeConstructionElement gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << get_imgeo_object_info(this->get_id());
+  ss << "<bri:lod1Geometry>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles)
+    ss << get_triangle_as_gml_surfacemember(t);
+  for (auto& t : _triangles_vw)
+    ss << get_triangle_as_gml_surfacemember(t, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</bri:lod1Geometry>" << std::endl;
+  std::string attribute;
+  if (get_attribute("bgt_type", attribute)) {
+    ss << "<bri:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbruggingsdeel\">" << attribute << "</bri:function>" << std::endl;
+  }
+  if (get_attribute("hoortbijtypeoverbrugging", attribute)) {
+    ss << "<imgeo:hoortBijTypeOverbrugging codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbrugging\">" << attribute << "</imgeo:hoortBijTypeOverbrugging>" << std::endl;
+  }
+  if (get_attribute("overbruggingisbeweegbaar", attribute)) {
+    ss << "<imgeo:overbruggingIsBeweegbaar>" << attribute << "</imgeo:overbruggingIsBeweegbaar>" << std::endl;
+  }
+  ss << "</bri:BridgeConstructionElement>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }

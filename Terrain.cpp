@@ -30,8 +30,8 @@
 #include "io.h"
 #include <algorithm>
 
-Terrain::Terrain(char *wkt, std::string pid, int simplification, float innerbuffer)
-  : TIN(wkt, pid, simplification, innerbuffer) {}
+Terrain::Terrain(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification, float innerbuffer)
+  : TIN(wkt, layername, attributes, pid, simplification, innerbuffer) {}
 
 TopoClass Terrain::get_class() {
   return TERRAIN;
@@ -62,9 +62,7 @@ bool Terrain::lift() {
 std::string Terrain::get_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<luse:LandUse gml:id=\"";
-  ss << this->get_id();
-  ss << "\">" << std::endl;
+  ss << "<luse:LandUse gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << "<luse:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;
@@ -75,6 +73,35 @@ std::string Terrain::get_citygml() {
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</luse:lod1MultiSurface>" << std::endl;
   ss << "</luse:LandUse>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
+}
+
+std::string Terrain::get_citygml_imgeo() {
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<imgeo:OnbegroeidTerreindeel gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << get_imgeo_object_info(this->get_id());
+  ss << "<lu:lod1MultiSurface>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles)
+    ss << get_triangle_as_gml_surfacemember(t);
+  for (auto& t : _triangles_vw)
+    ss << get_triangle_as_gml_surfacemember(t, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</lu:lod1MultiSurface>" << std::endl;
+  std::string attribute;
+  if (get_attribute("bgt_fysiekvoorkomen", attribute)) {
+    ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" << attribute /*"erf"*/ << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
+  }
+  if (get_attribute("onbegroeidterreindeeloptalud", attribute, "false")) {
+    ss << "<imgeo:onbegroeidTerreindeelOpTalud>" << attribute << "</imgeo:onbegroeidTerreindeelOpTalud>" << std::endl;
+  }
+  if (get_attribute("plus_fysiekvoorkomen", attribute)) {
+    ss << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>" << std::endl;
+  }
+  ss << "</imgeo:OnbegroeidTerreindeel>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }

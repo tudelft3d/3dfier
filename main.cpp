@@ -285,6 +285,10 @@ int main(int argc, const char * argv[]) {
     std::clog << "CityGML output" << std::endl;
     map3d.get_citygml(outputfile);
   }
+  else if (format == "CityGML-IMGeo") {
+    std::clog << "CityGML-IMGeo output" << std::endl;
+    map3d.get_citygml_imgeo(outputfile);
+  }
   else if (format == "OBJ") {
     std::clog << "OBJ output" << std::endl;
     map3d.get_obj_per_feature(outputfile, z_exaggeration);
@@ -501,11 +505,12 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
   if ((format != "OBJ") &&
     (format != "OBJ-NoID") &&
     (format != "CityGML") &&
+    (format != "CityGML-IMGeo") &&
     (format != "OBJ-BUILDINGS") &&
     (format != "CSV-BUILDINGS") &&
     (format != "Shapefile")) {
     wentgood = false;
-    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CSV-BUILDINGS | Shapefile)" << std::endl;
+    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-IMGeo | CSV-BUILDINGS | Shapefile)" << std::endl;
   }
   //-- Shapefile type filename check
   if (format == "Shapefile" && !n["filename"]) {

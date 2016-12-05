@@ -35,6 +35,7 @@
 void printProgressBar(int percent);
 std::string get_xml_header();
 std::string get_citygml_namespaces();
+std::string get_citygml_imgeo_namespaces();
 
 std::string get_polygon_lifted_gml(Polygon2* p2, double height, bool reverse = false);
 std::string get_extruded_line_gml(Point2* a, Point2* b, double high, double low, bool reverse = false);

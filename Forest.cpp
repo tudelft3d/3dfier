@@ -32,8 +32,8 @@
 
 bool Forest::_use_ground_points_only = false;
 
-Forest::Forest(char *wkt, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
-  : TIN(wkt, pid, simplification, innerbuffer)
+Forest::Forest(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
+  : TIN(wkt, layername, attributes, pid, simplification, innerbuffer)
 {
   _use_ground_points_only = ground_points_only;
 }
@@ -78,6 +78,35 @@ std::string Forest::get_citygml() {
     ss << get_triangle_as_gml_surfacemember(t, true);
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</veg:lod1MultiSurface>" << std::endl;
+  ss << "</veg:PlantCover>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
+}
+
+std::string Forest::get_citygml_imgeo() {
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  ss << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << get_imgeo_object_info(this->get_id());
+  ss << "<veg:lod1MultiSurface>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles)
+    ss << get_triangle_as_gml_surfacemember(t);
+  for (auto& t : _triangles_vw)
+    ss << get_triangle_as_gml_surfacemember(t, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</veg:lod1MultiSurface>" << std::endl;
+  std::string attribute;
+  if (get_attribute("bgt_fysiekvoorkomen", attribute)) {
+    ss << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</veg:class>" << std::endl;
+  }
+  if (get_attribute("begroeidterreindeeloptalud", attribute, "false")) {
+    ss << "<imgeo:begroeidTerreindeelOpTalud>" << attribute << "</imgeo:begroeidTerreindeelOpTalud>" << std::endl;
+  }
+  if (get_attribute("plus_fysiekvoorkomen", attribute)) {
+    ss << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>" << std::endl;
+  }
   ss << "</veg:PlantCover>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();

@@ -66,7 +66,32 @@ std::string get_citygml_namespaces() {
   ss << "xmlns:gen=\"http://www.opengis.net/citygml/generics/2.0\"" << std::endl;
   ss << "xmlns:brg=\"http://www.opengis.net/citygml/bridge/2.0\"" << std::endl;
   ss << "xmlns:app=\"http://www.opengis.net/citygml/appearance/2.0\"" << std::endl;
+  ss << "xmlns:tun=\"http://www.opengis.net/citygml/tunnel/2.0\"" << std::endl;
+  ss << "xmlns:cif=\"http://www.opengis.net/citygml/cityfurniture/2.0\"" << std::endl;
   ss << "xsi:schemaLocation=\"http://www.opengis.net/citygml/2.0 ./CityGML_2.0/CityGML.xsd\">";
+  return ss.str();
+}
+
+std::string get_citygml_imgeo_namespaces() {
+  std::stringstream ss;
+  ss << "<CityModel xmlns=\"http://www.opengis.net/citygml/2.0\"" << std::endl;
+  ss << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" << std::endl;
+  ss << "xmlns:xAL=\"urn:oasis:names:tc:ciq:xsdschema:xAL:2.0\"" << std::endl;
+  ss << "xmlns:xlink=\"http://www.w3.org/1999/xlink\"" << std::endl;
+  ss << "xmlns:gml=\"http://www.opengis.net/gml\"" << std::endl;
+  ss << "xmlns:bui=\"http://www.opengis.net/citygml/building/2.0\"" << std::endl;
+  ss << "xmlns:wtr=\"http://www.opengis.net/citygml/waterbody/2.0\"" << std::endl;
+  ss << "xmlns:veg=\"http://www.opengis.net/citygml/vegetation/2.0\"" << std::endl;
+  ss << "xmlns:dem=\"http://www.opengis.net/citygml/relief/2.0\"" << std::endl;
+  ss << "xmlns:tra=\"http://www.opengis.net/citygml/transportation/2.0\"" << std::endl;
+  ss << "xmlns:lu=\"http://www.opengis.net/citygml/landuse/2.0\"" << std::endl;
+  ss << "xmlns:gen=\"http://www.opengis.net/citygml/generics/2.0\"" << std::endl;
+  ss << "xmlns:bri=\"http://www.opengis.net/citygml/bridge/2.0\"" << std::endl;
+  ss << "xmlns:app=\"http://www.opengis.net/citygml/appearance/2.0\"" << std::endl;
+  ss << "xmlns:tun=\"http://www.opengis.net/citygml/tunnel/2.0\"" << std::endl;
+  ss << "xmlns:cif=\"http://www.opengis.net/citygml/cityfurniture/2.0\"" << std::endl;
+  ss << "xmlns:imgeo=\"http://www.geostandaarden.nl/imgeo/2.1\"" << std::endl;
+  ss << "xsi:schemaLocation=\"http://www.opengis.net/citygml/2.0 http://schemas.opengis.net/citygml/2.0/cityGMLBase.xsd http://www.geostandaarden.nl/imgeo/2.1 http://schemas.geonovum.nl/imgeo/2.1/imgeo-2.1.1.xsd\">";
   return ss.str();
 }
 

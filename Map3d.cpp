@@ -157,6 +157,29 @@ void Map3d::get_citygml(std::ofstream &outputfile) {
   outputfile << "</CityModel>" << std::endl;
 }
 
+void Map3d::get_citygml_imgeo(std::ofstream &outputfile) {
+  std::stringstream ss;
+  ss << std::setprecision(3) << std::fixed;
+  ss << get_xml_header() << std::endl;
+  ss << get_citygml_imgeo_namespaces() << std::endl;
+  ss << "<gml:name>my 3dfied map</gml:name>" << std::endl;
+  ss << "<gml:boundedBy>" << std::endl;
+  ss << "<gml:Envelope srsDimension=\"3\" srsName=\"urn:ogc:def:crs:EPSG::7415\">" << std::endl;
+  ss << "<gml:lowerCorner>";
+  ss << bg::get<bg::min_corner, 0>(_bbox) << " " << bg::get<bg::min_corner, 1>(_bbox) << " 0";
+  ss << "</gml:lowerCorner>" << std::endl;
+  ss << "<gml:upperCorner>";
+  ss << bg::get<bg::max_corner, 0>(_bbox) << " " << bg::get<bg::max_corner, 1>(_bbox) << " 100";
+  ss << "</gml:upperCorner>" << std::endl;
+  ss << "</gml:Envelope>" << std::endl;
+  ss << "</gml:boundedBy>" << std::endl;
+  outputfile << ss.str();
+  for (auto& f : _lsFeatures) {
+    outputfile << f->get_citygml_imgeo();
+  }
+  outputfile << "</CityModel>" << std::endl;
+}
+
 void Map3d::get_csv_buildings(std::ofstream &outputfile) {
   outputfile << "id;roof;floor" << std::endl;
   for (auto& p : _lsFeatures) {
@@ -470,7 +493,8 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
     }
     dataLayer->ResetReading();
     unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
-    std::clog << "\tLayer: " << dataLayer->GetName() << std::endl;
+    std::string layerName = dataLayer->GetName();
+    std::clog << "\tLayer: " << layerName << std::endl;
     std::clog << "\t(" << boost::locale::as::number << numberOfPolygons << " features --> " << l.second << ")" << std::endl;
     OGRFeature *f;
 
@@ -478,7 +502,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
       switch (f->GetGeometryRef()->getGeometryType()) {
       case wkbPolygon:
       case wkbPolygon25D: {
-        extract_feature(f, idfield, heightfield, l.second, multiple_heights);
+        extract_feature(f, layerName, idfield, heightfield, l.second, multiple_heights);
         break;
       }
       case wkbMultiPolygon:
@@ -494,7 +518,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
               cf->SetField(idfield, ss.str().c_str());
             }
             cf->SetGeometry((OGRPolygon*)multipolygon->getGeometryRef(i));
-            extract_feature(cf, idfield, heightfield, l.second, multiple_heights);
+            extract_feature(cf, layerName, idfield, heightfield, l.second, multiple_heights);
           }
           std::clog << "\t(MultiPolygon split into " << numGeom << " Polygons)" << std::endl;
         }
@@ -510,37 +534,42 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
   return wentgood;
 }
 
-void Map3d::extract_feature(OGRFeature *f, const char *idfield, const char *heightfield, std::string layertype, bool multiple_heights) {
+void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *idfield, const char *heightfield, std::string layertype, bool multiple_heights) {
   char *wkt;
   OGRGeometry *geom = f->GetGeometryRef();
   geom->flattenTo2D();
   geom->exportToWkt(&wkt);
+  std::unordered_map<std::string, std::string> attributes;
+  int attributeCount = f->GetFieldCount();
+  for (int i = 0; i < attributeCount; i++) {
+    attributes[boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef())] = f->GetFieldAsString(i);
+  }
   if (layertype == "Building") {
-    Building* p3 = new Building(wkt, f->GetFieldAsString(idfield), _building_heightref_roof, _building_heightref_floor);
+    Building* p3 = new Building(wkt, layername, attributes, f->GetFieldAsString(idfield), _building_heightref_roof, _building_heightref_floor);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Terrain") {
-    Terrain* p3 = new Terrain(wkt, f->GetFieldAsString(idfield), this->_terrain_simplification, this->_terrain_innerbuffer);
+    Terrain* p3 = new Terrain(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_terrain_simplification, this->_terrain_innerbuffer);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Forest") {
-    Forest* p3 = new Forest(wkt, f->GetFieldAsString(idfield), this->_forest_simplification, this->_forest_innerbuffer, this->_forest_ground_points_only);
+    Forest* p3 = new Forest(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_forest_simplification, this->_forest_innerbuffer, this->_forest_ground_points_only);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Water") {
-    Water* p3 = new Water(wkt, f->GetFieldAsString(idfield), this->_water_heightref);
+    Water* p3 = new Water(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_water_heightref);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Road") {
-    Road* p3 = new Road(wkt, f->GetFieldAsString(idfield), this->_road_heightref);
+    Road* p3 = new Road(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_road_heightref);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Separation") {
-    Separation* p3 = new Separation(wkt, f->GetFieldAsString(idfield), this->_separation_heightref);
+    Separation* p3 = new Separation(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_separation_heightref);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Bridge/Overpass") {
-    Bridge* p3 = new Bridge(wkt, f->GetFieldAsString(idfield), this->_bridge_heightref);
+    Bridge* p3 = new Bridge(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_bridge_heightref);
     _lsFeatures.push_back(p3);
   }
   //-- flag all polygons at (niveau != 0) or remove if not handling multiple height levels

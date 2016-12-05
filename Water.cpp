@@ -31,8 +31,8 @@
 
 float Water::_heightref = 0.1;
 
-Water::Water(char *wkt, std::string pid, float heightref)
-  : Flat(wkt, pid) {
+Water::Water(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref)
+  : Flat(wkt, layername, attributes, pid) {
   _heightref = heightref;
 }
 
@@ -62,9 +62,7 @@ bool Water::lift() {
 std::string Water::get_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<wtr:WaterBody gml:id=\"";
-  ss << this->get_id();
-  ss << "\">" << std::endl;
+  ss << "<wtr:WaterBody gml:id=\"" << this->get_id() << "\">" << std::endl;
   ss << "<wtr:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;
@@ -75,6 +73,49 @@ std::string Water::get_citygml() {
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</wtr:lod1MultiSurface>" << std::endl;
   ss << "</wtr:WaterBody>" << std::endl;
+  ss << "</cityObjectMember>" << std::endl;
+  return ss.str();
+}
+
+std::string Water::get_citygml_imgeo() {
+  bool ondersteunend = _layername == "ondersteunendwaterdeel";
+  std::stringstream ss;
+  ss << "<cityObjectMember>" << std::endl;
+  if (ondersteunend) {
+    ss << "<imgeo:OndersteunendWaterdeel gml:id=\"" << this->get_id() << "\">" << std::endl;
+  }
+  else {
+    ss << "<imgeo:Waterdeel gml:id=\"" << this->get_id() << "\">" << std::endl;
+  }
+  ss << get_imgeo_object_info(this->get_id());
+  ss << "<wtr:lod1MultiSurface>" << std::endl;
+  ss << "<gml:MultiSurface>" << std::endl;
+  ss << std::setprecision(3) << std::fixed;
+  for (auto& t : _triangles)
+    ss << get_triangle_as_gml_surfacemember(t);
+  for (auto& t : _triangles_vw)
+    ss << get_triangle_as_gml_surfacemember(t, true);
+  ss << "</gml:MultiSurface>" << std::endl;
+  ss << "</wtr:lod1MultiSurface>" << std::endl;
+  std::string attribute;
+  if (ondersteunend) {
+    if (get_attribute("bgt_type", attribute)) {
+      ss << "<wat:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOndersteunendWaterdeel\">" << attribute << "</wat:class>" << std::endl;
+    }
+    if (get_attribute("plus_type", attribute)) {
+      ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOndersteunendWaterdeelPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
+    }
+    ss << "</imgeo:OndersteunendWaterdeel>" << std::endl;
+  }
+  else {
+    if (get_attribute("bgt_type", attribute)) {
+      ss << "<wat:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWater\">" << attribute << "</wat:class>" << std::endl;
+    }
+    if (get_attribute("plus_type", attribute)) {
+      ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWaterPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
+    }
+    ss << "</imgeo:Waterdeel>" << std::endl;
+  }
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }
