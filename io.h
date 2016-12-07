@@ -43,5 +43,6 @@ std::string get_extruded_lod1_block_gml(Polygon2* p2, double high, double low = 
 
 bool  is_string_integer(std::string s, int min = 0, int max = 1e6);
 float z_to_float(int z);
+std::vector<std::string> stringsplit(std::string str, char delimiter);
 
 #endif

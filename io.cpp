@@ -176,3 +176,15 @@ bool is_string_integer(std::string s, int min, int max) {
 float z_to_float(int z) {
   return float(z) / 100;
 }
+
+std::vector<std::string> stringsplit(std::string str, char delimiter) {
+  std::vector<std::string> internal;
+  std::stringstream ss(str); // Turn the string into a stream.
+  std::string tok;
+
+  while (getline(ss, tok, delimiter)) {
+    internal.push_back(tok);
+  }
+
+  return internal;
+}

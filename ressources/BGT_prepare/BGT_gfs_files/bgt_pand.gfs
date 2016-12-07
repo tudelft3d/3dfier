@@ -82,6 +82,11 @@
       <Type>StringList</Type>
     </PropertyDefn>
     <PropertyDefn>
+      <Name>plaatsingspunt</Name>
+      <ElementPath>nummeraanduidingreeks|Nummeraanduidingreeks|nummeraanduidingreeks|Label|positie|Labelpositie|plaatsingspunt|Point|pos</ElementPath>
+      <Type>StringList</Type>
+    </PropertyDefn>
+    <PropertyDefn>
       <Name>hoek</Name>
       <ElementPath>nummeraanduidingreeks|Nummeraanduidingreeks|nummeraanduidingreeks|Label|positie|Labelpositie|hoek</ElementPath>
       <Type>RealList</Type>
