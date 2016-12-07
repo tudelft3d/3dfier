@@ -39,6 +39,7 @@ public:
   std::string   get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod);
   std::string   get_citygml();
   std::string   get_citygml_imgeo();
+  std::string   get_citygml_imgeo_number();
   std::string   get_csv();
   std::string   get_mtl();
   bool          get_shape(OGRLayer * layer);
