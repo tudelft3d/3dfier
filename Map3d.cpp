@@ -133,6 +133,12 @@ Box2 Map3d::get_bbox() {
   return _bbox;
 }
 
+liblas::Bounds<double> Map3d::get_bounds() {
+  double radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
+  liblas::Bounds<double> bounds(_bbox.min_corner().x() - radius, _bbox.min_corner().y() - radius, _bbox.max_corner().x() + radius, _bbox.max_corner().y() + radius);
+  return bounds;
+}
+
 void Map3d::get_citygml(std::ofstream &outputfile) {
   std::stringstream ss;
   ss << std::setprecision(3) << std::fixed;
@@ -318,10 +324,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
     lasclass = LAS_UNKNOWN;
 
   std::vector<PairIndexed> re;
-  float radius = _radius_vertex_elevation;
-  if (_building_radius_vertex_elevation > _radius_vertex_elevation) {
-    radius = _building_radius_vertex_elevation;
-  }
+  float radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
   Point2 minp(laspt.GetX() - radius, laspt.GetY() - radius);
   Point2 maxp(laspt.GetX() + radius, laspt.GetY() + radius);
   Box2 querybox(minp, maxp);
@@ -593,48 +596,75 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
     std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
     return false;
   }
-  //-- LAS classes to omit
-  std::vector<liblas::Classification> liblasomits;
+  //-- LAS classes to omit (create full list since eExclusion does not work
+  std::vector<liblas::Classification> liblasomits{
+    liblas::Classification(0), liblas::Classification(1), liblas::Classification(2), liblas::Classification(3),
+    liblas::Classification(4), liblas::Classification(5), liblas::Classification(6), liblas::Classification(7),
+    liblas::Classification(8), liblas::Classification(9), liblas::Classification(10), liblas::Classification(11),
+    liblas::Classification(12), liblas::Classification(13), liblas::Classification(14), liblas::Classification(15),
+    liblas::Classification(16), liblas::Classification(17), liblas::Classification(18)
+  };
   for (int i : lasomits)
-    liblasomits.push_back(liblas::Classification(i));
-  //-- read each point 1-by-1
+    liblasomits.erase(std::find(liblasomits.begin(), liblasomits.end(), liblas::Classification(i)));
+//-- read each point 1-by-1
   liblas::ReaderFactory f;
   liblas::Reader reader = f.CreateWithStream(ifs);
   liblas::Header const& header = reader.GetHeader();
 
-  std::clog << "\t(" << boost::locale::as::number << header.GetPointRecordsCount() << " points in the file)" << std::endl;
-  if ((skip != 0) && (skip != 1)) {
-    std::clog << "\t(skipping every " << skip << "th points, thus ";
-    std::clog << boost::locale::as::number << (header.GetPointRecordsCount() / skip) << " are used)" << std::endl;
+  //-- check if the file overlaps the polygons
+  liblas::Bounds<double> bounds = header.GetExtent();
+  liblas::Bounds<double> polygonBounds = get_bounds();
+  if (polygonBounds.intersects(bounds)) {
+    std::vector<liblas::FilterPtr> filters;
+
+    //-- set the class filter
+    liblas::FilterPtr class_filter = liblas::FilterPtr(new liblas::ClassificationFilter(liblasomits));
+    // eExclusion would throw out those that matched
+    class_filter->SetType(liblas::FilterI::eInclusion);
+    filters.push_back(class_filter);
+
+    //-- set the bounds filter
+    liblas::FilterPtr bounds_filter = liblas::FilterPtr(new liblas::BoundsFilter(polygonBounds));
+    bounds_filter->SetType(liblas::FilterI::eInclusion);
+    filters.push_back(bounds_filter);
+
+    //-- set the thinning filter if thinning is set
+    if (skip > 1) {
+      liblas::FilterPtr thinning_filter = liblas::FilterPtr(new liblas::ThinFilter(skip));
+      thinning_filter->SetType(liblas::FilterI::eInclusion);
+      filters.push_back(thinning_filter);
+    }
+    reader.SetFilters(filters);
+
+    std::clog << "\t(" << boost::locale::as::number << header.GetPointRecordsCount() << " points in the file)" << std::endl;
+    if ((skip > 1)) {
+      std::clog << "\t(skipping every " << skip << "th points, thus ";
+      std::clog << boost::locale::as::number << (header.GetPointRecordsCount() / skip) << " are used)" << std::endl;
+    }
+    else
+      std::clog << "\t(all points used, no skipping)" << std::endl;
+
+    if (lasomits.empty() == false) {
+      std::clog << "\t(omitting LAS classes: ";
+      for (int i : lasomits)
+        std::clog << i << " ";
+      std::clog << ")" << std::endl;
+    }
+    int i = 0;
+    while (reader.ReadNextPoint()) {
+      this->add_elevation_point(reader.GetPoint());
+
+      if (i % (header.GetPointRecordsCount() / 50) == 0)
+        printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
+      i++;
+    }
+    printProgressBar(100);
+    std::clog << "done" << std::endl;
   }
   else
-    std::clog << "\t(all points used, no skipping)" << std::endl;
-
-  if (lasomits.empty() == false) {
-    std::clog << "\t(omitting LAS classes: ";
-    for (int i : lasomits)
-      std::clog << i << " ";
-    std::clog << ")" << std::endl;
+  {
+    std::clog << "\tskipping file, bounds do not intersect polygon extent" << std::endl;
   }
-  int i = 0;
-  while (reader.ReadNextPoint()) {
-    liblas::Point const& p = reader.GetPoint();
-    if ((skip != 0) && (skip != 1)) {
-      if (i % skip == 0) {
-        if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
-          this->add_elevation_point(p);
-      }
-    }
-    else {
-      if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
-        this->add_elevation_point(p);
-    }
-    if (i % 100000 == 0)
-      printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
-    i++;
-  }
-  printProgressBar(100);
-  std::clog << "done" << std::endl;
   ifs.close();
   return true;
 }

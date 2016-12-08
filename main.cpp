@@ -319,8 +319,8 @@ int main(int argc, const char * argv[]) {
   std::clog << "Successfully terminated in "
     << boost::chrono::duration_cast<boost::chrono::seconds>(duration) << " || "
     << boost::chrono::duration_cast<boost::chrono::hours>(duration).count() << ":"
-    << boost::chrono::duration_cast<boost::chrono::minutes>(duration).count() << ":"
-    << boost::chrono::duration_cast<boost::chrono::seconds>(duration).count() << std::endl;
+    << boost::chrono::duration_cast<boost::chrono::minutes>(duration).count() % 60 << ":"
+    << boost::chrono::duration_cast<boost::chrono::seconds>(duration).count() % 3600 << std::endl;
   return 1;
 }
 
