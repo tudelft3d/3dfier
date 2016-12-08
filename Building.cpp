@@ -271,25 +271,29 @@ std::string Building::get_citygml_imgeo_number() {
     //Get the amount of text in the StringList and write all List values separate
     int count = atoi(&(tekst[1]));
     for (int i = 0; i < count; i++) {
-      ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
-      ss << "<imgeo:Nummeraanduidingreeks>" << std::endl;
-      ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
-      ss << "<imgeo:Label>" << std::endl;
-      ss << "<imgeo:tekst>" << tekst_split.at(i) << "</imgeo:tekst>" << std::endl;
-      ss << "<imgeo:positie>" << std::endl;
-      ss << "<imgeo:Labelpositie>" << std::endl;
-      ss << "<imgeo:plaatsingspunt><gml:Point srsDimension=\"2\"><gml:pos>" << plaatsingspunt_split.at(i) << "</gml:pos></gml:Point></imgeo:plaatsingspunt>" << std::endl;
-      ss << "<imgeo:hoek>" << hoek_split.at(i) << "</imgeo:hoek>" << std::endl;
-      ss << "</imgeo:Labelpositie>" << std::endl;
-      ss << "</imgeo:positie>" << std::endl;
-      ss << "</imgeo:Label>" << std::endl;
-      ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
-      ss << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << laagnr_split.at(i) << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>" << std::endl;
-      if (bhoognr) {
-        ss << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << hoognr_split.at(i) << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>" << std::endl;
+      if (i < tekst_split.size() && i < plaatsingspunt_split.size() && i < hoek_split.size()) {
+        ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
+        ss << "<imgeo:Nummeraanduidingreeks>" << std::endl;
+        ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
+        ss << "<imgeo:Label>" << std::endl;
+        ss << "<imgeo:tekst>" << tekst_split.at(i) << "</imgeo:tekst>" << std::endl;
+        ss << "<imgeo:positie>" << std::endl;
+        ss << "<imgeo:Labelpositie>" << std::endl;
+        ss << "<imgeo:plaatsingspunt><gml:Point srsDimension=\"2\"><gml:pos>" << plaatsingspunt_split.at(i) << "</gml:pos></gml:Point></imgeo:plaatsingspunt>" << std::endl;
+        ss << "<imgeo:hoek>" << hoek_split.at(i) << "</imgeo:hoek>" << std::endl;
+        ss << "</imgeo:Labelpositie>" << std::endl;
+        ss << "</imgeo:positie>" << std::endl;
+        ss << "</imgeo:Label>" << std::endl;
+        ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
+        if (i < laagnr_split.size()) {
+          ss << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << laagnr_split.at(i) << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>" << std::endl;
+        }
+        if (i < hoognr_split.size()) {
+          ss << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << hoognr_split.at(i) << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>" << std::endl;
+        }
+        ss << "</imgeo:Nummeraanduidingreeks>" << std::endl;
+        ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
       }
-      ss << "</imgeo:Nummeraanduidingreeks>" << std::endl;
-      ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
     }
   }
   return ss.str();

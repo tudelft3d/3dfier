@@ -89,19 +89,17 @@
     <PropertyDefn>
       <Name>hoek</Name>
       <ElementPath>nummeraanduidingreeks|Nummeraanduidingreeks|nummeraanduidingreeks|Label|positie|Labelpositie|hoek</ElementPath>
-      <Type>RealList</Type>
+      <Type>StringList</Type>
     </PropertyDefn>
     <PropertyDefn>
       <Name>identificatieBAGVBOLaagsteHuisnummer</Name>
       <ElementPath>nummeraanduidingreeks|Nummeraanduidingreeks|identificatieBAGVBOLaagsteHuisnummer</ElementPath>
-      <Type>IntegerList</Type>
-      <Subtype>Integer64</Subtype>
+      <Type>StringList</Type>
     </PropertyDefn>
     <PropertyDefn>
       <Name>identificatieBAGVBOHoogsteHuisnummer</Name>
       <ElementPath>nummeraanduidingreeks|Nummeraanduidingreeks|identificatieBAGVBOHoogsteHuisnummer</ElementPath>
-      <Type>IntegerList</Type>
-      <Subtype>Integer64</Subtype>
+      <Type>StringList</Type>
     </PropertyDefn>
     <PropertyDefn>
       <Name>terminationDate</Name>
