@@ -650,6 +650,7 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
         std::clog << i << " ";
       std::clog << ")" << std::endl;
     }
+    printProgressBar(0);
     int i = 0;
     while (reader.ReadNextPoint()) {
       this->add_elevation_point(reader.GetPoint());
