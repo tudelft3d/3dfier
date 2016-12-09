@@ -129,6 +129,10 @@ void Map3d::set_bridge_heightref(float h) {
   _bridge_heightref = h;
 }
 
+void Map3d::set_requested_extent(double xmin, double ymin, double xmax, double ymax) {
+  _requestedExtent = Box2(Point2(xmin, ymin), Point2(xmax, ymax));
+}
+
 Box2 Map3d::get_bbox() {
   return _bbox;
 }
@@ -259,10 +263,6 @@ void Map3d::get_obj_per_class(std::ofstream &outputfile, int z_exaggeration) {
 }
 
 bool Map3d::get_shapefile(std::string filename) {
-#if GDAL_VERSION_MAJOR < 2
-  std::cerr << "Exporting to a 3D Shapefile requires GDAL/OGC 2.x or higher." << std::endl;
-  return false;
-#else
   if (GDALGetDriverCount() == 0)
     GDALAllRegister();
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("ESRI Shapefile");
@@ -291,7 +291,6 @@ bool Map3d::get_shapefile(std::string filename) {
   }
   GDALClose(dataSource);
   return true;
-#endif
 }
 
 unsigned long Map3d::get_num_polygons() {
@@ -406,29 +405,25 @@ bool Map3d::construct_rtree() {
   for (auto p : _lsFeatures)
     _rtree.insert(std::make_pair(p->get_bbox2d(), p));
   std::clog << " done." << std::endl;
+
+  _bbox = Box2(Point2(bg::get<bg::min_corner, 0>(_rtree.bounds()), bg::get<bg::min_corner, 1>(_rtree.bounds())),
+    Point2(bg::get<bg::max_corner, 0>(_rtree.bounds()), bg::get<bg::max_corner, 1>(_rtree.bounds())));
   return true;
 }
 
 bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
-#if GDAL_VERSION_MAJOR < 2
-  if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0)
-    OGRRegisterAll();
-#else
   if (GDALGetDriverCount() == 0)
     GDALAllRegister();
-#endif
+
   for (auto file = files.begin(); file != files.end(); ++file) {
     std::clog << "Reading input dataset: " << file->filename << std::endl;
-#if GDAL_VERSION_MAJOR < 2
-    OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(file->filename.c_str(), false);
-#else
     GDALDataset *dataSource = (GDALDataset*)GDALOpenEx(file->filename.c_str(), GDAL_OF_READONLY, NULL, NULL, NULL);
-#endif
 
     if (dataSource == NULL) {
       std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
       return false;
     }
+
     // if the file doesn't have layers specified, add all
     if (file->layers[0].first.empty())
     {
@@ -438,29 +433,12 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
       for (int i = 0; i < numberOfLayers; i++) {
         OGRLayer *dataLayer = dataSource->GetLayer(i);
         file->layers.emplace_back(dataLayer->GetName(), lifting);
-        if (dataLayer->GetFeatureCount(true) > 0) {
-          //-- update the 2D bbox of the dataset
-          OGREnvelope bbox;
-          dataLayer->GetExtent(&bbox);
-          if (bbox.MinX < bg::get<bg::min_corner, 0>(_bbox))
-            bg::set<bg::min_corner, 0>(_bbox, bbox.MinX);
-          if (bbox.MinY < bg::get<bg::min_corner, 1>(_bbox))
-            bg::set<bg::min_corner, 1>(_bbox, bbox.MinY);
-          if (bbox.MaxX > bg::get<bg::max_corner, 0>(_bbox))
-            bg::set<bg::max_corner, 0>(_bbox, bbox.MaxX);
-          if (bbox.MaxY > bg::get<bg::max_corner, 1>(_bbox))
-            bg::set<bg::max_corner, 1>(_bbox, bbox.MaxY);
-        }
       }
     }
     bool wentgood = this->extract_and_add_polygon(dataSource, &(*file));
-#if GDAL_VERSION_MAJOR < 2
-    OGRDataSource::DestroyDataSource(dataSource);
-#else
     GDALClose(dataSource);
-#endif
 
-    if (wentgood == false) {
+    if (!wentgood) {
       std::cerr << "ERROR: Something went bad while reading input polygons. Aborting." << std::endl;
       return false;
     }
@@ -468,12 +446,7 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
   return true;
 }
 
-#if GDAL_VERSION_MAJOR < 2
-bool Map3d::extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file)
-#else
-bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
-#endif
-{
+bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) {
   const char *idfield = file->idfield.c_str();
   const char *heightfield = file->heightfield.c_str();
   bool multiple_heights = file->handle_multiple_heights;
@@ -497,35 +470,54 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
     std::clog << "\t(" << boost::locale::as::number << numberOfPolygons << " features --> " << l.second << ")" << std::endl;
     OGRFeature *f;
 
+    //-- check if extent is given and polygons need filtering
+    bool useRequestedExtent = false;
+    OGREnvelope envelope = OGREnvelope();
+    if (boost::geometry::area(_requestedExtent) > 0) {
+      envelope.MinX = bg::get<bg::min_corner, 0>(_requestedExtent);
+      envelope.MaxX = bg::get<bg::max_corner, 1>(_requestedExtent);
+      envelope.MinY = bg::get<bg::min_corner, 0>(_requestedExtent);
+      envelope.MaxY = bg::get<bg::max_corner, 1>(_requestedExtent);
+      useRequestedExtent = true;
+    }
+
     while ((f = dataLayer->GetNextFeature()) != NULL) {
-      switch (f->GetGeometryRef()->getGeometryType()) {
-      case wkbPolygon:
-      case wkbPolygon25D: {
-        extract_feature(f, layerName, idfield, heightfield, l.second, multiple_heights);
-        break;
+      OGRGeometry *geometry = f->GetGeometryRef();
+      OGREnvelope env;
+      if (useRequestedExtent) {
+        geometry->getEnvelope(&env);
       }
-      case wkbMultiPolygon:
-      case wkbMultiPolygon25D: {
-        OGRMultiPolygon* multipolygon = (OGRMultiPolygon*)f->GetGeometryRef();
-        int numGeom = multipolygon->getNumGeometries();
-        if (numGeom >= 1) {
-          for (int i = 0; i < numGeom; i++) {
-            OGRFeature* cf = f->Clone();
-            if (numGeom > 1) {
-              std::stringstream ss;
-              ss << f->GetFieldAsString(idfield) << "-" << std::to_string(i);
-              cf->SetField(idfield, ss.str().c_str());
-            }
-            cf->SetGeometry((OGRPolygon*)multipolygon->getGeometryRef(i));
-            extract_feature(cf, layerName, idfield, heightfield, l.second, multiple_heights);
-          }
-          std::clog << "\t(MultiPolygon split into " << numGeom << " Polygons)" << std::endl;
+      
+      //-- add the polygon of no extent is used or if the envelope is within the extent
+      if (!useRequestedExtent || envelope.Intersects(env)) {
+        switch (geometry->getGeometryType()) {
+        case wkbPolygon:
+        case wkbPolygon25D: {
+          extract_feature(f, layerName, idfield, heightfield, l.second, multiple_heights);
+          break;
         }
-        break;
-      }
-      default: {
-        continue;
-      }
+        case wkbMultiPolygon:
+        case wkbMultiPolygon25D: {
+          OGRMultiPolygon* multipolygon = (OGRMultiPolygon*)geometry;
+          int numGeom = multipolygon->getNumGeometries();
+          if (numGeom >= 1) {
+            for (int i = 0; i < numGeom; i++) {
+              OGRFeature* cf = f->Clone();
+              if (numGeom > 1) {
+                std::string idString = (std::string)f->GetFieldAsString(idfield) + "-" + std::to_string(i);
+                cf->SetField(idfield, idString.c_str());
+              }
+              cf->SetGeometry((OGRPolygon*)multipolygon->getGeometryRef(i));
+              extract_feature(cf, layerName, idfield, heightfield, l.second, multiple_heights);
+            }
+            std::clog << "\t(MultiPolygon split into " << numGeom << " Polygons)" << std::endl;
+          }
+          break;
+        }
+        default: {
+          continue;
+        }
+        }
       }
     }
     wentgood = true;

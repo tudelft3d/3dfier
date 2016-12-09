@@ -183,6 +183,7 @@ std::vector<std::string> stringsplit(std::string str, char delimiter) {
   std::string tok;
 
   while (getline(ss, tok, delimiter)) {
+    std::remove_if(tok.begin(), tok.end(), isspace);
     internal.push_back(tok);
   }
 

@@ -86,6 +86,7 @@ public:
   void set_building_radius_vertex_elevation(float radius);
   void set_threshold_jump_edges(float threshold);
   void set_use_vertical_walls(bool useverticalwalls);
+  void set_requested_extent(double xmin, double ymin, double xmax, double ymax);
 private:
   float       _building_heightref_roof;
   float       _building_heightref_floor;
@@ -106,17 +107,14 @@ private:
   float       _building_radius_vertex_elevation;
   int         _threshold_jump_edges; //-- in cm/integer
   Box2        _bbox;
+  Box2        _requestedExtent;
 
   std::unordered_map< std::string, std::vector<int> > _nc;
   std::vector<TopoFeature*>                           _lsFeatures;
   std::vector<std::string>                            _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;
 
-#if GDAL_VERSION_MAJOR < 2
-  bool extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file);
-#else
   bool extract_and_add_polygon(GDALDataset *dataSource, PolygonFile *file);
-#endif
   void extract_feature(OGRFeature * f, std::string layerName, const char * idfield, const char * heightfield, std::string layertype, bool multiple_heights);
   void stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star);
   void stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);

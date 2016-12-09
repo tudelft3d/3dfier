@@ -177,6 +177,30 @@ int main(int argc, const char * argv[]) {
     if (n["stitching"].as<std::string>() == "false")
       bStitching = false;
   }
+  if (n["extent"]) {
+    std::vector<std::string> extent_split = stringsplit(n["extent"].as<std::string>(), ',');
+    double xmin, xmax, ymin, ymax;
+    bool wentgood = true;
+    try {
+      (n["radius_vertex_elevation"].as<std::string>());
+      xmin = boost::lexical_cast<double>(extent_split[0]);
+      ymin = boost::lexical_cast<double>(extent_split[1]);
+      xmax = boost::lexical_cast<double>(extent_split[2]);
+      ymax = boost::lexical_cast<double>(extent_split[3]);
+    }
+    catch (boost::bad_lexical_cast& e) {
+      wentgood = false;
+    }
+
+    if (!wentgood || xmin > xmax || ymin > ymax || boost::geometry::area(Box2(Point2(xmin, ymin), Point2(xmax, ymax))) <= 0.0) {
+      std::cerr << "ERROR: The supplied extent is not valid: (" << n["extent"].as<std::string>() << "), using all polygons" << std::endl;
+    }
+    else
+    {
+      std::clog << "Using extent for polygons: (" << n["extent"].as<std::string>() << ")" << std::endl;
+      map3d.set_requested_extent(xmin, ymin, xmax, ymax);
+    }
+  }
 
   //-- add the polygons to the map3d
   std::vector<PolygonFile> files;
@@ -222,6 +246,11 @@ int main(int argc, const char * argv[]) {
 
   map3d.add_polygons_files(files);
   std::clog << "\nTotal # of polygons: " << boost::locale::as::number << map3d.get_num_polygons() << std::endl;
+
+  //-- spatially index the polygons
+  map3d.construct_rtree();
+
+  //-- print bbox from _rtree
   Box2 b = map3d.get_bbox();
   std::clog << std::setprecision(3) << std::fixed;
   std::clog << "Spatial extent: ("
@@ -229,10 +258,7 @@ int main(int argc, const char * argv[]) {
     << bg::get<bg::min_corner, 1>(b) << ") ("
     << bg::get<bg::max_corner, 0>(b) << ", "
     << bg::get<bg::max_corner, 1>(b) << ")" << std::endl;
-
-  //-- spatially index the polygons
-  map3d.construct_rtree();
-
+  
   //-- add elevation datasets
   n = nodes["input_elevation"];
   bool bElevData = false;
@@ -260,17 +286,18 @@ int main(int argc, const char * argv[]) {
           boost::filesystem::recursive_directory_iterator it_end;
           for (boost::filesystem::recursive_directory_iterator it(rootPath); it != it_end; ++it) {
             if (boost::filesystem::is_regular_file(*it) && it->path().extension() == path.extension()) {
-              bElevData = bElevData || map3d.add_las_file(it->path().string(), lasomits, thinning);
+              bool added = map3d.add_las_file(it->path().string(), lasomits, thinning);
+              bElevData = bElevData || added;
             }
           }
         }
       }
       else {
-        bElevData = bElevData || map3d.add_las_file(path.string(), lasomits, thinning);
+        bool added = map3d.add_las_file(path.string(), lasomits, thinning);
+        bElevData = bElevData || added;
       }
     }
   }
-
   if (bElevData == false) {
     std::cerr << "ERROR: No elevation dataset given, cannot 3dfy the dataset. Aborting." << std::endl;
     return 0;
