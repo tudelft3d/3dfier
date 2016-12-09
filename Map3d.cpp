@@ -303,10 +303,6 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
 }
 
 void Map3d::add_elevation_point(liblas::Point const& laspt) {
-  //-- filter out vegetation TODO: shouldn't be here me thinks, but in each specific classes
-  // if ( (laspt.GetClassification() == liblas::Classification(1)) && (laspt.GetReturnNumber() != 1) )
-    // return;
-
   Point2 p(laspt.GetX(), laspt.GetY());
   LAS14Class lasclass = LAS_UNKNOWN;
   //-- get LAS class
