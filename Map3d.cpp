@@ -406,6 +406,7 @@ bool Map3d::construct_rtree() {
     _rtree.insert(std::make_pair(p->get_bbox2d(), p));
   std::clog << " done." << std::endl;
 
+  //-- update the bounding box from the r-tree
   _bbox = Box2(Point2(bg::get<bg::min_corner, 0>(_rtree.bounds()), bg::get<bg::min_corner, 1>(_rtree.bounds())),
     Point2(bg::get<bg::max_corner, 0>(_rtree.bounds()), bg::get<bg::max_corner, 1>(_rtree.bounds())));
   return true;
