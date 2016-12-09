@@ -129,8 +129,18 @@ void Map3d::set_bridge_heightref(float h) {
   _bridge_heightref = h;
 }
 
+void Map3d::set_requested_extent(double xmin, double ymin, double xmax, double ymax) {
+  _requestedExtent = Box2(Point2(xmin, ymin), Point2(xmax, ymax));
+}
+
 Box2 Map3d::get_bbox() {
   return _bbox;
+}
+
+liblas::Bounds<double> Map3d::get_bounds() {
+  double radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
+  liblas::Bounds<double> bounds(_bbox.min_corner().x() - radius, _bbox.min_corner().y() - radius, _bbox.max_corner().x() + radius, _bbox.max_corner().y() + radius);
+  return bounds;
 }
 
 void Map3d::get_citygml(std::ofstream &outputfile) {
@@ -253,10 +263,6 @@ void Map3d::get_obj_per_class(std::ofstream &outputfile, int z_exaggeration) {
 }
 
 bool Map3d::get_shapefile(std::string filename) {
-#if GDAL_VERSION_MAJOR < 2
-  std::cerr << "Exporting to a 3D Shapefile requires GDAL/OGC 2.x or higher." << std::endl;
-  return false;
-#else
   if (GDALGetDriverCount() == 0)
     GDALAllRegister();
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("ESRI Shapefile");
@@ -285,7 +291,6 @@ bool Map3d::get_shapefile(std::string filename) {
   }
   GDALClose(dataSource);
   return true;
-#endif
 }
 
 unsigned long Map3d::get_num_polygons() {
@@ -297,10 +302,6 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
 }
 
 void Map3d::add_elevation_point(liblas::Point const& laspt) {
-  //-- filter out vegetation TODO: shouldn't be here me thinks, but in each specific classes
-  // if ( (laspt.GetClassification() == liblas::Classification(1)) && (laspt.GetReturnNumber() != 1) )
-    // return;
-
   Point2 p(laspt.GetX(), laspt.GetY());
   LAS14Class lasclass = LAS_UNKNOWN;
   //-- get LAS class
@@ -318,10 +319,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
     lasclass = LAS_UNKNOWN;
 
   std::vector<PairIndexed> re;
-  float radius = _radius_vertex_elevation;
-  if (_building_radius_vertex_elevation > _radius_vertex_elevation) {
-    radius = _building_radius_vertex_elevation;
-  }
+  float radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
   Point2 minp(laspt.GetX() - radius, laspt.GetY() - radius);
   Point2 maxp(laspt.GetX() + radius, laspt.GetY() + radius);
   Box2 querybox(minp, maxp);
@@ -407,29 +405,26 @@ bool Map3d::construct_rtree() {
   for (auto p : _lsFeatures)
     _rtree.insert(std::make_pair(p->get_bbox2d(), p));
   std::clog << " done." << std::endl;
+
+  //-- update the bounding box from the r-tree
+  _bbox = Box2(Point2(bg::get<bg::min_corner, 0>(_rtree.bounds()), bg::get<bg::min_corner, 1>(_rtree.bounds())),
+    Point2(bg::get<bg::max_corner, 0>(_rtree.bounds()), bg::get<bg::max_corner, 1>(_rtree.bounds())));
   return true;
 }
 
 bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
-#if GDAL_VERSION_MAJOR < 2
-  if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0)
-    OGRRegisterAll();
-#else
   if (GDALGetDriverCount() == 0)
     GDALAllRegister();
-#endif
+
   for (auto file = files.begin(); file != files.end(); ++file) {
     std::clog << "Reading input dataset: " << file->filename << std::endl;
-#if GDAL_VERSION_MAJOR < 2
-    OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(file->filename.c_str(), false);
-#else
     GDALDataset *dataSource = (GDALDataset*)GDALOpenEx(file->filename.c_str(), GDAL_OF_READONLY, NULL, NULL, NULL);
-#endif
 
     if (dataSource == NULL) {
       std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
       return false;
     }
+
     // if the file doesn't have layers specified, add all
     if (file->layers[0].first.empty())
     {
@@ -439,29 +434,12 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
       for (int i = 0; i < numberOfLayers; i++) {
         OGRLayer *dataLayer = dataSource->GetLayer(i);
         file->layers.emplace_back(dataLayer->GetName(), lifting);
-        if (dataLayer->GetFeatureCount(true) > 0) {
-          //-- update the 2D bbox of the dataset
-          OGREnvelope bbox;
-          dataLayer->GetExtent(&bbox);
-          if (bbox.MinX < bg::get<bg::min_corner, 0>(_bbox))
-            bg::set<bg::min_corner, 0>(_bbox, bbox.MinX);
-          if (bbox.MinY < bg::get<bg::min_corner, 1>(_bbox))
-            bg::set<bg::min_corner, 1>(_bbox, bbox.MinY);
-          if (bbox.MaxX > bg::get<bg::max_corner, 0>(_bbox))
-            bg::set<bg::max_corner, 0>(_bbox, bbox.MaxX);
-          if (bbox.MaxY > bg::get<bg::max_corner, 1>(_bbox))
-            bg::set<bg::max_corner, 1>(_bbox, bbox.MaxY);
-        }
       }
     }
     bool wentgood = this->extract_and_add_polygon(dataSource, &(*file));
-#if GDAL_VERSION_MAJOR < 2
-    OGRDataSource::DestroyDataSource(dataSource);
-#else
     GDALClose(dataSource);
-#endif
 
-    if (wentgood == false) {
+    if (!wentgood) {
       std::cerr << "ERROR: Something went bad while reading input polygons. Aborting." << std::endl;
       return false;
     }
@@ -469,12 +447,7 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
   return true;
 }
 
-#if GDAL_VERSION_MAJOR < 2
-bool Map3d::extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file)
-#else
-bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
-#endif
-{
+bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) {
   const char *idfield = file->idfield.c_str();
   const char *heightfield = file->heightfield.c_str();
   bool multiple_heights = file->handle_multiple_heights;
@@ -498,35 +471,54 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file)
     std::clog << "\t(" << boost::locale::as::number << numberOfPolygons << " features --> " << l.second << ")" << std::endl;
     OGRFeature *f;
 
+    //-- check if extent is given and polygons need filtering
+    bool useRequestedExtent = false;
+    OGREnvelope envelope = OGREnvelope();
+    if (boost::geometry::area(_requestedExtent) > 0) {
+      envelope.MinX = bg::get<bg::min_corner, 0>(_requestedExtent);
+      envelope.MaxX = bg::get<bg::max_corner, 1>(_requestedExtent);
+      envelope.MinY = bg::get<bg::min_corner, 0>(_requestedExtent);
+      envelope.MaxY = bg::get<bg::max_corner, 1>(_requestedExtent);
+      useRequestedExtent = true;
+    }
+
     while ((f = dataLayer->GetNextFeature()) != NULL) {
-      switch (f->GetGeometryRef()->getGeometryType()) {
-      case wkbPolygon:
-      case wkbPolygon25D: {
-        extract_feature(f, layerName, idfield, heightfield, l.second, multiple_heights);
-        break;
+      OGRGeometry *geometry = f->GetGeometryRef();
+      OGREnvelope env;
+      if (useRequestedExtent) {
+        geometry->getEnvelope(&env);
       }
-      case wkbMultiPolygon:
-      case wkbMultiPolygon25D: {
-        OGRMultiPolygon* multipolygon = (OGRMultiPolygon*)f->GetGeometryRef();
-        int numGeom = multipolygon->getNumGeometries();
-        if (numGeom >= 1) {
-          for (int i = 0; i < numGeom; i++) {
-            OGRFeature* cf = f->Clone();
-            if (numGeom > 1) {
-              std::stringstream ss;
-              ss << f->GetFieldAsString(idfield) << "-" << std::to_string(i);
-              cf->SetField(idfield, ss.str().c_str());
-            }
-            cf->SetGeometry((OGRPolygon*)multipolygon->getGeometryRef(i));
-            extract_feature(cf, layerName, idfield, heightfield, l.second, multiple_heights);
-          }
-          std::clog << "\t(MultiPolygon split into " << numGeom << " Polygons)" << std::endl;
+      
+      //-- add the polygon of no extent is used or if the envelope is within the extent
+      if (!useRequestedExtent || envelope.Intersects(env)) {
+        switch (geometry->getGeometryType()) {
+        case wkbPolygon:
+        case wkbPolygon25D: {
+          extract_feature(f, layerName, idfield, heightfield, l.second, multiple_heights);
+          break;
         }
-        break;
-      }
-      default: {
-        continue;
-      }
+        case wkbMultiPolygon:
+        case wkbMultiPolygon25D: {
+          OGRMultiPolygon* multipolygon = (OGRMultiPolygon*)geometry;
+          int numGeom = multipolygon->getNumGeometries();
+          if (numGeom >= 1) {
+            for (int i = 0; i < numGeom; i++) {
+              OGRFeature* cf = f->Clone();
+              if (numGeom > 1) {
+                std::string idString = (std::string)f->GetFieldAsString(idfield) + "-" + std::to_string(i);
+                cf->SetField(idfield, idString.c_str());
+              }
+              cf->SetGeometry((OGRPolygon*)multipolygon->getGeometryRef(i));
+              extract_feature(cf, layerName, idfield, heightfield, l.second, multiple_heights);
+            }
+            std::clog << "\t(MultiPolygon split into " << numGeom << " Polygons)" << std::endl;
+          }
+          break;
+        }
+        default: {
+          continue;
+        }
+        }
       }
     }
     wentgood = true;
@@ -593,48 +585,76 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
     std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
     return false;
   }
-  //-- LAS classes to omit
-  std::vector<liblas::Classification> liblasomits;
+  //-- LAS classes to omit (create full list since eExclusion does not work
+  std::vector<liblas::Classification> liblasomits{
+    liblas::Classification(0), liblas::Classification(1), liblas::Classification(2), liblas::Classification(3),
+    liblas::Classification(4), liblas::Classification(5), liblas::Classification(6), liblas::Classification(7),
+    liblas::Classification(8), liblas::Classification(9), liblas::Classification(10), liblas::Classification(11),
+    liblas::Classification(12), liblas::Classification(13), liblas::Classification(14), liblas::Classification(15),
+    liblas::Classification(16), liblas::Classification(17), liblas::Classification(18)
+  };
   for (int i : lasomits)
-    liblasomits.push_back(liblas::Classification(i));
-  //-- read each point 1-by-1
+    liblasomits.erase(std::find(liblasomits.begin(), liblasomits.end(), liblas::Classification(i)));
+//-- read each point 1-by-1
   liblas::ReaderFactory f;
   liblas::Reader reader = f.CreateWithStream(ifs);
   liblas::Header const& header = reader.GetHeader();
 
-  std::clog << "\t(" << boost::locale::as::number << header.GetPointRecordsCount() << " points in the file)" << std::endl;
-  if ((skip != 0) && (skip != 1)) {
-    std::clog << "\t(skipping every " << skip << "th points, thus ";
-    std::clog << boost::locale::as::number << (header.GetPointRecordsCount() / skip) << " are used)" << std::endl;
+  //-- check if the file overlaps the polygons
+  liblas::Bounds<double> bounds = header.GetExtent();
+  liblas::Bounds<double> polygonBounds = get_bounds();
+  if (polygonBounds.intersects(bounds)) {
+    std::vector<liblas::FilterPtr> filters;
+
+    //-- set the class filter
+    liblas::FilterPtr class_filter = liblas::FilterPtr(new liblas::ClassificationFilter(liblasomits));
+    // eExclusion would throw out those that matched
+    class_filter->SetType(liblas::FilterI::eInclusion);
+    filters.push_back(class_filter);
+
+    //-- set the bounds filter
+    liblas::FilterPtr bounds_filter = liblas::FilterPtr(new liblas::BoundsFilter(polygonBounds));
+    bounds_filter->SetType(liblas::FilterI::eInclusion);
+    filters.push_back(bounds_filter);
+
+    //-- set the thinning filter if thinning is set
+    if (skip > 1) {
+      liblas::FilterPtr thinning_filter = liblas::FilterPtr(new liblas::ThinFilter(skip));
+      thinning_filter->SetType(liblas::FilterI::eInclusion);
+      filters.push_back(thinning_filter);
+    }
+    reader.SetFilters(filters);
+
+    std::clog << "\t(" << boost::locale::as::number << header.GetPointRecordsCount() << " points in the file)" << std::endl;
+    if ((skip > 1)) {
+      std::clog << "\t(skipping every " << skip << "th points, thus ";
+      std::clog << boost::locale::as::number << (header.GetPointRecordsCount() / skip) << " are used)" << std::endl;
+    }
+    else
+      std::clog << "\t(all points used, no skipping)" << std::endl;
+
+    if (lasomits.empty() == false) {
+      std::clog << "\t(omitting LAS classes: ";
+      for (int i : lasomits)
+        std::clog << i << " ";
+      std::clog << ")" << std::endl;
+    }
+    printProgressBar(0);
+    int i = 0;
+    while (reader.ReadNextPoint()) {
+      this->add_elevation_point(reader.GetPoint());
+
+      if (i % (header.GetPointRecordsCount() / 50) == 0)
+        printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
+      i++;
+    }
+    printProgressBar(100);
+    std::clog << "done" << std::endl;
   }
   else
-    std::clog << "\t(all points used, no skipping)" << std::endl;
-
-  if (lasomits.empty() == false) {
-    std::clog << "\t(omitting LAS classes: ";
-    for (int i : lasomits)
-      std::clog << i << " ";
-    std::clog << ")" << std::endl;
+  {
+    std::clog << "\tskipping file, bounds do not intersect polygon extent" << std::endl;
   }
-  int i = 0;
-  while (reader.ReadNextPoint()) {
-    liblas::Point const& p = reader.GetPoint();
-    if ((skip != 0) && (skip != 1)) {
-      if (i % skip == 0) {
-        if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
-          this->add_elevation_point(p);
-      }
-    }
-    else {
-      if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end())
-        this->add_elevation_point(p);
-    }
-    if (i % 100000 == 0)
-      printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
-    i++;
-  }
-  printProgressBar(100);
-  std::clog << "done" << std::endl;
   ifs.close();
   return true;
 }

@@ -39,6 +39,8 @@
 #include "Map3d.h"
 #include "boost/locale.hpp"
 #include "boost/chrono.hpp"
+#include "boost/filesystem.hpp"
+#include <boost/filesystem/operations.hpp>
 
 std::string VERSION = "0.8.2";
 
@@ -58,7 +60,7 @@ int main(int argc, const char * argv[]) {
     "This is free software, and you are welcome to redistribute it\n"
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
 
-  std::string filename;
+  std::string outputFilename;
 
   //-- reading the config file
   if (argc == 2) {
@@ -77,8 +79,8 @@ int main(int argc, const char * argv[]) {
       return 0;
     }
   }
-  else if (argc == 4 && ((std::string)argv[1]).substr(((std::string)argv[1]).length()-3) == "yml" && (std::string)argv[2] == "-o") {
-    filename = argv[3];
+  else if (argc == 4 && (std::string)argv[2] == "-o" && boost::filesystem::path(argv[1]).extension() == ".yml") {
+    outputFilename = argv[3];
   }
   else {
     std::clog << licensewarning << std::endl;
@@ -175,6 +177,30 @@ int main(int argc, const char * argv[]) {
     if (n["stitching"].as<std::string>() == "false")
       bStitching = false;
   }
+  if (n["extent"]) {
+    std::vector<std::string> extent_split = stringsplit(n["extent"].as<std::string>(), ',');
+    double xmin, xmax, ymin, ymax;
+    bool wentgood = true;
+    try {
+      (n["radius_vertex_elevation"].as<std::string>());
+      xmin = boost::lexical_cast<double>(extent_split[0]);
+      ymin = boost::lexical_cast<double>(extent_split[1]);
+      xmax = boost::lexical_cast<double>(extent_split[2]);
+      ymax = boost::lexical_cast<double>(extent_split[3]);
+    }
+    catch (boost::bad_lexical_cast& e) {
+      wentgood = false;
+    }
+
+    if (!wentgood || xmin > xmax || ymin > ymax || boost::geometry::area(Box2(Point2(xmin, ymin), Point2(xmax, ymax))) <= 0.0) {
+      std::cerr << "ERROR: The supplied extent is not valid: (" << n["extent"].as<std::string>() << "), using all polygons" << std::endl;
+    }
+    else
+    {
+      std::clog << "Using extent for polygons: (" << n["extent"].as<std::string>() << ")" << std::endl;
+      map3d.set_requested_extent(xmin, ymin, xmax, ymax);
+    }
+  }
 
   //-- add the polygons to the map3d
   std::vector<PolygonFile> files;
@@ -220,6 +246,11 @@ int main(int argc, const char * argv[]) {
 
   map3d.add_polygons_files(files);
   std::clog << "\nTotal # of polygons: " << boost::locale::as::number << map3d.get_num_polygons() << std::endl;
+
+  //-- spatially index the polygons
+  map3d.construct_rtree();
+
+  //-- print bbox from _rtree
   Box2 b = map3d.get_bbox();
   std::clog << std::setprecision(3) << std::fixed;
   std::clog << "Spatial extent: ("
@@ -227,10 +258,7 @@ int main(int argc, const char * argv[]) {
     << bg::get<bg::min_corner, 1>(b) << ") ("
     << bg::get<bg::max_corner, 0>(b) << ", "
     << bg::get<bg::max_corner, 1>(b) << ")" << std::endl;
-
-  //-- spatially index the polygons
-  map3d.construct_rtree();
-
+  
   //-- add elevation datasets
   n = nodes["input_elevation"];
   bool bElevData = false;
@@ -241,14 +269,35 @@ int main(int argc, const char * argv[]) {
       lasomits.push_back(it2->as<int>());
     tmp = (*it)["datasets"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-      bElevData = true;
-      if ((*it)["thinning"])
-        map3d.add_las_file(it2->as<std::string>(), lasomits, (*it)["thinning"].as<int>());
-      else
-        map3d.add_las_file(it2->as<std::string>(), lasomits, 1);
+      int thinning = 1;
+      if ((*it)["thinning"]) {
+        thinning = (*it)["thinning"].as<int>();
+      }
+
+      //-- iterate over all files in directory
+      boost::filesystem::path path(it2->as<std::string>());
+      boost::filesystem::path rootPath = path.parent_path();
+      if (path.stem() == "*") {
+        if (!boost::filesystem::exists(rootPath) || !boost::filesystem::is_directory(rootPath)) {
+          std::cerr << "\tERROR: " << rootPath << "is not a directory, skipping it." << std::endl;
+          bElevData = false;
+        }
+        else {
+          boost::filesystem::recursive_directory_iterator it_end;
+          for (boost::filesystem::recursive_directory_iterator it(rootPath); it != it_end; ++it) {
+            if (boost::filesystem::is_regular_file(*it) && it->path().extension() == path.extension()) {
+              bool added = map3d.add_las_file(it->path().string(), lasomits, thinning);
+              bElevData = bElevData || added;
+            }
+          }
+        }
+      }
+      else {
+        bool added = map3d.add_las_file(path.string(), lasomits, thinning);
+        bElevData = bElevData || added;
+      }
     }
   }
-
   if (bElevData == false) {
     std::cerr << "ERROR: No elevation dataset given, cannot 3dfy the dataset. Aborting." << std::endl;
     return 0;
@@ -279,7 +328,7 @@ int main(int argc, const char * argv[]) {
 
   std::ofstream outputfile;
   if (format != "Shapefile")
-    outputfile.open(filename);
+    outputfile.open(outputFilename);
 
   if (format == "CityGML") {
     std::clog << "CityGML output" << std::endl;
@@ -303,7 +352,7 @@ int main(int argc, const char * argv[]) {
   }
   else if (format == "Shapefile") {
     std::clog << "Shapefile output" << std::endl;
-    if (map3d.get_shapefile(filename)) {
+    if (map3d.get_shapefile(outputFilename)) {
       std::clog << "Shapefile written" << std::endl;
     }
     else
@@ -319,8 +368,8 @@ int main(int argc, const char * argv[]) {
   std::clog << "Successfully terminated in "
     << boost::chrono::duration_cast<boost::chrono::seconds>(duration) << " || "
     << boost::chrono::duration_cast<boost::chrono::hours>(duration).count() << ":"
-    << boost::chrono::duration_cast<boost::chrono::minutes>(duration).count() << ":"
-    << boost::chrono::duration_cast<boost::chrono::seconds>(duration).count() << std::endl;
+    << boost::chrono::duration_cast<boost::chrono::minutes>(duration).count() % 60 << ":"
+    << boost::chrono::duration_cast<boost::chrono::seconds>(duration).count() % 60 << std::endl;
   return 1;
 }
 

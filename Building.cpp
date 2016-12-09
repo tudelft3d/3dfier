@@ -269,7 +269,7 @@ std::string Building::get_citygml_imgeo_number() {
     }
 
     //Get the amount of text in the StringList and write all List values separate
-    int count = atoi(&(tekst[1]));
+    int count = boost::lexical_cast<int>(tekst[1]);
     for (int i = 0; i < count; i++) {
       if (i < tekst_split.size() && i < plaatsingspunt_split.size() && i < hoek_split.size()) {
         ss << "<imgeo:nummeraanduidingreeks>" << std::endl;

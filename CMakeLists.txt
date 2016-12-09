@@ -23,7 +23,7 @@ if ( COMMAND cmake_policy )
 endif()
 
 # Boost
-find_package( Boost REQUIRED locale chrono system)
+find_package( Boost REQUIRED locale chrono system filesystem)
 if ( NOT Boost_FOUND )
   message(SEND_ERROR "3dfier requires the Boost library")
   return()  
