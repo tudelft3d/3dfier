@@ -18,7 +18,6 @@ input_polygons:
     height_field: relatievehoogteligging
   - datasets: 
       - bgt/bgt_pand.sqlite
-      - bgt/bgt_overigbouwwerk.sqlite
     uniqueid: gml_id
     lifting: Building
     height_field: relatievehoogteligging
@@ -30,6 +29,7 @@ input_polygons:
   - datasets: 
       - bgt/bgt_scheiding.sqlite
       - bgt/bgt_kunstwerkdeel.sqlite
+      - bgt/bgt_overigbouwwerk.sqlite
     uniqueid: gml_id
     lifting: Separation
     height_field: relatievehoogteligging
