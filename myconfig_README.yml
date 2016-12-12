@@ -55,8 +55,9 @@ options:                                                # Global options
   radius_vertex_elevation: 1.0                          # Radius in meters used for point-vertex distance between 3D points and polygons
   threshold_jump_edges: 0.25                            # Threshold in meters for stitching adjacent objects, when the height difference is larger then the threshold a vertical wall is created 
   stitching: true                                       # Adjust heights of polygons after stiching and add vertical wallss
+  extent: xmin, ymin, xmax, ymax                        # Filter the input polygons to this extent
 
 output:                                                 # Group for writing options
-  format: OBJ                                           # Output file format, OBJ, OBJ-NoID, OBJ-BUILDINGS, CSV-BUILDINGS, CityGML or Shapefile
+  format: OBJ                                           # Output file format, OBJ, OBJ-NoID, OBJ-BUILDINGS, CSV-BUILDINGS, CityGML, CityGML-IMGeo or Shapefile
   building_floor: false                                 # Write the floor of a building to create solids
-  vertical_exaggeration: 3                              # Multiplication factor for the height values, sometimes wanted for visualisation purposes
+  vertical_exaggeration: 0                              # Multiplication factor for the height values, sometimes wanted for visualisation purposes
