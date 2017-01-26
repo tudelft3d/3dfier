@@ -41,7 +41,7 @@ TopoClass Water::get_class() {
 }
 
 std::string Water::get_mtl() {
-  return "usemtl Water\n";
+  return "usemtl Water";
 }
 
 bool Water::is_hard() {
@@ -99,19 +99,19 @@ std::string Water::get_citygml_imgeo() {
   ss << "</wtr:lod1MultiSurface>" << std::endl;
   std::string attribute;
   if (ondersteunend) {
-    if (get_attribute("bgt_type", attribute)) {
+    if (get_attribute("bgt-type", attribute)) {
       ss << "<wat:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOndersteunendWaterdeel\">" << attribute << "</wat:class>" << std::endl;
     }
-    if (get_attribute("plus_type", attribute)) {
+    if (get_attribute("plus-type", attribute)) {
       ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOndersteunendWaterdeelPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
     }
     ss << "</imgeo:OndersteunendWaterdeel>" << std::endl;
   }
   else {
-    if (get_attribute("bgt_type", attribute)) {
+    if (get_attribute("bgt-type", attribute)) {
       ss << "<wat:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWater\">" << attribute << "</wat:class>" << std::endl;
     }
-    if (get_attribute("plus_type", attribute)) {
+    if (get_attribute("plus-type", attribute)) {
       ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWaterPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
     }
     ss << "</imgeo:Waterdeel>" << std::endl;

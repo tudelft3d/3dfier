@@ -47,7 +47,7 @@ bool Forest::is_hard() {
 }
 
 std::string Forest::get_mtl() {
-  return "usemtl Forest\n";
+  return "usemtl Forest";
 }
 
 bool Forest::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
@@ -98,13 +98,13 @@ std::string Forest::get_citygml_imgeo() {
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</veg:lod1MultiSurface>" << std::endl;
   std::string attribute;
-  if (get_attribute("bgt_fysiekvoorkomen", attribute)) {
+  if (get_attribute("bgt-fysiekvoorkomen", attribute)) {
     ss << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</veg:class>" << std::endl;
   }
   if (get_attribute("begroeidterreindeeloptalud", attribute, "false")) {
     ss << "<imgeo:begroeidTerreindeelOpTalud>" << attribute << "</imgeo:begroeidTerreindeelOpTalud>" << std::endl;
   }
-  if (get_attribute("plus_fysiekvoorkomen", attribute)) {
+  if (get_attribute("plus-fysiekvoorkomen", attribute)) {
     ss << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>" << std::endl;
   }
   ss << "</veg:PlantCover>" << std::endl;

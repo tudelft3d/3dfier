@@ -57,25 +57,25 @@
       <Name>bgt-status</Name>
       <ElementPath>bgt-status</ElementPath>
       <Type>String</Type>
-      <Width>8</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>plus-status</Name>
       <ElementPath>plus-status</ElementPath>
       <Type>String</Type>
-      <Width>10</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
-      <Name>function</Name>
+      <Name>bgt-functie</Name>
       <ElementPath>function</ElementPath>
       <Type>String</Type>
-      <Width>21</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
-      <Name>surfaceMaterial</Name>
+      <Name>bgt-fysiekVoorkomen</Name>
       <ElementPath>surfaceMaterial</ElementPath>
       <Type>String</Type>
-      <Width>19</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>wegdeelOpTalud</Name>
@@ -88,13 +88,13 @@
       <Name>plus-fysiekVoorkomenWegdeel</Name>
       <ElementPath>plus-fysiekVoorkomenWegdeel</ElementPath>
       <Type>String</Type>
-      <Width>17</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>plus-functieWegdeel</Name>
       <ElementPath>plus-functieWegdeel</ElementPath>
       <Type>String</Type>
-      <Width>15</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>terminationDate</Name>

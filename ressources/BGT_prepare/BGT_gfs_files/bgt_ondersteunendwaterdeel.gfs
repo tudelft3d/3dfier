@@ -63,25 +63,25 @@
       <Name>bgt-status</Name>
       <ElementPath>bgt-status</ElementPath>
       <Type>String</Type>
-      <Width>8</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>plus-status</Name>
       <ElementPath>plus-status</ElementPath>
       <Type>String</Type>
-      <Width>10</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
-      <Name>class</Name>
+      <Name>bgt-type</Name>
       <ElementPath>class</ElementPath>
       <Type>String</Type>
-      <Width>16</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>plus-type</Name>
       <ElementPath>plus-type</ElementPath>
       <Type>String</Type>
-      <Width>10</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>terminationDate</Name>

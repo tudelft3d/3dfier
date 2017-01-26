@@ -94,15 +94,16 @@ std::string Building::get_csv() {
 }
 
 std::string Building::get_mtl() {
-  return "usemtl Building\n";
+  return "usemtl Building";
 }
 
-std::string Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod) {
+std::string Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl) {
   std::stringstream ss;
   if (lod == 1) {
-    ss << TopoFeature::get_obj(dPts);
+    ss << TopoFeature::get_obj(dPts, mtl);
   }
   else if (lod == 0) {
+    ss << mtl << std::endl;
     for (auto& t : _triangles) {
       unsigned long a, b, c;
       int z = this->get_height_base();
@@ -193,14 +194,16 @@ std::string Building::get_citygml() {
   return ss.str();
 }
 
-
 std::string Building::get_citygml_imgeo() {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<bui:BuildingPart gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << "<bui:Building gml:id=\"" << this->get_id() << "\">" << std::endl;
+  //-- store building information
   ss << get_imgeo_object_info(this->get_id());
+  ss << "<bui:consistsOfBuildingPart>" << std::endl;
+  ss << "<bui:BuildingPart>" << std::endl;
   //-- LOD1 Solid
   ss << "<bui:lod1Solid>" << std::endl;
   ss << "<gml:Solid>" << std::endl;
@@ -231,11 +234,10 @@ std::string Building::get_citygml_imgeo() {
   if (get_attribute("identificatiebagpnd", attribute)) {
     ss << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>" << std::endl;
   }
-
   ss << get_citygml_imgeo_number();
-
-
   ss << "</bui:BuildingPart>" << std::endl;
+  ss << "</bui:consistsOfBuildingPart>" << std::endl;
+  ss << "</bui:Building>" << std::endl;
   ss << "</cityObjectMember>" << std::endl;
   return ss.str();
 }

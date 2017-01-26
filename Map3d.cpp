@@ -206,13 +206,12 @@ void Map3d::get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration) {
   std::stringstream ssf;
   for (auto& p : _lsFeatures) {
     ssf << "o " << p->get_id() << std::endl;
-    ssf << p->get_mtl();
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
-      ssf << b->get_obj(dPts, _building_lod);
+      ssf << b->get_obj(dPts, _building_lod, b->get_mtl());
     }
     else {
-      ssf << p->get_obj(dPts);
+      ssf << p->get_obj(dPts, p->get_mtl());
     }
   }
 
@@ -236,13 +235,12 @@ void Map3d::get_obj_per_class(std::ofstream &outputfile, int z_exaggeration) {
   for (int c = 0; c < 6; c++) {
     for (auto& p : _lsFeatures) {
       if (p->get_class() == c) {
-        ssf << p->get_mtl();
         if (p->get_class() == BUILDING) {
           Building* b = dynamic_cast<Building*>(p);
-          ssf << b->get_obj(dPts, _building_lod);
+          ssf << b->get_obj(dPts, _building_lod, b->get_mtl());
         }
         else {
-          ssf << p->get_obj(dPts);
+          ssf << p->get_obj(dPts, p->get_mtl());
         }
       }
     }
@@ -603,6 +601,7 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
   //-- check if the file overlaps the polygons
   liblas::Bounds<double> bounds = header.GetExtent();
   liblas::Bounds<double> polygonBounds = get_bounds();
+  uint32_t pointCount = header.GetPointRecordsCount();
   if (polygonBounds.intersects(bounds)) {
     std::vector<liblas::FilterPtr> filters;
 
@@ -625,10 +624,10 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
     }
     reader.SetFilters(filters);
 
-    std::clog << "\t(" << boost::locale::as::number << header.GetPointRecordsCount() << " points in the file)" << std::endl;
+    std::clog << "\t(" << boost::locale::as::number << pointCount << " points in the file)" << std::endl;
     if ((skip > 1)) {
       std::clog << "\t(skipping every " << skip << "th points, thus ";
-      std::clog << boost::locale::as::number << (header.GetPointRecordsCount() / skip) << " are used)" << std::endl;
+      std::clog << boost::locale::as::number << (pointCount / skip) << " are used)" << std::endl;
     }
     else
       std::clog << "\t(all points used, no skipping)" << std::endl;
@@ -644,8 +643,8 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
     while (reader.ReadNextPoint()) {
       this->add_elevation_point(reader.GetPoint());
 
-      if (i % (header.GetPointRecordsCount() / 50) == 0)
-        printProgressBar(100 * (i / double(header.GetPointRecordsCount())));
+      if (i % (pointCount / 100) == 0)
+        printProgressBar(100 * (i / double(pointCount)));
       i++;
     }
     printProgressBar(100);

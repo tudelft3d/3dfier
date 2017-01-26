@@ -57,19 +57,19 @@
       <Name>bgt-status</Name>
       <ElementPath>bgt-status</ElementPath>
       <Type>String</Type>
-      <Width>8</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>plus-status</Name>
       <ElementPath>plus-status</ElementPath>
       <Type>String</Type>
-      <Width>10</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
-      <Name>class</Name>
+      <Name>bgt-fysiekVoorkomen</Name>
       <ElementPath>class</ElementPath>
       <Type>String</Type>
-      <Width>18</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>begroeidTerreindeelOpTalud</Name>
@@ -82,7 +82,7 @@
       <Name>plus-fysiekVoorkomen</Name>
       <ElementPath>plus-fysiekVoorkomen</ElementPath>
       <Type>String</Type>
-      <Width>22</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>eindRegistratie</Name>

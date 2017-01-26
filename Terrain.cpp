@@ -42,7 +42,7 @@ bool Terrain::is_hard() {
 }
 
 std::string Terrain::get_mtl() {
-  return "usemtl Terrain\n";
+  return "usemtl Terrain";
 }
 
 bool Terrain::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
@@ -92,13 +92,13 @@ std::string Terrain::get_citygml_imgeo() {
   ss << "</gml:MultiSurface>" << std::endl;
   ss << "</lu:lod1MultiSurface>" << std::endl;
   std::string attribute;
-  if (get_attribute("bgt_fysiekvoorkomen", attribute)) {
+  if (get_attribute("bgt-fysiekvoorkomen", attribute)) {
     ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" << attribute /*"erf"*/ << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
   }
   if (get_attribute("onbegroeidterreindeeloptalud", attribute, "false")) {
     ss << "<imgeo:onbegroeidTerreindeelOpTalud>" << attribute << "</imgeo:onbegroeidTerreindeelOpTalud>" << std::endl;
   }
-  if (get_attribute("plus_fysiekvoorkomen", attribute)) {
+  if (get_attribute("plus-fysiekvoorkomen", attribute)) {
     ss << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>" << std::endl;
   }
   ss << "</imgeo:OnbegroeidTerreindeel>" << std::endl;

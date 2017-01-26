@@ -71,7 +71,7 @@ public:
   bool         get_top_level();
   std::string  get_wkt();
   bool         get_shape_features(OGRLayer* layer, std::string className);
-  std::string  get_obj(std::unordered_map< std::string, unsigned long > &dPts);
+  std::string  get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl);
   std::string  get_imgeo_object_info(std::string id);
 protected:
   Polygon2*                         _p2;

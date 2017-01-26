@@ -62,13 +62,13 @@
       <Name>bgt-status</Name>
       <ElementPath>bgt-status</ElementPath>
       <Type>String</Type>
-      <Width>8</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>plus-status</Name>
       <ElementPath>plus-status</ElementPath>
       <Type>String</Type>
-      <Width>10</Width>
+      <Width>30</Width>
     </PropertyDefn>
     <PropertyDefn>
       <Name>identificatieBAGPND</Name>

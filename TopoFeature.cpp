@@ -90,8 +90,9 @@ Polygon2* TopoFeature::get_Polygon2() {
   return _p2;
 }
 
-std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts) {
+std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl) {
   std::stringstream ss;
+  ss << mtl << std::endl;
   for (auto& t : _triangles) {
     unsigned long a, b, c;
     auto it = dPts.find(gen_key_bucket(&_vertices[t.v0]));
@@ -124,7 +125,7 @@ std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long 
 
   //-- vertical triangles
   if (_bVerticalWalls == true && _triangles_vw.size() > 0)
-    ss << "usemtl VerticalWalls" << std::endl;
+    ss << mtl << "Wall" << std::endl;
 
   for (auto& t : _triangles_vw) {
     unsigned long a, b, c;
@@ -180,7 +181,7 @@ std::string TopoFeature::get_imgeo_object_info(std::string id) {
   if (get_attribute("eindregistratie", attribute)) {
     ss << "<imgeo:eindRegistratie>" << attribute << "</imgeo:eindRegistratie>" << std::endl;
   }
-  if (get_attribute("lv_publicatiedatum", attribute)) {
+  if (get_attribute("lv-publicatiedatum", attribute)) {
     ss << "<imgeo:LV-publicatiedatum>" << attribute << "</imgeo:LV-publicatiedatum>" << std::endl;
   }
   if (get_attribute("bronhouder", attribute)) {
@@ -192,10 +193,10 @@ std::string TopoFeature::get_imgeo_object_info(std::string id) {
   if (get_attribute("relatievehoogteligging", attribute)) {
     ss << "<imgeo:relatieveHoogteligging>" << attribute << "</imgeo:relatieveHoogteligging>" << std::endl;
   }
-  if (get_attribute("bgt_status", attribute, "bestaand")) {
+  if (get_attribute("bgt-status", attribute, "bestaand")) {
     ss << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" << attribute << "</imgeo:bgt-status>" << std::endl;
   }
-  if (get_attribute("plus_status", attribute)) {
+  if (get_attribute("plus-status", attribute)) {
     ss << "<imgeo:plus-status>" << attribute << "</imgeo:plus-status>" << std::endl;
   }
   return ss.str();

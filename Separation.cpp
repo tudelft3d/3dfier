@@ -45,7 +45,7 @@ bool Separation::is_hard() {
 }
 
 std::string Separation::get_mtl() {
-  return "usemtl Separation\n";
+  return "usemtl Separation";
 }
 
 bool Separation::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
@@ -104,28 +104,28 @@ std::string Separation::get_citygml_imgeo() {
   ss << "</imgeo:lod1Geometry>" << std::endl;
   std::string attribute;
   if (kunstwerkdeel) {
-    if (get_attribute("bgt_type", attribute)) {
+    if (get_attribute("bgt-type", attribute)) {
       ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerk\">" << attribute << "</imgeo:bgt-type>" << std::endl;
     }
-    if (get_attribute("plus_type", attribute)) {
+    if (get_attribute("plus-type", attribute)) {
       ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerkPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
     }
     ss << "</imgeo:Kunstwerkdeel>" << std::endl;
   }
   else if (overigbouwwerk) {
-    if (get_attribute("bgt_type", attribute)) {
+    if (get_attribute("bgt-type", attribute)) {
       ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerk\">" << attribute << "</imgeo:bgt-type>" << std::endl;
     }
-    if (get_attribute("plus_type", attribute)) {
+    if (get_attribute("plus-type", attribute)) {
       ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerkPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
     }
     ss << "</imgeo:OverigBouwwerk>" << std::endl;
   }
   else {
-    if (get_attribute("bgt_type", attribute)) {
+    if (get_attribute("bgt-type", attribute)) {
       ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheiding\">" << attribute << "</imgeo:bgt-type>" << std::endl;
     }
-    if (get_attribute("plus_type", attribute)) {
+    if (get_attribute("plus-type", attribute)) {
       ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheidingPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
     }
     ss << "</imgeo:Scheiding>" << std::endl;
