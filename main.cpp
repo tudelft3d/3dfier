@@ -352,7 +352,7 @@ int main(int argc, const char * argv[]) {
   }
   else if (format == "Shapefile") {
     std::clog << "Shapefile output" << std::endl;
-    if (map3d.get_shapefile(outputFilename)) {
+    if (map3d.get_shapefile2d(outputFilename)) {
       std::clog << "Shapefile written" << std::endl;
     }
     else
@@ -562,9 +562,9 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-IMGeo | CSV-BUILDINGS | Shapefile)" << std::endl;
   }
   //-- Shapefile type filename check
-  if (format == "Shapefile" && !n["filename"]) {
+  /*if (format == "Shapefile" && !n["filename"]) {
     wentgood = false;
     std::cerr << "\tOption 'output.format' Shapefile needs an output.filename" << std::endl;
-  }
+  }*/
   return wentgood;
 }

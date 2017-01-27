@@ -114,3 +114,4 @@ std::string Bridge::get_citygml_imgeo() {
 bool Bridge::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Bridge");
 }
+

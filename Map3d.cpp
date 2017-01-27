@@ -307,7 +307,7 @@ bool Map3d::get_shapefile2d(std::string filename) {
     std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
     return false;
   }
-  OGRLayer *layer = dataSource->CreateLayer("my3dmap", NULL, wkbMultiPolygon, NULL);
+  OGRLayer *layer = dataSource->CreateLayer("shp2d", NULL, wkbMultiPolygon, NULL);
 
   OGRFieldDefn oField("Id", OFTString);
   if (layer->CreateField(&oField) != OGRERR_NONE) {
@@ -329,6 +329,7 @@ bool Map3d::get_shapefile2d(std::string filename) {
     std::cerr << "Creating RoofHeight field failed." << std::endl;
     return false;
   }
+   
   for (auto& p3 : _lsFeatures) {
     p3->get_shape(layer);
   }

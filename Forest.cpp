@@ -115,3 +115,4 @@ std::string Forest::get_citygml_imgeo() {
 bool Forest::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Forest");
 }
+

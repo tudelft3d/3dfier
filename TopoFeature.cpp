@@ -249,11 +249,11 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
       OGRLinearRing ring = OGRLinearRing();
       
       p = _vertices[t.v0];
-      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+      ring.addPoint(p.get<0>(), p.get<1>());
       p = _vertices[t.v1];
-      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+      ring.addPoint(p.get<0>(), p.get<1>());
       p = _vertices[t.v2];
-      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+      ring.addPoint(p.get<0>(), p.get<1>());
   
       ring.closeRings();
       polygon.addRing(&ring);
@@ -266,11 +266,11 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
       OGRLinearRing ring = OGRLinearRing();
   
       p = _vertices[t.v0];
-      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+      ring.addPoint(p.get<0>(), p.get<1>());
       p = _vertices[t.v1];
-      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+      ring.addPoint(p.get<0>(), p.get<1>());
       p = _vertices[t.v2];
-      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+      ring.addPoint(p.get<0>(), p.get<1>());
   
       ring.closeRings();
       polygon.addRing(&ring);
