@@ -561,10 +561,5 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     wentgood = false;
     std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-IMGeo | CSV-BUILDINGS | Shapefile)" << std::endl;
   }
-  //-- Shapefile type filename check
-  if (format == "Shapefile" && !n["filename"]) {
-    wentgood = false;
-    std::cerr << "\tOption 'output.format' Shapefile needs an output.filename" << std::endl;
-  }
   return wentgood;
 }

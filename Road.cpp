@@ -31,7 +31,7 @@
 
 float Road::_heightref = 0.5;
 
-Road::Road(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref)
+Road::Road(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, float heightref)
   : Boundary3D(wkt, layername, attributes, pid) {
   _heightref = heightref;
 }
@@ -65,6 +65,7 @@ std::string Road::get_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
   ss << "<tran:Road gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << get_citygml_attributes(_attributes);
   ss << "<tran:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;

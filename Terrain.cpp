@@ -30,7 +30,7 @@
 #include "io.h"
 #include <algorithm>
 
-Terrain::Terrain(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification, float innerbuffer)
+Terrain::Terrain(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, int simplification, float innerbuffer)
   : TIN(wkt, layername, attributes, pid, simplification, innerbuffer) {}
 
 TopoClass Terrain::get_class() {
@@ -63,6 +63,7 @@ std::string Terrain::get_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
   ss << "<luse:LandUse gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << get_citygml_attributes(_attributes);
   ss << "<luse:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;

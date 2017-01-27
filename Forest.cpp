@@ -32,7 +32,7 @@
 
 bool Forest::_use_ground_points_only = false;
 
-Forest::Forest(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
+Forest::Forest(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
   : TIN(wkt, layername, attributes, pid, simplification, innerbuffer)
 {
   _use_ground_points_only = ground_points_only;
@@ -66,9 +66,8 @@ bool Forest::lift() {
 std::string Forest::get_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<veg:PlantCover gml:id=\"";
-  ss << this->get_id();
-  ss << "\">" << std::endl;
+  ss << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << get_citygml_attributes(_attributes);
   ss << "<veg:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;
