@@ -261,6 +261,10 @@ void Map3d::get_obj_per_class(std::ofstream &outputfile, int z_exaggeration) {
 }
 
 bool Map3d::get_shapefile(std::string filename) {
+#if GDAL_VERSION_MAJOR < 2
+  std::cerr << "Exporting to a 3D Shapefile requires GDAL/OGR 2.0 or higher." << std::endl;
+  return false;
+#else
   if (GDALGetDriverCount() == 0)
     GDALAllRegister();
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("ESRI Shapefile");
@@ -289,6 +293,7 @@ bool Map3d::get_shapefile(std::string filename) {
   }
   GDALClose(dataSource);
   return true;
+#endif
 }
 
 unsigned long Map3d::get_num_polygons() {
@@ -411,12 +416,21 @@ bool Map3d::construct_rtree() {
 }
 
 bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
+#if GDAL_VERSION_MAJOR < 2
+  if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0)
+    OGRRegisterAll();
+#else
   if (GDALGetDriverCount() == 0)
     GDALAllRegister();
+#endif
 
   for (auto file = files.begin(); file != files.end(); ++file) {
     std::clog << "Reading input dataset: " << file->filename << std::endl;
+#if GDAL_VERSION_MAJOR < 2
+    OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(file->filename.c_str(), false);
+#else
     GDALDataset *dataSource = (GDALDataset*)GDALOpenEx(file->filename.c_str(), GDAL_OF_READONLY, NULL, NULL, NULL);
+#endif
 
     if (dataSource == NULL) {
       std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
@@ -435,7 +449,11 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
       }
     }
     bool wentgood = this->extract_and_add_polygon(dataSource, &(*file));
+#if GDAL_VERSION_MAJOR < 2
+    OGRDataSource::DestroyDataSource(dataSource);
+#else
     GDALClose(dataSource);
+#endif
 
     if (!wentgood) {
       std::cerr << "ERROR: Something went bad while reading input polygons. Aborting." << std::endl;
@@ -445,7 +463,11 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
   return true;
 }
 
+#if GDAL_VERSION_MAJOR < 2
+bool Map3d::extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file) {
+#else
 bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) {
+#endif
   const char *idfield = file->idfield.c_str();
   const char *heightfield = file->heightfield.c_str();
   bool multiple_heights = file->handle_multiple_heights;
