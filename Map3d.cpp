@@ -288,6 +288,16 @@ bool Map3d::get_shapefile(std::string filename) {
     std::cerr << "Creating Class field failed." << std::endl;
     return false;
   }
+  OGRFieldDefn oField3("BaseHeight", OFTReal);
+  if (layer->CreateField(&oField3) != OGRERR_NONE) {
+    std::cerr << "Creating BaseHeight field failed." << std::endl;
+    return false;
+  }
+  OGRFieldDefn oField4("RoofHeight", OFTReal);
+  if (layer->CreateField(&oField4) != OGRERR_NONE) {
+    std::cerr << "Creating RoofHeight field failed." << std::endl;
+    return false;
+  }
 
   for (auto& p3 : _lsFeatures) {
     p3->get_shape(layer);
@@ -319,7 +329,7 @@ bool Map3d::get_shapefile2d(std::string filename) {
     std::cerr << "Creating Class field failed." << std::endl;
     return false;
   }
-  OGRFieldDefn oField3("FloorHeight", OFTReal);
+  OGRFieldDefn oField3("BaseHeight", OFTReal);
   if (layer->CreateField(&oField3) != OGRERR_NONE) {
     std::cerr << "Creating FloorHeight field failed." << std::endl;
     return false;
@@ -591,10 +601,12 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
   OGRGeometry *geom = f->GetGeometryRef();
   geom->flattenTo2D();
   geom->exportToWkt(&wkt);
-  std::unordered_map<std::string, std::string> attributes;
+  std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes;
+  //std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes;
   int attributeCount = f->GetFieldCount();
   for (int i = 0; i < attributeCount; i++) {
-    attributes[boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef())] = f->GetFieldAsString(i);
+    attributes.push_back(std::make_tuple(boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef()), f->GetFieldDefnRef(i)->GetType(), f->GetFieldAsString(i)));
+    //attributes[boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef())] = f->GetFieldAsString(i);
   }
   if (layertype == "Building") {
     Building* p3 = new Building(wkt, layername, attributes, f->GetFieldAsString(idfield), _building_heightref_roof, _building_heightref_floor);

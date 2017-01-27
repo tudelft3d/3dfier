@@ -32,7 +32,7 @@
 float Building::_heightref_top = 0.9;
 float Building::_heightref_base = 0.1;
 
-Building::Building(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref_top, float heightref_base)
+Building::Building(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, float heightref_top, float heightref_base)
   : Flat(wkt, layername, attributes, pid)
 {
   _heightref_top = heightref_top;
@@ -145,12 +145,12 @@ std::string Building::get_citygml() {
   float hbase = z_to_float(this->get_height_base());
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
-  ss << "<bldg:Building gml:id=\"";
-  ss << this->get_id();
-  ss << "\">" << std::endl;
-  ss << "<bldg:measuredHeight uom=\"#m\">";
-  ss << h;
-  ss << "</bldg:measuredHeight>" << std::endl;
+  ss << "<bldg:Building gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << get_citygml_attributes(_attributes);
+  ss << "<gen:measureAttribute name=\"min height surface\">" << std::endl;
+  ss << "<gen:value uom=\"#m\">" << hbase << "</gen:value>" << std::endl;
+  ss << "</gen:measureAttribute>" << std::endl;
+  ss << "<bldg:measuredHeight uom=\"#m\">" << h << "</bldg:measuredHeight>" << std::endl;
   //-- LOD0 footprint
   ss << "<bldg:lod0FootPrint>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
@@ -234,7 +234,7 @@ std::string Building::get_citygml_imgeo() {
   if (get_attribute("identificatiebagpnd", attribute)) {
     ss << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>" << std::endl;
   }
-  ss << get_citygml_imgeo_number();
+  ss << get_imgeo_nummeraanduiding();
   ss << "</bui:BuildingPart>" << std::endl;
   ss << "</bui:consistsOfBuildingPart>" << std::endl;
   ss << "</bui:Building>" << std::endl;
@@ -242,7 +242,7 @@ std::string Building::get_citygml_imgeo() {
   return ss.str();
 }
 
-std::string Building::get_citygml_imgeo_number() {
+std::string Building::get_imgeo_nummeraanduiding() {
   std::stringstream ss;
   std::string attribute;
   bool btekst, bplaatsingspunt, bhoek, blaagnr, bhoognr;
@@ -329,11 +329,11 @@ bool Building::get_shape(OGRLayer* layer) {
     OGRPolygon polygon = OGRPolygon();
     OGRLinearRing ring = OGRLinearRing();
 
-    p = _vertices[t.v0];
+    p = _vertices_vw[t.v0];
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices[t.v1];
+    p = _vertices_vw[t.v1];
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices[t.v2];
+    p = _vertices_vw[t.v2];
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
 
     ring.closeRings();
@@ -344,12 +344,13 @@ bool Building::get_shape(OGRLayer* layer) {
   feature->SetGeometry(&multipolygon);
   feature->SetField("Id", this->get_id().c_str());
   feature->SetField("Class", "Building");
-  feature->SetField("FloorHeight", this->get_height_base());
-  feature->SetField("RoofHeight", this->get_height());
+  feature->SetField("BaseHeight", z_to_float(this->get_height_base()));
+  feature->SetField("RoofHeight", z_to_float(this->get_height()));
 
   if (layer->CreateFeature(feature) != OGRERR_NONE) {
     std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
     return false;
   }
   OGRFeature::DestroyFeature(feature);
+  return true;
 }

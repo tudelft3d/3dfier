@@ -31,7 +31,7 @@
 
 float Water::_heightref = 0.1;
 
-Water::Water(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, float heightref)
+Water::Water(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, float heightref)
   : Flat(wkt, layername, attributes, pid) {
   _heightref = heightref;
 }
@@ -63,6 +63,7 @@ std::string Water::get_citygml() {
   std::stringstream ss;
   ss << "<cityObjectMember>" << std::endl;
   ss << "<wtr:WaterBody gml:id=\"" << this->get_id() << "\">" << std::endl;
+  ss << get_citygml_attributes(_attributes);
   ss << "<wtr:lod1MultiSurface>" << std::endl;
   ss << "<gml:MultiSurface>" << std::endl;
   ss << std::setprecision(3) << std::fixed;

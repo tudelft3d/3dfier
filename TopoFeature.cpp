@@ -33,7 +33,7 @@ int TopoFeature::_count = 0;
 
 //-----------------------------------------------------------------------------
 
-TopoFeature::TopoFeature(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid) {
+TopoFeature::TopoFeature(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid) {
   _id = pid;
   _counter = _count++;
   _toplevel = true;
@@ -202,6 +202,30 @@ std::string TopoFeature::get_imgeo_object_info(std::string id) {
   return ss.str();
 }
 
+std::string TopoFeature::get_citygml_attributes(std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes) {
+  std::stringstream ss;
+  for (auto& attribute : attributes) {
+    // add attributes except gml_id
+    if (!std::get<0>(attribute).compare("gml_id")) {
+      std::string type;
+      switch (std::get<1>(attribute)) {
+      case OFTInteger:
+        type = "int";
+      case OFTReal:
+        type = "double";
+      case OFTDate:
+        type = "date";
+      default:
+        type = "string";
+      }
+      ss << "<gen:" + type + "Attribute name=\"" + std::get<0>(attribute) + "\">" << std::endl;
+      ss << "<gen:value>" + std::get<2>(attribute) + "</gen:value>" << std::endl;
+      ss << "</gen:" + type << "Attribute>" << std::endl;
+    }
+  }
+  return ss.str();
+}
+
 std::string TopoFeature::get_wkt() {
   //  std::string wkt;
   //  wkt = "MULTIPOLYGONZ (";
@@ -265,11 +289,11 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
       OGRPolygon polygon = OGRPolygon();
       OGRLinearRing ring = OGRLinearRing();
   
-      p = _vertices[t.v0];
+      p = _vertices_vw[t.v0];
       ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-      p = _vertices[t.v1];
+      p = _vertices_vw[t.v1];
       ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-      p = _vertices[t.v2];
+      p = _vertices_vw[t.v2];
       ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
   
       ring.closeRings();
@@ -729,16 +753,14 @@ std::string TopoFeature::get_triangle_as_gml_triangle(Triangle& t, bool vertical
 
 bool TopoFeature::get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue)
 {
-  std::unordered_map<std::string, std::string>::const_iterator it = _attributes.find(attributeName);
-
-  // Return attribute if exists and not empty, else return defaultValue if given
-  if (it != _attributes.end()) {
-    if (it->second != "") {
-      attribute = it->second;
-      return true;
-    }
-    else if (defaultValue != "") {
-      attribute = defaultValue;
+  for (auto& at : _attributes) {
+    if (std::get<0>(at).compare(attributeName) == 0) {
+      if (!std::get<2>(at).empty()) {
+        attribute = std::get<2>(at);
+      }
+      else if (!defaultValue.empty()) {
+        attribute = defaultValue;
+      }
       return true;
     }
   }
@@ -835,7 +857,7 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
 //-------------------------------
 //-------------------------------
 
-Flat::Flat(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid)
+Flat::Flat(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid)
   : TopoFeature(wkt, layername, attributes, pid) {}
 
 int Flat::get_number_vertices() {
@@ -871,7 +893,7 @@ bool Flat::lift_percentile(float percentile) {
 //-------------------------------
 //-------------------------------
 
-Boundary3D::Boundary3D(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid)
+Boundary3D::Boundary3D(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid)
   : TopoFeature(wkt, layername, attributes, pid) {}
 
 int Boundary3D::get_number_vertices() {
@@ -932,7 +954,7 @@ void Boundary3D::smooth_boundary(int passes) {
 //-------------------------------
 //-------------------------------
 
-TIN::TIN(char *wkt, std::string layername, std::unordered_map<std::string, std::string> attributes, std::string pid, int simplification, float innerbuffer)
+TIN::TIN(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, int simplification, float innerbuffer)
   : TopoFeature(wkt, layername, attributes, pid) {
   _simplification = simplification;
   _innerbuffer = innerbuffer;
