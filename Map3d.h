@@ -115,9 +115,9 @@ private:
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;
 
 #if GDAL_VERSION_MAJOR < 2
-  bool Map3d::extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file);
+  bool extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file);
 #else
-  bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file);
+  bool extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file);
 #endif
   void extract_feature(OGRFeature * f, std::string layerName, const char * idfield, const char * heightfield, std::string layertype, bool multiple_heights);
   void stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star);
