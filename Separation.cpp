@@ -32,7 +32,7 @@
 float Separation::_heightref = 0.8;
 
 Separation::Separation(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, float heightref)
-  : Flat(wkt, layername, attributes, pid) {
+  : Boundary3D(wkt, layername, attributes, pid) {
   _heightref = heightref;
 }
 
@@ -50,13 +50,16 @@ std::string Separation::get_mtl() {
 
 bool Separation::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn == true && lasclass != LAS_BUILDING && lasclass != LAS_WATER) {
-    Flat::add_elevation_point(p, z, radius, lasclass, lastreturn);
+    Boundary3D::add_elevation_point(p, z, radius, lasclass, lastreturn);
   }
   return true;
 }
 
 bool Separation::lift() {
-  lift_percentile(_heightref);
+  //lift_percentile(_heightref);
+  //return true;
+  lift_each_boundary_vertices(_heightref);
+  smooth_boundary(5);
   return true;
 }
 
