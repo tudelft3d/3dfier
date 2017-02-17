@@ -435,7 +435,12 @@ bool Map3d::threeDfy(bool stitching) {
     std::clog << "=====  /VERTICAL WALLS =====" << std::endl;
     for (auto& f : _lsFeatures) {
       if (f->has_vertical_walls() == true) {
-        f->construct_vertical_walls(_nc);
+        int baseheight = 0;
+        if (f->get_class() == BUILDING) {
+          baseheight = dynamic_cast<Building*>(f)->get_height_base();
+
+        }
+        f->construct_vertical_walls(_nc, baseheight);
       }
     }
     std::clog << "=====  VERTICAL WALLS/ =====" << std::endl;
@@ -775,6 +780,16 @@ void Map3d::stitch_lifted_features() {
       if (toprocess == true) {
         this->stitch_one_vertex(f, 0, i, star);
       }
+      else {
+        if (f->get_class() == BUILDING) {
+          f->add_vertical_wall();
+          std::string key_bucket = gen_key_bucket(&f->get_point2(0, i));
+          int z = f->get_vertex_elevation(0, i);
+          _nc[key_bucket].push_back(z);
+          z = dynamic_cast<Building*>(f)->get_height_base();
+          _nc[key_bucket].push_back(z);
+        }
+      }
     }
     // irings
     int noiring = 0;
@@ -801,6 +816,16 @@ void Map3d::stitch_lifted_features() {
         }
         if (toprocess == true) {
           this->stitch_one_vertex(f, noiring, i, star);
+        }
+        else {
+          if (f->get_class() == BUILDING) {
+            f->add_vertical_wall();
+            std::string key_bucket = gen_key_bucket(&f->get_point2(0, i));
+            int z = f->get_vertex_elevation(0, i);
+            _nc[key_bucket].push_back(z);
+            z = dynamic_cast<Building*>(f)->get_height_base();
+            _nc[key_bucket].push_back(z);
+          }
         }
       }
     }
@@ -972,6 +997,12 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
       }
       _nc[key_bucket].push_back(f1z);
       _nc[key_bucket].push_back(f2z);
+      int f1base = dynamic_cast<Building*>(f1)->get_height_base();
+      int f2base = dynamic_cast<Building*>(f2)->get_height_base();
+      _nc[key_bucket].push_back(f1base);
+      if (f1base != f2base) {
+        _nc[key_bucket].push_back(f2base);
+      }
     }
     else if (f1->get_class() == BUILDING) {
       if (f2->get_class() != WATER) {

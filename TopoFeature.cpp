@@ -410,7 +410,7 @@ void TopoFeature::fix_bowtie() {
   }
 }
 
-void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::vector<int>> &nc) {
+void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::vector<int>> &nc, int baseheight) {
   //std::clog << this->get_id() << std::endl;
   // if (this->get_id() == "bbdc52a89-00b3-11e6-b420-2bdcc4ab5d7f")
   //   std::clog << "break" << std::endl;
@@ -470,15 +470,23 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
           break;
         }
       }
-      if (fadj == nullptr)
+      if (fadj == nullptr && this->get_class() != BUILDING) {
         continue;
+      }
 
-      //-- check height differences: f > fadj for *both* Points a and b
       int az = this->get_vertex_elevation(ringi, ai);
       int bz = this->get_vertex_elevation(ringi, bi);
-      int fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
-      int fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
+      int fadj_az, fadj_bz;
+      if (fadj == nullptr) {
+        fadj_az = baseheight;
+        fadj_bz = baseheight;
+      }
+      else {
+        fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
+        fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
+      }
 
+      //-- check height differences: f > fadj for *both* Points a and b
       if ((az < fadj_az) || (bz < fadj_bz))
         continue;
       if ((az == fadj_az) && (bz == fadj_bz))
