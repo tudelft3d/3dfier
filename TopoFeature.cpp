@@ -472,8 +472,6 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
           break;
         }
       }
-
-      if (fadj == nullptr && !onlybuildings) {
         continue;
       }
       
@@ -481,7 +479,6 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       int bz = this->get_vertex_elevation(ringi, bi);
 
       int fadj_az, fadj_bz;
-      if(onlybuildings) {
         fadj_az = baseheight;
         fadj_bz = baseheight;
       }

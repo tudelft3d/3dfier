@@ -768,10 +768,10 @@ void Map3d::stitch_lifted_features() {
         pis.clear();
         if (fadj->has_point2_(oring[i], ringis, pis) == true) {
           //if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
-            for (int k = 0; k < ringis.size(); k++) {
-              toprocess = true;
-              star.push_back(std::make_tuple(fadj, ringis[k], pis[k]));
-            }
+          for (int k = 0; k < ringis.size(); k++) {
+            toprocess = true;
+            star.push_back(std::make_tuple(fadj, ringis[k], pis[k]));
+          }
           //}
           //else {
           //  break;
@@ -779,11 +779,17 @@ void Map3d::stitch_lifted_features() {
         }
       }
       if (toprocess == true) {
-        if (f->get_id() == "b981af9f2-00c9-11e6-b420-2bdcc4ab5d7f" &&
-          i == 8) {
-          std::cout << "break" << std::endl;
-        }
         this->stitch_one_vertex(f, 0, i, star);
+      }
+      else {
+        if (f->get_class() == BUILDING) {
+          f->add_vertical_wall();
+          std::string key_bucket = gen_key_bucket(&f->get_point2(0, i));
+          int z = f->get_vertex_elevation(0, i);
+          _nc[key_bucket].push_back(z);
+          z = dynamic_cast<Building*>(f)->get_height_base();
+          _nc[key_bucket].push_back(z);
+        }
       }
     }
     // irings
