@@ -459,7 +459,6 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
         continue;
 
       //-- find the adjacent polygon to segment ab (fadj)
-      bool onlybuildings = this->get_class() == BUILDING;
       fadj = nullptr;
       int adj_a_ringi = 0;
       int adj_a_pi = 0;
@@ -468,17 +467,17 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       for (auto& adj : *(_adjFeatures)) {
         if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi) == true) {
           fadj = adj;
-          onlybuildings = onlybuildings && fadj->get_class() == BUILDING;
           break;
         }
       }
+      if (fadj == nullptr && this->get_class() != BUILDING) {
         continue;
       }
       
       int az = this->get_vertex_elevation(ringi, ai);
       int bz = this->get_vertex_elevation(ringi, bi);
-
       int fadj_az, fadj_bz;
+      if(fadj == nullptr) {
         fadj_az = baseheight;
         fadj_bz = baseheight;
       }
