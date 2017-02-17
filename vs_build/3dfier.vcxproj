@@ -160,16 +160,16 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\3dfier\main.cpp" />
-    <ClCompile Include="..\..\3dfier\io.cpp" />
-    <ClCompile Include="..\..\3dfier\Map3d.cpp" />
-    <ClCompile Include="..\..\3dfier\Building.cpp" />
-    <ClCompile Include="..\..\3dfier\Road.cpp" />
-    <ClCompile Include="..\..\3dfier\Terrain.cpp" />
-    <ClCompile Include="..\..\3dfier\TopoFeature.cpp" />
-    <ClCompile Include="..\..\3dfier\Forest.cpp" />
-    <ClCompile Include="..\..\3dfier\Water.cpp" />
-    <ClCompile Include="..\..\3dfier\geomtools.cpp" />
+    <ClCompile Include="..\main.cpp" />
+    <ClCompile Include="..\io.cpp" />
+    <ClCompile Include="..\Map3d.cpp" />
+    <ClCompile Include="..\Building.cpp" />
+    <ClCompile Include="..\Road.cpp" />
+    <ClCompile Include="..\Terrain.cpp" />
+    <ClCompile Include="..\TopoFeature.cpp" />
+    <ClCompile Include="..\Forest.cpp" />
+    <ClCompile Include="..\Water.cpp" />
+    <ClCompile Include="..\geomtools.cpp" />
     <ClCompile Include="..\Bridge.cpp" />
     <ClCompile Include="..\Separation.cpp" />
   </ItemGroup>

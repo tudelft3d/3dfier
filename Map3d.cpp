@@ -818,6 +818,16 @@ void Map3d::stitch_lifted_features() {
         if (toprocess == true) {
           this->stitch_one_vertex(f, noiring, i, star);
         }
+        else {
+          if (f->get_class() == BUILDING) {
+            f->add_vertical_wall();
+            std::string key_bucket = gen_key_bucket(&f->get_point2(0, i));
+            int z = f->get_vertex_elevation(0, i);
+            _nc[key_bucket].push_back(z);
+            z = dynamic_cast<Building*>(f)->get_height_base();
+            _nc[key_bucket].push_back(z);
+          }
+        }
       }
     }
   }
@@ -997,7 +1007,6 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
       _nc[key_bucket].push_back(f2z);
       int f1base = dynamic_cast<Building*>(f1)->get_height_base();
       int f2base = dynamic_cast<Building*>(f2)->get_height_base();
-      
       _nc[key_bucket].push_back(f1base);
       if (f1base != f2base) {
         _nc[key_bucket].push_back(f2base);
