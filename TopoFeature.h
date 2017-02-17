@@ -50,7 +50,7 @@ public:
   virtual bool          get_shape(OGRLayer*) = 0;
 
   std::string  get_id();
-  void         construct_vertical_walls(std::unordered_map< std::string, std::vector<int> > &nc);
+  void         construct_vertical_walls(std::unordered_map< std::string, std::vector<int> > &nc, int baseheight);
   void         fix_bowtie();
   void         add_adjacent_feature(TopoFeature* adjFeature);
   std::vector<TopoFeature*>* get_adjacent_features();
