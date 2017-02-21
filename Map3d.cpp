@@ -918,33 +918,25 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
         std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator fnext = it;
         for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it + 1; it2 != zstar.end(); ++it2) {
           int deltaz = std::abs(std::get<0>(*it) - std::get<0>(*it2));
-          std::cout << "it: " << std::get<1>(*it)->get_class() << " it2: " << std::get<1>(*it2)->get_class() << " deltaz: " << deltaz << std::endl;
           if (deltaz < this->_threshold_jump_edges) {
             fnext = it2;
             if (std::get<1>(*it)->is_hard()) {
               if (std::get<1>(*it2)->is_hard()) {
                 std::get<1>(*it2)->add_vertical_wall();
-                std::cout << "1" << std::endl;
-                break;
               }
               else {
                 std::get<0>(*it2) = std::get<0>(*it);
-                std::cout << "2" << std::endl;
               }
             }
             else {
               if (std::get<1>(*it2)->is_hard()) {
                 std::get<0>(*it) = std::get<0>(*it2);
-                std::cout << "3" << std::endl;
-                break;
               }
             }
           }
           else {
             // add a vertical wall to the highest feature
             std::get<1>(*it2)->add_vertical_wall();
-            std::cout << "4" << std::endl;
-            break;
           }
         }
         //-- Average heights of soft features within the jumpedge threshold counted from the lowest feature or skip to the next hard feature
@@ -981,9 +973,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
         _nc[gen_key_bucket(&p)].push_back(std::get<0>(each));
         tmph = std::get<0>(each);
       }
-      std::clog << "class: " << std::get<1>(each)->get_class() << " Height: " << tmph << std::endl;
     }
-    std::clog << "+++++++++++" << std::endl;
   }
 }
 
