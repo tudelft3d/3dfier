@@ -89,6 +89,13 @@ int main(int argc, const char * argv[]) {
   }
 
   std::clog << licensewarning << std::endl;
+  // Check if the config file exists
+  std::ifstream f(argv[1]);
+  if (!f.good()) {
+    std::cerr << "Configuration file " + (std::string)argv[1] + " doesn't exist" << std::endl;
+    return 0;
+  }
+  f.close();
   std::clog << "Reading config file: " << argv[1] << std::endl;
 
   //-- allowed feature classes
