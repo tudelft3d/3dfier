@@ -438,7 +438,6 @@ bool Map3d::threeDfy(bool stitching) {
         int baseheight = 0;
         if (f->get_class() == BUILDING) {
           baseheight = dynamic_cast<Building*>(f)->get_height_base();
-
         }
         f->construct_vertical_walls(_nc, baseheight);
       }
@@ -559,6 +558,9 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
 
     while ((f = dataLayer->GetNextFeature()) != NULL) {
       OGRGeometry *geometry = f->GetGeometryRef();
+      if (!geometry->IsValid()) {
+        std::cerr << "Geometry invalid: " << f->GetFieldAsString(idfield) << std::endl;
+      }
       OGREnvelope env;
       if (useRequestedExtent) {
         geometry->getEnvelope(&env);
@@ -751,12 +753,11 @@ void Map3d::collect_adjacent_features(TopoFeature* f) {
 void Map3d::stitch_lifted_features() {
   std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
-
     //-- 1. store all touching top level (adjacent + incident)
     std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
 
     //-- 2. build the node-column for each vertex
-      // oring
+    // oring
     Ring2 oring = bg::exterior_ring(*(f->get_Polygon2()));
     for (int i = 0; i < oring.size(); i++) {
       // std::cout << std::setprecision(3) << std::fixed << bg::get<0>(oring[i]) << " : " << bg::get<1>(oring[i]) << std::endl;
@@ -766,15 +767,15 @@ void Map3d::stitch_lifted_features() {
         ringis.clear();
         pis.clear();
         if (fadj->has_point2_(oring[i], ringis, pis) == true) {
-          if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
-            for (int k = 0; k < ringis.size(); k++) {
-              toprocess = true;
-              star.push_back(std::make_tuple(fadj, ringis[k], pis[k]));
-            }
+          //if (f->get_counter() < fadj->get_counter()) {  //-- here that only lowID-->highID are processed
+          for (int k = 0; k < ringis.size(); k++) {
+            toprocess = true;
+            star.push_back(std::make_tuple(fadj, ringis[k], pis[k]));
           }
-          else {
-            break;
-          }
+          //}
+          //else {
+          //  break;
+          //}
         }
       }
       if (toprocess == true) {
@@ -922,7 +923,6 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
             if (std::get<1>(*it)->is_hard()) {
               if (std::get<1>(*it2)->is_hard()) {
                 std::get<1>(*it2)->add_vertical_wall();
-                break;
               }
               else {
                 std::get<0>(*it2) = std::get<0>(*it);
@@ -931,14 +931,12 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
             else {
               if (std::get<1>(*it2)->is_hard()) {
                 std::get<0>(*it) = std::get<0>(*it2);
-                break;
               }
             }
           }
           else {
             // add a vertical wall to the highest feature
             std::get<1>(*it2)->add_vertical_wall();
-            break;
           }
         }
         //-- Average heights of soft features within the jumpedge threshold counted from the lowest feature or skip to the next hard feature

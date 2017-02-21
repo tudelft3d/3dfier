@@ -31,7 +31,7 @@
 
 #include "TopoFeature.h"
 
-class Separation: public Flat {
+class Separation: public Boundary3D {
 public:
   Separation(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, float heightref);
   bool        lift();

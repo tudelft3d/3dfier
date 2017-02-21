@@ -477,7 +477,7 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       int az = this->get_vertex_elevation(ringi, ai);
       int bz = this->get_vertex_elevation(ringi, bi);
       int fadj_az, fadj_bz;
-      if (fadj == nullptr) {
+      if(fadj == nullptr) {
         fadj_az = baseheight;
         fadj_bz = baseheight;
       }
