@@ -206,7 +206,7 @@ std::string TopoFeature::get_citygml_attributes(std::vector<std::tuple<std::stri
   std::stringstream ss;
   for (auto& attribute : attributes) {
     // add attributes except gml_id
-    if (!std::get<0>(attribute).compare("gml_id")) {
+    if (std::get<0>(attribute).compare("gml_id") != 0) {
       std::string type;
       switch (std::get<1>(attribute)) {
       case OFTInteger:
