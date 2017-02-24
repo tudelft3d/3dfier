@@ -42,7 +42,7 @@
 #include "boost/filesystem.hpp"
 #include <boost/filesystem/operations.hpp>
 
-std::string VERSION = "0.9";
+std::string VERSION = "0.9.1";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 void print_license();
