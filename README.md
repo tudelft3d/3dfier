@@ -78,6 +78,8 @@ The dependencies that are necessary (under Mac we suggest using [Homebrew](http:
 
 `$ ./3dfier myconfig.yml -o output.ext`
 
+There is also a [tutorial](https://github.com/tudelft3d/3dfier/wiki/General-3dfier-tutorial-to-generate-LOD1-models) on how to generate a 3D model with 3dfier.
+
 ## Test data
 
 In the folder `example_data` there is a small part of the [BGT datasets](http://www.kadaster.nl/web/Themas/Registraties/BGT.htm) (2D 1:1k topographic datasets of the Netherlands), and a part of the [AHN3 LIDAR dataset](https://www.pdok.nl/nl/ahn3-downloads) that can be used for testing. 
