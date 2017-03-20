@@ -721,15 +721,22 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
     }
     printProgressBar(0);
     int i = 0;
-    while (reader.ReadNextPoint()) {
-      this->add_elevation_point(reader.GetPoint());
+    try {
+      while (reader.ReadNextPoint()) {
+        this->add_elevation_point(reader.GetPoint());
 
-      if (i % (pointCount / 100) == 0)
-        printProgressBar(100 * (i / double(pointCount)));
-      i++;
+        if (i % (pointCount / 100) == 0)
+          printProgressBar(100 * (i / double(pointCount)));
+        i++;
+      }
+      printProgressBar(100);
+      std::clog << "done" << std::endl;
     }
-    printProgressBar(100);
-    std::clog << "done" << std::endl;
+    catch (std::exception e) {
+      std::cerr << std::endl << e.what() << std::endl;
+      ifs.close();
+      return false;
+    }
   }
   else
   {
