@@ -308,6 +308,10 @@ bool Map3d::get_shapefile(std::string filename) {
 }
 
 bool Map3d::get_shapefile2d(std::string filename) {
+#if GDAL_VERSION_MAJOR < 2
+  return false;
+#else
+
   if (GDALGetDriverCount() == 0)
     GDALAllRegister();
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("ESRI Shapefile");
@@ -344,6 +348,7 @@ bool Map3d::get_shapefile2d(std::string filename) {
   }
   GDALClose(dataSource);
   return true;
+#endif
 }
 
 unsigned long Map3d::get_num_polygons() {
@@ -791,7 +796,8 @@ void Map3d::stitch_lifted_features() {
       else {
         if (f->get_class() == BUILDING) {
           f->add_vertical_wall();
-          std::string key_bucket = gen_key_bucket(&f->get_point2(0, i));
+          Point2 tmp = f->get_point2(0, i);
+          std::string key_bucket = gen_key_bucket(&tmp);
           int z = f->get_vertex_elevation(0, i);
           _nc[key_bucket].push_back(z);
           z = dynamic_cast<Building*>(f)->get_height_base();
@@ -828,7 +834,8 @@ void Map3d::stitch_lifted_features() {
         else {
           if (f->get_class() == BUILDING) {
             f->add_vertical_wall();
-            std::string key_bucket = gen_key_bucket(&f->get_point2(0, i));
+            Point2 tmp = f->get_point2(0, i);
+            std::string key_bucket = gen_key_bucket(&tmp);
             int z = f->get_vertex_elevation(0, i);
             _nc[key_bucket].push_back(z);
             z = dynamic_cast<Building*>(f)->get_height_base();
