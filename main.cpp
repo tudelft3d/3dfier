@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2017  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -383,7 +383,7 @@ int main(int argc, const char * argv[]) {
 void print_license() {
   std::string thelicense =
     "\n3dfier: takes 2D GIS datasets and '3dfies' to create 3D city models.\n\n"
-    "Copyright (C) 2015-2016  3D geoinformation research group, TU Delft\n\n"
+    "Copyright (C) 2015-2017  3D geoinformation research group, TU Delft\n\n"
     "3dfier is free software: you can redistribute it and/or modify\n"
     "it under the terms of the GNU General Public License as published by\n"
     "the Free Software Foundation, either version 3 of the License, or\n"
