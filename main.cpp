@@ -288,39 +288,26 @@ int main(int argc, const char * argv[]) {
         if (!boost::filesystem::exists(rootPath) || !boost::filesystem::is_directory(rootPath)) {
           std::cerr << "\tERROR: " << rootPath << "is not a directory, skipping it." << std::endl;
           bElevData = false;
-          break;
         }
         else {
           boost::filesystem::recursive_directory_iterator it_end;
           for (boost::filesystem::recursive_directory_iterator it(rootPath); it != it_end; ++it) {
             if (boost::filesystem::is_regular_file(*it) && it->path().extension() == path.extension()) {
               bool added = map3d.add_las_file(it->path().string(), lasomits, thinning);
-              if (!added) {
-                bElevData = false;
-                break;
-              }
-              else {
-                bElevData = true;
-              }
+              bElevData = bElevData || added;
             }
           }
         }
       }
       else {
         bool added = map3d.add_las_file(path.string(), lasomits, thinning);
-        if (!added) {
-          bElevData = false;
-          break;
-        }
-        else {
-          bElevData = true;
-        }
+        bElevData = bElevData || added;
       }
     }
   }
   if (bElevData == false) {
-    std::cerr << "ERROR: No elevation data, cannot 3dfy the dataset. Aborting." << std::endl;
-     return 0;
+    std::cerr << "ERROR: No elevation dataset given, cannot 3dfy the dataset. Aborting." << std::endl;
+    return 0;
   }
 
   n = nodes["output"];
