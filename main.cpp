@@ -251,7 +251,11 @@ int main(int argc, const char * argv[]) {
     }
   }
 
-  map3d.add_polygons_files(files);
+  bool added = map3d.add_polygons_files(files);
+  if (!added) {
+    std::cerr << "ERROR: Missing polygon data, cannot 3dfy the dataset. Aborting." << std::endl;
+    return 0;
+  }
   std::clog << "\nTotal # of polygons: " << boost::locale::as::number << map3d.get_num_polygons() << std::endl;
 
   //-- spatially index the polygons
@@ -319,7 +323,7 @@ int main(int argc, const char * argv[]) {
     }
   }
   if (bElevData == false) {
-    std::cerr << "ERROR: No elevation data, cannot 3dfy the dataset. Aborting." << std::endl;
+    std::cerr << "ERROR: Missing elevation data, cannot 3dfy the dataset. Aborting." << std::endl;
      return 0;
   }
 
