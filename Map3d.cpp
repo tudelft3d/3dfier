@@ -271,25 +271,30 @@ bool Map3d::get_shapefile(std::string filename) {
   GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
 
   if (dataSource == NULL) {
-    throw std::exception("\tERROR: could not open file, skipping it.");
+    std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
+    return false;
   }
   OGRLayer *layer = dataSource->CreateLayer("my3dmap", NULL, OGR_GT_SetZ(wkbMultiPolygon), NULL);
 
   OGRFieldDefn oField("Id", OFTString);
   if (layer->CreateField(&oField) != OGRERR_NONE) {
-    throw std::exception("Creating Id field failed.");
+    std::cerr << "Creating Id field failed." << std::endl;
+    return false;
   }
   OGRFieldDefn oField2("Class", OFTString);
   if (layer->CreateField(&oField2) != OGRERR_NONE) {
-    throw std::exception("Creating Class field failed.");
+    std::cerr << "Creating Class field failed." << std::endl;
+    return false;
   }
   OGRFieldDefn oField3("BaseHeight", OFTReal);
   if (layer->CreateField(&oField3) != OGRERR_NONE) {
-    throw std::exception("Creating BaseHeight field failed.");
+    std::cerr << "Creating BaseHeight field failed." << std::endl;
+    return false;
   }
   OGRFieldDefn oField4("RoofHeight", OFTReal);
   if (layer->CreateField(&oField4) != OGRERR_NONE) {
-    throw std::exception("Creating RoofHeight field failed.");
+    std::cerr << "Creating RoofHeight field failed." << std::endl;
+    return false;
   }
 
   for (auto& p3 : _lsFeatures) {
@@ -311,25 +316,30 @@ bool Map3d::get_shapefile2d(std::string filename) {
   GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
 
   if (dataSource == NULL) {
-    throw std::exception("\tERROR: could not open file, skipping it.");
+    std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
+    return false;
   }
   OGRLayer *layer = dataSource->CreateLayer("my3dmap", NULL, wkbMultiPolygon, NULL);
 
   OGRFieldDefn oField("Id", OFTString);
   if (layer->CreateField(&oField) != OGRERR_NONE) {
-    throw std::exception("Creating Id field failed.");
+    std::cerr << "Creating Id field failed." << std::endl;
+    return false;
   }
   OGRFieldDefn oField2("Class", OFTString);
   if (layer->CreateField(&oField2) != OGRERR_NONE) {
-    throw std::exception("Creating Class field failed.");
+    std::cerr << "Creating Class field failed." << std::endl;
+    return false;
   }
   OGRFieldDefn oField3("BaseHeight", OFTReal);
   if (layer->CreateField(&oField3) != OGRERR_NONE) {
-    throw std::exception("Creating FloorHeight field failed.");
+    std::cerr << "Creating FloorHeight field failed." << std::endl;
+    return false;
   }
   OGRFieldDefn oField4("RoofHeight", OFTReal);
   if (layer->CreateField(&oField4) != OGRERR_NONE) {
-    throw std::exception("Creating RoofHeight field failed.");
+    std::cerr << "Creating RoofHeight field failed." << std::endl;
+    return false;
   }
   for (auto& p3 : _lsFeatures) {
     p3->get_shape(layer);
@@ -651,7 +661,7 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
   std::ifstream ifs;
   ifs.open(ifile.c_str(), std::ios::in | std::ios::binary);
   if (ifs.is_open() == false) {
-    std::cerr << "\tERROR: could not open file: " + ifile << std::endl;
+    std::cerr << "\tERROR: could not open file: " << ifile << std::endl;
     return false;
   }
   //-- LAS classes to omit (create full list since eExclusion does not work
@@ -723,8 +733,9 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
       std::clog << "done" << std::endl;
     }
     catch (std::exception e) {
+      std::cerr << std::endl << e.what() << std::endl;
       ifs.close();
-      throw e;
+      return false;
     }
   }
   else {

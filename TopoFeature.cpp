@@ -262,54 +262,55 @@ std::string TopoFeature::get_wkt() {
 }
 
 bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
-  OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
-  OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
-  OGRMultiPolygon multipolygon = OGRMultiPolygon();
-  Point3 p;
-
-  //-- add all triangles to the layer
-  for (auto& t : _triangles) {
-    OGRPolygon polygon = OGRPolygon();
-    OGRLinearRing ring = OGRLinearRing();
-
-    p = _vertices[t.v0];
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices[t.v1];
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices[t.v2];
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-
-    ring.closeRings();
-    polygon.addRing(&ring);
-    multipolygon.addGeometry(&polygon);
-  }
-
-  //-- add all vertical wall triangles to the layer
-  for (auto& t : _triangles_vw) {
-    OGRPolygon polygon = OGRPolygon();
-    OGRLinearRing ring = OGRLinearRing();
-
-    p = _vertices_vw[t.v0];
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices_vw[t.v1];
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices_vw[t.v2];
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-
-    ring.closeRings();
-    polygon.addRing(&ring);
-    multipolygon.addGeometry(&polygon);
-  }
-
-  feature->SetGeometry(&multipolygon);
-  feature->SetField("Id", this->get_id().c_str());
-  feature->SetField("Class", className.c_str());
-
-  if (layer->CreateFeature(feature) != OGRERR_NONE) {
+    OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
+    OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
+    OGRMultiPolygon multipolygon = OGRMultiPolygon();
+    Point3 p;
+  
+    //-- add all triangles to the layer
+    for (auto& t: _triangles) {
+      OGRPolygon polygon = OGRPolygon();
+      OGRLinearRing ring = OGRLinearRing();
+      
+      p = _vertices[t.v0];
+      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+      p = _vertices[t.v1];
+      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+      p = _vertices[t.v2];
+      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+  
+      ring.closeRings();
+      polygon.addRing(&ring);
+      multipolygon.addGeometry(&polygon);
+    }
+  
+    //-- add all vertical wall triangles to the layer
+    for (auto& t: _triangles_vw) {
+      OGRPolygon polygon = OGRPolygon();
+      OGRLinearRing ring = OGRLinearRing();
+  
+      p = _vertices_vw[t.v0];
+      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+      p = _vertices_vw[t.v1];
+      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+      p = _vertices_vw[t.v2];
+      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+  
+      ring.closeRings();
+      polygon.addRing(&ring);
+      multipolygon.addGeometry(&polygon);
+    }
+  
+    feature->SetGeometry(&multipolygon);
+    feature->SetField("Id", this->get_id().c_str());
+    feature->SetField("Class", className.c_str());
+  
+    if (layer->CreateFeature(feature) != OGRERR_NONE)
+    {
+      std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
+      return false;
+    }
     OGRFeature::DestroyFeature(feature);
-    throw std::exception(("Failed to create feature " + this->get_id() + " in shapefile.").c_str());
-  }
-  OGRFeature::DestroyFeature(feature);
   return true;
 }
 
@@ -389,7 +390,8 @@ void TopoFeature::fix_bowtie() {
             if (az < fadj_az) {
               fadj->set_vertex_elevation(adj_a_ringi, adj_a_pi, az);
             }
-            else {
+            else
+            {
               this->set_vertex_elevation(ringi, ai, fadj_az);
             }
           }
@@ -475,7 +477,7 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
       int az = this->get_vertex_elevation(ringi, ai);
       int bz = this->get_vertex_elevation(ringi, bi);
       int fadj_az, fadj_bz;
-      if (fadj == nullptr) {
+      if(fadj == nullptr) {
         fadj_az = baseheight;
         fadj_bz = baseheight;
       }
@@ -782,7 +784,8 @@ std::string TopoFeature::get_triangle_as_gml_triangle(Triangle& t, bool vertical
   return ss.str();
 }
 
-bool TopoFeature::get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue) {
+bool TopoFeature::get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue)
+{
   for (auto& at : _attributes) {
     if (std::get<0>(at).compare(attributeName) == 0) {
       if (!std::get<2>(at).empty()) {
