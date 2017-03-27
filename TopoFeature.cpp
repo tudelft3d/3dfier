@@ -686,7 +686,7 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
 
 //-- used to collect all LiDAR points linked to the polygon
 //-- later all these values are used to lift the polygon (and put values in _p2z)
-bool TopoFeature::assign_elevation_to_vertex(Point2 p, double z, float radius) {
+bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) {
   int zcm = int(z * 100);
   int ringi = 0;
   Ring2 oring = bg::exterior_ring(*(_p2));
@@ -870,7 +870,7 @@ int Flat::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool Flat::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool Flat::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (bg::distance(p, *(_p2)) <= radius) {
     int zcm = int(z * 100);
     //-- 1. assign to polygon since within the threshold value (buffering of polygon)
@@ -905,7 +905,7 @@ int Boundary3D::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool Boundary3D::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool Boundary3D::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (bg::distance(p, *(_p2)) <= radius) {
     assign_elevation_to_vertex(p, z, radius);
   }
@@ -969,7 +969,7 @@ int TIN::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool TIN::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool TIN::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   bool toadd = false;
   double distance = bg::distance(p, *(_p2));
   if (distance <= radius) {

@@ -40,7 +40,7 @@ public:
 
   virtual bool          lift() = 0;
   virtual bool          buildCDT();
-  virtual bool          add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) = 0;
+  virtual bool          add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) = 0;
   virtual int           get_number_vertices() = 0;
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
@@ -93,7 +93,7 @@ protected:
   std::vector<Triangle> _triangles_vw; //-- for vertical walls
 
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
-  bool    assign_elevation_to_vertex(Point2 p, double z, float radius);
+  bool    assign_elevation_to_vertex(Point2 &p, double z, float radius);
   void    lift_each_boundary_vertices(float percentile);
   void    lift_all_boundary_vertices_same_height(int height);
 
@@ -108,7 +108,7 @@ class Flat: public TopoFeature {
 public:
   Flat(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid);
   int                 get_number_vertices();
-  bool                add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  bool                add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   int                 get_height();
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;
@@ -125,7 +125,7 @@ class Boundary3D: public TopoFeature {
 public:
   Boundary3D(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid);
   int                  get_number_vertices();
-  bool                 add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  bool                 add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   virtual TopoClass    get_class() = 0;
   virtual bool         is_hard() = 0;
   virtual bool         lift() = 0;
@@ -141,7 +141,7 @@ class TIN: public TopoFeature {
 public:
   TIN(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, int simplification = 0, float innerbuffer = 0);
   int                 get_number_vertices();
-  bool                add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  bool                add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;
   virtual bool        lift() = 0;

@@ -60,7 +60,7 @@ bool Building::lift() {
   return true;
 }
 
-bool Building::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool Building::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn) {
     if (bg::distance(p, *(_p2)) <= radius) {
       int zcm = int(z * 100);

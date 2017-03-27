@@ -35,7 +35,7 @@ class Terrain: public TIN {
 public:
   Terrain(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, int simplification, float innerbuffer);
   bool        lift();
-  bool        add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  bool        add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   std::string get_citygml();
   std::string get_mtl();
   std::string get_citygml_imgeo();

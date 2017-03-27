@@ -48,7 +48,7 @@ std::string Bridge::get_mtl() {
   return "usemtl Bridge";
 }
 
-bool Bridge::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool Bridge::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn == true && lasclass != LAS_BUILDING && lasclass != LAS_WATER) {
     Flat::add_elevation_point(p, z, radius, lasclass, lastreturn);
   }
