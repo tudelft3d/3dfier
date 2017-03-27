@@ -95,6 +95,7 @@ protected:
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(Point2 &p, double z, float radius);
   double  distance(Point2 &p1, Point2 &p2);
+  bool    TopoFeature::within_range(Point2 &p, Polygon2 &oly, double radius);
   void    lift_each_boundary_vertices(float percentile);
   void    lift_all_boundary_vertices_same_height(int height);
 

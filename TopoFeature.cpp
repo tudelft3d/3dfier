@@ -688,19 +688,40 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
 
 //-- used to collect all LiDAR points linked to the polygon
 //-- later all these values are used to lift the polygon (and put values in _p2z)
+//bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) {
+//  int zcm = int(z * 100);
+//  int ringi = 0;
+//  Ring2 oring = bg::exterior_ring(*(_p2));
+//  for (int i = 0; i < oring.size(); i++) {
+//    if (bg::distance(p, oring[i]) <= radius)
+//      (_lidarelevs[ringi][i]).push_back(zcm);
+//  }
+//  ringi++;
+//  auto irings = bg::interior_rings(*(_p2));
+//  for (Ring2& iring : irings) {
+//    for (int i = 0; i < iring.size(); i++) {
+//      if (bg::distance(p, iring[i]) <= radius) {
+//        (_lidarelevs[ringi][i]).push_back(zcm);
+//      }
+//    }
+//    ringi++;
+//  }
+//  return true;
+//}
+
 bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) {
   int zcm = int(z * 100);
   int ringi = 0;
   Ring2 oring = bg::exterior_ring(*(_p2));
   for (int i = 0; i < oring.size(); i++) {
-    if (bg::distance(p, oring[i]) <= radius)
+    if (distance(p, oring[i]) <= radius)
       (_lidarelevs[ringi][i]).push_back(zcm);
   }
   ringi++;
   auto irings = bg::interior_rings(*(_p2));
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
-      if (bg::distance(p, iring[i]) <= radius) {
+      if (distance(p, iring[i]) <= radius) {
         (_lidarelevs[ringi][i]).push_back(zcm);
       }
     }
@@ -709,30 +730,35 @@ bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) 
   return true;
 }
 
-//bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) {
-//  int zcm = int(z * 100);
-//  int ringi = 0;
-//  Ring2 oring = bg::exterior_ring(*(_p2));
-//  for (int i = 0; i < oring.size(); i++) {
-//    if (distance(p, oring[i]) <= radius)
-//      (_lidarelevs[ringi][i]).push_back(zcm);
-//  }
-//  ringi++;
-//  auto irings = bg::interior_rings(*(_p2));
-//  for (Ring2& iring : irings) {
-//    for (int i = 0; i < iring.size(); i++) {
-//      if (distance(p, iring[i]) <= radius) {
-//        (_lidarelevs[ringi][i]).push_back(zcm);
-//      }
-//    }
-//    ringi++;
-//  }
-//  return true;
-//}
-//
-//double TopoFeature::distance(Point2 &p1, Point2 &p2) {
-//  return sqrt((p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y()));
-//}
+double TopoFeature::distance(Point2 &p1, Point2 &p2) {
+  return sqrt((p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y()));
+}
+
+bool TopoFeature::within_range(Point2 &p, Polygon2 &poly, double radius) {
+  int ringi = 0;
+  Ring2 oring = bg::exterior_ring(poly);
+  if (bg::intersects(p, oring)) {
+    return true;
+  }
+  for (int i = 0; i < oring.size(); i++) {
+    if (distance(p, oring[i]) <= radius)
+      return true;
+  }
+  ringi++;
+  auto irings = bg::interior_rings(*(_p2));
+  for (Ring2& iring : irings) {
+    if (bg::intersects(p, iring)) {
+      return true;
+    }
+    for (int i = 0; i < iring.size(); i++) {
+      if (distance(p, iring[i]) <= radius) {
+        return true;
+      }
+    }
+    ringi++;
+  }
+  return false;
+}
 
 std::string TopoFeature::get_triangle_as_gml_surfacemember(Triangle& t, bool verticalwall) {
   std::stringstream ss;
@@ -899,7 +925,7 @@ int Flat::get_number_vertices() {
 }
 
 bool Flat::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  if (bg::distance(p, *(_p2)) <= radius) {
+  if (within_range(p, *(_p2), radius)) {
     int zcm = int(z * 100);
     //-- 1. assign to polygon since within the threshold value (buffering of polygon)
     _zvaluesinside.push_back(zcm);
@@ -934,7 +960,7 @@ int Boundary3D::get_number_vertices() {
 }
 
 bool Boundary3D::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  if (bg::distance(p, *(_p2)) <= radius) {
+  if (within_range(p, *(_p2), radius)) {
     assign_elevation_to_vertex(p, z, radius);
   }
   return true;
