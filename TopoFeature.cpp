@@ -698,7 +698,7 @@ bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) 
   auto irings = bg::interior_rings(*(_p2));
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
-      if (bg::distance(p, iring) <= radius) {
+      if (bg::distance(p, iring[i]) <= radius) {
         (_lidarelevs[ringi][i]).push_back(zcm);
       }
     }
@@ -706,6 +706,31 @@ bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) 
   }
   return true;
 }
+
+//bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) {
+//  int zcm = int(z * 100);
+//  int ringi = 0;
+//  Ring2 oring = bg::exterior_ring(*(_p2));
+//  for (int i = 0; i < oring.size(); i++) {
+//    if (distance(p, oring[i]) <= radius)
+//      (_lidarelevs[ringi][i]).push_back(zcm);
+//  }
+//  ringi++;
+//  auto irings = bg::interior_rings(*(_p2));
+//  for (Ring2& iring : irings) {
+//    for (int i = 0; i < iring.size(); i++) {
+//      if (distance(p, iring[i]) <= radius) {
+//        (_lidarelevs[ringi][i]).push_back(zcm);
+//      }
+//    }
+//    ringi++;
+//  }
+//  return true;
+//}
+//
+//double TopoFeature::distance(Point2 &p1, Point2 &p2) {
+//  return sqrt((p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y()));
+//}
 
 std::string TopoFeature::get_triangle_as_gml_surfacemember(Triangle& t, bool verticalwall) {
   std::stringstream ss;
