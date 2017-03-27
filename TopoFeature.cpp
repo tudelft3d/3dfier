@@ -700,7 +700,7 @@ bool TopoFeature::assign_elevation_to_vertex(Point2 p, double z, float radius) {
   auto irings = bg::interior_rings(*(_p2));
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
-      if (bg::distance(p, iring) <= radius) {
+      if (bg::distance(p, iring[i]) <= radius) {
         (_lidarelevs[ringi][i]).push_back(zcm);
       }
     }
