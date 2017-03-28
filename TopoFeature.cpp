@@ -584,7 +584,7 @@ float TopoFeature::get_distance_to_boundaries(Point2& p) {
       bg::set<0, 1>(s, bg::get<1>(a));
       bg::set<1, 0>(s, bg::get<0>(b));
       bg::set<1, 1>(s, bg::get<1>(b));
-      double d = boost::geometry::distance(p, s);
+      double d = bg::distance(p, s);
       if (d < dmin)
         dmin = d;
     }
@@ -953,9 +953,8 @@ int Boundary3D::get_number_vertices() {
 }
 
 bool Boundary3D::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  if (within_range(p, *(_p2), radius)) {
-    assign_elevation_to_vertex(p, z, radius);
-  }
+  // no need for checking for point-in-polygon since only points in range of the vertices are added
+  assign_elevation_to_vertex(p, z, radius);
   return true;
 }
 
@@ -1018,21 +1017,20 @@ int TIN::get_number_vertices() {
 
 bool TIN::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   bool toadd = false;
-  if (within_range(p, *(_p2), radius)) {
-    assign_elevation_to_vertex(p, z, radius);
-    if (_simplification <= 1)
+  // no need for checking for point-in-polygon since only points in range of the vertices are added
+  assign_elevation_to_vertex(p, z, radius);
+  if (_simplification <= 1)
+    toadd = true;
+  else {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(1, _simplification);
+    if (dis(gen) == 1)
       toadd = true;
-    else {
-      std::random_device rd;
-      std::mt19937 gen(rd());
-      std::uniform_int_distribution<int> dis(1, _simplification);
-      if (dis(gen) == 1)
-        toadd = true;
-    }
-    // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
-    if (toadd && point_in_polygon(p, *(_p2)) && (_innerbuffer == 0.0 || (within_range(p, *(_p2), _innerbuffer) && this->get_distance_to_boundaries(p) > _innerbuffer))) {
-      _lidarpts.push_back(Point3(p.x(), p.y(), z));
-    }
+  }
+  // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
+  if (toadd && point_in_polygon(p, *(_p2)) && (_innerbuffer == 0.0 || (within_range(p, *(_p2), _innerbuffer) && this->get_distance_to_boundaries(p) > _innerbuffer))) {
+    _lidarpts.push_back(Point3(p.x(), p.y(), z));
   }
   return toadd;
 }
