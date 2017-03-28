@@ -1018,8 +1018,7 @@ int TIN::get_number_vertices() {
 
 bool TIN::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   bool toadd = false;
-  double distance = bg::distance(p, *(_p2));
-  if (distance <= radius) {
+  if (within_range(p, *(_p2), radius)) {
     assign_elevation_to_vertex(p, z, radius);
     if (_simplification <= 1)
       toadd = true;
@@ -1031,7 +1030,7 @@ bool TIN::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasc
         toadd = true;
     }
     // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
-    if (toadd && distance == 0.0 && (_innerbuffer == 0.0 || (distance > _innerbuffer && this->get_distance_to_boundaries(p) > _innerbuffer))) {
+    if (toadd && point_in_polygon(p, *(_p2)) && (_innerbuffer == 0.0 || (within_range(p, *(_p2), _innerbuffer) && this->get_distance_to_boundaries(p) > _innerbuffer))) {
       _lidarpts.push_back(Point3(p.x(), p.y(), z));
     }
   }
