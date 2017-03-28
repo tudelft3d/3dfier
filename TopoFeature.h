@@ -58,7 +58,6 @@ public:
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
   Point2       get_point2(int ringi, int pi);
-  bool         has_point2(const Point2& p);
   bool         has_point2_(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis);
   bool         has_segment(Point2& a, Point2& b, int& aringi, int& api, int& bringi, int& bpi);
   float        get_distance_to_boundaries(Point2& p);
@@ -94,8 +93,8 @@ protected:
 
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(Point2 &p, double z, float radius);
-  double  distance(Point2 &p1, Point2 &p2);
-  bool    TopoFeature::within_range(Point2 &p, Polygon2 &oly, double radius);
+  double  distance(const Point2 &p1, const Point2 &p2);
+  bool    within_range(Point2 &p, Polygon2 &oly, double radius);
   void    lift_each_boundary_vertices(float percentile);
   void    lift_all_boundary_vertices_same_height(int height);
 

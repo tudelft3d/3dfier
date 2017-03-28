@@ -548,7 +548,7 @@ bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& 
       // nextpi = pis[k];
       int nextpi;
       tmp = this->get_next_point2_in_ring(ringis[k], pis[k], nextpi);
-      if (bg::distance(b, tmp) <= threshold) {
+      if (distance(b, tmp) <= threshold) {
         aringi = ringis[k];
         api = pis[k];
         bringi = ringis[k];
@@ -592,30 +592,13 @@ float TopoFeature::get_distance_to_boundaries(Point2& p) {
   return dmin;
 }
 
-//bool TopoFeature::has_segment(Point2& a, Point2& b) {
-//  double threshold = 0.001;
-//  std::vector<int> ringis, pis;
-//  if (this->has_point2_(a, ringis, pis) == true) {
-//    Point2 tmp;
-//    tmp = this->get_next_point2_in_ring(ringis[0], pis[0]);
-//    if (bg::distance(b, tmp) <= threshold)
-//      return true;
-//  }
-//  return false;
-//}
-
-bool TopoFeature::has_point2(const Point2& p) {
-  std::vector<int> a, b;
-  return has_point2_(p, a, b);
-}
-
 bool TopoFeature::has_point2_(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis) {
   double threshold = 0.001;
   Ring2 oring = bg::exterior_ring(*_p2);
   int ringi = 0;
   bool re = false;
   for (int i = 0; i < oring.size(); i++) {
-    if (bg::distance(p, oring[i]) <= threshold) {
+    if (distance(p, oring[i]) <= threshold) {
       ringis.push_back(ringi);
       pis.push_back(i);
       re = true;
@@ -626,7 +609,7 @@ bool TopoFeature::has_point2_(const Point2& p, std::vector<int>& ringis, std::ve
   auto irings = bg::interior_rings(*_p2);
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
-      if (bg::distance(p, iring[i]) <= threshold) {
+      if (distance(p, iring[i]) <= threshold) {
         ringis.push_back(ringi);
         pis.push_back(i);
         re = true;
@@ -686,29 +669,8 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
   _p2z[ringi][pi] = z;
 }
 
-//-- used to collect all LiDAR points linked to the polygon
+//-- used to collect all points linked to the polygon
 //-- later all these values are used to lift the polygon (and put values in _p2z)
-//bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) {
-//  int zcm = int(z * 100);
-//  int ringi = 0;
-//  Ring2 oring = bg::exterior_ring(*(_p2));
-//  for (int i = 0; i < oring.size(); i++) {
-//    if (bg::distance(p, oring[i]) <= radius)
-//      (_lidarelevs[ringi][i]).push_back(zcm);
-//  }
-//  ringi++;
-//  auto irings = bg::interior_rings(*(_p2));
-//  for (Ring2& iring : irings) {
-//    for (int i = 0; i < iring.size(); i++) {
-//      if (bg::distance(p, iring[i]) <= radius) {
-//        (_lidarelevs[ringi][i]).push_back(zcm);
-//      }
-//    }
-//    ringi++;
-//  }
-//  return true;
-//}
-
 bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) {
   int zcm = int(z * 100);
   int ringi = 0;
@@ -730,32 +692,30 @@ bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) 
   return true;
 }
 
-double TopoFeature::distance(Point2 &p1, Point2 &p2) {
+double TopoFeature::distance(const Point2 &p1, const Point2 &p2) {
   return sqrt((p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y()));
 }
 
 bool TopoFeature::within_range(Point2 &p, Polygon2 &poly, double radius) {
-  int ringi = 0;
   Ring2 oring = bg::exterior_ring(poly);
-  if (bg::intersects(p, oring)) {
-    return true;
-  }
   for (int i = 0; i < oring.size(); i++) {
-    if (distance(p, oring[i]) <= radius)
-      return true;
-  }
-  ringi++;
-  auto irings = bg::interior_rings(*(_p2));
-  for (Ring2& iring : irings) {
-    if (bg::intersects(p, iring)) {
+    if (distance(p, oring[i]) <= radius) {
       return true;
     }
+    if (bg::intersects(p, oring)) {
+      return true;
+    }
+  }
+  auto irings = bg::interior_rings(*(_p2));
+  for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
       if (distance(p, iring[i]) <= radius) {
         return true;
       }
     }
-    ringi++;
+    if (bg::intersects(p, iring)) {
+      return false;
+    }
   }
   return false;
 }
