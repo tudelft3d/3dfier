@@ -95,6 +95,7 @@ protected:
   bool    assign_elevation_to_vertex(Point2 &p, double z, float radius);
   double  distance(const Point2 &p1, const Point2 &p2);
   bool    within_range(Point2 &p, Polygon2 &oly, double radius);
+  bool    point_in_polygon(Point2 &p, Polygon2 &poly);
   void    lift_each_boundary_vertices(float percentile);
   void    lift_all_boundary_vertices_same_height(int height);
 

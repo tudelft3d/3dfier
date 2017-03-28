@@ -698,11 +698,9 @@ double TopoFeature::distance(const Point2 &p1, const Point2 &p2) {
 
 bool TopoFeature::within_range(Point2 &p, Polygon2 &poly, double radius) {
   Ring2 oring = bg::exterior_ring(poly);
+  //-- point is within range of the polygon rings
   for (int i = 0; i < oring.size(); i++) {
     if (distance(p, oring[i]) <= radius) {
-      return true;
-    }
-    if (bg::intersects(p, oring)) {
       return true;
     }
   }
@@ -713,11 +711,46 @@ bool TopoFeature::within_range(Point2 &p, Polygon2 &poly, double radius) {
         return true;
       }
     }
-    if (bg::intersects(p, iring)) {
-      return false;
-    }
+  }
+  //-- point is within the polygon
+  if (point_in_polygon(p, poly)) {
+    return true;
   }
   return false;
+}
+
+// based on http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon/2922778#2922778
+bool TopoFeature::point_in_polygon(Point2 &p, Polygon2 &poly) {
+  //test outer ring
+  Ring2 oring = bg::exterior_ring(poly);
+  int nvert = oring.size();
+  int i, j = 0;
+  bool insideOuter = false;
+  for (i = 0, j = nvert - 1; i < nvert; j = i++) {
+    double py = p.y();
+    if (((oring[i].y()>py) != (oring[j].y()>py)) &&
+      (p.x() < (oring[j].x() - oring[i].x()) * (py - oring[i].y()) / (oring[j].y() - oring[i].y()) + oring[i].x()))
+      insideOuter = !insideOuter;
+  }
+  if (insideOuter) {
+    //test inner rings
+    auto irings = bg::interior_rings(poly);
+    for (Ring2& iring : irings) {
+      bool insideInner = false;
+      int nvert = iring.size();
+      int i, j = 0;
+      for (i = 0, j = nvert - 1; i < nvert; j = i++) {
+        double py = p.y();
+        if (((iring[i].y() > py) != (iring[j].y() > py)) &&
+          (p.x() < (iring[j].x() - iring[i].x()) * (py - iring[i].y()) / (iring[j].y() - iring[i].y()) + iring[i].x()))
+          insideInner = !insideInner;
+      }
+      if (insideInner) {
+        return false;
+      }
+    }
+  }
+  return insideOuter;
 }
 
 std::string TopoFeature::get_triangle_as_gml_surfacemember(Triangle& t, bool verticalwall) {
