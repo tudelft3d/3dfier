@@ -48,7 +48,7 @@ std::string Separation::get_mtl() {
   return "usemtl Separation";
 }
 
-bool Separation::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool Separation::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn == true && lasclass != LAS_BUILDING && lasclass != LAS_WATER) {
     Boundary3D::add_elevation_point(p, z, radius, lasclass, lastreturn);
   }

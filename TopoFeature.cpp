@@ -548,7 +548,7 @@ bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& 
       // nextpi = pis[k];
       int nextpi;
       tmp = this->get_next_point2_in_ring(ringis[k], pis[k], nextpi);
-      if (bg::distance(b, tmp) <= threshold) {
+      if (distance(b, tmp) <= threshold) {
         aringi = ringis[k];
         api = pis[k];
         bringi = ringis[k];
@@ -584,29 +584,12 @@ float TopoFeature::get_distance_to_boundaries(Point2& p) {
       bg::set<0, 1>(s, bg::get<1>(a));
       bg::set<1, 0>(s, bg::get<0>(b));
       bg::set<1, 1>(s, bg::get<1>(b));
-      double d = boost::geometry::distance(p, s);
+      double d = bg::distance(p, s);
       if (d < dmin)
         dmin = d;
     }
   }
   return dmin;
-}
-
-//bool TopoFeature::has_segment(Point2& a, Point2& b) {
-//  double threshold = 0.001;
-//  std::vector<int> ringis, pis;
-//  if (this->has_point2_(a, ringis, pis) == true) {
-//    Point2 tmp;
-//    tmp = this->get_next_point2_in_ring(ringis[0], pis[0]);
-//    if (bg::distance(b, tmp) <= threshold)
-//      return true;
-//  }
-//  return false;
-//}
-
-bool TopoFeature::has_point2(const Point2& p) {
-  std::vector<int> a, b;
-  return has_point2_(p, a, b);
 }
 
 bool TopoFeature::has_point2_(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis) {
@@ -615,7 +598,7 @@ bool TopoFeature::has_point2_(const Point2& p, std::vector<int>& ringis, std::ve
   int ringi = 0;
   bool re = false;
   for (int i = 0; i < oring.size(); i++) {
-    if (bg::distance(p, oring[i]) <= threshold) {
+    if (distance(p, oring[i]) <= threshold) {
       ringis.push_back(ringi);
       pis.push_back(i);
       re = true;
@@ -626,7 +609,7 @@ bool TopoFeature::has_point2_(const Point2& p, std::vector<int>& ringis, std::ve
   auto irings = bg::interior_rings(*_p2);
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
-      if (bg::distance(p, iring[i]) <= threshold) {
+      if (distance(p, iring[i]) <= threshold) {
         ringis.push_back(ringi);
         pis.push_back(i);
         re = true;
@@ -686,27 +669,88 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
   _p2z[ringi][pi] = z;
 }
 
-//-- used to collect all LiDAR points linked to the polygon
+//-- used to collect all points linked to the polygon
 //-- later all these values are used to lift the polygon (and put values in _p2z)
-bool TopoFeature::assign_elevation_to_vertex(Point2 p, double z, float radius) {
+bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) {
   int zcm = int(z * 100);
   int ringi = 0;
   Ring2 oring = bg::exterior_ring(*(_p2));
   for (int i = 0; i < oring.size(); i++) {
-    if (bg::distance(p, oring[i]) <= radius)
+    if (distance(p, oring[i]) <= radius)
       (_lidarelevs[ringi][i]).push_back(zcm);
   }
   ringi++;
   auto irings = bg::interior_rings(*(_p2));
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
-      if (bg::distance(p, iring[i]) <= radius) {
+      if (distance(p, iring[i]) <= radius) {
         (_lidarelevs[ringi][i]).push_back(zcm);
       }
     }
     ringi++;
   }
   return true;
+}
+
+double TopoFeature::distance(const Point2 &p1, const Point2 &p2) {
+  return sqrt((p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y()));
+}
+
+bool TopoFeature::within_range(Point2 &p, Polygon2 &poly, double radius) {
+  Ring2 oring = bg::exterior_ring(poly);
+  //-- point is within range of the polygon rings
+  for (int i = 0; i < oring.size(); i++) {
+    if (distance(p, oring[i]) <= radius) {
+      return true;
+    }
+  }
+  auto irings = bg::interior_rings(*(_p2));
+  for (Ring2& iring : irings) {
+    for (int i = 0; i < iring.size(); i++) {
+      if (distance(p, iring[i]) <= radius) {
+        return true;
+      }
+    }
+  }
+  //-- point is within the polygon
+  if (point_in_polygon(p, poly)) {
+    return true;
+  }
+  return false;
+}
+
+// based on http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon/2922778#2922778
+bool TopoFeature::point_in_polygon(Point2 &p, Polygon2 &poly) {
+  //test outer ring
+  Ring2 oring = bg::exterior_ring(poly);
+  int nvert = oring.size();
+  int i, j = 0;
+  bool insideOuter = false;
+  for (i = 0, j = nvert - 1; i < nvert; j = i++) {
+    double py = p.y();
+    if (((oring[i].y()>py) != (oring[j].y()>py)) &&
+      (p.x() < (oring[j].x() - oring[i].x()) * (py - oring[i].y()) / (oring[j].y() - oring[i].y()) + oring[i].x()))
+      insideOuter = !insideOuter;
+  }
+  if (insideOuter) {
+    //test inner rings
+    auto irings = bg::interior_rings(poly);
+    for (Ring2& iring : irings) {
+      bool insideInner = false;
+      int nvert = iring.size();
+      int i, j = 0;
+      for (i = 0, j = nvert - 1; i < nvert; j = i++) {
+        double py = p.y();
+        if (((iring[i].y() > py) != (iring[j].y() > py)) &&
+          (p.x() < (iring[j].x() - iring[i].x()) * (py - iring[i].y()) / (iring[j].y() - iring[i].y()) + iring[i].x()))
+          insideInner = !insideInner;
+      }
+      if (insideInner) {
+        return false;
+      }
+    }
+  }
+  return insideOuter;
 }
 
 std::string TopoFeature::get_triangle_as_gml_surfacemember(Triangle& t, bool verticalwall) {
@@ -873,8 +917,8 @@ int Flat::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool Flat::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  if (bg::distance(p, *(_p2)) <= radius) {
+bool Flat::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+  if (within_range(p, *(_p2), radius)) {
     int zcm = int(z * 100);
     //-- 1. assign to polygon since within the threshold value (buffering of polygon)
     _zvaluesinside.push_back(zcm);
@@ -908,10 +952,9 @@ int Boundary3D::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool Boundary3D::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  if (bg::distance(p, *(_p2)) <= radius) {
-    assign_elevation_to_vertex(p, z, radius);
-  }
+bool Boundary3D::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+  // no need for checking for point-in-polygon since only points in range of the vertices are added
+  assign_elevation_to_vertex(p, z, radius);
   return true;
 }
 
@@ -972,24 +1015,22 @@ int TIN::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool TIN::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool TIN::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   bool toadd = false;
-  double distance = bg::distance(p, *(_p2));
-  if (distance <= radius) {
-    assign_elevation_to_vertex(p, z, radius);
-    if (_simplification <= 1)
+  // no need for checking for point-in-polygon since only points in range of the vertices are added
+  assign_elevation_to_vertex(p, z, radius);
+  if (_simplification <= 1)
+    toadd = true;
+  else {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(1, _simplification);
+    if (dis(gen) == 1)
       toadd = true;
-    else {
-      std::random_device rd;
-      std::mt19937 gen(rd());
-      std::uniform_int_distribution<int> dis(1, _simplification);
-      if (dis(gen) == 1)
-        toadd = true;
-    }
-    // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
-    if (toadd && distance == 0.0 && (_innerbuffer == 0.0 || (distance > _innerbuffer && this->get_distance_to_boundaries(p) > _innerbuffer))) {
-      _lidarpts.push_back(Point3(p.x(), p.y(), z));
-    }
+  }
+  // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
+  if (toadd && point_in_polygon(p, *(_p2)) && (_innerbuffer == 0.0 || (within_range(p, *(_p2), _innerbuffer) && this->get_distance_to_boundaries(p) > _innerbuffer))) {
+    _lidarpts.push_back(Point3(p.x(), p.y(), z));
   }
   return toadd;
 }

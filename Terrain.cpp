@@ -45,7 +45,7 @@ std::string Terrain::get_mtl() {
   return "usemtl Terrain";
 }
 
-bool Terrain::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool Terrain::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   bool toadd = false;
   if (lastreturn && lasclass == LAS_GROUND) {
     toadd = TIN::add_elevation_point(p, z, radius, lasclass, lastreturn);

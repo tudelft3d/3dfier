@@ -60,9 +60,9 @@ bool Building::lift() {
   return true;
 }
 
-bool Building::add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool Building::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn) {
-    if (bg::distance(p, *(_p2)) <= radius) {
+    if (within_range(p, *(_p2), radius)) {
       int zcm = int(z * 100);
       //-- 1. Save the ground points seperate for base height
       if (lasclass == LAS_GROUND || lasclass == LAS_WATER) {

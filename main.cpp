@@ -42,7 +42,7 @@
 #include "boost/filesystem.hpp"
 #include <boost/filesystem/operations.hpp>
 
-std::string VERSION = "0.9.1";
+std::string VERSION = "0.9.5";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 void print_license();
@@ -251,7 +251,11 @@ int main(int argc, const char * argv[]) {
     }
   }
 
-  map3d.add_polygons_files(files);
+  bool added = map3d.add_polygons_files(files);
+  if (!added) {
+    std::cerr << "ERROR: Missing polygon data, cannot 3dfy the dataset. Aborting." << std::endl;
+    return 0;
+  }
   std::clog << "\nTotal # of polygons: " << boost::locale::as::number << map3d.get_num_polygons() << std::endl;
 
   //-- spatially index the polygons
@@ -288,26 +292,39 @@ int main(int argc, const char * argv[]) {
         if (!boost::filesystem::exists(rootPath) || !boost::filesystem::is_directory(rootPath)) {
           std::cerr << "\tERROR: " << rootPath << "is not a directory, skipping it." << std::endl;
           bElevData = false;
+          break;
         }
         else {
           boost::filesystem::recursive_directory_iterator it_end;
           for (boost::filesystem::recursive_directory_iterator it(rootPath); it != it_end; ++it) {
             if (boost::filesystem::is_regular_file(*it) && it->path().extension() == path.extension()) {
               bool added = map3d.add_las_file(it->path().string(), lasomits, thinning);
-              bElevData = bElevData || added;
+              if (!added) {
+                bElevData = false;
+                break;
+              }
+              else {
+                bElevData = true;
+              }
             }
           }
         }
       }
       else {
         bool added = map3d.add_las_file(path.string(), lasomits, thinning);
-        bElevData = bElevData || added;
+        if (!added) {
+          bElevData = false;
+          break;
+        }
+        else {
+          bElevData = true;
+        }
       }
     }
   }
   if (bElevData == false) {
-    std::cerr << "ERROR: No elevation dataset given, cannot 3dfy the dataset. Aborting." << std::endl;
-    return 0;
+    std::cerr << "ERROR: Missing elevation data, cannot 3dfy the dataset. Aborting." << std::endl;
+     return 0;
   }
 
   n = nodes["output"];
@@ -489,12 +506,30 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
         std::cerr << "\tOption 'Terrain.simplification' invalid; must be an integer." << std::endl;
       }
     }
+    if (n["Terrain"]["innerbuffer"]) {
+      try {
+        boost::lexical_cast<float>(n["Terrain"]["innerbuffer"].as<std::string>());
+      }
+      catch (boost::bad_lexical_cast& e) {
+        wentgood = false;
+        std::cerr << "\tOption 'Terrain.innerbuffer' invalid; must be a float." << std::endl;
+      }
+    }
   }
   if (n["Forest"]) {
     if (n["Forest"]["simplification"]) {
       if (is_string_integer(n["Forest"]["simplification"].as<std::string>()) == false) {
         wentgood = false;
         std::cerr << "\tOption 'Forest.simplification' invalid; must be an integer." << std::endl;
+      }
+    }
+    if (n["Forest"]["innerbuffer"]) {
+      try {
+        boost::lexical_cast<float>(n["Forest"]["innerbuffer"].as<std::string>());
+      }
+      catch (boost::bad_lexical_cast& e) {
+        wentgood = false;
+        std::cerr << "\tOption 'Forest.innerbuffer' invalid; must be a float." << std::endl;
       }
     }
   }

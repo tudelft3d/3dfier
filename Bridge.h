@@ -36,7 +36,7 @@ public:
   Bridge(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, float heightref);
 
   bool          lift();
-  bool          add_elevation_point(Point2 p, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  bool          add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   std::string   get_citygml();
   std::string   get_citygml_imgeo();
   std::string   get_mtl();

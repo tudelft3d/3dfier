@@ -277,14 +277,12 @@ bool Map3d::get_shapefile(std::string filename) {
   OGRLayer *layer = dataSource->CreateLayer("my3dmap", NULL, OGR_GT_SetZ(wkbMultiPolygon), NULL);
 
   OGRFieldDefn oField("Id", OFTString);
-  if (layer->CreateField(&oField) != OGRERR_NONE)
-  {
+  if (layer->CreateField(&oField) != OGRERR_NONE) {
     std::cerr << "Creating Id field failed." << std::endl;
     return false;
   }
   OGRFieldDefn oField2("Class", OFTString);
-  if (layer->CreateField(&oField2) != OGRERR_NONE)
-  {
+  if (layer->CreateField(&oField2) != OGRERR_NONE) {
     std::cerr << "Creating Class field failed." << std::endl;
     return false;
   }
@@ -385,8 +383,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
 
   for (auto& v : re) {
     TopoFeature* f = v.second;
-    if (f->get_class() == BUILDING)
-    {
+    if (f->get_class() == BUILDING) {
       radius = _building_radius_vertex_elevation;
     }
     else {
@@ -492,13 +489,12 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
 #endif
 
     if (dataSource == NULL) {
-      std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
+      std::cerr << "\tERROR: could not open file: " + file->filename << std::endl;
       return false;
     }
 
     // if the file doesn't have layers specified, add all
-    if (file->layers[0].first.empty())
-    {
+    if (file->layers[0].first.empty()) {
       std::string lifting = file->layers[0].second;
       file->layers.clear();
       int numberOfLayers = dataSource->GetLayerCount();
@@ -515,7 +511,6 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
 #endif
 
     if (!wentgood) {
-      std::cerr << "ERROR: Something went bad while reading input polygons. Aborting." << std::endl;
       return false;
     }
   }
@@ -538,7 +533,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
     }
     if (dataLayer->FindFieldIndex(idfield, false) == -1) {
       std::cerr << "ERROR: field '" << idfield << "' not found in layer '" << l.first << "'." << std::endl;
-      continue;
+      return false;
     }
     if (dataLayer->FindFieldIndex(heightfield, false) == -1) {
       std::cerr << "ERROR: field '" << heightfield << "' not found in layer '" << l.first << "', using all polygons." << std::endl;
@@ -570,7 +565,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
       if (useRequestedExtent) {
         geometry->getEnvelope(&env);
       }
-      
+
       //-- add the polygon of no extent is used or if the envelope is within the extent
       if (!useRequestedExtent || envelope.Intersects(env)) {
         switch (geometry->getGeometryType()) {
@@ -666,7 +661,7 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
   std::ifstream ifs;
   ifs.open(ifile.c_str(), std::ios::in | std::ios::binary);
   if (ifs.is_open() == false) {
-    std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
+    std::cerr << "\tERROR: could not open file: " << ifile << std::endl;
     return false;
   }
   //-- LAS classes to omit (create full list since eExclusion does not work
@@ -679,7 +674,7 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
   };
   for (int i : lasomits)
     liblasomits.erase(std::find(liblasomits.begin(), liblasomits.end(), liblas::Classification(i)));
-//-- read each point 1-by-1
+  //-- read each point 1-by-1
   liblas::ReaderFactory f;
   liblas::Reader reader = f.CreateWithStream(ifs);
   liblas::Header const& header = reader.GetHeader();
@@ -726,18 +721,24 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
     }
     printProgressBar(0);
     int i = 0;
-    while (reader.ReadNextPoint()) {
-      this->add_elevation_point(reader.GetPoint());
+    try {
+      while (reader.ReadNextPoint()) {
+        this->add_elevation_point(reader.GetPoint());
 
-      if (i % (pointCount / 100) == 0)
-        printProgressBar(100 * (i / double(pointCount)));
-      i++;
+        if (i % (pointCount / 100) == 0)
+          printProgressBar(100 * (i / double(pointCount)));
+        i++;
+      }
+      printProgressBar(100);
+      std::clog << "done" << std::endl;
     }
-    printProgressBar(100);
-    std::clog << "done" << std::endl;
+    catch (std::exception e) {
+      std::cerr << std::endl << e.what() << std::endl;
+      ifs.close();
+      return false;
+    }
   }
-  else
-  {
+  else {
     std::clog << "\tskipping file, bounds do not intersect polygon extent" << std::endl;
   }
   ifs.close();
@@ -1013,8 +1014,7 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
       if (f2->get_class() != WATER) {
         f2->set_vertex_elevation(ringi2, pi2, dynamic_cast<Building*>(f1)->get_height_base());
       }
-      else
-      {
+      else {
         //- keep water flat, add the water height to the nc
         _nc[key_bucket].push_back(f2z);
       }
@@ -1027,8 +1027,7 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
       if (f1->get_class() != WATER) {
         f1->set_vertex_elevation(ringi1, pi1, dynamic_cast<Building*>(f2)->get_height_base());
       }
-      else
-      {
+      else {
         //- keep water flat, add the water height to the nc
         _nc[key_bucket].push_back(f1z);
       }
