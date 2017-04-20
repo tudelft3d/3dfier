@@ -158,6 +158,35 @@ bool Separation::get_shape2(OGRLayer * layer, std::string classname){
     
     outFeature->SetGeometry(&polygon);
     
+    std::string bgtattribute;
+    float relheight=0.00;
+    float h=0.00;
+    float hbase=0.00;
+    
+    outFeature->SetField("GMLID", this->get_id().c_str());
+    outFeature->SetField("GRPID", 0);
+    outFeature->SetField("GRPNAME", "NULL");
+    //    outFeature->SetField("ELMID", 0);
+    if (this->get_attribute("creationdate", bgtattribute)) {
+        outFeature->SetField("DATE", (bgtattribute).c_str());
+    }
+    else{
+        outFeature->SetField("DATE", "NULL");
+    }
+    outFeature->SetField("IDENT", classname.c_str());
+    outFeature->SetField("DESCR", "Separation in 37EN/1 or 37EN/2");
+    outFeature->SetField("SHAPE", 5);
+    outFeature->SetField("X1", a.get<0>() );
+    outFeature->SetField("Y1", a.get<1>() );
+    h = z_to_float(this->get_height());
+    outFeature->SetField("HEIGHT",  h); //roof height
+    outFeature->SetField("REL_H",  h);
+    
+//    hbase = z_to_float(this->get_height_base());
+//    outFeature->SetField("GRNDLVL", hbase); //floor height
+    outFeature->SetField("HDEF", 0);
+    //    outFeature->SetField("DESIGN_USE", "NULL");
+    
     if (layer->CreateFeature(outFeature) != OGRERR_NONE)
     {
         std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
