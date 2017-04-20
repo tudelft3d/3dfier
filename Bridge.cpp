@@ -115,3 +115,6 @@ bool Bridge::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Bridge");
 }
 
+bool Bridge::get_shape2(OGRLayer * layer, std::string classname){
+    std::clog << "Bridge" << std::endl;
+}

@@ -116,3 +116,7 @@ bool Forest::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Forest");
 }
 
+bool Forest::get_shape2(OGRLayer * layer, std::string classname){
+    std::clog << "Forest" << std::endl;
+}
+

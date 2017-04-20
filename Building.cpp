@@ -306,6 +306,64 @@ bool Building::get_shape(OGRLayer* layer) {
     return TopoFeature::get_shape_features(layer, "Building");
 }
 
+bool Building::get_shape2(OGRLayer * layer, std::string classname){
+    std::clog << "Building" << std::endl;
+    OGRFeature *outFeature = OGRFeature::CreateFeature(layer->GetLayerDefn());
+    
+    //    polygon geometry
+    OGRPolygon polygon = OGRPolygon();
+    OGRLinearRing ring = OGRLinearRing();
+    
+    Point2 a;
+    for (int ai = 0; ai < (bg::exterior_ring(*(_p2))).size(); ai++) {
+        a = (bg::exterior_ring(*(_p2)))[ai];
+//        std::cout << a.get<0>()  <<  "  " << a.get<1>() << std::endl;
+        ring.addPoint(a.get<0>(), a.get<1>());
+    }
+    ring.closeRings();
+    polygon.addRing(&ring);
+    
+    outFeature->SetGeometry(&polygon);
+    
+    std::string bgtattribute;
+    float relheight=0.00;
+    float h=0.00;
+    float hbase=0.00;
+   
+    outFeature->SetField("GMLID", this->get_id().c_str());
+    outFeature->SetField("GRPID", 0);
+    outFeature->SetField("GRPNAME", "NULL");
+//    outFeature->SetField("ELMID", 0);
+    if (this->get_attribute("creationdate", bgtattribute)) {
+        outFeature->SetField("DATE", (bgtattribute).c_str());
+    }
+    else{
+        outFeature->SetField("DATE", "NULL");
+    }
+    outFeature->SetField("IDENT", classname.c_str());
+    outFeature->SetField("DESCR", "Building in 37EN/1 or 37EN/2");
+    outFeature->SetField("SHAPE", 3);
+    outFeature->SetField("X1", a.get<0>() );
+    outFeature->SetField("Y1", a.get<1>() );
+    
+    h = z_to_float(this->get_height());
+    outFeature->SetField("HEIGHT",  h); //roof height
+    outFeature->SetField("REL_H",  h);
+
+    hbase = z_to_float(this->get_height_base());
+    outFeature->SetField("GRNDLVL", hbase); //floor height
+    outFeature->SetField("HDEF", 0);
+//    outFeature->SetField("DESIGN_USE", "NULL");
+    
+    if (layer->CreateFeature(outFeature) != OGRERR_NONE)
+    {
+        std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
+        return false;
+    }
+
+    OGRFeature::DestroyFeature(outFeature);
+    return true;
+}
 
 //bool Building::get_shape(OGRLayer* layer) {
 //  OGRFeatureDefn *featureDefn = layer->GetLayerDefn();

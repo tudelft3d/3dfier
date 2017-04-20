@@ -137,3 +137,7 @@ std::string Separation::get_citygml_imgeo() {
 bool Separation::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Separation");
 }
+
+bool Separation::get_shape2(OGRLayer * layer, std::string classname){
+    std::clog << "Separation" << std::endl;
+}

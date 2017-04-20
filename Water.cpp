@@ -123,3 +123,7 @@ std::string Water::get_citygml_imgeo() {
 bool Water::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Water");
 }
+
+bool Water::get_shape2(OGRLayer * layer, std::string classname){
+    std::clog << "Water" << std::endl;
+}

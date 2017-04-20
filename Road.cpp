@@ -158,3 +158,7 @@ std::string Road::get_citygml_imgeo() {
 bool Road::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Road");
 }
+
+bool Road::get_shape2(OGRLayer * layer, std::string classname){
+    std::clog << "Road" << std::endl;
+}

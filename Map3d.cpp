@@ -274,7 +274,7 @@ bool Map3d::get_shapefile(std::string filename) {
     std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
     return false;
   }
-  OGRLayer *layer = dataSource->CreateLayer("my3dmap", NULL, OGR_GT_SetZ(wkbMultiPolygon), NULL);
+  OGRLayer *layer = dataSource->CreateLayer("my3dmap", NULL, OGR_GT_SetZ(wkbPolygon), NULL);
 
   OGRFieldDefn oField("Id", OFTString);
   if (layer->CreateField(&oField) != OGRERR_NONE)
@@ -297,44 +297,240 @@ bool Map3d::get_shapefile(std::string filename) {
 #endif
 }
 
-bool Map3d::get_shapefile2d(std::string filename) {
-  if (GDALGetDriverCount() == 0)
-    GDALAllRegister();
-  GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("ESRI Shapefile");
-  GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+//bool Map3d::get_shapefile2d(std::string filename) {
+//  if (GDALGetDriverCount() == 0)
+//    GDALAllRegister();
+//  GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("ESRI Shapefile");
+//  GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+//
+//  if (dataSource == NULL) {
+//    std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
+//    return false;
+//  }
+//  OGRLayer *layer = dataSource->CreateLayer("shp2d", NULL, wkbMultiPolygon, NULL);
+//
+//  OGRFieldDefn oField("Id", OFTString);
+//  if (layer->CreateField(&oField) != OGRERR_NONE) {
+//    std::cerr << "Creating Id field failed." << std::endl;
+//    return false;
+//  }
+//  OGRFieldDefn oField2("Class", OFTString);
+//  if (layer->CreateField(&oField2) != OGRERR_NONE) {
+//    std::cerr << "Creating Class field failed." << std::endl;
+//    return false;
+//  }
+//  OGRFieldDefn oField3("FloorHeight", OFTReal);
+//  if (layer->CreateField(&oField3) != OGRERR_NONE) {
+//    std::cerr << "Creating FloorHeight field failed." << std::endl;
+//    return false;
+//  }
+//  OGRFieldDefn oField4("RoofHeight", OFTReal);
+//  if (layer->CreateField(&oField4) != OGRERR_NONE) {
+//    std::cerr << "Creating RoofHeight field failed." << std::endl;
+//    return false;
+//  }
+//   
+//  for (auto& p3 : _lsFeatures) {
+//    p3->get_shape(layer);
+//  }
+//  GDALClose(dataSource);
+//  return true;
+//}
 
-  if (dataSource == NULL) {
-    std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
-    return false;
-  }
-  OGRLayer *layer = dataSource->CreateLayer("shp2d", NULL, wkbMultiPolygon, NULL);
+bool Map3d::get_shapefile2D(std::string filename, std::string classtype) {
+    
+    if (GDALGetDriverCount() == 0)
+        GDALAllRegister();
+    
+    GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("ESRI Shapefile");
+    GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+    
+    if (dataSource == NULL) {
+        std::cerr << "\tERROR: could not open file, skipping it." << std::endl;
+        return false;
+    }
+    OGRLayer *outlayer;
+    
+    if (classtype == "Building") //gebouw
+    {
+        
+    outlayer = dataSource->CreateLayer(classtype.c_str(), NULL, wkbPolygon, NULL);
+    OGRFieldDefn oFieldx("GMLID", OFTString);
+    oFieldx.SetWidth(32);
+    if (outlayer->CreateField(&oFieldx) != OGRERR_NONE) {
+        std::cerr << "Creating GMLID field failed." << std::endl;
+        return false;
+    }
+    
+    OGRFieldDefn oField0("GRPNAME", OFTString);
+    oField0.SetWidth(32);
+    if (outlayer->CreateField(&oField0) != OGRERR_NONE) {
+        std::cerr << "Creating GRPNAME field failed." << std::endl;
+        return false;
+    }
+    
+    OGRFieldDefn oField1("ELMID", OFTInteger);
+    oField1.SetWidth(32);
+    if (outlayer->CreateField(&oField1) != OGRERR_NONE) {
+        std::cerr << "Creating ELMID field failed." << std::endl;
+        return false;
+    }
+    
+    OGRFieldDefn oField2("GRPID", OFTInteger);
+    oField2.SetWidth(32);
+    if (outlayer->CreateField(&oField2) != OGRERR_NONE) {
+        std::cerr << "Creating GRPID field failed." << std::endl;
+        return false;
+    }
+    
+    OGRFieldDefn oField3("DATE", OFTString);
+    oField3.SetWidth(32);
+    if (outlayer->CreateField(&oField3) != OGRERR_NONE) {
+        std::cerr << "Creating DATE field failed." << std::endl;
+        return false;
+    }
+    OGRFieldDefn oField4("IDENT", OFTString);
+    oField4.SetWidth(32);
+    if (outlayer->CreateField(&oField4) != OGRERR_NONE) {
+        std::cerr << "Creating IDENT field failed." << std::endl;
+        return false;
+    }
+    
+    OGRFieldDefn oField5("DESCR", OFTString);
+    oField5.SetWidth(32);
+    if (outlayer->CreateField(&oField5) != OGRERR_NONE) {
+        std::cerr << "Creating DESCR field failed." << std::endl;
+        return false;
+    }
+    
+    OGRFieldDefn oField6("SHAPE", OFTInteger);
+    oField6.SetWidth(32);
+    if (outlayer->CreateField(&oField6) != OGRERR_NONE) {
+        std::cerr << "Creating SHAPE field failed." << std::endl;
+        return false;
+    }
+    
+    OGRFieldDefn oField7("X1", OFTReal);
+    if (outlayer->CreateField(&oField7) != OGRERR_NONE) {
+        std::cerr << "Creating X1 field failed." << std::endl;
+        return false;
+    }
+    
+    OGRFieldDefn oField8("Y1", OFTReal);
+    if (outlayer->CreateField(&oField8) != OGRERR_NONE) {
+        std::cerr << "Creating Y1 field failed." << std::endl;
+        return false;
+    }
+    
+    OGRFieldDefn oField9("HEIGHT", OFTReal);
+    if (outlayer->CreateField(&oField9) != OGRERR_NONE) {
+        std::cerr << "Creating HEIGHT field failed." << std::endl;
+        return false;
+    }
+    
+    OGRFieldDefn oField10("REL_H", OFTReal);
+    if (outlayer->CreateField(&oField10) != OGRERR_NONE) {
+        std::cerr << "Creating REL_H field failed." << std::endl;
+        return false;
+    }
+    
+    OGRFieldDefn oField11("GRNDLVL", OFTReal);
+    if (outlayer->CreateField(&oField11) != OGRERR_NONE) {
+        std::cerr << "Creating REL_H field failed." << std::endl;
+        return false;
+    }
+    
+    OGRFieldDefn oField12("HDEF", OFTInteger);
+    if (outlayer->CreateField(&oField12) != OGRERR_NONE) {
+        std::cerr << "Creating REL_H field failed." << std::endl;
+        return false;
+    }
+    
+    OGRFieldDefn oField13("DESIGN_USE", OFTString);
+    oField13.SetWidth(32);
+    if (outlayer->CreateField(&oField13) != OGRERR_NONE) {
+        std::cerr << "Creating DESCR field failed." << std::endl;
+        return false;
+    }
+    }
+    
+    else if (classtype == "Terrain"){ //hoogtepunt
+        
+        OGRLayer *outlayer = dataSource->CreateLayer(classtype.c_str(), NULL, wkbMultiPolygon, NULL);
+        OGRFieldDefn oFieldx("GMLID", OFTString);
+        oFieldx.SetWidth(32);
+        if (outlayer->CreateField(&oFieldx) != OGRERR_NONE) {
+            std::cerr << "Creating GMLID field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField0("GRPNAME", OFTString);
+        oField0.SetWidth(32);
+        if (outlayer->CreateField(&oField0) != OGRERR_NONE) {
+            std::cerr << "Creating GRPNAME field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField1("ELMID", OFTInteger);
+        oField1.SetWidth(32);
+        if (outlayer->CreateField(&oField1) != OGRERR_NONE) {
+            std::cerr << "Creating ELMID field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField2("GRPID", OFTInteger);
+        oField2.SetWidth(32);
+        if (outlayer->CreateField(&oField2) != OGRERR_NONE) {
+            std::cerr << "Creating GRPID field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField3("DATE", OFTString);
+        oField3.SetWidth(32);
+        if (outlayer->CreateField(&oField3) != OGRERR_NONE) {
+            std::cerr << "Creating DATE field failed." << std::endl;
+            return false;
+        }
+        OGRFieldDefn oField4("IDENT", OFTString);
+        oField4.SetWidth(32);
+        if (outlayer->CreateField(&oField4) != OGRERR_NONE) {
+            std::cerr << "Creating IDENT field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField5("DESCR", OFTString);
+        oField5.SetWidth(32);
+        if (outlayer->CreateField(&oField5) != OGRERR_NONE) {
+            std::cerr << "Creating DESCR field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField6("SHAPE", OFTInteger);
+        oField6.SetWidth(32);
+        if (outlayer->CreateField(&oField6) != OGRERR_NONE) {
+            std::cerr << "Creating SHAPE field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField9("HEIGHT", OFTReal);
+        if (outlayer->CreateField(&oField9) != OGRERR_NONE) {
+            std::cerr << "Creating HEIGHT field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField10("REL_H", OFTReal);
+        if (outlayer->CreateField(&oField10) != OGRERR_NONE) {
+            std::cerr << "Creating REL_H field failed." << std::endl;
+            return false;
+        }
 
-  OGRFieldDefn oField("Id", OFTString);
-  if (layer->CreateField(&oField) != OGRERR_NONE) {
-    std::cerr << "Creating Id field failed." << std::endl;
-    return false;
-  }
-  OGRFieldDefn oField2("Class", OFTString);
-  if (layer->CreateField(&oField2) != OGRERR_NONE) {
-    std::cerr << "Creating Class field failed." << std::endl;
-    return false;
-  }
-  OGRFieldDefn oField3("FloorHeight", OFTReal);
-  if (layer->CreateField(&oField3) != OGRERR_NONE) {
-    std::cerr << "Creating FloorHeight field failed." << std::endl;
-    return false;
-  }
-  OGRFieldDefn oField4("RoofHeight", OFTReal);
-  if (layer->CreateField(&oField4) != OGRERR_NONE) {
-    std::cerr << "Creating RoofHeight field failed." << std::endl;
-    return false;
-  }
-   
-  for (auto& p3 : _lsFeatures) {
-    p3->get_shape(layer);
-  }
-  GDALClose(dataSource);
-  return true;
+    }
+    
+    for (auto& p3 : _lsFeatures) {
+        p3->get_shape2(outlayer, classtype);
+    }
+    GDALClose(dataSource);
+    return true;
 }
 
 unsigned long Map3d::get_num_polygons() {

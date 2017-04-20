@@ -40,6 +40,8 @@ public:
   std::string get_mtl();
   std::string get_citygml_imgeo();
   bool        get_shape(OGRLayer * layer);
+  bool        get_shape2(OGRLayer * layer, std::string classname);
+      
   TopoClass   get_class();
   bool        is_hard();
 };

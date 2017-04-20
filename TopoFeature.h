@@ -48,6 +48,7 @@ public:
   virtual std::string   get_citygml() = 0;
   virtual std::string   get_citygml_imgeo() = 0;
   virtual bool          get_shape(OGRLayer*) = 0;
+  virtual bool          get_shape2(OGRLayer*, std::string) = 0;
 
   std::string  get_id();
   void         construct_vertical_walls(std::unordered_map< std::string, std::vector<int> > &nc);
@@ -75,6 +76,7 @@ public:
   std::string  get_imgeo_object_info(std::string id);
 protected:
   Polygon2*                         _p2;
+  Polygon2*                         _p22;
   std::vector< std::vector<int> >   _p2z;
   std::vector<TopoFeature*>*        _adjFeatures;
   std::string                       _id;

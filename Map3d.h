@@ -68,6 +68,7 @@ public:
   void get_obj_per_class(std::ofstream &outputfile, int z_exaggeration = 0);
   bool get_shapefile(std::string filename);
   bool get_shapefile2d(std::string filename);
+  bool get_shapefile2D(std::string filename, std::string classtype);
 
   void set_building_heightref_roof(float heightref);
   void set_building_heightref_floor(float heightref);

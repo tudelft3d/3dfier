@@ -39,10 +39,13 @@ TopoFeature::TopoFeature(char *wkt, std::string layername, std::unordered_map<st
   _toplevel = true;
   _bVerticalWalls = false;
   _p2 = new Polygon2();
+  _p22 = new Polygon2();
   bg::read_wkt(wkt, *_p2);
+  bg::read_wkt(wkt, *_p22);
   bg::unique(*_p2); //-- remove duplicate vertices
   bg::correct(*_p2); //-- correct the orientation of the polygons!
-
+  bg::correct(*_p22);
+    
   _adjFeatures = new std::vector<TopoFeature*>;
   _p2z.resize(bg::num_interior_rings(*_p2) + 1);
   _p2z[0].resize(bg::num_points(_p2->outer()));

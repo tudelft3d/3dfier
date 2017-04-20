@@ -351,8 +351,11 @@ int main(int argc, const char * argv[]) {
     map3d.get_csv_buildings(outputfile);
   }
   else if (format == "Shapefile") {
-    std::clog << "Shapefile output" << std::endl;
-    if (map3d.get_shapefile2d(outputFilename)) {
+    
+    std::string class2d = n["class2d"].as<std::string>();
+    std::clog << class2d << " Shapefile output" << std::endl;
+      
+    if (map3d.get_shapefile2D(outputFilename, class2d)) {
       std::clog << "Shapefile written" << std::endl;
     }
     else
