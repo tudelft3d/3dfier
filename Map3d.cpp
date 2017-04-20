@@ -452,6 +452,9 @@ bool Map3d::get_shapefile2D(std::string filename, std::string classtype) {
         std::cerr << "Creating DESCR field failed." << std::endl;
         return false;
     }
+        for (auto& p3 : _lsFeatures) {
+            p3->get_shape2(outlayer, classtype);
+        }
     }
     
     else if (classtype == "Terrain"){ //hoogtepunt
@@ -523,12 +526,24 @@ bool Map3d::get_shapefile2D(std::string filename, std::string classtype) {
             std::cerr << "Creating REL_H field failed." << std::endl;
             return false;
         }
+        
+        for (auto& p3 : _lsFeatures) {
+            p3->get_shape2(outlayer, classtype);
+        }
 
     }
     
-    for (auto& p3 : _lsFeatures) {
-        p3->get_shape2(outlayer, classtype);
+    else if (classtype == "Separation"){ //hoogtepunt
+        
+        OGRLayer *outlayer = dataSource->CreateLayer(classtype.c_str(), NULL, wkbPolygon, NULL);
+        
+        for (auto& p3 : _lsFeatures) {
+            p3->get_shape2(outlayer, classtype);
+        }
+        
     }
+    
+    
     GDALClose(dataSource);
     return true;
 }

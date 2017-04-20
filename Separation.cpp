@@ -140,4 +140,30 @@ bool Separation::get_shape(OGRLayer* layer) {
 
 bool Separation::get_shape2(OGRLayer * layer, std::string classname){
     std::clog << "Separation" << std::endl;
+    
+    OGRFeature *outFeature = OGRFeature::CreateFeature(layer->GetLayerDefn());
+    
+    //    polygon geometry
+    OGRPolygon polygon = OGRPolygon();
+    OGRLinearRing ring = OGRLinearRing();
+    
+    Point2 a;
+    for (int ai = 0; ai < (bg::exterior_ring(*(_p2))).size(); ai++) {
+        a = (bg::exterior_ring(*(_p2)))[ai];
+        std::cout << a.get<0>()  <<  "  " << a.get<1>() << std::endl;
+        ring.addPoint(a.get<0>(), a.get<1>());
+    }
+    ring.closeRings();
+    polygon.addRing(&ring);
+    
+    outFeature->SetGeometry(&polygon);
+    
+    if (layer->CreateFeature(outFeature) != OGRERR_NONE)
+    {
+        std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
+        return false;
+    }
+    
+    OGRFeature::DestroyFeature(outFeature);
+    return true;
 }
