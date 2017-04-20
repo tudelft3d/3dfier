@@ -133,7 +133,7 @@ bool Terrain::get_shape2(OGRLayer * layer, std::string classname){
          //    outFeature->SetField("ELMID", 0);
          outFeature->SetField("IDENT", classname.c_str());
          outFeature->SetField("DESCR", "Building in 37EN/1 or 37EN/2");
-         outFeature->SetField("SHAPE", 3);
+         outFeature->SetField("SHAPE", 0);
          outFeature->SetField("X1", vs.get<0>() );
          outFeature->SetField("Y1", vs.get<1>() );
          outFeature->SetField("HEIGHT", vs.get<2>() ); //point height
