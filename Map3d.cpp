@@ -456,7 +456,7 @@ bool Map3d::get_shapefile2D(std::string filename, std::string classtype) {
     
     else if (classtype == "Terrain"){ //hoogtepunt
         
-        OGRLayer *outlayer = dataSource->CreateLayer(classtype.c_str(), NULL, wkbMultiPolygon, NULL);
+        OGRLayer *outlayer = dataSource->CreateLayer(classtype.c_str(), NULL, wkbPoint, NULL);
         OGRFieldDefn oFieldx("GMLID", OFTString);
         oFieldx.SetWidth(32);
         if (outlayer->CreateField(&oFieldx) != OGRERR_NONE) {

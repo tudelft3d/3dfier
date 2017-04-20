@@ -112,137 +112,43 @@ bool Terrain::get_shape(OGRLayer* layer) {
 
 bool Terrain::get_shape2(OGRLayer * layer, std::string classname){
     
-//    std::clog << "Terrain" << std::endl;
-//    OGRFeature *outFeature;
-//    outFeature = OGRFeature::CreateFeature(layer->GetLayerDefn());
-//    outFeature->SetField("ELMID", 0);
-//    // point geometry
-//
-//     for (auto& vs : _vertices) {
+    std::clog << "Terrain" << std::endl;
+    OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
+    OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
     
-//         OGRFeature *outFeature;
-//         outFeature = OGRFeature::CreateFeature(layer->GetLayerDefn());
-//         std::cout << vs.get<0>() << "    " << vs.get<1>() << "     " << vs.get<2>() << std::endl;
-    
-//         OGRPoint pt;
-//         pt.setX( vs.get<0>() );
-//         pt.setY( vs.get<1>() );
-//         outFeature->SetGeometry(&pt);
-//         
-//         if (layer->CreateFeature(outFeature) != OGRERR_NONE)
-//         {
-//             std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
-//             return false;
-//         }
-//         
-//         OGRFeature::DestroyFeature(outFeature);
-//     }
-    
-//     OGRFeature::DestroyFeature(outFeature);
-    
-    //    polygon geometry
-//    OGRPolygon polygon = OGRPolygon();
-//    OGRLinearRing ring = OGRLinearRing();
-//    
-//    Point2 a;
-//    for (int ai = 0; ai < (bg::exterior_ring(*(_p2))).size(); ai++) {
-//        a = (bg::exterior_ring(*(_p2)))[ai];
-//        //        std::cout << a.get<0>()  <<  "  " << a.get<1>() << std::endl;
-//        ring.addPoint(a.get<0>(), a.get<1>());
-//    }
-//    ring.closeRings();
-//    polygon.addRing(&ring);
-    
-    
-    
-//    std::string bgtattribute;
-//    float relheight=0.00;
-//    float h=0.00;
-//    float hbase=0.00;
-//    
-////    outFeature->SetField("GMLID", this->get_id().c_str());
-//    outFeature->SetField("GRPID", 0);
-//    outFeature->SetField("GRPNAME", "NULL");
-////    outFeature->SetField("ELMID", 0);
-//    if (this->get_attribute("creationdate", bgtattribute)) {
-//        outFeature->SetField("DATE", (bgtattribute).c_str());
-//    }
-//    else{
-//        outFeature->SetField("DATE", "NULL");
-//    }
-//    outFeature->SetField("IDENT", classname.c_str());
-//    outFeature->SetField("DESCR", "Building in 37EN/1 or 37EN/2");
-//    outFeature->SetField("SHAPE", 1);
-////    outFeature->SetField("X1", a.get<0>() );
-////    outFeature->SetField("Y1", a.get<1>() );
-//    
-////    h = z_to_float(this->get_height());
-////    outFeature->SetField("HEIGHT",  h); //roof height
-////    outFeature->SetField("REL_H",  h);
-//    
-////    hbase = z_to_float(this->get_height_base());
-////    outFeature->SetField("GRNDLVL", hbase); //floor height
-////    outFeature->SetField("HDEF", 0);
-//    //    outFeature->SetField("DESIGN_USE", "NULL");
-    
-    
-    
-    
-//    return true;
-    
-      OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
-      OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
-      OGRMultiPolygon multipolygon = OGRMultiPolygon();
-      Point3 p;
-    
-      //-- add all triangles to the layer
-      for (auto& t : _triangles) {
-        OGRPolygon polygon = OGRPolygon();
-        OGRLinearRing ring = OGRLinearRing();
-    
-        p = _vertices[t.v0];
-        ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-        p = _vertices[t.v1];
-        ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-        p = _vertices[t.v2];
-        ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    
-        ring.closeRings();
-        polygon.addRing(&ring);
-        multipolygon.addGeometry(&polygon);
-      }
-    
-//      //-- add all vertical wall triangles to the layer
-//      for (auto& t : _triangles_vw) {
-//        OGRPolygon polygon = OGRPolygon();
-//        OGRLinearRing ring = OGRLinearRing();
-//    
-//        p = _vertices[t.v0];
-//        ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-//        p = _vertices[t.v1];
-//        ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-//        p = _vertices[t.v2];
-//        ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-//    
-//        ring.closeRings();
-//        polygon.addRing(&ring);
-//        multipolygon.addGeometry(&polygon);
-//      }
-    
-    
-      feature->SetGeometry(&multipolygon);
-//      feature->SetField("Id", this->get_id().c_str());
-//      feature->SetField("Class", "Terrain");
-//      feature->SetField("FloorHeight", this->get_height_base());
-//      feature->SetField("RoofHeight", this->get_height());
-    
-      if (layer->CreateFeature(feature) != OGRERR_NONE) {
-        std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
-        return false;
-      }
-      OGRFeature::DestroyFeature(feature);
-        return true;
 
+     for (auto& vs : _vertices) {
+    
+         OGRFeature *outFeature;
+         outFeature = OGRFeature::CreateFeature(layer->GetLayerDefn());
+         std::cout << vs.get<0>() << "    " << vs.get<1>() << "     " << vs.get<2>() << std::endl;
+    
+         OGRPoint pt ;
+         pt.setX( vs.get<0>() );
+         pt.setY( vs.get<1>() );
+         outFeature->SetGeometry(&pt);
+         
+         outFeature->SetField("GRPID", 0);
+         outFeature->SetField("GRPNAME", "NULL");
+         //    outFeature->SetField("ELMID", 0);
+         outFeature->SetField("IDENT", classname.c_str());
+         outFeature->SetField("DESCR", "Building in 37EN/1 or 37EN/2");
+         outFeature->SetField("SHAPE", 3);
+         outFeature->SetField("X1", vs.get<0>() );
+         outFeature->SetField("Y1", vs.get<1>() );
+         outFeature->SetField("HEIGHT", vs.get<2>() ); //point height
+         outFeature->SetField("REL_H",  vs.get<2>());
+         
+         if (layer->CreateFeature(outFeature) != OGRERR_NONE)
+         {
+             std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
+             return false;
+         }
+         
+        OGRFeature::DestroyFeature(outFeature);
+     }
+    
+    return true;
     
 }
 
