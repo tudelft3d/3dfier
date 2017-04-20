@@ -114,13 +114,13 @@ bool Terrain::get_shape2(OGRLayer * layer, std::string classname){
     
     std::clog << "Terrain" << std::endl;
     OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
-    OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
+    OGRFeature *outFeature;
     
 
      for (auto& vs : _vertices) {
     
-         OGRFeature *outFeature;
-         outFeature = OGRFeature::CreateFeature(layer->GetLayerDefn());
+         
+         outFeature = OGRFeature::CreateFeature(featureDefn);
          std::cout << vs.get<0>() << "    " << vs.get<1>() << "     " << vs.get<2>() << std::endl;
     
          OGRPoint pt ;
