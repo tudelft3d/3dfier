@@ -110,16 +110,39 @@ bool Terrain::get_shape(OGRLayer* layer) {
   return TopoFeature::get_shape_features(layer, "Terrain");
 }
 
+
+bool comparePoint(Point3 p1, Point3 p2){
+    if ((p1.get<0>() > p2.get<0>()) && (p1.get<1>() > p2.get<1>()))
+        return false;
+    else if ((p1.get<0>() < p2.get<0>()) && (p1.get<1>() < p2.get<1>()))
+        return true;
+    
+    return false;
+}
+
+bool equalPoint(Point3 p1, Point3 p2){
+//     float eps = 0.001;
+    if ((p1.get<0>() == p2.get<0>()) && (p1.get<1>() == p2.get<1>()) && (p1.get<2>() == p2.get<2>()))
+//    if ((p1.get<0>() - p2.get<0>()) < eps && (p1.get<1>() - p2.get<1>()) < eps && (p1.get<2>() - p2.get<2>()) < eps)
+        return true;
+    return false;
+}
+
 bool Terrain::get_shape2(OGRLayer * layer, std::string classname){
     
     std::clog << "Terrain" << std::endl;
     OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
-    OGRFeature *outFeature;
+//    OGRFeature *outFeature;
+//    
+//
     
-
-     for (auto& vs : _vertices) {
+    std::sort(_vertices.begin(), _vertices.end(), comparePoint);
+    auto unique_end = std::unique(_vertices.begin(), _vertices.end(), equalPoint);
+    _vertices.erase(unique_end, _vertices.end());
     
-         
+        for (auto& vs : _vertices) {
+    
+         OGRFeature *outFeature;
          outFeature = OGRFeature::CreateFeature(featureDefn);
          std::cout << vs.get<0>() << "    " << vs.get<1>() << "     " << vs.get<2>() << std::endl;
     
@@ -127,7 +150,7 @@ bool Terrain::get_shape2(OGRLayer * layer, std::string classname){
          pt.setX( vs.get<0>() );
          pt.setY( vs.get<1>() );
          outFeature->SetGeometry(&pt);
-         
+
          outFeature->SetField("GRPID", 0);
          outFeature->SetField("GRPNAME", "NULL");
          //    outFeature->SetField("ELMID", 0);
@@ -138,17 +161,18 @@ bool Terrain::get_shape2(OGRLayer * layer, std::string classname){
          outFeature->SetField("Y1", vs.get<1>() );
          outFeature->SetField("HEIGHT", vs.get<2>() ); //point height
          outFeature->SetField("REL_H",  vs.get<2>());
-         
+//
          if (layer->CreateFeature(outFeature) != OGRERR_NONE)
          {
              std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
              return false;
          }
-         
+//
         OGRFeature::DestroyFeature(outFeature);
      }
     
     return true;
+
     
 }
 

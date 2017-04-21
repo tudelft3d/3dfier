@@ -515,6 +515,19 @@ bool Map3d::get_shapefile2D(std::string filename, std::string classtype) {
             return false;
         }
         
+        OGRFieldDefn oField7("X1", OFTReal);
+        if (outlayer->CreateField(&oField7) != OGRERR_NONE) {
+            std::cerr << "Creating X1 field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField8("Y1", OFTReal);
+        if (outlayer->CreateField(&oField8) != OGRERR_NONE) {
+            std::cerr << "Creating Y1 field failed." << std::endl;
+            return false;
+        }
+
+        
         OGRFieldDefn oField9("HEIGHT", OFTReal);
         if (outlayer->CreateField(&oField9) != OGRERR_NONE) {
             std::cerr << "Creating HEIGHT field failed." << std::endl;

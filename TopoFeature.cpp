@@ -264,25 +264,25 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
     }
   
     //-- add all vertical wall triangles to the layer
-    for (auto& t: _triangles_vw) {
-      OGRPolygon polygon = OGRPolygon();
-      OGRLinearRing ring = OGRLinearRing();
-  
-      p = _vertices[t.v0];
-      ring.addPoint(p.get<0>(), p.get<1>());
-      p = _vertices[t.v1];
-      ring.addPoint(p.get<0>(), p.get<1>());
-      p = _vertices[t.v2];
-      ring.addPoint(p.get<0>(), p.get<1>());
-  
-      ring.closeRings();
-      polygon.addRing(&ring);
-      multipolygon.addGeometry(&polygon);
-    }
+//    for (auto& t: _triangles_vw) {
+//      OGRPolygon polygon = OGRPolygon();
+//      OGRLinearRing ring = OGRLinearRing();
+//  
+//      p = _vertices[t.v0];
+//      ring.addPoint(p.get<0>(), p.get<1>());
+//      p = _vertices[t.v1];
+//      ring.addPoint(p.get<0>(), p.get<1>());
+//      p = _vertices[t.v2];
+//      ring.addPoint(p.get<0>(), p.get<1>());
+//  
+//      ring.closeRings();
+//      polygon.addRing(&ring);
+//      multipolygon.addGeometry(&polygon);
+//    }
   
     feature->SetGeometry(&multipolygon);
-    feature->SetField("Id", this->get_id().c_str());
-    feature->SetField("Class", className.c_str());
+//    feature->SetField("Id", this->get_id().c_str());
+//    feature->SetField("Class", className.c_str());
   
     if (layer->CreateFeature(feature) != OGRERR_NONE)
     {
