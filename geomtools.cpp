@@ -183,29 +183,19 @@ bool getCDT(const Polygon2* pgn,
 }
 
 std::string gen_key_bucket(Point2* p) {
-  std::string x = std::to_string(bg::get<0>(p));
-  x = x.substr(0, x.find_first_of(".") + 4);
-  std::string y = std::to_string(bg::get<1>(p));
-  y = y.substr(0, y.find_first_of(".") + 4);
-  return (x + " " + y);
+  char* buf = new char[50];
+  std::sprintf(buf, "%.3f %.3f", p->get<0>(), p->get<1>());
+  return buf;
 }
 
 std::string gen_key_bucket(Point3* p) {
-  std::string x = std::to_string(bg::get<0>(p));
-  x = x.substr(0, x.find_first_of(".") + 4);
-  std::string y = std::to_string(bg::get<1>(p));
-  y = y.substr(0, y.find_first_of(".") + 4);
-  std::string z = std::to_string(bg::get<2>(p));
-  z = z.substr(0, z.find_first_of(".") + 4);
-  return (x + " " + y + " " + z);
+  char* buf = new char[50];
+  std::sprintf(buf, "%.3f %.3f %.3f", p->get<0>(), p->get<1>(), p->get<2>());
+  return buf;
 }
 
 std::string gen_key_bucket(Point3* p, int z) {
-  std::string x = std::to_string(bg::get<0>(p));
-  x = x.substr(0, x.find_first_of(".") + 4);
-  std::string y = std::to_string(bg::get<1>(p));
-  y = y.substr(0, y.find_first_of(".") + 4);
-  std::string zstr = std::to_string(z_to_float(z));
-  zstr = zstr.substr(0, zstr.find_first_of(".") + 4);
-  return (x + " " + y + " " + zstr);
+  char* buf = new char[50];
+  std::sprintf(buf, "%.3f %.3f %.3f", p->get<0>(), p->get<1>(), z);
+  return buf;
 }

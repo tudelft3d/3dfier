@@ -389,11 +389,11 @@ int main(int argc, const char * argv[]) {
 
   //-- bye-bye
   auto duration = boost::chrono::high_resolution_clock::now() - startTime;
-  std::clog << "Successfully terminated in "
-    << boost::chrono::duration_cast<boost::chrono::seconds>(duration) << " || "
-    << boost::chrono::duration_cast<boost::chrono::hours>(duration).count() << ":"
-    << boost::chrono::duration_cast<boost::chrono::minutes>(duration).count() % 60 << ":"
-    << boost::chrono::duration_cast<boost::chrono::seconds>(duration).count() % 60 << std::endl;
+  printf("Successfully terminated in %d seconds || %02d:%02d:%02d\n", boost::chrono::duration_cast<boost::chrono::seconds>(duration),
+    boost::chrono::duration_cast<boost::chrono::hours>(duration).count(),
+    boost::chrono::duration_cast<boost::chrono::minutes>(duration).count() % 60,
+    boost::chrono::duration_cast<boost::chrono::seconds>(duration).count() % 60
+  );
   return 1;
 }
 
