@@ -337,6 +337,19 @@ bool Map3d::get_shapefile(std::string filename) {
 //  return true;
 //}
 
+std::string currenttime()
+{
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    std::string d = std::to_string(ltm->tm_mday);
+    std::string m = std::to_string(1 + ltm->tm_mon);
+    std::string y = std::to_string(1900 + ltm->tm_year);
+    
+    std::string dd = d + "-" + m + "-" + y;
+    //    std::cout << ltm->tm_mday << ltm->tm_mon << ltm->tm_year ;
+    return (dd);
+}
+
 bool Map3d::get_shapefile2D(std::string filename, std::string classtype) {
     
     if (GDALGetDriverCount() == 0)
@@ -653,6 +666,114 @@ bool Map3d::get_shapefile2D(std::string filename, std::string classtype) {
         
         for (auto& p3 : _lsFeatures) {
             p3->get_shape2(outlayer, classtype);
+        }
+        
+    }
+    
+    else if (classtype == "HorizontalGrid"){ //hoogtepunt
+        
+        
+        
+        OGRLayer *outlayer = dataSource->CreateLayer(classtype.c_str(), NULL, wkbPoint, NULL);
+        
+        
+        OGRFieldDefn oField0("GRPNAME", OFTString);
+        oField0.SetWidth(32);
+        if (outlayer->CreateField(&oField0) != OGRERR_NONE) {
+            std::cerr << "Creating GRPNAME field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField1("ELMID", OFTInteger);
+        oField1.SetWidth(32);
+        if (outlayer->CreateField(&oField1) != OGRERR_NONE) {
+            std::cerr << "Creating ELMID field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField2("GRPID", OFTInteger);
+        oField2.SetWidth(32);
+        if (outlayer->CreateField(&oField2) != OGRERR_NONE) {
+            std::cerr << "Creating GRPID field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField4("IDENT", OFTString);
+        oField4.SetWidth(32);
+        if (outlayer->CreateField(&oField4) != OGRERR_NONE) {
+            std::cerr << "Creating IDENT field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField5("DESCR", OFTString);
+        oField5.SetWidth(32);
+        if (outlayer->CreateField(&oField5) != OGRERR_NONE) {
+            std::cerr << "Creating DESCR field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField6("SHAPE", OFTInteger);
+        oField6.SetWidth(32);
+        if (outlayer->CreateField(&oField6) != OGRERR_NONE) {
+            std::cerr << "Creating SHAPE field failed." << std::endl;
+            return false;
+        }
+        
+        
+        OGRFieldDefn oField7("X1", OFTReal);
+        if (outlayer->CreateField(&oField7) != OGRERR_NONE) {
+            std::cerr << "Creating X1 field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField8("Y1", OFTReal);
+        if (outlayer->CreateField(&oField8) != OGRERR_NONE) {
+            std::cerr << "Creating Y1 field failed." << std::endl;
+            return false;
+        }
+        
+        OGRFieldDefn oField9("HEIGHT", OFTReal);
+        if (outlayer->CreateField(&oField9) != OGRERR_NONE) {
+            std::cerr << "Creating HEIGHT field failed." << std::endl;
+            return false;
+        }
+
+        OGRFeatureDefn *featureDefn = outlayer->GetLayerDefn();
+        double xx, yy;
+        double xmin1 = bg::get<bg::min_corner, 0>(_bbox);
+        double xmax1 = bg::get<bg::max_corner, 0>(_bbox);
+        double ymin1 = bg::get<bg::min_corner, 1>(_bbox);
+        double ymax1 = bg::get<bg::max_corner, 1>(_bbox);
+        int gridcellsize = 10;
+        for (xx = xmin1; xx <= xmax1 ; xx=xx + 10)
+        {
+            for (yy = ymin1; yy <= ymax1 ; yy = yy + 10)
+            {
+//            std::cout << xx << "  " << yy << std::endl;
+            OGRFeature *outFeature;
+            outFeature = OGRFeature::CreateFeature(featureDefn);
+                OGRPoint pt ;
+                pt.setX( xx );
+                pt.setY( yy );
+                outFeature->SetGeometry(&pt);
+                outFeature->SetField("GRPNAME", "NULL");
+                outFeature->SetField("ELMID", 0);
+                outFeature->SetField("GRPID", 0);
+                outFeature->SetField("IDENT", classtype.c_str());
+                outFeature->SetField("DESCR", "Grid in 37EN/1 or 37EN/2");
+                outFeature->SetField("SHAPE", 0);
+                outFeature->SetField("X1", xx );
+                outFeature->SetField("Y1", yy );
+                outFeature->SetField("HEIGHT", 4.0 ); //point height
+//                outFeature->SetField("REL_H",  4.0);
+                if (outlayer->CreateFeature(outFeature) != OGRERR_NONE)
+                {
+                    std::cerr << "Failed to create feature in shapefile." << std::endl;
+                    return false;
+                }
+                
+                OGRFeature::DestroyFeature(outFeature);
+            }
         }
         
     }

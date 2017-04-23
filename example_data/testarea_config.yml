@@ -5,22 +5,22 @@ input_polygons:
   #   uniqueid: gml_id
   #   lifting: Water
   #   height_field: relatievehoogteligging
-  - datasets: 
-      - bgt/bgt_onbegroeidterreindeel.sqlite
-    uniqueid: gml_id
-    lifting: Terrain
-    height_field: relatievehoogteligging
+  # - datasets: 
+  #     - bgt/bgt_onbegroeidterreindeel.sqlite
+  #   uniqueid: gml_id
+  #   lifting: Terrain
+  #   height_field: relatievehoogteligging
   # - datasets: 
   #     - bgt/bgt_wegdeel.sqlite
   #     - bgt/bgt_ondersteunendwegdeel.sqlite
   #   uniqueid: gml_id
   #   lifting: Road
   #   height_field: relatievehoogteligging
-  # - datasets: 
-  #     - bgt/bgt_pand.sqlite
-  #   uniqueid: gml_id
-  #   lifting: Building
-  #   height_field: relatievehoogteligging
+  - datasets: 
+      - bgt/bgt_pand.sqlite
+    uniqueid: gml_id
+    lifting: Building
+    height_field: relatievehoogteligging
   # - datasets: 
   #     - bgt/bgt_begroeidterreindeel.sqlite
   #   uniqueid: gml_id
@@ -41,12 +41,12 @@ input_polygons:
   #   handle_multiple_heights: true
 
 lifting_options: 
-  # Building:
-  #   height_roof: percentile-90
-  #   height_floor: percentile-10
-  #   lod: 1
-  Terrain:
-    simplification: 10
+  Building:
+    height_roof: percentile-90
+    height_floor: percentile-10
+    lod: 1
+  # Terrain:
+  #   simplification: 10
   # Forest:
   #   simplification: 10
   # Water:
@@ -64,7 +64,7 @@ input_elevation:
       - ahn3/ahn3_cropped_2.laz
     omit_LAS_classes:
       - 1 # unclassified
-    thinning: 5
+    # thinning: 5
 
 # options:
 #   building_radius_vertex_elevation: 3.0
@@ -73,7 +73,7 @@ input_elevation:
 
 output: 
   format: Shapefile
-  class2d: Terrain
+  class2d: HorizontalGrid
   #format: OBJ
   # format: CityGML
   building_floor: false
