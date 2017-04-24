@@ -90,9 +90,8 @@ Polygon2* TopoFeature::get_Polygon2() {
   return _p2;
 }
 
-std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl) {
-  std::stringstream ss;
-  ss << mtl << std::endl;
+void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::ostringstream &ss) {
+  ss << mtl << "\n";
   for (auto& t : _triangles) {
     unsigned long a, b, c;
     auto it = dPts.find(gen_key_bucket(&_vertices[t.v0]));
@@ -118,14 +117,14 @@ std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long 
     else
       c = it->second;
     if ((a != b) && (a != c) && (b != c))
-      ss << "f " << a << " " << b << " " << c << std::endl;
+      ss << "f " << a << " " << b << " " << c << "\n";
     // else
     //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
   }
 
   //-- vertical triangles
   if (_bVerticalWalls == true && _triangles_vw.size() > 0)
-    ss << mtl << "Wall" << std::endl;
+    ss << mtl << "Wall" << "\n";
 
   for (auto& t : _triangles_vw) {
     unsigned long a, b, c;
@@ -151,11 +150,10 @@ std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long 
     else
       c = it->second;
     if ((a != b) && (a != c) && (b != c))
-      ss << "f " << a << " " << b << " " << c << std::endl;
+      ss << "f " << a << " " << b << " " << c << "\n";
     // else
     //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
   }
-  return ss.str();
 }
 
 std::string TopoFeature::get_imgeo_object_info(std::string id) {

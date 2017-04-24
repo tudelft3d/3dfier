@@ -71,7 +71,7 @@ public:
   bool         get_top_level();
   std::string  get_wkt();
   bool         get_shape_features(OGRLayer* layer, std::string className);
-  std::string  get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl);
+  void         get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::ostringstream &ssf);
   std::string  get_imgeo_object_info(std::string id);
   std::string  get_citygml_attributes(std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes);
 protected:

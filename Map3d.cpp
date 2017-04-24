@@ -203,17 +203,23 @@ void Map3d::get_csv_buildings(std::ofstream &outputfile) {
 
 void Map3d::get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration) {
   std::unordered_map< std::string, unsigned long > dPts;
-  std::stringstream ssf;
+  std::ostringstream ssf;
+  
+  std::clock_t start = std::clock();
+  
   for (auto& p : _lsFeatures) {
-    ssf << "o " << p->get_id() << std::endl;
+    ssf << "o " << p->get_id() << "\n";
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
-      ssf << b->get_obj(dPts, _building_lod, b->get_mtl());
+      b->get_obj(dPts, _building_lod, b->get_mtl(), ssf);
     }
     else {
-      ssf << p->get_obj(dPts, p->get_mtl());
+      p->get_obj(dPts, p->get_mtl(), ssf);
     }
   }
+
+  printf("All objects collected in %d ms\n", std::clock() - start);
+  start = std::clock();
 
   //-- sort the points in the map: simpler to copy to a vector
   std::vector<std::string> thepts;
@@ -224,23 +230,27 @@ void Map3d::get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration) {
 
   outputfile << "mtllib ./3dfier.mtl" << std::endl;
   for (auto& p : thepts) {
-    outputfile << "v " << p << std::endl;
+    outputfile << "v " << p << "\n";
   }
+  printf("All vertices written in %d ms\n", std::clock() - start);
+  start = std::clock();
+
   outputfile << ssf.str() << std::endl;
+  printf("All objects written in %d ms\n", std::clock() - start);
 }
 
 void Map3d::get_obj_per_class(std::ofstream &outputfile, int z_exaggeration) {
   std::unordered_map< std::string, unsigned long > dPts;
-  std::stringstream ssf;
+  std::ostringstream ssf;
   for (int c = 0; c < 6; c++) {
     for (auto& p : _lsFeatures) {
       if (p->get_class() == c) {
         if (p->get_class() == BUILDING) {
           Building* b = dynamic_cast<Building*>(p);
-          ssf << b->get_obj(dPts, _building_lod, b->get_mtl());
+          b->get_obj(dPts, _building_lod, b->get_mtl(), ssf);
         }
         else {
-          ssf << p->get_obj(dPts, p->get_mtl());
+          p->get_obj(dPts, p->get_mtl(), ssf);
         }
       }
     }

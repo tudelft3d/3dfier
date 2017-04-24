@@ -98,13 +98,12 @@ std::string Building::get_mtl() {
   return "usemtl Building";
 }
 
-std::string Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl) {
-  std::stringstream ss;
+void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::ostringstream &ss) {
   if (lod == 1) {
-    ss << TopoFeature::get_obj(dPts, mtl);
+    TopoFeature::get_obj(dPts, mtl, ss);
   }
   else if (lod == 0) {
-    ss << mtl << std::endl;
+    ss << mtl << "\n";
     for (auto& t : _triangles) {
       unsigned long a, b, c;
       int z = this->get_height_base();
@@ -133,12 +132,11 @@ std::string Building::get_obj(std::unordered_map< std::string, unsigned long > &
         c = it->second;
       }
       if ((a != b) && (a != c) && (b != c))
-        ss << "f " << a << " " << b << " " << c << std::endl;
+        ss << "f " << a << " " << b << " " << c << "\n";
       // else
       //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
     }
   }
-  return ss.str();
 }
 
 std::string Building::get_citygml() {

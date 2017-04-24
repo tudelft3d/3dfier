@@ -36,7 +36,7 @@ public:
   Building(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, float heightref_top, float heightref_base);
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
-  std::string   get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl);
+  void          get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::ostringstream &ssf);
   std::string   get_citygml();
   std::string   get_citygml_imgeo();
   std::string   get_imgeo_nummeraanduiding();
