@@ -184,6 +184,7 @@
     <ClInclude Include="..\Road.h" />
     <ClInclude Include="..\Separation.h" />
     <ClInclude Include="..\Terrain.h" />
+    <ClInclude Include="..\ThreadPool.h" />
     <ClInclude Include="..\TopoFeature.h" />
     <ClInclude Include="..\Water.h" />
   </ItemGroup>

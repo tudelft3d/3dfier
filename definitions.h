@@ -49,6 +49,12 @@ typedef struct PolygonFile {
   std::vector< std::pair<std::string, std::string> > layers;
 } PolygonFile;
 
+typedef struct PointFile {
+  std::string filename;
+  std::vector<int> lasomits;
+  int thinning = 0;
+} PointFile;
+
 typedef enum {
    BUILDING   = 0,
    WATER      = 1,

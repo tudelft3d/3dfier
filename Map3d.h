@@ -48,7 +48,7 @@ public:
   ~Map3d();
 
   bool add_polygons_files(std::vector<PolygonFile> &files);
-  bool add_las_file(std::string ifile, std::vector<int> lasomits, int skip = 0);
+  bool add_las_file(PointFile pointFile);
 
   void stitch_lifted_features();
   bool construct_rtree();

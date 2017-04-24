@@ -656,12 +656,12 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
 }
 
 //-- http://www.liblas.org/tutorial/cpp.html#applying-filters-to-a-reader-to-extract-specified-classes
-bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip) {
-  std::clog << "Reading LAS/LAZ file: " << ifile << std::endl;
+bool Map3d::add_las_file(PointFile pointFile) {
+  std::clog << "Reading LAS/LAZ file: " << pointFile.filename << std::endl;
   std::ifstream ifs;
-  ifs.open(ifile.c_str(), std::ios::in | std::ios::binary);
+  ifs.open(pointFile.filename.c_str(), std::ios::in | std::ios::binary);
   if (ifs.is_open() == false) {
-    std::cerr << "\tERROR: could not open file: " << ifile << std::endl;
+    std::cerr << "\tERROR: could not open file: " << pointFile.filename << std::endl;
     return false;
   }
   //-- LAS classes to omit (create full list since eExclusion does not work
@@ -672,7 +672,7 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
     liblas::Classification(12), liblas::Classification(13), liblas::Classification(14), liblas::Classification(15),
     liblas::Classification(16), liblas::Classification(17), liblas::Classification(18)
   };
-  for (int i : lasomits)
+  for (int i : pointFile.lasomits)
     liblasomits.erase(std::find(liblasomits.begin(), liblasomits.end(), liblas::Classification(i)));
   //-- read each point 1-by-1
   liblas::ReaderFactory f;
@@ -698,24 +698,24 @@ bool Map3d::add_las_file(std::string ifile, std::vector<int> lasomits, int skip)
     filters.push_back(bounds_filter);
 
     //-- set the thinning filter if thinning is set
-    if (skip > 1) {
-      liblas::FilterPtr thinning_filter = liblas::FilterPtr(new liblas::ThinFilter(skip));
+    if (pointFile.thinning > 1) {
+      liblas::FilterPtr thinning_filter = liblas::FilterPtr(new liblas::ThinFilter(pointFile.thinning));
       thinning_filter->SetType(liblas::FilterI::eInclusion);
       filters.push_back(thinning_filter);
     }
     reader.SetFilters(filters);
 
     std::clog << "\t(" << boost::locale::as::number << pointCount << " points in the file)" << std::endl;
-    if ((skip > 1)) {
-      std::clog << "\t(skipping every " << skip << "th points, thus ";
-      std::clog << boost::locale::as::number << (pointCount / skip) << " are used)" << std::endl;
+    if ((pointFile.thinning > 1)) {
+      std::clog << "\t(skipping every " << pointFile.thinning << "th points, thus ";
+      std::clog << boost::locale::as::number << (pointCount / pointFile.thinning) << " are used)" << std::endl;
     }
     else
       std::clog << "\t(all points used, no skipping)" << std::endl;
 
-    if (lasomits.empty() == false) {
+    if (pointFile.lasomits.empty() == false) {
       std::clog << "\t(omitting LAS classes: ";
-      for (int i : lasomits)
+      for (int i : pointFile.lasomits)
         std::clog << i << " ";
       std::clog << ")" << std::endl;
     }

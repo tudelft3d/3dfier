@@ -672,6 +672,7 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
 //-- used to collect all points linked to the polygon
 //-- later all these values are used to lift the polygon (and put values in _p2z)
 bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) {
+  std::lock_guard<std::mutex> lockGuard(_mutex);
   int zcm = int(z * 100);
   int ringi = 0;
   Ring2 oring = bg::exterior_ring(*(_p2));
@@ -720,7 +721,7 @@ bool TopoFeature::within_range(Point2 &p, Polygon2 &poly, double radius) {
 }
 
 // based on http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon/2922778#2922778
-bool TopoFeature::point_in_polygon(Point2 &p, Polygon2 &poly) {
+bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
   //test outer ring
   Ring2 oring = bg::exterior_ring(poly);
   int nvert = oring.size();
@@ -919,6 +920,7 @@ int Flat::get_number_vertices() {
 
 bool Flat::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (within_range(p, *(_p2), radius)) {
+    std::lock_guard<std::mutex> lockGuard(_mutex);
     int zcm = int(z * 100);
     //-- 1. assign to polygon since within the threshold value (buffering of polygon)
     _zvaluesinside.push_back(zcm);
@@ -1030,6 +1032,7 @@ bool TIN::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasc
   }
   // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
   if (toadd && point_in_polygon(p, *(_p2)) && (_innerbuffer == 0.0 || (within_range(p, *(_p2), _innerbuffer) && this->get_distance_to_boundaries(p) > _innerbuffer))) {
+    std::lock_guard<std::mutex> lockGuard(_mutex);
     _lidarpts.push_back(Point3(p.x(), p.y(), z));
   }
   return toadd;

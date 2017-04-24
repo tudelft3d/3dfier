@@ -41,6 +41,7 @@
 #include "boost/chrono.hpp"
 #include "boost/filesystem.hpp"
 #include <boost/filesystem/operations.hpp>
+#include "ThreadPool.h"
 
 std::string VERSION = "0.9.5";
 
@@ -270,6 +271,9 @@ int main(int argc, const char * argv[]) {
     << bg::get<bg::max_corner, 0>(b) << ", "
     << bg::get<bg::max_corner, 1>(b) << ")" << std::endl;
   
+  int threadPoolSize = 4;
+  std::vector<PointFile> fileList;
+
   //-- add elevation datasets
   n = nodes["input_elevation"];
   bool bElevData = false;
@@ -298,30 +302,63 @@ int main(int argc, const char * argv[]) {
           boost::filesystem::recursive_directory_iterator it_end;
           for (boost::filesystem::recursive_directory_iterator it(rootPath); it != it_end; ++it) {
             if (boost::filesystem::is_regular_file(*it) && it->path().extension() == path.extension()) {
-              bool added = map3d.add_las_file(it->path().string(), lasomits, thinning);
-              if (!added) {
-                bElevData = false;
-                break;
-              }
-              else {
-                bElevData = true;
-              }
+              PointFile pointFile;
+              pointFile.filename = it->path().string();
+              pointFile.lasomits = lasomits;
+              pointFile.thinning = thinning;
+              fileList.push_back(pointFile);
             }
           }
         }
       }
       else {
-        bool added = map3d.add_las_file(path.string(), lasomits, thinning);
-        if (!added) {
-          bElevData = false;
-          break;
-        }
-        else {
-          bElevData = true;
-        }
+        PointFile pointFile;
+        pointFile.filename = path.string();
+        pointFile.lasomits = lasomits;
+        pointFile.thinning = thinning;
+        fileList.push_back(pointFile);
       }
     }
   }
+  auto startPoints = boost::chrono::high_resolution_clock::now();
+  if (threadPoolSize > 1) {
+    ThreadPool* pool = new ThreadPool(threadPoolSize);
+    std::vector< std::future<bool> > results;
+
+    for (auto pointFile : fileList) {
+      results.emplace_back(
+        pool->enqueue([&map3d, pointFile] {
+        return map3d.add_las_file(pointFile);
+      })
+      );
+    }
+
+    bElevData = false;
+    for (auto && result : results) {
+      bElevData = bElevData || result.get();
+    }
+    delete pool;
+  }
+  else {
+    for (auto file : fileList) {
+      bool added = map3d.add_las_file(file);
+      if (!added) {
+        bElevData = false;
+        break;
+      }
+      else {
+        bElevData = true;
+      }
+    }
+  }
+
+  auto durationPoints = boost::chrono::high_resolution_clock::now() - startPoints;
+  printf("All points read in %d seconds || %02d:%02d:%02d\n", boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints),
+    boost::chrono::duration_cast<boost::chrono::hours>(durationPoints).count(),
+    boost::chrono::duration_cast<boost::chrono::minutes>(durationPoints).count() % 60,
+    boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
+  );
+
   if (bElevData == false) {
     std::cerr << "ERROR: Missing elevation data, cannot 3dfy the dataset. Aborting." << std::endl;
      return 0;

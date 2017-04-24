@@ -51,6 +51,7 @@ bool Water::is_hard() {
 bool Water::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   // Add elevation points with radius 0.0 to be inside the water polygon
   if (point_in_polygon(p, *(_p2))) {
+    std::lock_guard<std::mutex> lockGuard(_mutex);
     int zcm = int(z * 100);
     //-- 1. assign to polygon since within the threshold value (buffering of polygon)
     _zvaluesinside.push_back(zcm);
