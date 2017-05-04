@@ -4,6 +4,7 @@
 #include <CGAL/Polygon_mesh_processing/compute_normal.h>
 #include <CGAL/Polygon_mesh_processing/orientation.h>
 #include <CGAL/Polygon_mesh_processing/self_intersections.h>
+#include <CGAL/Polygon_mesh_processing/triangulate_hole.h>
 
 #include <CGAL/Triangulation_vertex_base_with_info_2.h>
 #include <CGAL/Triangulation_face_base_with_info_2.h>
@@ -27,11 +28,10 @@ typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 
 typedef K::Point_2    Point2;
 typedef K::Point_3    Point3;
-// typedef K::Vector_3   Vector3;
 
-typedef CGAL::Surface_mesh<Point3>                            SMesh;
-typedef SMesh::vertex_index                                   vertex_index;
-// typedef boost::graph_traits<SMesh>::face_descriptor    face_descriptor;
+typedef CGAL::Surface_mesh<Point3>                SMesh;
+typedef SMesh::vertex_index                       vertex_index;
+typedef SMesh::Face_index                         face_descriptor;
 
 typedef CGAL::Triangulation_vertex_base_with_info_2 <vertex_index,K>      Vb;
 typedef CGAL::Triangulation_face_base_with_info_2<FaceInfo2,K>            Fbb;
@@ -214,14 +214,24 @@ int main(int argc, char* argv[])
   mesh.add_face(bboxi2[0], bboxi2[2], bboxi2[1]);
 
 
-  
+  //-- fill holes
+  std::vector<face_descriptor> patch_facets;
+  for(auto hed : mesh.halfedges()) {
+    if (mesh.is_border(hed) == true) {
+      std::cout << "he border" << std::endl;
+      PMP::triangulate_hole(mesh, hed, std::back_inserter(patch_facets));
+      std::cout << " Number of facets in constructed patch: " << patch_facets.size() << std::endl;
+      // for (auto each : patch_facets)
+      //   std::cout << each << std::endl;
+      // break;
+    }
+  } 
  
-
-
-  // if (PMP::does_self_intersect(mesh) == true)
-  //   std::cout << "self-intersection? yes" << std::endl;
-  // else
-  //   std::cout << "self-intersection? no" << std::endl;
+  //-- check for self-intersections
+  if (PMP::does_self_intersect(mesh) == true)
+    std::cout << "self-intersection? yes" << std::endl;
+  else
+    std::cout << "self-intersection? no" << std::endl;
  
   // if (CGAL::Polygon_mesh_processing::is_outward_oriented(mesh) == true)
   //   std::cout << "OUTWARDS" << std::endl;
