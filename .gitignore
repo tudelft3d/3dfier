@@ -43,3 +43,5 @@ vs_build/.vs
 *.lib
 x64/
 x86/
+/ressources/convert-to-simulation/simulatorready
+/ressources/convert-to-simulation/out.off
