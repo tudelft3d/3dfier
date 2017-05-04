@@ -192,10 +192,29 @@ int main(int argc, char* argv[])
         if (mesh.add_face(fi->vertex(0)->info(), fi->vertex(2)->info(), fi->vertex(1)->info()) == SMesh::null_face())
           std::cout << "IMPOSSIBLE TO INSERT FACE " << std::endl;
       }
-
     }
   }
 
+  //-- close the 'bottom' of the model
+  std::vector<vertex_index> bboxi2;
+  bboxi2.push_back(mesh.add_vertex(Point3(minx, miny, -100)));
+  bboxi2.push_back(mesh.add_vertex(Point3(maxx, miny, -100)));
+  bboxi2.push_back(mesh.add_vertex(Point3(maxx, maxy, -100)));
+  bboxi2.push_back(mesh.add_vertex(Point3(minx, maxy, -100)));
+  
+  for (int i = 0; i < (bboxi.size() - 1); i++)
+  {
+    mesh.add_face(bboxi[i],  bboxi2[i], bboxi[i+1]);
+    mesh.add_face(bboxi2[i], bboxi2[i+1], bboxi[i+1]);
+  }
+  mesh.add_face(bboxi.back(),  bboxi2.back(),  bboxi.front());
+  mesh.add_face(bboxi2.back(), bboxi2.front(), bboxi.front());
+  //-- bottom face
+  mesh.add_face(bboxi2[0], bboxi2[3], bboxi2[2]);
+  mesh.add_face(bboxi2[0], bboxi2[2], bboxi2[1]);
+
+
+  
  
 
 
