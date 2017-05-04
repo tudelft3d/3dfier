@@ -6,12 +6,22 @@
 #include <CGAL/Polygon_mesh_processing/self_intersections.h>
 
 #include <CGAL/Triangulation_vertex_base_with_info_2.h>
+#include <CGAL/Triangulation_face_base_with_info_2.h>
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>
 
 #include <iostream>
 #include <fstream>
  
 namespace PMP = CGAL::Polygon_mesh_processing;
+
+struct FaceInfo2
+{
+  FaceInfo2(){}
+  int nesting_level;
+  bool in_domain(){ 
+    return nesting_level%2 == 1;
+  }
+};
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel K;
 
@@ -23,12 +33,72 @@ typedef CGAL::Surface_mesh<Point3>                            SMesh;
 typedef SMesh::vertex_index                                   vertex_index;
 // typedef boost::graph_traits<SMesh>::face_descriptor    face_descriptor;
 
-typedef CGAL::Triangulation_vertex_base_with_info_2 <vertex_index,K>        Vb;
-typedef CGAL::Constrained_triangulation_face_base_2<K>                      Fb;
-typedef CGAL::Triangulation_data_structure_2<Vb,Fb>                         TDS;
-typedef CGAL::Exact_intersections_tag                                       Itag;
-typedef CGAL::Constrained_Delaunay_triangulation_2<K, TDS, Itag>            CDT;
+typedef CGAL::Triangulation_vertex_base_with_info_2 <vertex_index,K>      Vb;
+typedef CGAL::Triangulation_face_base_with_info_2<FaceInfo2,K>            Fbb;
+typedef CGAL::Constrained_triangulation_face_base_2<K,Fbb>                Fb;
+typedef CGAL::Triangulation_data_structure_2<Vb,Fb>                       TDS;
+typedef CGAL::Exact_predicates_tag                                        Itag;
+typedef CGAL::Constrained_Delaunay_triangulation_2<K, TDS, Itag>          CDT;
+
+
+// typedef CGAL::Triangulation_vertex_base_with_info_2 <vertex_index,K>        Vb;
+// typedef CGAL::Constrained_triangulation_face_base_2<K>                      Fb;
+// typedef CGAL::Triangulation_data_structure_2<Vb,Fb>                         TDS;
+// typedef CGAL::Exact_intersections_tag                                       Itag;
+// typedef CGAL::Constrained_Delaunay_triangulation_2<K, TDS, Itag>            CDT;
           
+//explore set of facets connected with non constrained edges,
+//and attribute to each such set a nesting level.
+//We start from facets incident to the infinite vertex, with a nesting
+//level of 0. Then we recursively consider the non-explored facets incident 
+//to constrained edges bounding the former set and increase the nesting level by 1.
+//Facets in the domain are those with an odd nesting level.
+
+void 
+mark_domains(CDT& ct, 
+             CDT::Face_handle start, 
+             int index, 
+             std::list<CDT::Edge>& border )
+{
+  if(start->info().nesting_level != -1){
+    return;
+  }
+  std::list<CDT::Face_handle> queue;
+  queue.push_back(start);
+  while(! queue.empty()){
+    CDT::Face_handle fh = queue.front();
+    queue.pop_front();
+    if(fh->info().nesting_level == -1){
+      fh->info().nesting_level = index;
+      for(int i = 0; i < 3; i++){
+        CDT::Edge e(fh,i);
+        CDT::Face_handle n = fh->neighbor(i);
+        if(n->info().nesting_level == -1){
+          if(ct.is_constrained(e)) border.push_back(e);
+          else queue.push_back(n);
+        }
+      }
+    }
+  }
+}
+
+
+void mark_domains(CDT& cdt)
+{
+  for(CDT::All_faces_iterator it = cdt.all_faces_begin(); it != cdt.all_faces_end(); ++it){
+    it->info().nesting_level = -1;
+  }
+  std::list<CDT::Edge> border;
+  mark_domains(cdt, cdt.infinite_face(), 0, border);
+  while(! border.empty()){
+    CDT::Edge e = border.front();
+    border.pop_front();
+    CDT::Face_handle n = e.first->neighbor(e.second);
+    if(n->info().nesting_level == -1){
+      mark_domains(cdt, n, e.first->info().nesting_level+1, border);
+    }
+  }
+}
 
  
 int main(int argc, char* argv[])
@@ -110,35 +180,23 @@ int main(int argc, char* argv[])
   std::cout << "# vertices:  " << cdt.number_of_vertices() << std::endl;
   std::cout << "# triangles: " << cdt.number_of_faces() << std::endl;
 
-  // CDT::Finite_vertices_iterator vit;
-  // for (vit = cdt.finite_vertices_begin(); vit != cdt.finite_vertices_end(); ++vit) {
-    // std::cout << vit->info() << std::endl;
-  // }
-
-  // if (mesh.add_face(bboxi[0], bboxi[1], bboxi[2]) == SMesh::null_face())
-        // std::cout << "IMPOSSIBLE TO INSERT FACE " << std::endl;
-
-  // std::cout << "-----" << std::endl;
+  mark_domains(cdt);
   CDT::Finite_faces_iterator fi = cdt.finite_faces_begin();
   for( ; fi != cdt.finite_faces_end(); fi++)
   {
-    if ( (std::find(bboxi.begin(), bboxi.end(), fi->vertex(0)->info()) != bboxi.end()) ||
-         (std::find(bboxi.begin(), bboxi.end(), fi->vertex(1)->info()) != bboxi.end()) ||
-         (std::find(bboxi.begin(), bboxi.end(), fi->vertex(2)->info()) != bboxi.end()) )
+    if ( fi->info().in_domain() )
     {
-      std::cout << fi->vertex(0)->info() << " | ";
-      std::cout << fi->vertex(1)->info() << " | ";
-      std::cout << fi->vertex(2)->info() << std::endl;
-
       if (mesh.add_face(fi->vertex(0)->info(), fi->vertex(1)->info(), fi->vertex(2)->info()) == SMesh::null_face())
       {
-        mesh.add_face(fi->vertex(0)->info(), fi->vertex(2)->info(), fi->vertex(1)->info());
         std::cout << " -- FLIPPED -- " << std::endl;
-        // std::cout << "IMPOSSIBLE TO INSERT FACE " << std::endl;
+        if (mesh.add_face(fi->vertex(0)->info(), fi->vertex(2)->info(), fi->vertex(1)->info()) == SMesh::null_face())
+          std::cout << "IMPOSSIBLE TO INSERT FACE " << std::endl;
       }
+
     }
   }
-    
+
+ 
 
 
   // if (PMP::does_self_intersect(mesh) == true)
