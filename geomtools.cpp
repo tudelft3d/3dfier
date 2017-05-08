@@ -116,7 +116,7 @@ void mark_domains(CDT& cdt) {
 
 bool getCDT(const Polygon2* pgn,
   const std::vector< std::vector<int> > &z,
-  std::vector<Point3> &vertices,
+  std::vector<std::pair<Point3, std::string>> &vertices,
   std::vector<Triangle> &triangles,
   const std::vector<Point3> &lidarpts) {
   CDT cdt;
@@ -163,7 +163,8 @@ bool getCDT(const Polygon2* pgn,
   }
   for (CDT::Finite_vertices_iterator vit = cdt.finite_vertices_begin();
     vit != cdt.finite_vertices_end(); ++vit) {
-    vertices.push_back(Point3(vit->point().x(), vit->point().y(), vit->point().z()));
+    Point3 p = Point3(vit->point().x(), vit->point().y(), vit->point().z());
+    vertices.push_back(std::make_pair(p, gen_key_bucket(&p)));
     vit->id() = index++;
   }
 

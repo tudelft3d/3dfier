@@ -98,41 +98,44 @@ std::string Building::get_mtl() {
   return "usemtl Building";
 }
 
-void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::ostringstream &ss) {
+void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs) {
   if (lod == 1) {
-    TopoFeature::get_obj(dPts, mtl, ss);
+    TopoFeature::get_obj(dPts, mtl, fs);
   }
   else if (lod == 0) {
-    ss << mtl << "\n";
+    fs += mtl; 
+    fs += "\n";
     for (auto& t : _triangles) {
       unsigned long a, b, c;
       int z = this->get_height_base();
-      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0], z));
+      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
       if (it == dPts.end()) {
         a = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v0], z)] = a;
+        dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
       }
       else {
         a = it->second;
       }
-      it = dPts.find(gen_key_bucket(&_vertices[t.v1], z));
+      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
       if (it == dPts.end()) {
         b = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v1], z)] = b;
+        dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
       }
       else {
         b = it->second;
       }
-      it = dPts.find(gen_key_bucket(&_vertices[t.v2], z));
+      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
       if (it == dPts.end()) {
         c = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v2], z)] = c;
+        dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
       }
       else {
         c = it->second;
       }
-      if ((a != b) && (a != c) && (b != c))
-        ss << "f " << a << " " << b << " " << c << "\n";
+      if ((a != b) && (a != c) && (b != c)) {
+        //ss << "f " << a << " " << b << " " << c << "\n";
+        fs += "f "; fs += a; fs += " "; fs += b; fs += " "; fs += c; fs += "\n";
+      }
       // else
       //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
     }
@@ -311,11 +314,11 @@ bool Building::get_shape(OGRLayer* layer) {
     OGRPolygon polygon = OGRPolygon();
     OGRLinearRing ring = OGRLinearRing();
 
-    p = _vertices[t.v0];
+    p = _vertices[t.v0].first;
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices[t.v1];
+    p = _vertices[t.v1].first;
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices[t.v2];
+    p = _vertices[t.v2].first;
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
 
     ring.closeRings();
@@ -328,11 +331,11 @@ bool Building::get_shape(OGRLayer* layer) {
     OGRPolygon polygon = OGRPolygon();
     OGRLinearRing ring = OGRLinearRing();
 
-    p = _vertices_vw[t.v0];
+    p = _vertices_vw[t.v0].first;
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices_vw[t.v1];
+    p = _vertices_vw[t.v1].first;
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices_vw[t.v2];
+    p = _vertices_vw[t.v2].first;
     ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
 
     ring.closeRings();

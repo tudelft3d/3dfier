@@ -71,7 +71,7 @@ public:
   bool         get_top_level();
   std::string  get_wkt();
   bool         get_shape_features(OGRLayer* layer, std::string className);
-  void         get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::ostringstream &ssf);
+  void         get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs);
   std::string  get_imgeo_object_info(std::string id);
   std::string  get_citygml_attributes(std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes);
 protected:
@@ -88,10 +88,10 @@ protected:
   std::mutex                        _mutex;
 
   std::vector< std::vector< std::vector<int> > > _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
-  std::vector<Point3>   _vertices;  //-- output of Triangle
-  std::vector<Triangle> _triangles; //-- output of Triangle
-  std::vector<Point3>   _vertices_vw;  //-- for vertical walls
-  std::vector<Triangle> _triangles_vw; //-- for vertical walls
+  std::vector<std::pair<Point3, std::string>>   _vertices;
+  std::vector<Triangle> _triangles;
+  std::vector<std::pair<Point3, std::string>>   _vertices_vw;
+  std::vector<Triangle> _triangles_vw;
 
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(Point2 &p, double z, float radius);

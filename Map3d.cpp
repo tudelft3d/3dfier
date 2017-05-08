@@ -203,18 +203,21 @@ void Map3d::get_csv_buildings(std::ofstream &outputfile) {
 
 void Map3d::get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration) {
   std::unordered_map< std::string, unsigned long > dPts;
-  std::ostringstream ssf;
+  std::string fs;
   
   std::clock_t start = std::clock();
   
   for (auto& p : _lsFeatures) {
-    ssf << "o " << p->get_id() << "\n";
+    fs += "o ";
+    fs += p->get_id();
+    fs += "\n";
+    //ssf << "o " << p->get_id() << "\n";
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
-      b->get_obj(dPts, _building_lod, b->get_mtl(), ssf);
+      b->get_obj(dPts, _building_lod, b->get_mtl(), fs);
     }
     else {
-      p->get_obj(dPts, p->get_mtl(), ssf);
+      p->get_obj(dPts, p->get_mtl(), fs);
     }
   }
 
@@ -228,29 +231,29 @@ void Map3d::get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration) {
     thepts[p.second - 1] = p.first;
   dPts.clear();
 
-  outputfile << "mtllib ./3dfier.mtl" << std::endl;
+  outputfile << "mtllib ./3dfier.mtl" << "\n";
   for (auto& p : thepts) {
     outputfile << "v " << p << "\n";
   }
   printf("All vertices written in %d ms\n", std::clock() - start);
   start = std::clock();
 
-  outputfile << ssf.str() << std::endl;
+  outputfile << fs << std::endl;
   printf("All objects written in %d ms\n", std::clock() - start);
 }
 
 void Map3d::get_obj_per_class(std::ofstream &outputfile, int z_exaggeration) {
   std::unordered_map< std::string, unsigned long > dPts;
-  std::ostringstream ssf;
+  std::string fs;
   for (int c = 0; c < 6; c++) {
     for (auto& p : _lsFeatures) {
       if (p->get_class() == c) {
         if (p->get_class() == BUILDING) {
           Building* b = dynamic_cast<Building*>(p);
-          b->get_obj(dPts, _building_lod, b->get_mtl(), ssf);
+          b->get_obj(dPts, _building_lod, b->get_mtl(), fs);
         }
         else {
-          p->get_obj(dPts, p->get_mtl(), ssf);
+          p->get_obj(dPts, p->get_mtl(), fs);
         }
       }
     }
@@ -267,7 +270,7 @@ void Map3d::get_obj_per_class(std::ofstream &outputfile, int z_exaggeration) {
   for (auto& p : thepts) {
     outputfile << "v " << p << std::endl;
   }
-  outputfile << ssf.str() << std::endl;
+  outputfile << fs << std::endl;
 }
 
 bool Map3d::get_shapefile(std::string filename) {
