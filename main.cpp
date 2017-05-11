@@ -41,7 +41,6 @@
 #include "boost/chrono.hpp"
 #include "boost/filesystem.hpp"
 #include <boost/filesystem/operations.hpp>
-#include "ThreadPool.h"
 
 std::string VERSION = "0.9.5";
 
@@ -321,34 +320,15 @@ int main(int argc, const char * argv[]) {
     }
   }
   auto startPoints = boost::chrono::high_resolution_clock::now();
-  if (threadPoolSize > 1) {
-    ThreadPool* pool = new ThreadPool(threadPoolSize);
-    std::vector< std::future<bool> > results;
 
-    for (auto pointFile : fileList) {
-      results.emplace_back(
-        pool->enqueue([&map3d, pointFile] {
-        return map3d.add_las_file(pointFile);
-      })
-      );
+  for (auto file : fileList) {
+    bool added = map3d.add_las_file(file);
+    if (!added) {
+      bElevData = false;
+      break;
     }
-
-    bElevData = false;
-    for (auto && result : results) {
-      bElevData = bElevData || result.get();
-    }
-    delete pool;
-  }
-  else {
-    for (auto file : fileList) {
-      bool added = map3d.add_las_file(file);
-      if (!added) {
-        bElevData = false;
-        break;
-      }
-      else {
-        bElevData = true;
-      }
+    else {
+      bElevData = true;
     }
   }
 

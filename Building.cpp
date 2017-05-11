@@ -63,7 +63,6 @@ bool Building::lift() {
 bool Building::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn) {
     if (within_range(p, *(_p2), radius)) {
-      std::lock_guard<std::mutex> lockGuard(_mutex);
       int zcm = int(z * 100);
       //-- 1. Save the ground points seperate for base height
       if (lasclass == LAS_GROUND || lasclass == LAS_WATER) {

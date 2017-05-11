@@ -221,9 +221,6 @@ void Map3d::get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration) {
     }
   }
 
-  printf("All objects collected in %d ms\n", std::clock() - start);
-  start = std::clock();
-
   //-- sort the points in the map: simpler to copy to a vector
   std::vector<std::string> thepts;
   thepts.resize(dPts.size());
@@ -235,11 +232,6 @@ void Map3d::get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration) {
   for (auto& p : thepts) {
     outputfile << "v " << p << "\n";
   }
-  printf("All vertices written in %d ms\n", std::clock() - start);
-  start = std::clock();
-
-  outputfile << fs << std::endl;
-  printf("All objects written in %d ms\n", std::clock() - start);
 }
 
 void Map3d::get_obj_per_class(std::ofstream &outputfile, int z_exaggeration) {

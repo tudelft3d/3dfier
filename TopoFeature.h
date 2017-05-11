@@ -32,7 +32,6 @@
 #include "definitions.h"
 #include "geomtools.h"
 #include <random>
-#include <mutex>
 
 class TopoFeature {
 public:
@@ -85,7 +84,6 @@ protected:
   bool                              _toplevel;
   std::string                       _layername;
   std::vector<std::tuple<std::string, OGRFieldType, std::string>> _attributes;
-  std::mutex                        _mutex;
 
   std::vector< std::vector< std::vector<int> > > _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
   std::vector<std::pair<Point3, std::string>>   _vertices;

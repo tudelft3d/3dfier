@@ -56,8 +56,5 @@
     <ClInclude Include="..\Bridge.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\ThreadPool.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
