@@ -62,52 +62,46 @@ bool Bridge::lift() {
   return true;
 }
 
-std::string Bridge::get_citygml() {
-  std::stringstream ss;
-  ss << "<cityObjectMember>" << std::endl;
-  ss << "<brg:Bridge gml:id=\"" << this->get_id() << "\">" << std::endl;
-  ss << get_citygml_attributes(_attributes);
-  ss << "<brg:lod1MultiSurface>" << std::endl;
-  ss << "<gml:MultiSurface>" << std::endl;
-  ss << std::setprecision(3) << std::fixed;
+void Bridge::get_citygml(std::ofstream &outputfile) {
+  outputfile << "<cityObjectMember>\n";
+  outputfile << "<brg:Bridge gml:id=\"" << this->get_id() << "\">\n";
+  get_citygml_attributes(outputfile, _attributes);
+  outputfile << "<brg:lod1MultiSurface>\n";
+  outputfile << "<gml:MultiSurface>\n";
   for (auto& t : _triangles)
-    ss << get_triangle_as_gml_surfacemember(t);
+    get_triangle_as_gml_surfacemember(outputfile, t);
   for (auto& t : _triangles_vw)
-    ss << get_triangle_as_gml_surfacemember(t, true);
-  ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</brg:lod1MultiSurface>" << std::endl;
-  ss << "</brg:Bridge>" << std::endl;
-  ss << "</cityObjectMember>" << std::endl;
-  return ss.str();
+    get_triangle_as_gml_surfacemember(outputfile, t, true);
+  outputfile << "</gml:MultiSurface>\n";
+  outputfile << "</brg:lod1MultiSurface>\n";
+  outputfile << "</brg:Bridge>\n";
+  outputfile << "</cityObjectMember>\n";
 }
 
-std::string Bridge::get_citygml_imgeo() {
-  std::stringstream ss;
-  ss << "<cityObjectMember>" << std::endl;
-  ss << "<bri:BridgeConstructionElement gml:id=\"" << this->get_id() << "\">" << std::endl;
-  ss << get_imgeo_object_info(this->get_id());
-  ss << "<bri:lod1Geometry>" << std::endl;
-  ss << "<gml:MultiSurface>" << std::endl;
-  ss << std::setprecision(3) << std::fixed;
+void Bridge::get_citygml_imgeo(std::ofstream &outputfile) {
+  outputfile << "<cityObjectMember>\n";
+  outputfile << "<bri:BridgeConstructionElement gml:id=\"" << this->get_id() << "\">\n";
+  get_imgeo_object_info(outputfile, this->get_id());
+  outputfile << "<bri:lod1Geometry>\n";
+  outputfile << "<gml:MultiSurface>\n";
   for (auto& t : _triangles)
-    ss << get_triangle_as_gml_surfacemember(t);
+    get_triangle_as_gml_surfacemember(outputfile, t);
   for (auto& t : _triangles_vw)
-    ss << get_triangle_as_gml_surfacemember(t, true);
-  ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</bri:lod1Geometry>" << std::endl;
+    get_triangle_as_gml_surfacemember(outputfile, t, true);
+  outputfile << "</gml:MultiSurface>\n";
+  outputfile << "</bri:lod1Geometry>\n";
   std::string attribute;
   if (get_attribute("bgt-type", attribute)) {
-    ss << "<bri:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbruggingsdeel\">" << attribute << "</bri:function>" << std::endl;
+    outputfile << "<bri:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbruggingsdeel\">" << attribute << "</bri:function>\n";
   }
   if (get_attribute("hoortbijtypeoverbrugging", attribute)) {
-    ss << "<imgeo:hoortBijTypeOverbrugging codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbrugging\">" << attribute << "</imgeo:hoortBijTypeOverbrugging>" << std::endl;
+    outputfile << "<imgeo:hoortBijTypeOverbrugging codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbrugging\">" << attribute << "</imgeo:hoortBijTypeOverbrugging>\n";
   }
   if (get_attribute("overbruggingisbeweegbaar", attribute)) {
-    ss << "<imgeo:overbruggingIsBeweegbaar>" << attribute << "</imgeo:overbruggingIsBeweegbaar>" << std::endl;
+    outputfile << "<imgeo:overbruggingIsBeweegbaar>" << attribute << "</imgeo:overbruggingIsBeweegbaar>\n";
   }
-  ss << "</bri:BridgeConstructionElement>" << std::endl;
-  ss << "</cityObjectMember>" << std::endl;
-  return ss.str();
+  outputfile << "</bri:BridgeConstructionElement>\n";
+  outputfile << "</cityObjectMember>\n";
 }
 
 bool Bridge::get_shape(OGRLayer* layer) {

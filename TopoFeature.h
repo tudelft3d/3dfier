@@ -45,8 +45,8 @@ public:
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
   virtual std::string   get_mtl() = 0;
-  virtual std::string   get_citygml() = 0;
-  virtual std::string   get_citygml_imgeo() = 0;
+  virtual void          get_citygml(std::ofstream &outputfile) = 0;
+  virtual void          get_citygml_imgeo(std::ofstream &outputfile) = 0;
   virtual bool          get_shape(OGRLayer*) = 0;
 
   std::string  get_id();
@@ -71,8 +71,8 @@ public:
   std::string  get_wkt();
   bool         get_shape_features(OGRLayer* layer, std::string className);
   void         get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs);
-  std::string  get_imgeo_object_info(std::string id);
-  std::string  get_citygml_attributes(std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes);
+  void         get_imgeo_object_info(std::ofstream &outputfile, std::string id);
+  void         get_citygml_attributes(std::ofstream &outputfile, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes);
 protected:
   Polygon2*                         _p2;
   std::vector< std::vector<int> >   _p2z;
@@ -99,8 +99,8 @@ protected:
   void    lift_each_boundary_vertices(float percentile);
   void    lift_all_boundary_vertices_same_height(int height);
 
-  std::string get_triangle_as_gml_surfacemember(Triangle& t, bool verticalwall = false);
-  std::string get_triangle_as_gml_triangle(Triangle& t, bool verticalwall = false);
+  void get_triangle_as_gml_surfacemember(std::ofstream &outputfile, Triangle& t, bool verticalwall = false);
+  void get_triangle_as_gml_triangle(std::ofstream &outputfile, Triangle& t, bool verticalwall = false);
   bool get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue = "");
 };
 
@@ -115,7 +115,7 @@ public:
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;
   virtual bool        lift() = 0;
-  virtual std::string get_citygml() = 0;
+  virtual void        get_citygml(std::ofstream &outputfile) = 0;
 protected:
   std::vector<int>    _zvaluesinside;
   bool                lift_percentile(float percentile);
@@ -131,7 +131,7 @@ public:
   virtual TopoClass    get_class() = 0;
   virtual bool         is_hard() = 0;
   virtual bool         lift() = 0;
-  virtual std::string  get_citygml() = 0;
+  virtual void         get_citygml(std::ofstream &outputfile) = 0;
 protected:
   int                  _simplification;
   void                 smooth_boundary(int passes = 1);
@@ -147,7 +147,7 @@ public:
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;
   virtual bool        lift() = 0;
-  virtual std::string get_citygml() = 0;
+  virtual void        get_citygml(std::ofstream &outputfile) = 0;
   bool                buildCDT();
 protected:
   int                 _simplification;

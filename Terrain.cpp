@@ -59,52 +59,46 @@ bool Terrain::lift() {
   return true;
 }
 
-std::string Terrain::get_citygml() {
-  std::stringstream ss;
-  ss << "<cityObjectMember>" << std::endl;
-  ss << "<luse:LandUse gml:id=\"" << this->get_id() << "\">" << std::endl;
-  ss << get_citygml_attributes(_attributes);
-  ss << "<luse:lod1MultiSurface>" << std::endl;
-  ss << "<gml:MultiSurface>" << std::endl;
-  ss << std::setprecision(3) << std::fixed;
+void Terrain::get_citygml(std::ofstream &outputfile) {
+  outputfile << "<cityObjectMember>\n";
+  outputfile << "<luse:LandUse gml:id=\"" << this->get_id() << "\">\n";
+  get_citygml_attributes(outputfile, _attributes);
+  outputfile << "<luse:lod1MultiSurface>\n";
+  outputfile << "<gml:MultiSurface>\n";
   for (auto& t : _triangles)
-    ss << get_triangle_as_gml_surfacemember(t);
+    get_triangle_as_gml_surfacemember(outputfile, t);
   for (auto& t : _triangles_vw)
-    ss << get_triangle_as_gml_surfacemember(t, true);
-  ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</luse:lod1MultiSurface>" << std::endl;
-  ss << "</luse:LandUse>" << std::endl;
-  ss << "</cityObjectMember>" << std::endl;
-  return ss.str();
+    get_triangle_as_gml_surfacemember(outputfile, t, true);
+  outputfile << "</gml:MultiSurface>\n";
+  outputfile << "</luse:lod1MultiSurface>\n";
+  outputfile << "</luse:LandUse>\n";
+  outputfile << "</cityObjectMember>\n";
 }
 
-std::string Terrain::get_citygml_imgeo() {
-  std::stringstream ss;
-  ss << "<cityObjectMember>" << std::endl;
-  ss << "<imgeo:OnbegroeidTerreindeel gml:id=\"" << this->get_id() << "\">" << std::endl;
-  ss << get_imgeo_object_info(this->get_id());
-  ss << "<lu:lod1MultiSurface>" << std::endl;
-  ss << "<gml:MultiSurface>" << std::endl;
-  ss << std::setprecision(3) << std::fixed;
+void Terrain::get_citygml_imgeo(std::ofstream &outputfile) {
+  outputfile << "<cityObjectMember>\n";
+  outputfile << "<imgeo:OnbegroeidTerreindeel gml:id=\"" << this->get_id() << "\">\n";
+  get_imgeo_object_info(outputfile, this->get_id());
+  outputfile << "<lu:lod1MultiSurface>\n";
+  outputfile << "<gml:MultiSurface>\n";
   for (auto& t : _triangles)
-    ss << get_triangle_as_gml_surfacemember(t);
+    get_triangle_as_gml_surfacemember(outputfile, t);
   for (auto& t : _triangles_vw)
-    ss << get_triangle_as_gml_surfacemember(t, true);
-  ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</lu:lod1MultiSurface>" << std::endl;
+    get_triangle_as_gml_surfacemember(outputfile, t, true);
+  outputfile << "</gml:MultiSurface>\n";
+  outputfile << "</lu:lod1MultiSurface>\n";
   std::string attribute;
   if (get_attribute("bgt-fysiekvoorkomen", attribute)) {
-    ss << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" << attribute /*"erf"*/ << "</imgeo:bgt-fysiekVoorkomen>" << std::endl;
+    outputfile << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" << attribute /*"erf"*/ << "</imgeo:bgt-fysiekVoorkomen>\n";
   }
   if (get_attribute("onbegroeidterreindeeloptalud", attribute, "false")) {
-    ss << "<imgeo:onbegroeidTerreindeelOpTalud>" << attribute << "</imgeo:onbegroeidTerreindeelOpTalud>" << std::endl;
+    outputfile << "<imgeo:onbegroeidTerreindeelOpTalud>" << attribute << "</imgeo:onbegroeidTerreindeelOpTalud>\n";
   }
   if (get_attribute("plus-fysiekvoorkomen", attribute)) {
-    ss << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>" << std::endl;
+    outputfile << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>\n";
   }
-  ss << "</imgeo:OnbegroeidTerreindeel>" << std::endl;
-  ss << "</cityObjectMember>" << std::endl;
-  return ss.str();
+  outputfile << "</imgeo:OnbegroeidTerreindeel>\n";
+  outputfile << "</cityObjectMember>\n";
 }
 
 bool Terrain::get_shape(OGRLayer* layer) {

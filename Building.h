@@ -37,10 +37,10 @@ public:
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   void          get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs);
-  std::string   get_citygml();
-  std::string   get_citygml_imgeo();
-  std::string   get_imgeo_nummeraanduiding();
-  std::string   get_csv();
+  void          get_citygml(std::ofstream &outputfile);
+  void          get_citygml_imgeo(std::ofstream &outputfile);
+  void          get_imgeo_nummeraanduiding(std::ofstream &outputfile);
+  void          get_csv(std::ofstream &outputfile);
   std::string   get_mtl();
   bool          get_shape(OGRLayer * layer);
   TopoClass     get_class();

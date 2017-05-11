@@ -87,10 +87,8 @@ bool Building::is_hard() {
   return true;
 }
 
-std::string Building::get_csv() {
-  std::stringstream ss;
-  ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << std::endl;
-  return ss.str();
+void Building::get_csv(std::ofstream &outputfile) {
+  outputfile << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << "\n";
 }
 
 std::string Building::get_mtl() {
@@ -132,119 +130,114 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
         c = it->second;
       }
       if ((a != b) && (a != c) && (b != c)) {
-        //ss << "f " << a << " " << b << " " << c << "\n";
+        //outputfile << "f " << a << " " << b << " " << c << "\n";
         fs += "f "; fs += a; fs += " "; fs += b; fs += " "; fs += c; fs += "\n";
       }
       // else
-      //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
+      //   std::clog << "COLLAPSED TRIANGLE REMOVED\n";
     }
   }
 }
 
-std::string Building::get_citygml() {
+void Building::get_citygml(std::ofstream &outputfile) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
-  std::stringstream ss;
-  ss << "<cityObjectMember>" << std::endl;
-  ss << "<bldg:Building gml:id=\"" << this->get_id() << "\">" << std::endl;
-  ss << get_citygml_attributes(_attributes);
-  ss << "<gen:measureAttribute name=\"min height surface\">" << std::endl;
-  ss << "<gen:value uom=\"#m\">" << hbase << "</gen:value>" << std::endl;
-  ss << "</gen:measureAttribute>" << std::endl;
-  ss << "<bldg:measuredHeight uom=\"#m\">" << h << "</bldg:measuredHeight>" << std::endl;
+  outputfile << "<cityObjectMember>\n";
+  outputfile << "<bldg:Building gml:id=\"" << this->get_id() << "\">\n";
+  get_citygml_attributes(outputfile, _attributes);
+  outputfile << "<gen:measureAttribute name=\"min height surface\">\n";
+  outputfile << "<gen:value uom=\"#m\">" << hbase << "</gen:value>\n";
+  outputfile << "</gen:measureAttribute>\n";
+  outputfile << "<bldg:measuredHeight uom=\"#m\">" << h << "</bldg:measuredHeight>\n";
   //-- LOD0 footprint
-  ss << "<bldg:lod0FootPrint>" << std::endl;
-  ss << "<gml:MultiSurface>" << std::endl;
-  ss << get_polygon_lifted_gml(this->_p2, hbase, true);
-  ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</bldg:lod0FootPrint>" << std::endl;
+  outputfile << "<bldg:lod0FootPrint>\n";
+  outputfile << "<gml:MultiSurface>\n";
+  get_polygon_lifted_gml(outputfile, this->_p2, hbase, true);
+  outputfile << "</gml:MultiSurface>\n";
+  outputfile << "</bldg:lod0FootPrint>\n";
   //-- LOD0 roofedge
-  ss << "<bldg:lod0RoofEdge>" << std::endl;
-  ss << "<gml:MultiSurface>" << std::endl;
-  ss << get_polygon_lifted_gml(this->_p2, h, true);
-  ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</bldg:lod0RoofEdge>" << std::endl;
+  outputfile << "<bldg:lod0RoofEdge>\n";
+  outputfile << "<gml:MultiSurface>\n";
+  get_polygon_lifted_gml(outputfile, this->_p2, h, true);
+  outputfile << "</gml:MultiSurface>\n";
+  outputfile << "</bldg:lod0RoofEdge>\n";
   //-- LOD1 Solid
-  ss << "<bldg:lod1Solid>" << std::endl;
-  ss << "<gml:Solid>" << std::endl;
-  ss << "<gml:exterior>" << std::endl;
-  ss << "<gml:CompositeSurface>" << std::endl;
+  outputfile << "<bldg:lod1Solid>\n";
+  outputfile << "<gml:Solid>\n";
+  outputfile << "<gml:exterior>\n";
+  outputfile << "<gml:CompositeSurface>\n";
   //-- get floor
-  ss << get_polygon_lifted_gml(this->_p2, hbase, false);
+  get_polygon_lifted_gml(outputfile, this->_p2, hbase, false);
   //-- get roof
-  ss << get_polygon_lifted_gml(this->_p2, h, true);
+  get_polygon_lifted_gml(outputfile, this->_p2, h, true);
   //-- get the walls
   auto r = bg::exterior_ring(*(this->_p2));
   int i;
   for (i = 0; i < (r.size() - 1); i++)
-    ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
-  ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
+    get_extruded_line_gml(outputfile, &r[i], &r[i + 1], h, hbase, false);
+  get_extruded_line_gml(outputfile, &r[i], &r[0], h, hbase, false);
   //-- irings
   auto irings = bg::interior_rings(*(this->_p2));
   for (Ring2& r : irings) {
     for (i = 0; i < (r.size() - 1); i++)
-      ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
-    ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
+      get_extruded_line_gml(outputfile, &r[i], &r[i + 1], h, hbase, false);
+    get_extruded_line_gml(outputfile, &r[i], &r[0], h, hbase, false);
   }
-  ss << "</gml:CompositeSurface>" << std::endl;
-  ss << "</gml:exterior>" << std::endl;
-  ss << "</gml:Solid>" << std::endl;
-  ss << "</bldg:lod1Solid>" << std::endl;
-  ss << "</bldg:Building>" << std::endl;
-  ss << "</cityObjectMember>" << std::endl;
-  return ss.str();
+  outputfile << "</gml:CompositeSurface>\n";
+  outputfile << "</gml:exterior>\n";
+  outputfile << "</gml:Solid>\n";
+  outputfile << "</bldg:lod1Solid>\n";
+  outputfile << "</bldg:Building>\n";
+  outputfile << "</cityObjectMember>\n";
 }
 
-std::string Building::get_citygml_imgeo() {
+void Building::get_citygml_imgeo(std::ofstream &outputfile) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
-  std::stringstream ss;
-  ss << "<cityObjectMember>" << std::endl;
-  ss << "<bui:Building gml:id=\"" << this->get_id() << "\">" << std::endl;
+  outputfile << "<cityObjectMember>\n";
+  outputfile << "<bui:Building gml:id=\"" << this->get_id() << "\">\n";
   //-- store building information
-  ss << get_imgeo_object_info(this->get_id());
-  ss << "<bui:consistsOfBuildingPart>" << std::endl;
-  ss << "<bui:BuildingPart>" << std::endl;
+  get_imgeo_object_info(outputfile, this->get_id());
+  outputfile << "<bui:consistsOfBuildingPart>\n";
+  outputfile << "<bui:BuildingPart>\n";
   //-- LOD1 Solid
-  ss << "<bui:lod1Solid>" << std::endl;
-  ss << "<gml:Solid>" << std::endl;
-  ss << "<gml:exterior>" << std::endl;
-  ss << "<gml:CompositeSurface>" << std::endl;
+  outputfile << "<bui:lod1Solid>\n";
+  outputfile << "<gml:Solid>\n";
+  outputfile << "<gml:exterior>\n";
+  outputfile << "<gml:CompositeSurface>\n";
   //-- get floor
-  ss << get_polygon_lifted_gml(this->_p2, hbase, false);
+  get_polygon_lifted_gml(outputfile, this->_p2, hbase, false);
   //-- get roof
-  ss << get_polygon_lifted_gml(this->_p2, h, true);
+  get_polygon_lifted_gml(outputfile, this->_p2, h, true);
   //-- get the walls
   auto r = bg::exterior_ring(*(this->_p2));
   int i;
   for (i = 0; i < (r.size() - 1); i++)
-    ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
-  ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
+    get_extruded_line_gml(outputfile, &r[i], &r[i + 1], h, hbase, false);
+  get_extruded_line_gml(outputfile, &r[i], &r[0], h, hbase, false);
   //-- irings
   auto irings = bg::interior_rings(*(this->_p2));
   for (Ring2& r : irings) {
     for (i = 0; i < (r.size() - 1); i++)
-      ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
-    ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
+      get_extruded_line_gml(outputfile, &r[i], &r[i + 1], h, hbase, false);
+    get_extruded_line_gml(outputfile, &r[i], &r[0], h, hbase, false);
   }
-  ss << "</gml:CompositeSurface>" << std::endl;
-  ss << "</gml:exterior>" << std::endl;
-  ss << "</gml:Solid>" << std::endl;
-  ss << "</bui:lod1Solid>" << std::endl;
+  outputfile << "</gml:CompositeSurface>\n";
+  outputfile << "</gml:exterior>\n";
+  outputfile << "</gml:Solid>\n";
+  outputfile << "</bui:lod1Solid>\n";
   std::string attribute;
   if (get_attribute("identificatiebagpnd", attribute)) {
-    ss << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>" << std::endl;
+    outputfile << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>\n";
   }
-  ss << get_imgeo_nummeraanduiding();
-  ss << "</bui:BuildingPart>" << std::endl;
-  ss << "</bui:consistsOfBuildingPart>" << std::endl;
-  ss << "</bui:Building>" << std::endl;
-  ss << "</cityObjectMember>" << std::endl;
-  return ss.str();
+  get_imgeo_nummeraanduiding(outputfile);
+  outputfile << "</bui:BuildingPart>\n";
+  outputfile << "</bui:consistsOfBuildingPart>\n";
+  outputfile << "</bui:Building>\n";
+  outputfile << "</cityObjectMember>\n";
 }
 
-std::string Building::get_imgeo_nummeraanduiding() {
-  std::stringstream ss;
+void Building::get_imgeo_nummeraanduiding(std::ofstream &outputfile) {
   std::string attribute;
   bool btekst, bplaatsingspunt, bhoek, blaagnr, bhoognr;
   std::string tekst, plaatsingspunt, hoek, laagnr, hoognr;
@@ -275,31 +268,30 @@ std::string Building::get_imgeo_nummeraanduiding() {
     int count = boost::lexical_cast<int>(tekst[1]);
     for (int i = 0; i < count; i++) {
       if (i < tekst_split.size() && i < plaatsingspunt_split.size() && i < hoek_split.size()) {
-        ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
-        ss << "<imgeo:Nummeraanduidingreeks>" << std::endl;
-        ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
-        ss << "<imgeo:Label>" << std::endl;
-        ss << "<imgeo:tekst>" << tekst_split.at(i) << "</imgeo:tekst>" << std::endl;
-        ss << "<imgeo:positie>" << std::endl;
-        ss << "<imgeo:Labelpositie>" << std::endl;
-        ss << "<imgeo:plaatsingspunt><gml:Point srsDimension=\"2\"><gml:pos>" << plaatsingspunt_split.at(i) << "</gml:pos></gml:Point></imgeo:plaatsingspunt>" << std::endl;
-        ss << "<imgeo:hoek>" << hoek_split.at(i) << "</imgeo:hoek>" << std::endl;
-        ss << "</imgeo:Labelpositie>" << std::endl;
-        ss << "</imgeo:positie>" << std::endl;
-        ss << "</imgeo:Label>" << std::endl;
-        ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
+        outputfile << "<imgeo:nummeraanduidingreeks>\n";
+        outputfile << "<imgeo:Nummeraanduidingreeks>\n";
+        outputfile << "<imgeo:nummeraanduidingreeks>\n";
+        outputfile << "<imgeo:Label>\n";
+        outputfile << "<imgeo:tekst>" << tekst_split.at(i) << "</imgeo:tekst>\n";
+        outputfile << "<imgeo:positie>\n";
+        outputfile << "<imgeo:Labelpositie>\n";
+        outputfile << "<imgeo:plaatsingspunt><gml:Point srsDimension=\"2\"><gml:pos>" << plaatsingspunt_split.at(i) << "</gml:pos></gml:Point></imgeo:plaatsingspunt>\n";
+        outputfile << "<imgeo:hoek>" << hoek_split.at(i) << "</imgeo:hoek>\n";
+        outputfile << "</imgeo:Labelpositie>\n";
+        outputfile << "</imgeo:positie>\n";
+        outputfile << "</imgeo:Label>\n";
+        outputfile << "</imgeo:nummeraanduidingreeks>\n";
         if (i < laagnr_split.size()) {
-          ss << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << laagnr_split.at(i) << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>" << std::endl;
+          outputfile << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << laagnr_split.at(i) << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>\n";
         }
         if (i < hoognr_split.size()) {
-          ss << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << hoognr_split.at(i) << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>" << std::endl;
+          outputfile << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << hoognr_split.at(i) << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>\n";
         }
-        ss << "</imgeo:Nummeraanduidingreeks>" << std::endl;
-        ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
+        outputfile << "</imgeo:Nummeraanduidingreeks>\n";
+        outputfile << "</imgeo:nummeraanduidingreeks>\n";
       }
     }
   }
-  return ss.str();
 }
 
 bool Building::get_shape(OGRLayer* layer) {
@@ -349,7 +341,7 @@ bool Building::get_shape(OGRLayer* layer) {
   feature->SetField("RoofHeight", z_to_float(this->get_height()));
 
   if (layer->CreateFeature(feature) != OGRERR_NONE) {
-    std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
+    std::cerr << "Failed to create feature " << this->get_id() << " in shapefile.\n";
     return false;
   }
   OGRFeature::DestroyFeature(feature);

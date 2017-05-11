@@ -58,7 +58,7 @@ TopoFeature::TopoFeature(char *wkt, std::string layername, std::vector<std::tupl
 
 TopoFeature::~TopoFeature() {
   // TODO: clear memory properly
-  std::clog << "I am dead now." << std::endl;
+  std::clog << "I am dead now.\n";
 }
 
 Box2 TopoFeature::get_bbox2d() {
@@ -91,7 +91,7 @@ Polygon2* TopoFeature::get_Polygon2() {
 }
 
 void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs) {
-  // ss << mtl << "\n";
+  // outputfile << mtl << "\n";
   fs += mtl; fs += "\n";
   for (auto& t : _triangles) {
     unsigned long a, b, c;
@@ -119,16 +119,16 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
       c = it->second;
 
     if ((a != b) && (a != c) && (b != c)) {  
-      //ss << "f " << a << " " << b << " " << c << "\n";
+      //outputfile << "f " << a << " " << b << " " << c << "\n";
       fs += "f "; fs += a; fs += " "; fs += b; fs += " "; fs += c; fs += "\n";
     }
     // else
-    //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
+    //   std::clog << "COLLAPSED TRIANGLE REMOVED\n";
   }
 
   //-- vertical triangles
   if (_bVerticalWalls == true && _triangles_vw.size() > 0) {
-    //ss << mtl << "Wall" << "\n";
+    //outputfile << mtl << "Wall" << "\n";
     fs += mtl; fs += "Wall"; fs += "\n";
   }
 
@@ -157,60 +157,57 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
       c = it->second;
 
     if ((a != b) && (a != c) && (b != c)) {
-      //ss << "f " << a << " " << b << " " << c << "\n";
+      //outputfile << "f " << a << " " << b << " " << c << "\n";
       fs += "f "; fs += a; fs += " "; fs += b; fs += " "; fs += c; fs += "\n";
     }
     // else
-    //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
+    //   std::clog << "COLLAPSED TRIANGLE REMOVED\n";
   }
 }
 
-std::string TopoFeature::get_imgeo_object_info(std::string id) {
-  std::stringstream ss;
+void TopoFeature::get_imgeo_object_info(std::ofstream &outputfile, std::string id) {
   std::string attribute;
   if (get_attribute("creationDate", attribute)) {
-    ss << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>" << std::endl;
+    outputfile << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>\n";
   }
   if (get_attribute("terminationDate", attribute)) {
-    ss << "<imgeo:terminationDate>" << attribute << "</imgeo:terminationDate>" << std::endl;
+    outputfile << "<imgeo:terminationDate>" << attribute << "</imgeo:terminationDate>\n";
   }
   if (get_attribute("lokaalid", attribute)) {
-    ss << "<imgeo:identificatie>" << std::endl;
-    ss << "<imgeo:NEN3610ID>" << std::endl;
-    ss << "<imgeo:namespace>NL.IMGeo</imgeo:namespace>" << std::endl;
-    ss << "<imgeo:lokaalID>" << attribute << "</imgeo:lokaalID>" << std::endl;
-    ss << "</imgeo:NEN3610ID>" << std::endl;
-    ss << "</imgeo:identificatie>" << std::endl;
+    outputfile << "<imgeo:identificatie>\n";
+    outputfile << "<imgeo:NEN3610ID>\n";
+    outputfile << "<imgeo:namespace>NL.IMGeo</imgeo:namespace>\n";
+    outputfile << "<imgeo:lokaalID>" << attribute << "</imgeo:lokaalID>\n";
+    outputfile << "</imgeo:NEN3610ID>\n";
+    outputfile << "</imgeo:identificatie>\n";
   }
   if (get_attribute("tijdstipregistratie", attribute)) {
-    ss << "<imgeo:tijdstipRegistratie>" << attribute << "</imgeo:tijdstipRegistratie>" << std::endl;
+    outputfile << "<imgeo:tijdstipRegistratie>" << attribute << "</imgeo:tijdstipRegistratie>\n";
   }
   if (get_attribute("eindregistratie", attribute)) {
-    ss << "<imgeo:eindRegistratie>" << attribute << "</imgeo:eindRegistratie>" << std::endl;
+    outputfile << "<imgeo:eindRegistratie>" << attribute << "</imgeo:eindRegistratie>\n";
   }
   if (get_attribute("lv-publicatiedatum", attribute)) {
-    ss << "<imgeo:LV-publicatiedatum>" << attribute << "</imgeo:LV-publicatiedatum>" << std::endl;
+    outputfile << "<imgeo:LV-publicatiedatum>" << attribute << "</imgeo:LV-publicatiedatum>\n";
   }
   if (get_attribute("bronhouder", attribute)) {
-    ss << "<imgeo:bronhouder>" << attribute << "</imgeo:bronhouder>" << std::endl;
+    outputfile << "<imgeo:bronhouder>" << attribute << "</imgeo:bronhouder>\n";
   }
   if (get_attribute("inonderzoek", attribute)) {
-    ss << "<imgeo:inOnderzoek>" << attribute << "</imgeo:inOnderzoek>" << std::endl;
+    outputfile << "<imgeo:inOnderzoek>" << attribute << "</imgeo:inOnderzoek>\n";
   }
   if (get_attribute("relatievehoogteligging", attribute)) {
-    ss << "<imgeo:relatieveHoogteligging>" << attribute << "</imgeo:relatieveHoogteligging>" << std::endl;
+    outputfile << "<imgeo:relatieveHoogteligging>" << attribute << "</imgeo:relatieveHoogteligging>\n";
   }
   if (get_attribute("bgt-status", attribute, "bestaand")) {
-    ss << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" << attribute << "</imgeo:bgt-status>" << std::endl;
+    outputfile << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" << attribute << "</imgeo:bgt-status>\n";
   }
   if (get_attribute("plus-status", attribute)) {
-    ss << "<imgeo:plus-status>" << attribute << "</imgeo:plus-status>" << std::endl;
+    outputfile << "<imgeo:plus-status>" << attribute << "</imgeo:plus-status>\n";
   }
-  return ss.str();
 }
 
-std::string TopoFeature::get_citygml_attributes(std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes) {
-  std::stringstream ss;
+void TopoFeature::get_citygml_attributes(std::ofstream &outputfile, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes) {
   for (auto& attribute : attributes) {
     // add attributes except gml_id
     if (std::get<0>(attribute).compare("gml_id") != 0) {
@@ -225,12 +222,11 @@ std::string TopoFeature::get_citygml_attributes(std::vector<std::tuple<std::stri
       default:
         type = "string";
       }
-      ss << "<gen:" + type + "Attribute name=\"" + std::get<0>(attribute) + "\">" << std::endl;
-      ss << "<gen:value>" + std::get<2>(attribute) + "</gen:value>" << std::endl;
-      ss << "</gen:" + type << "Attribute>" << std::endl;
+      outputfile << "<gen:" + type + "Attribute name=\"" + std::get<0>(attribute) + "\">\n";
+      outputfile << "<gen:value>" + std::get<2>(attribute) + "</gen:value>\n";
+      outputfile << "</gen:" + type << "Attribute>\n";
     }
   }
-  return ss.str();
 }
 
 std::string TopoFeature::get_wkt() {
@@ -314,7 +310,7 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
   
     if (layer->CreateFeature(feature) != OGRERR_NONE)
     {
-      std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
+      std::cerr << "Failed to create feature " << this->get_id() << " in shapefile.\n";
       return false;
     }
     OGRFeature::DestroyFeature(feature);
@@ -420,7 +416,7 @@ void TopoFeature::fix_bowtie() {
 void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::vector<int>> &nc, int baseheight) {
   //std::clog << this->get_id() << std::endl;
   // if (this->get_id() == "bbdc52a89-00b3-11e6-b420-2bdcc4ab5d7f")
-  //   std::clog << "break" << std::endl;
+  //   std::clog << "break\n";
 
   if (this->has_vertical_walls() == false)
     return;
@@ -438,7 +434,7 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
   TopoFeature* fadj;
   int ringi = -1;
   //if (this->get_id() == "107720546")
-  //  std::clog << "yo" << std::endl;
+  //  std::clog << "yo\n";
   for (auto& ring : therings) {
     ringi++;
     for (int ai = 0; ai < ring.size(); ai++) {
@@ -774,54 +770,48 @@ bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
   return insideOuter;
 }
 
-std::string TopoFeature::get_triangle_as_gml_surfacemember(Triangle& t, bool verticalwall) {
-  std::stringstream ss;
-  ss << std::setprecision(3) << std::fixed;
-  ss << "<gml:surfaceMember>" << std::endl;
-  ss << "<gml:Polygon>" << std::endl;
-  ss << "<gml:exterior>" << std::endl;
-  ss << "<gml:LinearRing>" << std::endl;
+void TopoFeature::get_triangle_as_gml_surfacemember(std::ofstream &outputfile, Triangle& t, bool verticalwall) {
+  outputfile << "<gml:surfaceMember>\n";
+  outputfile << "<gml:Polygon>\n";
+  outputfile << "<gml:exterior>\n";
+  outputfile << "<gml:LinearRing>\n";
   if (verticalwall == false) {
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0].first) << " " << bg::get<1>(_vertices[t.v0].first) << " " << bg::get<2>(_vertices[t.v0].first) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v1].first) << " " << bg::get<1>(_vertices[t.v1].first) << " " << bg::get<2>(_vertices[t.v1].first) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v2].first) << " " << bg::get<1>(_vertices[t.v2].first) << " " << bg::get<2>(_vertices[t.v2].first) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0].first) << " " << bg::get<1>(_vertices[t.v0].first) << " " << bg::get<2>(_vertices[t.v0].first) << "</gml:pos>" << std::endl;
+    outputfile << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
+    outputfile << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>\n";
+    outputfile << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>\n";
+    outputfile << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
   }
   else {
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v0].first) << " " << bg::get<1>(_vertices_vw[t.v0].first) << " " << bg::get<2>(_vertices_vw[t.v0].first) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v1].first) << " " << bg::get<1>(_vertices_vw[t.v1].first) << " " << bg::get<2>(_vertices_vw[t.v1].first) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v2].first) << " " << bg::get<1>(_vertices_vw[t.v2].first) << " " << bg::get<2>(_vertices_vw[t.v2].first) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v0].first) << " " << bg::get<1>(_vertices_vw[t.v0].first) << " " << bg::get<2>(_vertices_vw[t.v0].first) << "</gml:pos>" << std::endl;
+    outputfile << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
+    outputfile << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>\n";
+    outputfile << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>\n";
+    outputfile << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
   }
-  ss << "</gml:LinearRing>" << std::endl;
-  ss << "</gml:exterior>" << std::endl;
-  ss << "</gml:Polygon>" << std::endl;
-  ss << "</gml:surfaceMember>" << std::endl;
-  return ss.str();
+  outputfile << "</gml:LinearRing>\n";
+  outputfile << "</gml:exterior>\n";
+  outputfile << "</gml:Polygon>\n";
+  outputfile << "</gml:surfaceMember>\n";
 }
 
-std::string TopoFeature::get_triangle_as_gml_triangle(Triangle& t, bool verticalwall) {
-  std::stringstream ss;
-  ss << std::setprecision(3) << std::fixed;
-  ss << "<gml:Triangle>" << std::endl;
-  ss << "<gml:exterior>" << std::endl;
-  ss << "<gml:LinearRing>" << std::endl;
+void TopoFeature::get_triangle_as_gml_triangle(std::ofstream &outputfile, Triangle& t, bool verticalwall) {
+  outputfile << "<gml:Triangle>\n";
+  outputfile << "<gml:exterior>\n";
+  outputfile << "<gml:LinearRing>\n";
   if (verticalwall == false) {
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0].first) << " " << bg::get<1>(_vertices[t.v0].first) << " " << bg::get<2>(_vertices[t.v0].first) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v1].first) << " " << bg::get<1>(_vertices[t.v1].first) << " " << bg::get<2>(_vertices[t.v1].first) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v2].first) << " " << bg::get<1>(_vertices[t.v2].first) << " " << bg::get<2>(_vertices[t.v2].first) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0].first) << " " << bg::get<1>(_vertices[t.v0].first) << " " << bg::get<2>(_vertices[t.v0].first) << "</gml:pos>" << std::endl;
+    outputfile << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
+    outputfile << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>\n";
+    outputfile << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>\n";
+    outputfile << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
   }
   else {
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v0].first) << " " << bg::get<1>(_vertices_vw[t.v0].first) << " " << bg::get<2>(_vertices_vw[t.v0].first) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v1].first) << " " << bg::get<1>(_vertices_vw[t.v1].first) << " " << bg::get<2>(_vertices_vw[t.v1].first) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v2].first) << " " << bg::get<1>(_vertices_vw[t.v2].first) << " " << bg::get<2>(_vertices_vw[t.v2].first) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v0].first) << " " << bg::get<1>(_vertices_vw[t.v0].first) << " " << bg::get<2>(_vertices_vw[t.v0].first) << "</gml:pos>" << std::endl;
+    outputfile << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
+    outputfile << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>\n";
+    outputfile << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>\n";
+    outputfile << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
   }
-  ss << "</gml:LinearRing>" << std::endl;
-  ss << "</gml:exterior>" << std::endl;
-  ss << "</gml:Triangle>" << std::endl;
-  return ss.str();
+  outputfile << "</gml:LinearRing>\n";
+  outputfile << "</gml:exterior>\n";
+  outputfile << "</gml:Triangle>\n";
 }
 
 bool TopoFeature::get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue)
