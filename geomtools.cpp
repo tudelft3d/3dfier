@@ -197,6 +197,6 @@ std::string gen_key_bucket(Point3* p) {
 
 std::string gen_key_bucket(Point3* p, int z) {
   char* buf = new char[50];
-  std::sprintf(buf, "%.3f %.3f %.3f", p->get<0>(), p->get<1>(), z);
+  std::sprintf(buf, "%.3f %.3f %d", p->get<0>(), p->get<1>(), z);
   return buf;
 }
