@@ -61,14 +61,14 @@ public:
   Box2 get_bbox();
   liblas::Bounds<double> get_bounds();
 
-  void get_citygml(std::ofstream &outputfile);
+  void get_citygml(std::ofstream& of);
   void get_citygml_multifile(std::string);
-  void create_citygml_header(std::ofstream& outputfile);
-  void get_citygml_imgeo(std::ofstream &outputfile);
-  void get_citygml_imgeo_multifile(std::string outputfilename);
-  void get_csv_buildings(std::ofstream &outputfile);
-  void get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration = 0);
-  void get_obj_per_class(std::ofstream &outputfile, int z_exaggeration = 0);
+  void create_citygml_header(std::ofstream& of);
+  void get_citygml_imgeo(std::ofstream& of);
+  void get_citygml_imgeo_multifile(std::string ofname);
+  void get_csv_buildings(std::ofstream& of);
+  void get_obj_per_feature(std::ofstream& of, int z_exaggeration = 0);
+  void get_obj_per_class(std::ofstream& of, int z_exaggeration = 0);
   bool get_shapefile(std::string filename);
   bool get_shapefile2d(std::string filename);
 

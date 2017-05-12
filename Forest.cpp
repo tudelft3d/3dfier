@@ -63,46 +63,46 @@ bool Forest::lift() {
   return true;
 }
 
-void Forest::get_citygml(std::ofstream &outputfile) {
-  outputfile << "<cityObjectMember>\n";
-  outputfile << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">\n";
-  get_citygml_attributes(outputfile, _attributes);
-  outputfile << "<veg:lod1MultiSurface>\n";
-  outputfile << "<gml:MultiSurface>\n";
+void Forest::get_citygml(std::ofstream& of) {
+  of << "<cityObjectMember>\n";
+  of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">\n";
+  get_citygml_attributes(of, _attributes);
+  of << "<veg:lod1MultiSurface>\n";
+  of << "<gml:MultiSurface>\n";
   for (auto& t : _triangles)
-    get_triangle_as_gml_surfacemember(outputfile, t);
+    get_triangle_as_gml_surfacemember(of, t);
   for (auto& t : _triangles_vw)
-    get_triangle_as_gml_surfacemember(outputfile, t, true);
-  outputfile << "</gml:MultiSurface>\n";
-  outputfile << "</veg:lod1MultiSurface>\n";
-  outputfile << "</veg:PlantCover>\n";
-  outputfile << "</cityObjectMember>\n";
+    get_triangle_as_gml_surfacemember(of, t, true);
+  of << "</gml:MultiSurface>\n";
+  of << "</veg:lod1MultiSurface>\n";
+  of << "</veg:PlantCover>\n";
+  of << "</cityObjectMember>\n";
 }
 
-void Forest::get_citygml_imgeo(std::ofstream &outputfile) {
-  outputfile << "<cityObjectMember>\n";
-  outputfile << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">\n";
-  get_imgeo_object_info(outputfile, this->get_id());
-  outputfile << "<veg:lod1MultiSurface>\n";
-  outputfile << "<gml:MultiSurface>\n";
+void Forest::get_citygml_imgeo(std::ofstream& of) {
+  of << "<cityObjectMember>\n";
+  of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">\n";
+  get_imgeo_object_info(of, this->get_id());
+  of << "<veg:lod1MultiSurface>\n";
+  of << "<gml:MultiSurface>\n";
   for (auto& t : _triangles)
-    get_triangle_as_gml_surfacemember(outputfile, t);
+    get_triangle_as_gml_surfacemember(of, t);
   for (auto& t : _triangles_vw)
-    get_triangle_as_gml_surfacemember(outputfile, t, true);
-  outputfile << "</gml:MultiSurface>\n";
-  outputfile << "</veg:lod1MultiSurface>\n";
+    get_triangle_as_gml_surfacemember(of, t, true);
+  of << "</gml:MultiSurface>\n";
+  of << "</veg:lod1MultiSurface>\n";
   std::string attribute;
   if (get_attribute("bgt-fysiekvoorkomen", attribute)) {
-    outputfile << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</veg:class>\n";
+    of << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</veg:class>\n";
   }
   if (get_attribute("begroeidterreindeeloptalud", attribute, "false")) {
-    outputfile << "<imgeo:begroeidTerreindeelOpTalud>" << attribute << "</imgeo:begroeidTerreindeelOpTalud>\n";
+    of << "<imgeo:begroeidTerreindeelOpTalud>" << attribute << "</imgeo:begroeidTerreindeelOpTalud>\n";
   }
   if (get_attribute("plus-fysiekvoorkomen", attribute)) {
-    outputfile << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>\n";
+    of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>\n";
   }
-  outputfile << "</veg:PlantCover>\n";
-  outputfile << "</cityObjectMember>\n";
+  of << "</veg:PlantCover>\n";
+  of << "</cityObjectMember>\n";
 }
 
 bool Forest::get_shape(OGRLayer* layer) {

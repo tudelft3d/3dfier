@@ -87,8 +87,8 @@ bool Building::is_hard() {
   return true;
 }
 
-void Building::get_csv(std::ofstream &outputfile) {
-  outputfile << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << "\n";
+void Building::get_csv(std::ofstream& of) {
+  of << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << "\n";
 }
 
 std::string Building::get_mtl() {
@@ -138,105 +138,105 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   }
 }
 
-void Building::get_citygml(std::ofstream &outputfile) {
+void Building::get_citygml(std::ofstream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
-  outputfile << "<cityObjectMember>\n";
-  outputfile << "<bldg:Building gml:id=\"" << this->get_id() << "\">\n";
-  get_citygml_attributes(outputfile, _attributes);
-  outputfile << "<gen:measureAttribute name=\"min height surface\">\n";
-  outputfile << "<gen:value uom=\"#m\">" << hbase << "</gen:value>\n";
-  outputfile << "</gen:measureAttribute>\n";
-  outputfile << "<bldg:measuredHeight uom=\"#m\">" << h << "</bldg:measuredHeight>\n";
+  of << "<cityObjectMember>\n";
+  of << "<bldg:Building gml:id=\"" << this->get_id() << "\">\n";
+  get_citygml_attributes(of, _attributes);
+  of << "<gen:measureAttribute name=\"min height surface\">\n";
+  of << "<gen:value uom=\"#m\">" << hbase << "</gen:value>\n";
+  of << "</gen:measureAttribute>\n";
+  of << "<bldg:measuredHeight uom=\"#m\">" << h << "</bldg:measuredHeight>\n";
   //-- LOD0 footprint
-  outputfile << "<bldg:lod0FootPrint>\n";
-  outputfile << "<gml:MultiSurface>\n";
-  get_polygon_lifted_gml(outputfile, this->_p2, hbase, true);
-  outputfile << "</gml:MultiSurface>\n";
-  outputfile << "</bldg:lod0FootPrint>\n";
+  of << "<bldg:lod0FootPrint>\n";
+  of << "<gml:MultiSurface>\n";
+  get_polygon_lifted_gml(of, this->_p2, hbase, true);
+  of << "</gml:MultiSurface>\n";
+  of << "</bldg:lod0FootPrint>\n";
   //-- LOD0 roofedge
-  outputfile << "<bldg:lod0RoofEdge>\n";
-  outputfile << "<gml:MultiSurface>\n";
-  get_polygon_lifted_gml(outputfile, this->_p2, h, true);
-  outputfile << "</gml:MultiSurface>\n";
-  outputfile << "</bldg:lod0RoofEdge>\n";
+  of << "<bldg:lod0RoofEdge>\n";
+  of << "<gml:MultiSurface>\n";
+  get_polygon_lifted_gml(of, this->_p2, h, true);
+  of << "</gml:MultiSurface>\n";
+  of << "</bldg:lod0RoofEdge>\n";
   //-- LOD1 Solid
-  outputfile << "<bldg:lod1Solid>\n";
-  outputfile << "<gml:Solid>\n";
-  outputfile << "<gml:exterior>\n";
-  outputfile << "<gml:CompositeSurface>\n";
+  of << "<bldg:lod1Solid>\n";
+  of << "<gml:Solid>\n";
+  of << "<gml:exterior>\n";
+  of << "<gml:CompositeSurface>\n";
   //-- get floor
-  get_polygon_lifted_gml(outputfile, this->_p2, hbase, false);
+  get_polygon_lifted_gml(of, this->_p2, hbase, false);
   //-- get roof
-  get_polygon_lifted_gml(outputfile, this->_p2, h, true);
+  get_polygon_lifted_gml(of, this->_p2, h, true);
   //-- get the walls
   auto r = bg::exterior_ring(*(this->_p2));
   int i;
   for (i = 0; i < (r.size() - 1); i++)
-    get_extruded_line_gml(outputfile, &r[i], &r[i + 1], h, hbase, false);
-  get_extruded_line_gml(outputfile, &r[i], &r[0], h, hbase, false);
+    get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
+  get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   //-- irings
   auto irings = bg::interior_rings(*(this->_p2));
   for (Ring2& r : irings) {
     for (i = 0; i < (r.size() - 1); i++)
-      get_extruded_line_gml(outputfile, &r[i], &r[i + 1], h, hbase, false);
-    get_extruded_line_gml(outputfile, &r[i], &r[0], h, hbase, false);
+      get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
+    get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   }
-  outputfile << "</gml:CompositeSurface>\n";
-  outputfile << "</gml:exterior>\n";
-  outputfile << "</gml:Solid>\n";
-  outputfile << "</bldg:lod1Solid>\n";
-  outputfile << "</bldg:Building>\n";
-  outputfile << "</cityObjectMember>\n";
+  of << "</gml:CompositeSurface>\n";
+  of << "</gml:exterior>\n";
+  of << "</gml:Solid>\n";
+  of << "</bldg:lod1Solid>\n";
+  of << "</bldg:Building>\n";
+  of << "</cityObjectMember>\n";
 }
 
-void Building::get_citygml_imgeo(std::ofstream &outputfile) {
+void Building::get_citygml_imgeo(std::ofstream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
-  outputfile << "<cityObjectMember>\n";
-  outputfile << "<bui:Building gml:id=\"" << this->get_id() << "\">\n";
+  of << "<cityObjectMember>\n";
+  of << "<bui:Building gml:id=\"" << this->get_id() << "\">\n";
   //-- store building information
-  get_imgeo_object_info(outputfile, this->get_id());
-  outputfile << "<bui:consistsOfBuildingPart>\n";
-  outputfile << "<bui:BuildingPart>\n";
+  get_imgeo_object_info(of, this->get_id());
+  of << "<bui:consistsOfBuildingPart>\n";
+  of << "<bui:BuildingPart>\n";
   //-- LOD1 Solid
-  outputfile << "<bui:lod1Solid>\n";
-  outputfile << "<gml:Solid>\n";
-  outputfile << "<gml:exterior>\n";
-  outputfile << "<gml:CompositeSurface>\n";
+  of << "<bui:lod1Solid>\n";
+  of << "<gml:Solid>\n";
+  of << "<gml:exterior>\n";
+  of << "<gml:CompositeSurface>\n";
   //-- get floor
-  get_polygon_lifted_gml(outputfile, this->_p2, hbase, false);
+  get_polygon_lifted_gml(of, this->_p2, hbase, false);
   //-- get roof
-  get_polygon_lifted_gml(outputfile, this->_p2, h, true);
+  get_polygon_lifted_gml(of, this->_p2, h, true);
   //-- get the walls
   auto r = bg::exterior_ring(*(this->_p2));
   int i;
   for (i = 0; i < (r.size() - 1); i++)
-    get_extruded_line_gml(outputfile, &r[i], &r[i + 1], h, hbase, false);
-  get_extruded_line_gml(outputfile, &r[i], &r[0], h, hbase, false);
+    get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
+  get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   //-- irings
   auto irings = bg::interior_rings(*(this->_p2));
   for (Ring2& r : irings) {
     for (i = 0; i < (r.size() - 1); i++)
-      get_extruded_line_gml(outputfile, &r[i], &r[i + 1], h, hbase, false);
-    get_extruded_line_gml(outputfile, &r[i], &r[0], h, hbase, false);
+      get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
+    get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   }
-  outputfile << "</gml:CompositeSurface>\n";
-  outputfile << "</gml:exterior>\n";
-  outputfile << "</gml:Solid>\n";
-  outputfile << "</bui:lod1Solid>\n";
+  of << "</gml:CompositeSurface>\n";
+  of << "</gml:exterior>\n";
+  of << "</gml:Solid>\n";
+  of << "</bui:lod1Solid>\n";
   std::string attribute;
   if (get_attribute("identificatiebagpnd", attribute)) {
-    outputfile << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>\n";
+    of << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>\n";
   }
-  get_imgeo_nummeraanduiding(outputfile);
-  outputfile << "</bui:BuildingPart>\n";
-  outputfile << "</bui:consistsOfBuildingPart>\n";
-  outputfile << "</bui:Building>\n";
-  outputfile << "</cityObjectMember>\n";
+  get_imgeo_nummeraanduiding(of);
+  of << "</bui:BuildingPart>\n";
+  of << "</bui:consistsOfBuildingPart>\n";
+  of << "</bui:Building>\n";
+  of << "</cityObjectMember>\n";
 }
 
-void Building::get_imgeo_nummeraanduiding(std::ofstream &outputfile) {
+void Building::get_imgeo_nummeraanduiding(std::ofstream& of) {
   std::string attribute;
   bool btekst, bplaatsingspunt, bhoek, blaagnr, bhoognr;
   std::string tekst, plaatsingspunt, hoek, laagnr, hoognr;
@@ -267,27 +267,27 @@ void Building::get_imgeo_nummeraanduiding(std::ofstream &outputfile) {
     int count = boost::lexical_cast<int>(tekst[1]);
     for (int i = 0; i < count; i++) {
       if (i < tekst_split.size() && i < plaatsingspunt_split.size() && i < hoek_split.size()) {
-        outputfile << "<imgeo:nummeraanduidingreeks>\n";
-        outputfile << "<imgeo:Nummeraanduidingreeks>\n";
-        outputfile << "<imgeo:nummeraanduidingreeks>\n";
-        outputfile << "<imgeo:Label>\n";
-        outputfile << "<imgeo:tekst>" << tekst_split.at(i) << "</imgeo:tekst>\n";
-        outputfile << "<imgeo:positie>\n";
-        outputfile << "<imgeo:Labelpositie>\n";
-        outputfile << "<imgeo:plaatsingspunt><gml:Point srsDimension=\"2\"><gml:pos>" << plaatsingspunt_split.at(i) << "</gml:pos></gml:Point></imgeo:plaatsingspunt>\n";
-        outputfile << "<imgeo:hoek>" << hoek_split.at(i) << "</imgeo:hoek>\n";
-        outputfile << "</imgeo:Labelpositie>\n";
-        outputfile << "</imgeo:positie>\n";
-        outputfile << "</imgeo:Label>\n";
-        outputfile << "</imgeo:nummeraanduidingreeks>\n";
+        of << "<imgeo:nummeraanduidingreeks>\n";
+        of << "<imgeo:Nummeraanduidingreeks>\n";
+        of << "<imgeo:nummeraanduidingreeks>\n";
+        of << "<imgeo:Label>\n";
+        of << "<imgeo:tekst>" << tekst_split.at(i) << "</imgeo:tekst>\n";
+        of << "<imgeo:positie>\n";
+        of << "<imgeo:Labelpositie>\n";
+        of << "<imgeo:plaatsingspunt><gml:Point srsDimension=\"2\"><gml:pos>" << plaatsingspunt_split.at(i) << "</gml:pos></gml:Point></imgeo:plaatsingspunt>\n";
+        of << "<imgeo:hoek>" << hoek_split.at(i) << "</imgeo:hoek>\n";
+        of << "</imgeo:Labelpositie>\n";
+        of << "</imgeo:positie>\n";
+        of << "</imgeo:Label>\n";
+        of << "</imgeo:nummeraanduidingreeks>\n";
         if (i < laagnr_split.size()) {
-          outputfile << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << laagnr_split.at(i) << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>\n";
+          of << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << laagnr_split.at(i) << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>\n";
         }
         if (i < hoognr_split.size()) {
-          outputfile << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << hoognr_split.at(i) << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>\n";
+          of << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << hoognr_split.at(i) << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>\n";
         }
-        outputfile << "</imgeo:Nummeraanduidingreeks>\n";
-        outputfile << "</imgeo:nummeraanduidingreeks>\n";
+        of << "</imgeo:Nummeraanduidingreeks>\n";
+        of << "</imgeo:nummeraanduidingreeks>\n";
       }
     }
   }

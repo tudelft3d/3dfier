@@ -58,7 +58,7 @@ int main(int argc, const char * argv[]) {
     "This is free software, and you are welcome to redistribute it\n"
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
 
-  std::string outputFilename;
+  std::string ofname;
 
   //-- reading the config file
   if (argc == 2) {
@@ -78,7 +78,7 @@ int main(int argc, const char * argv[]) {
     }
   }
   else if (argc == 4 && (std::string)argv[2] == "-o" && boost::filesystem::path(argv[1]).extension() == ".yml") {
-    outputFilename = argv[3];
+    ofname = argv[3];
   }
   else {
     std::clog << licensewarning << std::endl;
@@ -366,41 +366,41 @@ int main(int argc, const char * argv[]) {
   if (n["vertical_exaggeration"])
     z_exaggeration = n["vertical_exaggeration"].as<int>();
 
-  std::ofstream outputfile;
+  std::ofstream of;
   if (format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile")
-    outputfile.open(outputFilename);
+    of.open(ofname);
 
   if (format == "CityGML") {
     std::clog << "CityGML output\n";
-    map3d.get_citygml(outputfile);
+    map3d.get_citygml(of);
   }
   else if (format == "CityGML-Multifile") {
     std::clog << "CityGML-Multifile output\n";
-    map3d.get_citygml_multifile(outputFilename);
+    map3d.get_citygml_multifile(ofname);
   }
   else if (format == "CityGML-IMGeo") {
     std::clog << "CityGML-IMGeo output\n";
-    map3d.get_citygml_imgeo(outputfile);
+    map3d.get_citygml_imgeo(of);
   }
   else if (format == "CityGML-IMGeo-Multifile") {
     std::clog << "CityGML-IMGeo-Multifile output\n";
-    map3d.get_citygml_imgeo_multifile(outputFilename);
+    map3d.get_citygml_imgeo_multifile(ofname);
   }
   else if (format == "OBJ") {
     std::clog << "OBJ output\n";
-    map3d.get_obj_per_feature(outputfile, z_exaggeration);
+    map3d.get_obj_per_feature(of, z_exaggeration);
   }
   else if (format == "OBJ-NoID") {
     std::clog << "OBJ (without IDs) output\n";
-    map3d.get_obj_per_class(outputfile, z_exaggeration);
+    map3d.get_obj_per_class(of, z_exaggeration);
   }
   else if (format == "CSV-BUILDINGS") {
     std::clog << "CSV output (only of the buildings)\n";
-    map3d.get_csv_buildings(outputfile);
+    map3d.get_csv_buildings(of);
   }
   else if (format == "Shapefile") {
     std::clog << "Shapefile output\n";
-    if (map3d.get_shapefile(outputFilename)) {
+    if (map3d.get_shapefile(ofname)) {
       std::clog << "Shapefile written\n";
     }
     else
@@ -409,7 +409,7 @@ int main(int argc, const char * argv[]) {
       return 0;
     }
   }
-  outputfile.close();
+  of.close();
 
   printf("File written in %d ms\n", std::clock() - startFileWriting);
 

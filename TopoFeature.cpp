@@ -165,49 +165,49 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
   }
 }
 
-void TopoFeature::get_imgeo_object_info(std::ofstream &outputfile, std::string id) {
+void TopoFeature::get_imgeo_object_info(std::ofstream& of, std::string id) {
   std::string attribute;
   if (get_attribute("creationDate", attribute)) {
-    outputfile << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>\n";
+    of << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>\n";
   }
   if (get_attribute("terminationDate", attribute)) {
-    outputfile << "<imgeo:terminationDate>" << attribute << "</imgeo:terminationDate>\n";
+    of << "<imgeo:terminationDate>" << attribute << "</imgeo:terminationDate>\n";
   }
   if (get_attribute("lokaalid", attribute)) {
-    outputfile << "<imgeo:identificatie>\n";
-    outputfile << "<imgeo:NEN3610ID>\n";
-    outputfile << "<imgeo:namespace>NL.IMGeo</imgeo:namespace>\n";
-    outputfile << "<imgeo:lokaalID>" << attribute << "</imgeo:lokaalID>\n";
-    outputfile << "</imgeo:NEN3610ID>\n";
-    outputfile << "</imgeo:identificatie>\n";
+    of << "<imgeo:identificatie>\n";
+    of << "<imgeo:NEN3610ID>\n";
+    of << "<imgeo:namespace>NL.IMGeo</imgeo:namespace>\n";
+    of << "<imgeo:lokaalID>" << attribute << "</imgeo:lokaalID>\n";
+    of << "</imgeo:NEN3610ID>\n";
+    of << "</imgeo:identificatie>\n";
   }
   if (get_attribute("tijdstipregistratie", attribute)) {
-    outputfile << "<imgeo:tijdstipRegistratie>" << attribute << "</imgeo:tijdstipRegistratie>\n";
+    of << "<imgeo:tijdstipRegistratie>" << attribute << "</imgeo:tijdstipRegistratie>\n";
   }
   if (get_attribute("eindregistratie", attribute)) {
-    outputfile << "<imgeo:eindRegistratie>" << attribute << "</imgeo:eindRegistratie>\n";
+    of << "<imgeo:eindRegistratie>" << attribute << "</imgeo:eindRegistratie>\n";
   }
   if (get_attribute("lv-publicatiedatum", attribute)) {
-    outputfile << "<imgeo:LV-publicatiedatum>" << attribute << "</imgeo:LV-publicatiedatum>\n";
+    of << "<imgeo:LV-publicatiedatum>" << attribute << "</imgeo:LV-publicatiedatum>\n";
   }
   if (get_attribute("bronhouder", attribute)) {
-    outputfile << "<imgeo:bronhouder>" << attribute << "</imgeo:bronhouder>\n";
+    of << "<imgeo:bronhouder>" << attribute << "</imgeo:bronhouder>\n";
   }
   if (get_attribute("inonderzoek", attribute)) {
-    outputfile << "<imgeo:inOnderzoek>" << attribute << "</imgeo:inOnderzoek>\n";
+    of << "<imgeo:inOnderzoek>" << attribute << "</imgeo:inOnderzoek>\n";
   }
   if (get_attribute("relatievehoogteligging", attribute)) {
-    outputfile << "<imgeo:relatieveHoogteligging>" << attribute << "</imgeo:relatieveHoogteligging>\n";
+    of << "<imgeo:relatieveHoogteligging>" << attribute << "</imgeo:relatieveHoogteligging>\n";
   }
   if (get_attribute("bgt-status", attribute, "bestaand")) {
-    outputfile << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" << attribute << "</imgeo:bgt-status>\n";
+    of << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" << attribute << "</imgeo:bgt-status>\n";
   }
   if (get_attribute("plus-status", attribute)) {
-    outputfile << "<imgeo:plus-status>" << attribute << "</imgeo:plus-status>\n";
+    of << "<imgeo:plus-status>" << attribute << "</imgeo:plus-status>\n";
   }
 }
 
-void TopoFeature::get_citygml_attributes(std::ofstream &outputfile, std::unordered_map<std::string, std::pair<OGRFieldType, std::string>> attributes) {
+void TopoFeature::get_citygml_attributes(std::ofstream& of, std::unordered_map<std::string, std::pair<OGRFieldType, std::string>> attributes) {
   for (auto& attribute : attributes) {
     // add attributes except gml_id
     if (attribute.first.compare("gml_id") != 0) {
@@ -222,9 +222,9 @@ void TopoFeature::get_citygml_attributes(std::ofstream &outputfile, std::unorder
       default:
         type = "string";
       }
-      outputfile << "<gen:" + type + "Attribute name=\"" + std::get<0>(attribute) + "\">\n";
-      outputfile << "<gen:value>" + attribute.second.second + "</gen:value>\n";
-      outputfile << "</gen:" + type << "Attribute>\n";
+      of << "<gen:" + type + "Attribute name=\"" + std::get<0>(attribute) + "\">\n";
+      of << "<gen:value>" + attribute.second.second + "</gen:value>\n";
+      of << "</gen:" + type << "Attribute>\n";
     }
   }
 }
@@ -735,48 +735,48 @@ bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
   return insideOuter;
 }
 
-void TopoFeature::get_triangle_as_gml_surfacemember(std::ofstream &outputfile, Triangle& t, bool verticalwall) {
-  outputfile << "<gml:surfaceMember>\n";
-  outputfile << "<gml:Polygon>\n";
-  outputfile << "<gml:exterior>\n";
-  outputfile << "<gml:LinearRing>\n";
+void TopoFeature::get_triangle_as_gml_surfacemember(std::ofstream& of, Triangle& t, bool verticalwall) {
+  of << "<gml:surfaceMember>\n";
+  of << "<gml:Polygon>\n";
+  of << "<gml:exterior>\n";
+  of << "<gml:LinearRing>\n";
   if (verticalwall == false) {
-    outputfile << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
-    outputfile << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>\n";
-    outputfile << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>\n";
-    outputfile << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
   }
   else {
-    outputfile << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
-    outputfile << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>\n";
-    outputfile << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>\n";
-    outputfile << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
   }
-  outputfile << "</gml:LinearRing>\n";
-  outputfile << "</gml:exterior>\n";
-  outputfile << "</gml:Polygon>\n";
-  outputfile << "</gml:surfaceMember>\n";
+  of << "</gml:LinearRing>\n";
+  of << "</gml:exterior>\n";
+  of << "</gml:Polygon>\n";
+  of << "</gml:surfaceMember>\n";
 }
 
-void TopoFeature::get_triangle_as_gml_triangle(std::ofstream &outputfile, Triangle& t, bool verticalwall) {
-  outputfile << "<gml:Triangle>\n";
-  outputfile << "<gml:exterior>\n";
-  outputfile << "<gml:LinearRing>\n";
+void TopoFeature::get_triangle_as_gml_triangle(std::ofstream& of, Triangle& t, bool verticalwall) {
+  of << "<gml:Triangle>\n";
+  of << "<gml:exterior>\n";
+  of << "<gml:LinearRing>\n";
   if (verticalwall == false) {
-    outputfile << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
-    outputfile << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>\n";
-    outputfile << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>\n";
-    outputfile << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
   }
   else {
-    outputfile << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
-    outputfile << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>\n";
-    outputfile << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>\n";
-    outputfile << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
   }
-  outputfile << "</gml:LinearRing>\n";
-  outputfile << "</gml:exterior>\n";
-  outputfile << "</gml:Triangle>\n";
+  of << "</gml:LinearRing>\n";
+  of << "</gml:exterior>\n";
+  of << "</gml:Triangle>\n";
 }
 
 bool TopoFeature::get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue)

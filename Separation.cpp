@@ -63,73 +63,73 @@ bool Separation::lift() {
   return true;
 }
 
-void Separation::get_citygml(std::ofstream &outputfile) {
-  outputfile << "<cityObjectMember>\n";
-  outputfile << "<gen:GenericCityObject gml:id=\"" << this->get_id() << "\">\n";
-  get_citygml_attributes(outputfile, _attributes);
-  outputfile << "<gen:lod1Geometry>\n";
-  outputfile << "<gml:MultiSurface>\n";
+void Separation::get_citygml(std::ofstream& of) {
+  of << "<cityObjectMember>\n";
+  of << "<gen:GenericCityObject gml:id=\"" << this->get_id() << "\">\n";
+  get_citygml_attributes(of, _attributes);
+  of << "<gen:lod1Geometry>\n";
+  of << "<gml:MultiSurface>\n";
   for (auto& t : _triangles)
-    get_triangle_as_gml_surfacemember(outputfile, t);
+    get_triangle_as_gml_surfacemember(of, t);
   for (auto& t : _triangles_vw)
-    get_triangle_as_gml_surfacemember(outputfile, t, true);
-  outputfile << "</gml:MultiSurface>\n";
-  outputfile << "</gen:lod1Geometry>\n";
-  outputfile << "</gen:GenericCityObject>\n";
-  outputfile << "</cityObjectMember>\n";
+    get_triangle_as_gml_surfacemember(of, t, true);
+  of << "</gml:MultiSurface>\n";
+  of << "</gen:lod1Geometry>\n";
+  of << "</gen:GenericCityObject>\n";
+  of << "</cityObjectMember>\n";
 }
 
-void Separation::get_citygml_imgeo(std::ofstream &outputfile) {
+void Separation::get_citygml_imgeo(std::ofstream& of) {
   bool kunstwerkdeel = _layername == "kunstwerkdeel";
   bool overigbouwwerk = _layername == "overigbouwwerk";
-  outputfile << "<cityObjectMember>\n";
+  of << "<cityObjectMember>\n";
   if (kunstwerkdeel) {
-    outputfile << "<imgeo:Kunstwerkdeel gml:id=\"" << this->get_id() << "\">\n";
+    of << "<imgeo:Kunstwerkdeel gml:id=\"" << this->get_id() << "\">\n";
   }
   else if (overigbouwwerk) {
-    outputfile << "<imgeo:OverigBouwwerk gml:id=\"" << this->get_id() << "\">\n";
+    of << "<imgeo:OverigBouwwerk gml:id=\"" << this->get_id() << "\">\n";
   }
   else {
-    outputfile << "<imgeo:Scheiding gml:id=\"" << this->get_id() << "\">\n";
+    of << "<imgeo:Scheiding gml:id=\"" << this->get_id() << "\">\n";
   }
-  get_imgeo_object_info(outputfile, this->get_id());
-  outputfile << "<imgeo:lod1Geometry>\n";
-  outputfile << "<gml:MultiSurface>\n";
+  get_imgeo_object_info(of, this->get_id());
+  of << "<imgeo:lod1Geometry>\n";
+  of << "<gml:MultiSurface>\n";
   for (auto& t : _triangles)
-    get_triangle_as_gml_surfacemember(outputfile, t);
+    get_triangle_as_gml_surfacemember(of, t);
   for (auto& t : _triangles_vw)
-    get_triangle_as_gml_surfacemember(outputfile, t, true);
-  outputfile << "</gml:MultiSurface>\n";
-  outputfile << "</imgeo:lod1Geometry>\n";
+    get_triangle_as_gml_surfacemember(of, t, true);
+  of << "</gml:MultiSurface>\n";
+  of << "</imgeo:lod1Geometry>\n";
   std::string attribute;
   if (kunstwerkdeel) {
     if (get_attribute("bgt-type", attribute)) {
-      outputfile << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerk\">" << attribute << "</imgeo:bgt-type>\n";
+      of << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerk\">" << attribute << "</imgeo:bgt-type>\n";
     }
     if (get_attribute("plus-type", attribute)) {
-      outputfile << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerkPlus\">" << attribute << "</imgeo:plus-type>\n";
+      of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerkPlus\">" << attribute << "</imgeo:plus-type>\n";
     }
-    outputfile << "</imgeo:Kunstwerkdeel>\n";
+    of << "</imgeo:Kunstwerkdeel>\n";
   }
   else if (overigbouwwerk) {
     if (get_attribute("bgt-type", attribute)) {
-      outputfile << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerk\">" << attribute << "</imgeo:bgt-type>\n";
+      of << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerk\">" << attribute << "</imgeo:bgt-type>\n";
     }
     if (get_attribute("plus-type", attribute)) {
-      outputfile << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerkPlus\">" << attribute << "</imgeo:plus-type>\n";
+      of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerkPlus\">" << attribute << "</imgeo:plus-type>\n";
     }
-    outputfile << "</imgeo:OverigBouwwerk>\n";
+    of << "</imgeo:OverigBouwwerk>\n";
   }
   else {
     if (get_attribute("bgt-type", attribute)) {
-      outputfile << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheiding\">" << attribute << "</imgeo:bgt-type>\n";
+      of << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheiding\">" << attribute << "</imgeo:bgt-type>\n";
     }
     if (get_attribute("plus-type", attribute)) {
-      outputfile << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheidingPlus\">" << attribute << "</imgeo:plus-type>\n";
+      of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheidingPlus\">" << attribute << "</imgeo:plus-type>\n";
     }
-    outputfile << "</imgeo:Scheiding>\n";
+    of << "</imgeo:Scheiding>\n";
   }
-  outputfile << "</cityObjectMember>\n";
+  of << "</cityObjectMember>\n";
 }
 
 bool Separation::get_shape(OGRLayer* layer) {

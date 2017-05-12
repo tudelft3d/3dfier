@@ -36,8 +36,8 @@ public:
   Forest(char *wkt, std::string layername, std::unordered_map<std::string, std::pair<OGRFieldType, std::string>> attributes, std::string pid, int simplification, float innerbuffer, bool only_ground_points);
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
-  void          get_citygml(std::ofstream &outputfile);
-  void          get_citygml_imgeo(std::ofstream &outputfile);
+  void          get_citygml(std::ofstream& of);
+  void          get_citygml_imgeo(std::ofstream& of);
   std::string   get_mtl();
   bool          get_shape(OGRLayer * layer);
   TopoClass     get_class();
