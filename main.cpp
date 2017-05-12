@@ -412,7 +412,7 @@ int main(int argc, const char * argv[]) {
   }
   of.close();
 
-  printf("File written in %ld ms\n", (int)(std::clock() - startFileWriting));
+  printf("File written in %ld ms\n", std::clock() - startFileWriting);
 
   //-- bye-bye
   auto duration = boost::chrono::high_resolution_clock::now() - startTime;
