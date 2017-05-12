@@ -367,7 +367,7 @@ int main(int argc, const char * argv[]) {
     z_exaggeration = n["vertical_exaggeration"].as<int>();
 
   std::ofstream outputfile;
-  if (format != "Shapefile" && format != "CityGML-Multifile")
+  if (format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile")
     outputfile.open(outputFilename);
 
   if (format == "CityGML") {
