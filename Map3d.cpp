@@ -635,12 +635,10 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
   OGRGeometry *geom = f->GetGeometryRef();
   geom->flattenTo2D();
   geom->exportToWkt(&wkt);
-  std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes;
-  //std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes;
+  std::unordered_map<std::string, std::pair<OGRFieldType, std::string>> attributes;
   int attributeCount = f->GetFieldCount();
   for (int i = 0; i < attributeCount; i++) {
-    attributes.push_back(std::make_tuple(boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef()), f->GetFieldDefnRef(i)->GetType(), f->GetFieldAsString(i)));
-    //attributes[boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef())] = f->GetFieldAsString(i);
+    attributes[boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef())] = std::make_pair(f->GetFieldDefnRef(i)->GetType(), f->GetFieldAsString(i));
   }
   if (layertype == "Building") {
     Building* p3 = new Building(wkt, layername, attributes, f->GetFieldAsString(idfield), _building_heightref_roof, _building_heightref_floor);

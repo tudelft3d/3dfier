@@ -32,7 +32,7 @@
 float Building::_heightref_top = 0.9;
 float Building::_heightref_base = 0.1;
 
-Building::Building(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, float heightref_top, float heightref_base)
+Building::Building(char *wkt, std::string layername, std::unordered_map<std::string, std::pair<OGRFieldType, std::string>> attributes, std::string pid, float heightref_top, float heightref_base)
   : Flat(wkt, layername, attributes, pid)
 {
   _heightref_top = heightref_top;

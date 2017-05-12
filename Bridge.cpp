@@ -31,7 +31,7 @@
 
 float Bridge::_heightref = 0.5;
 
-Bridge::Bridge(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, float heightref)
+Bridge::Bridge(char *wkt, std::string layername, std::unordered_map<std::string, std::pair<OGRFieldType, std::string>> attributes, std::string pid, float heightref)
   : Flat(wkt, layername, attributes, pid) {
   _heightref = heightref;
 }

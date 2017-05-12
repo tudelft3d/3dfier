@@ -32,7 +32,7 @@
 
 bool Forest::_use_ground_points_only = false;
 
-Forest::Forest(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
+Forest::Forest(char *wkt, std::string layername, std::unordered_map<std::string, std::pair<OGRFieldType, std::string>> attributes, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
   : TIN(wkt, layername, attributes, pid, simplification, innerbuffer)
 {
   _use_ground_points_only = ground_points_only;
