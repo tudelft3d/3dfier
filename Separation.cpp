@@ -133,5 +133,5 @@ void Separation::get_citygml_imgeo(std::ofstream& of) {
 }
 
 bool Separation::get_shape(OGRLayer* layer) {
-  return TopoFeature::get_shape_features(layer, "Separation");
+  return TopoFeature::get_multipolygon_features(layer, "Separation");
 }

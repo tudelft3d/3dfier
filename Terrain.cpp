@@ -102,5 +102,5 @@ void Terrain::get_citygml_imgeo(std::ofstream& of) {
 }
 
 bool Terrain::get_shape(OGRLayer* layer) {
-  return TopoFeature::get_shape_features(layer, "Terrain");
+  return TopoFeature::get_multipolygon_features(layer, "Terrain");
 }

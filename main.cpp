@@ -43,6 +43,7 @@
 std::string VERSION = "0.9.6";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
+int main(int argc, const char * argv[]);
 void print_license();
 
 int main(int argc, const char * argv[]) {
@@ -368,7 +369,7 @@ int main(int argc, const char * argv[]) {
     z_exaggeration = n["vertical_exaggeration"].as<int>();
 
   std::ofstream of;
-  if (format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile")
+  if (format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "PostGIS")
     of.open(ofname);
 
   if (format == "CityGML") {
@@ -409,6 +410,10 @@ int main(int argc, const char * argv[]) {
       std::cerr << "Writing shapefile failed\n";
       return 0;
     }
+  }
+  else if (format == "PostGIS") {
+    std::clog << "PostGIS output\n";
+    map3d.get_postgis(ofname);
   }
   of.close();
 
@@ -629,9 +634,10 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     (format != "CityGML-IMGeo-Multifile") &&
     (format != "OBJ-BUILDINGS") &&
     (format != "CSV-BUILDINGS") &&
-    (format != "Shapefile")) {
+    (format != "Shapefile") &&
+    (format != "PostGIS")) {
     wentgood = false;
-    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-Multifile | CityGML-IMGeo | CityGML-IMGeo-Multifile | CSV-BUILDINGS | Shapefile)\n";
+    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-Multifile | CityGML-IMGeo | CityGML-IMGeo-Multifile | CSV-BUILDINGS | Shapefile | PostGIS)\n";
   }
   return wentgood;
 }

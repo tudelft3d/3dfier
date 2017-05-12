@@ -229,7 +229,7 @@ void TopoFeature::get_citygml_attributes(std::ofstream& of, AttributeMap attribu
   }
 }
 
-bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
+bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className) {
     OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
     OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
     OGRMultiPolygon multipolygon = OGRMultiPolygon();
@@ -280,6 +280,63 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
     }
     OGRFeature::DestroyFeature(feature);
   return true;
+}
+
+bool TopoFeature::get_polyhedral_features(OGRLayer* layer, std::string className) {
+#if GDAL_VERSION_MAJOR < 2 || (GDAL_VERSION_MAJOR >= 2 && GDAL_VERSION_MINOR < 2)
+  std::cerr << "Exporting to PostGIS Polyhedral Surface requires GDAL/OGR 2.2 or higher.\n";
+  return false;
+#else
+  OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
+  OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
+  OGRPolyhedralSurface surface = OGRPolyhedralSurface();
+  Point3 p;
+
+  //-- add all triangles to the layer
+  for (auto& t : _triangles) {
+    OGRPolygon polygon = OGRPolygon();
+    OGRLinearRing ring = OGRLinearRing();
+
+    p = _vertices[t.v0].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices[t.v1].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices[t.v2].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+
+    ring.closeRings();
+    polygon.addRing(&ring);
+    surface.addGeometry(&polygon);
+  }
+
+  //-- add all vertical wall triangles to the layer
+  for (auto& t : _triangles_vw) {
+    OGRPolygon polygon = OGRPolygon();
+    OGRLinearRing ring = OGRLinearRing();
+
+    p = _vertices_vw[t.v0].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices_vw[t.v1].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices_vw[t.v2].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+
+    ring.closeRings();
+    polygon.addRing(&ring);
+    surface.addGeometry(&polygon);
+  }
+
+  feature->SetGeometry(&surface);
+  feature->SetField("Id", this->get_id().c_str());
+  feature->SetField("Class", className.c_str());
+
+  if (layer->CreateFeature(feature) != OGRERR_NONE) {
+    std::cerr << "Failed to create feature " << this->get_id() << " in shapefile.\n";
+    return false;
+  }
+  OGRFeature::DestroyFeature(feature);
+  return true;
+#endif
 }
 
 void TopoFeature::fix_bowtie() {

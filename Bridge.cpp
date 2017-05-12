@@ -105,5 +105,5 @@ void Bridge::get_citygml_imgeo(std::ofstream& of) {
 }
 
 bool Bridge::get_shape(OGRLayer* layer) {
-  return TopoFeature::get_shape_features(layer, "Bridge");
+  return TopoFeature::get_multipolygon_features(layer, "Bridge");
 }

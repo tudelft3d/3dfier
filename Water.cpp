@@ -120,5 +120,5 @@ void Water::get_citygml_imgeo(std::ofstream& of) {
 }
 
 bool Water::get_shape(OGRLayer* layer) {
-  return TopoFeature::get_shape_features(layer, "Water");
+  return TopoFeature::get_multipolygon_features(layer, "Water");
 }

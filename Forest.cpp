@@ -106,5 +106,5 @@ void Forest::get_citygml_imgeo(std::ofstream& of) {
 }
 
 bool Forest::get_shape(OGRLayer* layer) {
-  return TopoFeature::get_shape_features(layer, "Forest");
+  return TopoFeature::get_multipolygon_features(layer, "Forest");
 }
