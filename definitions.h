@@ -19,6 +19,8 @@
 #include <boost/geometry/geometries/linestring.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
 #include <boost/geometry/index/rtree.hpp>
+#include "boost/filesystem.hpp"
+#include <boost/filesystem/operations.hpp>
 
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;

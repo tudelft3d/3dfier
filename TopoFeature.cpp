@@ -69,6 +69,10 @@ std::string TopoFeature::get_id() {
   return _id;
 }
 
+std::string  TopoFeature::get_layername() {
+  return _layername;
+}
+
 bool TopoFeature::buildCDT() {
   getCDT(_p2, _p2z, _vertices, _triangles);
   return true;

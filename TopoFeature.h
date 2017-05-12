@@ -57,6 +57,7 @@ public:
   int          get_counter();
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
+  std::string  get_layername();
   Point2       get_point2(int ringi, int pi);
   bool         has_point2_(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis);
   bool         has_segment(Point2& a, Point2& b, int& aringi, int& api, int& bringi, int& bpi);

@@ -39,8 +39,6 @@
 #include "Map3d.h"
 #include "boost/locale.hpp"
 #include "boost/chrono.hpp"
-#include "boost/filesystem.hpp"
-#include <boost/filesystem/operations.hpp>
 
 std::string VERSION = "0.9.5";
 
@@ -210,7 +208,7 @@ int main(int argc, const char * argv[]) {
   }
 
   //-- add the polygons to the map3d
-  std::vector<PolygonFile> files;
+  std::vector<PolygonFile> polygonFiles;
   n = nodes["input_polygons"];
   for (auto it = n.begin(); it != n.end(); ++it) {
     // Get the correct uniqueid attribute
@@ -239,19 +237,19 @@ int main(int argc, const char * argv[]) {
       file.handle_multiple_heights = handle_multiple_heights;
       if ((*it)["lifting"]) {
         file.layers.emplace_back(std::string(), (*it)["lifting"].as<std::string>());
-        files.push_back(file);
+        polygonFiles.push_back(file);
       }
       else if ((*it)["lifting_per_layer"]) {
         YAML::Node layers = (*it)["lifting_per_layer"];
         for (auto it3 = layers.begin(); it3 != layers.end(); ++it3) {
           file.layers.emplace_back(it3->first.as<std::string>(), it3->second.as<std::string>());
         }
-        files.push_back(file);
+        polygonFiles.push_back(file);
       }
     }
   }
 
-  bool added = map3d.add_polygons_files(files);
+  bool added = map3d.add_polygons_files(polygonFiles);
   if (!added) {
     std::cerr << "ERROR: Missing polygon data, cannot 3dfy the dataset. Aborting.\n";
     return 0;
@@ -369,12 +367,16 @@ int main(int argc, const char * argv[]) {
     z_exaggeration = n["vertical_exaggeration"].as<int>();
 
   std::ofstream outputfile;
-  if (format != "Shapefile")
+  if (format != "Shapefile" && format != "CityGML-Multifile")
     outputfile.open(outputFilename);
 
   if (format == "CityGML") {
     std::clog << "CityGML output\n";
     map3d.get_citygml(outputfile);
+  }
+  else if (format == "CityGML-Multifile") {
+    std::clog << "CityGML-Multifile output\n";
+    map3d.get_citygml_multifile(outputFilename, polygonFiles);
   }
   else if (format == "CityGML-IMGeo") {
     std::clog << "CityGML-IMGeo output\n";
@@ -616,12 +618,13 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
   if ((format != "OBJ") &&
     (format != "OBJ-NoID") &&
     (format != "CityGML") &&
+    (format != "CityGML-Multifile") &&
     (format != "CityGML-IMGeo") &&
     (format != "OBJ-BUILDINGS") &&
     (format != "CSV-BUILDINGS") &&
     (format != "Shapefile")) {
     wentgood = false;
-    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-IMGeo | CSV-BUILDINGS | Shapefile)\n";
+    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-Multifile | CityGML-IMGeo | CSV-BUILDINGS | Shapefile)\n";
   }
   return wentgood;
 }
