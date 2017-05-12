@@ -113,7 +113,7 @@ private:
   Box2        _bbox;
   Box2        _requestedExtent;
 
-  std::unordered_map< std::string, std::vector<int> > _nc;
+  NodeColumn                                          _nc;
   std::vector<TopoFeature*>                           _lsFeatures;
   std::vector<std::string>                            _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;

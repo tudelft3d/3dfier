@@ -33,7 +33,7 @@
 
 class Road: public Boundary3D {
 public:
-  Road(char *wkt, std::string layername, std::unordered_map<std::string, std::pair<OGRFieldType, std::string>> attributes, std::string pid, float heightref);
+  Road(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref);
   bool                lift();
   bool                add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   void                get_citygml(std::ofstream& of);

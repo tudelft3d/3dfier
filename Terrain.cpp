@@ -30,7 +30,7 @@
 #include "io.h"
 #include <algorithm>
 
-Terrain::Terrain(char *wkt, std::string layername, std::unordered_map<std::string, std::pair<OGRFieldType, std::string>> attributes, std::string pid, int simplification, float innerbuffer)
+Terrain::Terrain(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, float innerbuffer)
   : TIN(wkt, layername, attributes, pid, simplification, innerbuffer) {}
 
 TopoClass Terrain::get_class() {

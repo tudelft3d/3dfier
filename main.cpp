@@ -40,7 +40,7 @@
 #include "boost/locale.hpp"
 #include "boost/chrono.hpp"
 
-std::string VERSION = "0.9.5";
+std::string VERSION = "0.9.6";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 void print_license();
@@ -331,10 +331,11 @@ int main(int argc, const char * argv[]) {
   }
 
   auto durationPoints = boost::chrono::high_resolution_clock::now() - startPoints;
-  printf("All points read in %d seconds || %02d:%02d:%02d\n", boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints),
+  printf("All points read in %ld seconds || %02d:%02d:%02d\n",
+    boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count(),
     boost::chrono::duration_cast<boost::chrono::hours>(durationPoints).count(),
     boost::chrono::duration_cast<boost::chrono::minutes>(durationPoints).count() % 60,
-    boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
+    (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
   );
 
   if (bElevData == false) {
@@ -411,14 +412,15 @@ int main(int argc, const char * argv[]) {
   }
   of.close();
 
-  printf("File written in %d ms\n", std::clock() - startFileWriting);
+  printf("File written in %ld ms\n", std::clock() - startFileWriting);
 
   //-- bye-bye
   auto duration = boost::chrono::high_resolution_clock::now() - startTime;
-  printf("Successfully terminated in %d seconds || %02d:%02d:%02d\n", boost::chrono::duration_cast<boost::chrono::seconds>(duration),
-    boost::chrono::duration_cast<boost::chrono::hours>(duration).count(),
-    boost::chrono::duration_cast<boost::chrono::minutes>(duration).count() % 60,
-    boost::chrono::duration_cast<boost::chrono::seconds>(duration).count() % 60
+  printf("Successfully terminated in %ld seconds || %02d:%02d:%02d\n",
+    boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count(),
+    boost::chrono::duration_cast<boost::chrono::hours>(durationPoints).count(),
+    boost::chrono::duration_cast<boost::chrono::minutes>(durationPoints).count() % 60,
+    (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
   );
   return 1;
 }

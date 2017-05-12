@@ -29,10 +29,10 @@
 #include "Building.h"
 #include "io.h"
 
-float Building::_heightref_top = 0.9;
-float Building::_heightref_base = 0.1;
+float Building::_heightref_top = 0.9f;
+float Building::_heightref_base = 0.1f;
 
-Building::Building(char *wkt, std::string layername, std::unordered_map<std::string, std::pair<OGRFieldType, std::string>> attributes, std::string pid, float heightref_top, float heightref_base)
+Building::Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base)
   : Flat(wkt, layername, attributes, pid)
 {
   _heightref_top = heightref_top;
@@ -130,7 +130,7 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
         c = it->second;
       }
       if ((a != b) && (a != c) && (b != c)) {
-        fs += "f "; fs += a; fs += " "; fs += b; fs += " "; fs += c; fs += "\n";
+        fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
       }
       // else
       //   std::clog << "COLLAPSED TRIANGLE REMOVED\n";
