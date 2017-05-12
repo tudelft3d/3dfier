@@ -331,8 +331,9 @@ int main(int argc, const char * argv[]) {
   }
 
   auto durationPoints = boost::chrono::high_resolution_clock::now() - startPoints;
-  printf("All points read in %d seconds || %02d:%02d:%02d\n", boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints),
-    boost::chrono::duration_cast<boost::chrono::hours>(durationPoints).count(),
+  printf("All points read in %d seconds || %02d:%02d:%02d\n", 
+    (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count(),
+    (int)boost::chrono::duration_cast<boost::chrono::hours>(durationPoints).count(),
     boost::chrono::duration_cast<boost::chrono::minutes>(durationPoints).count() % 60,
     boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
   );
@@ -415,10 +416,11 @@ int main(int argc, const char * argv[]) {
 
   //-- bye-bye
   auto duration = boost::chrono::high_resolution_clock::now() - startTime;
-  printf("Successfully terminated in %d seconds || %02d:%02d:%02d\n", boost::chrono::duration_cast<boost::chrono::seconds>(duration),
-    boost::chrono::duration_cast<boost::chrono::hours>(duration).count(),
-    boost::chrono::duration_cast<boost::chrono::minutes>(duration).count() % 60,
-    boost::chrono::duration_cast<boost::chrono::seconds>(duration).count() % 60
+  printf("Successfully terminated in %d seconds || %02d:%02d:%02d\n", 
+    (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count(),
+    (int)boost::chrono::duration_cast<boost::chrono::hours>(durationPoints).count(),
+    boost::chrono::duration_cast<boost::chrono::minutes>(durationPoints).count() % 60,
+    boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
   );
   return 1;
 }

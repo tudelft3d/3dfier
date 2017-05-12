@@ -781,7 +781,7 @@ void TopoFeature::get_triangle_as_gml_triangle(std::ofstream& of, Triangle& t, b
 
 bool TopoFeature::get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue)
 {
-  auto& it = _attributes.find(attributeName);
+  auto it = _attributes.find(attributeName);
   if (it != _attributes.end()) {
     attribute = (*it).second.second;
     if (!attribute.empty()) {
