@@ -376,11 +376,15 @@ int main(int argc, const char * argv[]) {
   }
   else if (format == "CityGML-Multifile") {
     std::clog << "CityGML-Multifile output\n";
-    map3d.get_citygml_multifile(outputFilename, polygonFiles);
+    map3d.get_citygml_multifile(outputFilename);
   }
   else if (format == "CityGML-IMGeo") {
     std::clog << "CityGML-IMGeo output\n";
     map3d.get_citygml_imgeo(outputfile);
+  }
+  else if (format == "CityGML-IMGeo-Multifile") {
+    std::clog << "CityGML-IMGeo-Multifile output\n";
+    map3d.get_citygml_imgeo_multifile(outputFilename);
   }
   else if (format == "OBJ") {
     std::clog << "OBJ output\n";
@@ -620,11 +624,12 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     (format != "CityGML") &&
     (format != "CityGML-Multifile") &&
     (format != "CityGML-IMGeo") &&
+    (format != "CityGML-IMGeo-Multifile") &&
     (format != "OBJ-BUILDINGS") &&
     (format != "CSV-BUILDINGS") &&
     (format != "Shapefile")) {
     wentgood = false;
-    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-Multifile | CityGML-IMGeo | CSV-BUILDINGS | Shapefile)\n";
+    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-Multifile | CityGML-IMGeo | CityGML-IMGeo-Multifile | CSV-BUILDINGS | Shapefile)\n";
   }
   return wentgood;
 }

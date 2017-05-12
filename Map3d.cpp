@@ -152,7 +152,7 @@ void Map3d::get_citygml(std::ofstream &outputfile) {
   outputfile << "</CityModel>\n";
 }
 
-void Map3d::get_citygml_multifile(std::string outputfilename, std::vector<PolygonFile> polygonFiles) {
+void Map3d::get_citygml_multifile(std::string outputfilename) {
   std::unordered_map<std::string, std::ofstream> outputfiles;
 
   for (auto& f : _lsFeatures) {
@@ -178,6 +178,25 @@ void Map3d::get_citygml_imgeo(std::ofstream &outputfile) {
     f->get_citygml_imgeo(outputfile);
   }
   outputfile << "</CityModel>\n";
+}
+
+void Map3d::get_citygml_imgeo_multifile(std::string outputfilename) {
+  std::unordered_map<std::string, std::ofstream> outputfiles;
+
+  for (auto& f : _lsFeatures) {
+    std::string filename = outputfilename + f->get_layername() + ".gml";
+    if (outputfiles.find(filename) == outputfiles.end()) {
+      outputfiles.emplace(filename, std::ofstream(filename));
+      outputfiles[filename] << std::setprecision(3) << std::fixed;
+      create_citygml_header(outputfiles[filename]);
+    }
+    f->get_citygml_imgeo(outputfiles[filename]);
+  }
+  for (auto i = outputfiles.begin(); i != outputfiles.end(); i++) {
+    std::ofstream& outputfile = outputfiles[(*i).first];
+    outputfile << "</CityModel>\n";
+    outputfile.close();
+  }
 }
 
 void Map3d::create_citygml_header(std::ofstream& outputfile) {

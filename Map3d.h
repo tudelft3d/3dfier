@@ -62,9 +62,10 @@ public:
   liblas::Bounds<double> get_bounds();
 
   void get_citygml(std::ofstream &outputfile);
-  void get_citygml_multifile(std::string, std::vector<PolygonFile> files);
+  void get_citygml_multifile(std::string);
   void create_citygml_header(std::ofstream& outputfile);
   void get_citygml_imgeo(std::ofstream &outputfile);
+  void get_citygml_imgeo_multifile(std::string outputfilename);
   void get_csv_buildings(std::ofstream &outputfile);
   void get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration = 0);
   void get_obj_per_class(std::ofstream &outputfile, int z_exaggeration = 0);
