@@ -69,7 +69,6 @@ public:
   bool         has_vertical_walls();
   void         add_vertical_wall();
   bool         get_top_level();
-  std::string  get_wkt();
   bool         get_shape_features(OGRLayer* layer, std::string className);
   void         get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs);
   void         get_imgeo_object_info(std::ofstream &outputfile, std::string id);

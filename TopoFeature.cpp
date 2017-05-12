@@ -95,7 +95,6 @@ Polygon2* TopoFeature::get_Polygon2() {
 }
 
 void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs) {
-  // outputfile << mtl << "\n";
   fs += mtl; fs += "\n";
   for (auto& t : _triangles) {
     unsigned long a, b, c;
@@ -122,8 +121,7 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
     else
       c = it->second;
 
-    if ((a != b) && (a != c) && (b != c)) {  
-      //outputfile << "f " << a << " " << b << " " << c << "\n";
+    if ((a != b) && (a != c) && (b != c)) {
       fs += "f "; fs += a; fs += " "; fs += b; fs += " "; fs += c; fs += "\n";
     }
     // else
@@ -132,7 +130,6 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
 
   //-- vertical triangles
   if (_bVerticalWalls == true && _triangles_vw.size() > 0) {
-    //outputfile << mtl << "Wall" << "\n";
     fs += mtl; fs += "Wall"; fs += "\n";
   }
 
@@ -161,7 +158,6 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
       c = it->second;
 
     if ((a != b) && (a != c) && (b != c)) {
-      //outputfile << "f " << a << " " << b << " " << c << "\n";
       fs += "f "; fs += a; fs += " "; fs += b; fs += " "; fs += c; fs += "\n";
     }
     // else
@@ -231,41 +227,6 @@ void TopoFeature::get_citygml_attributes(std::ofstream &outputfile, std::unorder
       outputfile << "</gen:" + type << "Attribute>\n";
     }
   }
-}
-
-std::string TopoFeature::get_wkt() {
-  //  std::string wkt;
-  //  wkt = "MULTIPOLYGONZ (";
-  //
-  //  for (auto& t: _triangles) {
-  //    char* buf = new char[200];
-  //    Point3 p1 = _vertices[t.v0];
-  //    Point3 p2 = _vertices[t.v1];
-  //    Point3 p3 = _vertices[t.v2];
-  //    std::sprintf(buf, "((%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f)),",
-  //      p1.get<0>(), p1.get<1>(), p1.get<2>(),
-  //      p2.get<0>(), p2.get<1>(), p2.get<2>(),
-  //      p3.get<0>(), p3.get<1>(), p3.get<2>(),
-  //      p1.get<0>(), p1.get<1>(), p1.get<2>());
-  //    wkt += std::string(buf);
-  //  }
-  //
-  //  for (auto& t: _triangles_vw) {
-  //    char* buf = new char[200];
-  //    Point3 p1 = *t.v0;
-  //    Point3 p2 = *t.v1;
-  //    Point3 p3 = *t.v2;
-  //    std::sprintf(buf, "((%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f)),",
-  //      p1.get<0>(), p1.get<1>(), p1.get<2>(),
-  //      p2.get<0>(), p2.get<1>(), p2.get<2>(),
-  //      p3.get<0>(), p3.get<1>(), p3.get<2>(),
-  //      p1.get<0>(), p1.get<1>(), p1.get<2>());
-  //    wkt += std::string(buf);
-  //  }
-  //  wkt.pop_back();
-  //  wkt += ")";
-  //  return wkt;
-  return "";
 }
 
 bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {

@@ -130,7 +130,6 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
         c = it->second;
       }
       if ((a != b) && (a != c) && (b != c)) {
-        //outputfile << "f " << a << " " << b << " " << c << "\n";
         fs += "f "; fs += a; fs += " "; fs += b; fs += " "; fs += c; fs += "\n";
       }
       // else

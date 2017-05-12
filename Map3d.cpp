@@ -188,8 +188,8 @@ void Map3d::get_citygml_imgeo_multifile(std::string outputfilename) {
     }
     f->get_citygml_imgeo(outputfiles[filename]);
   }
-  for (auto i = outputfiles.begin(); i != outputfiles.end(); i++) {
-    std::ofstream& outputfile = outputfiles[(*i).first];
+  for (auto it = outputfiles.begin(); it != outputfiles.end(); it++) {
+    std::ofstream& outputfile = outputfiles[(*it).first];
     outputfile << "</CityModel>\n";
     outputfile.close();
   }
@@ -218,8 +218,7 @@ void Map3d::get_csv_buildings(std::ofstream &outputfile) {
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
-      // if (b != nullptr)
-       b->get_csv(outputfile);
+      b->get_csv(outputfile);
     }
   }
 }
@@ -230,7 +229,6 @@ void Map3d::get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration) {
   
   for (auto& p : _lsFeatures) {
     fs += "o "; fs += p->get_id(); fs += "\n";
-    //ssf << "o " << p->get_id() << "\n";
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
       b->get_obj(dPts, _building_lod, b->get_mtl(), fs);
