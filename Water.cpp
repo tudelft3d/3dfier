@@ -31,7 +31,7 @@
 
 float Water::_heightref = 0.1;
 
-Water::Water(char *wkt, std::string layername, std::unordered_map<std::string, std::pair<OGRFieldType, std::string>> attributes, std::string pid, float heightref)
+Water::Water(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref)
   : Flat(wkt, layername, attributes, pid) {
   _heightref = heightref;
 }

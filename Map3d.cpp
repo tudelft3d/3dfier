@@ -35,8 +35,8 @@ Map3d::Map3d() {
   _building_include_floor = false;
   _building_lod = 1;
   _use_vertical_walls = false;
-  _building_heightref_roof = 0.9;
-  _building_heightref_floor = 0.1;
+  _building_heightref_roof = 0.9f;
+  _building_heightref_floor = 0.1f;
   _building_triangulate = true;
   _terrain_simplification = 0;
   _forest_simplification = 0;
@@ -630,7 +630,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
   OGRGeometry *geom = f->GetGeometryRef();
   geom->flattenTo2D();
   geom->exportToWkt(&wkt);
-  std::unordered_map<std::string, std::pair<OGRFieldType, std::string>> attributes;
+  AttributeMap attributes;
   int attributeCount = f->GetFieldCount();
   for (int i = 0; i < attributeCount; i++) {
     attributes[boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef())] = std::make_pair(f->GetFieldDefnRef(i)->GetType(), f->GetFieldAsString(i));
@@ -1075,7 +1075,7 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
 }
 
 void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
-  float avgz = (f1->get_vertex_elevation(ringi1, pi1) + f2->get_vertex_elevation(ringi2, pi2)) / 2;
+  int avgz = (f1->get_vertex_elevation(ringi1, pi1) + f2->get_vertex_elevation(ringi2, pi2)) / 2;
   f1->set_vertex_elevation(ringi1, pi1, avgz);
   f2->set_vertex_elevation(ringi2, pi2, avgz);
   Point2 p = f1->get_point2(ringi1, pi1);

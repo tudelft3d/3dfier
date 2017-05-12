@@ -116,7 +116,7 @@ void mark_domains(CDT& cdt) {
 
 bool getCDT(const Polygon2* pgn,
   const std::vector< std::vector<int> > &z,
-  std::vector<std::pair<Point3, std::string>> &vertices,
+  std::vector< std::pair<Point3, std::string> > &vertices,
   std::vector<Triangle> &triangles,
   const std::vector<Point3> &lidarpts) {
   CDT cdt;

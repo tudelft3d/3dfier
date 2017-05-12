@@ -334,8 +334,8 @@ int main(int argc, const char * argv[]) {
   printf("All points read in %d seconds || %02d:%02d:%02d\n", 
     (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count(),
     (int)boost::chrono::duration_cast<boost::chrono::hours>(durationPoints).count(),
-    boost::chrono::duration_cast<boost::chrono::minutes>(durationPoints).count() % 60,
-    boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
+    (int)boost::chrono::duration_cast<boost::chrono::minutes>(durationPoints).count() % 60,
+    (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
   );
 
   if (bElevData == false) {
@@ -419,8 +419,8 @@ int main(int argc, const char * argv[]) {
   printf("Successfully terminated in %d seconds || %02d:%02d:%02d\n", 
     (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count(),
     (int)boost::chrono::duration_cast<boost::chrono::hours>(durationPoints).count(),
-    boost::chrono::duration_cast<boost::chrono::minutes>(durationPoints).count() % 60,
-    boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
+    (int)boost::chrono::duration_cast<boost::chrono::minutes>(durationPoints).count() % 60,
+    (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
   );
   return 1;
 }
