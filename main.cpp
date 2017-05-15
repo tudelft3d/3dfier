@@ -357,8 +357,7 @@ int main(int argc, const char * argv[]) {
     map3d.threeDfy(bStitching);
     map3d.construct_CDT();
   }
-  std::clog << "done.\n";
-
+  std::clog << "done with calculations.\n";
 
   //-- output
   std::clock_t startFileWriting = std::clock(); 

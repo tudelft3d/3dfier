@@ -249,6 +249,8 @@ void Map3d::get_obj_per_feature(std::ofstream& of, int z_exaggeration) {
   for (auto& p : thepts) {
     of << "v " << p << "\n";
   }
+
+  of << fs << std::endl;
 }
 
 void Map3d::get_obj_per_class(std::ofstream& of, int z_exaggeration) {
