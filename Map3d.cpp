@@ -249,7 +249,6 @@ void Map3d::get_obj_per_feature(std::ofstream& of, int z_exaggeration) {
   for (auto& p : thepts) {
     of << "v " << p << "\n";
   }
-
   of << fs << std::endl;
 }
 
@@ -288,22 +287,17 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
 #if GDAL_VERSION_MAJOR < 2
   return false;
 #else
-
   if (GDALGetDriverCount() == 0)
     GDALAllRegister();
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName(drivername.c_str());
-  GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
-
-  if (dataSource == NULL) {
-    std::cerr << "\tERROR: could not open file, skipping it.\n";
-    return false;
-  }
 
   if (!multi) {
-    OGRLayer *layer = create_gdal_layer(dataSource, "my3dmap", true);
+    OGRLayer *layer = create_gdal_layer(driver, filename, "my3dmap", true);
     for (auto& f : _lsFeatures) {
       f->get_shape(layer);
     }
+    GDALClose(layer);
+    GDALClose(driver);
   }
   else {
     std::unordered_map<std::string, OGRLayer*> layers;
@@ -311,17 +305,31 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
     for (auto& f : _lsFeatures) {
       std::string layername = f->get_layername();
       if (layers.find(layername) == layers.end()) {
-        layers.emplace(layername, create_gdal_layer(dataSource, layername, false));
+        layers.emplace(layername, create_gdal_layer(driver, filename, layername, false));
       }
       f->get_shape(layers[layername]);
     }
+    for (auto& layer : layers) {
+      GDALClose(layer.second);
+    }
+    GDALClose(driver);
   }
-  GDALClose(dataSource);
   return true;
 #endif
 }
 
-OGRLayer* Map3d::create_gdal_layer(GDALDataset *dataSource, std::string layername, bool forceHeightAttributes) {
+OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, bool forceHeightAttributes) {
+  std::string driverName = driver->GetDescription();
+  if (driverName != "PostgreSQL") {
+    filename = filename + layername;
+  }
+  GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+
+  if (dataSource == NULL) {
+    std::cerr << "\tERROR: could not open file, skipping it.\n";
+    return false;
+  }
+  
   OGRLayer *layer = dataSource->GetLayerByName(layername.c_str());
   if (layer == NULL) {
     OGRSpatialReference* sr = new OGRSpatialReference();

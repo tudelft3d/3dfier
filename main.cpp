@@ -403,6 +403,10 @@ int main(int argc, const char * argv[]) {
     std::clog << "Shapefile output\n";
     map3d.get_gdal_output(ofname, "ESRI Shapefile", false);
   }
+  else if (format == "Shapefile-Multi") {
+    std::clog << "Shapefile output\n";
+    map3d.get_gdal_output(ofname, "ESRI Shapefile", true);
+  }
   else if (format == "PostGIS") {
     std::clog << "PostGIS output\n";
     map3d.get_gdal_output(ofname, "PostgreSQL", false);
@@ -423,10 +427,10 @@ int main(int argc, const char * argv[]) {
   //-- bye-bye
   auto duration = boost::chrono::high_resolution_clock::now() - startTime;
   printf("Successfully terminated in %ld seconds || %02d:%02d:%02d\n",
-    boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count(),
-    boost::chrono::duration_cast<boost::chrono::hours>(durationPoints).count(),
-    boost::chrono::duration_cast<boost::chrono::minutes>(durationPoints).count() % 60,
-    (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
+    boost::chrono::duration_cast<boost::chrono::seconds>(duration).count(),
+    boost::chrono::duration_cast<boost::chrono::hours>(duration).count(),
+    boost::chrono::duration_cast<boost::chrono::minutes>(duration).count() % 60,
+    (int)boost::chrono::duration_cast<boost::chrono::seconds>(duration).count() % 60
   );
   return 1;
 }
@@ -636,11 +640,12 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     (format != "OBJ-BUILDINGS") &&
     (format != "CSV-BUILDINGS") &&
     (format != "Shapefile") &&
+    (format != "Shapefile-Multi") &&
     (format != "PostGIS") &&
     (format != "PostGIS-Multi") &&
     (format != "GDAL")) {
     wentgood = false;
-    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-Multifile | CityGML-IMGeo | CityGML-IMGeo-Multifile | CSV-BUILDINGS | Shapefile | PostGIS | PostGIS-Multi)\n";
+    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-Multifile | CityGML-IMGeo | CityGML-IMGeo-Multifile | CSV-BUILDINGS | Shapefile | Shapefile-Multi | PostGIS | PostGIS-Multi)\n";
   }
   if (format == "GDAL" && (!n["gdal_driver"] || n["gdal_driver"].as<std::string>().empty())) {
     wentgood = false;

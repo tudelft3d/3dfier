@@ -70,11 +70,8 @@ public:
   void get_obj_per_feature(std::ofstream& of, int z_exaggeration = 0);
   void get_obj_per_class(std::ofstream& of, int z_exaggeration = 0);
   bool get_gdal_output(std::string filename, std::string drivername, bool multi);
-  //bool get_shapefile(std::string filename);
   bool get_shapefile2d(std::string filename);
-  //void get_postgis(std::string ofname);
-  //void get_postgis_multi(std::string ofname);
-  OGRLayer* create_gdal_layer(GDALDataset *dataSource, std::string layername, bool forceHeightAttributes);
+  OGRLayer* create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, bool forceHeightAttributes);
 
   void set_building_heightref_roof(float heightref);
   void set_building_heightref_floor(float heightref);
