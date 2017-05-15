@@ -402,22 +402,20 @@ int main(int argc, const char * argv[]) {
   }
   else if (format == "Shapefile") {
     std::clog << "Shapefile output\n";
-    if (map3d.get_shapefile(ofname)) {
-      std::clog << "Shapefile written\n";
-    }
-    else
-    {
-      std::cerr << "Writing shapefile failed\n";
-      return 0;
-    }
+    map3d.get_gdal_output(ofname, "ESRI Shapefile", false);
   }
   else if (format == "PostGIS") {
     std::clog << "PostGIS output\n";
-    map3d.get_postgis(ofname);
+    map3d.get_gdal_output(ofname, "PostgreSQL", false);
   }
   else if (format == "PostGIS-Multi") {
     std::clog << "PostGIS-Multi output\n";
-    map3d.get_postgis_multi(ofname);
+    map3d.get_gdal_output(ofname, "PostgreSQL", true);
+  }
+  else if (format == "GDAL") {
+    std::string driver = n["gdal_driver"].as<std::string>();
+    std::clog << "GDAL output using driver '" + driver + "'\n";
+    map3d.get_gdal_output(ofname, driver, false);
   }
   of.close();
 
@@ -640,9 +638,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     (format != "CSV-BUILDINGS") &&
     (format != "Shapefile") &&
     (format != "PostGIS") &&
-    (format != "PostGIS-Multi")) {
+    (format != "PostGIS-Multi") &&
+    (format != "GDAL")) {
     wentgood = false;
     std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-Multifile | CityGML-IMGeo | CityGML-IMGeo-Multifile | CSV-BUILDINGS | Shapefile | PostGIS | PostGIS-Multi)\n";
   }
+  if (format == "GDAL" && (!n["gdal_driver"] || n["gdal_driver"].as<std::string>().empty())) {
+    wentgood = false;
+    std::cerr << "\tOption 'output.format' GDAL needs gdal_driver setting\n";
+  }
+
   return wentgood;
 }
