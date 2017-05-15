@@ -229,7 +229,7 @@ void TopoFeature::get_citygml_attributes(std::ofstream& of, AttributeMap attribu
   }
 }
 
-bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className) {
+bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeHeights, int height_base, int height) {
     OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
     OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
     OGRMultiPolygon multipolygon = OGRMultiPolygon();
@@ -272,7 +272,10 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
     feature->SetGeometry(&multipolygon);
     feature->SetField("Id", this->get_id().c_str());
     feature->SetField("Class", className.c_str());
-  
+    if (writeHeights) {
+      feature->SetField("BaseHeight", z_to_float(height_base));
+      feature->SetField("RoofHeight", z_to_float(height));
+    }
     if (layer->CreateFeature(feature) != OGRERR_NONE)
     {
       std::cerr << "Failed to create feature " << this->get_id() << " in shapefile.\n";

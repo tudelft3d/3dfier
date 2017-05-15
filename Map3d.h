@@ -72,6 +72,8 @@ public:
   bool get_shapefile(std::string filename);
   bool get_shapefile2d(std::string filename);
   void get_postgis(std::string ofname);
+  void get_postgis_multi(std::string ofname);
+  OGRLayer* create_postgis_layer(GDALDataset *dataSource, std::string layername);
 
   void set_building_heightref_roof(float heightref);
   void set_building_heightref_floor(float heightref);

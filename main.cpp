@@ -415,6 +415,10 @@ int main(int argc, const char * argv[]) {
     std::clog << "PostGIS output\n";
     map3d.get_postgis(ofname);
   }
+  else if (format == "PostGIS-Multi") {
+    std::clog << "PostGIS-Multi output\n";
+    map3d.get_postgis_multi(ofname);
+  }
   of.close();
 
   printf("File written in %ld ms\n", std::clock() - startFileWriting);
@@ -635,9 +639,10 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     (format != "OBJ-BUILDINGS") &&
     (format != "CSV-BUILDINGS") &&
     (format != "Shapefile") &&
-    (format != "PostGIS")) {
+    (format != "PostGIS") &&
+    (format != "PostGIS-Multi")) {
     wentgood = false;
-    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-Multifile | CityGML-IMGeo | CityGML-IMGeo-Multifile | CSV-BUILDINGS | Shapefile | PostGIS)\n";
+    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-Multifile | CityGML-IMGeo | CityGML-IMGeo-Multifile | CSV-BUILDINGS | Shapefile | PostGIS | PostGIS-Multi)\n";
   }
   return wentgood;
 }

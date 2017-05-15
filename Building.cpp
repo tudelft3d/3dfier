@@ -294,55 +294,5 @@ void Building::get_imgeo_nummeraanduiding(std::ofstream& of) {
 }
 
 bool Building::get_shape(OGRLayer* layer) {
-  OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
-  OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
-  OGRMultiPolygon multipolygon = OGRMultiPolygon();
-  Point3 p;
-
-  //-- add all triangles to the layer
-  for (auto& t : _triangles) {
-    OGRPolygon polygon = OGRPolygon();
-    OGRLinearRing ring = OGRLinearRing();
-
-    p = _vertices[t.v0].first;
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices[t.v1].first;
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices[t.v2].first;
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-
-    ring.closeRings();
-    polygon.addRing(&ring);
-    multipolygon.addGeometry(&polygon);
-  }
-
-  //-- add all vertical wall triangles to the layer
-  for (auto& t : _triangles_vw) {
-    OGRPolygon polygon = OGRPolygon();
-    OGRLinearRing ring = OGRLinearRing();
-
-    p = _vertices_vw[t.v0].first;
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices_vw[t.v1].first;
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices_vw[t.v2].first;
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-
-    ring.closeRings();
-    polygon.addRing(&ring);
-    multipolygon.addGeometry(&polygon);
-  }
-
-  feature->SetGeometry(&multipolygon);
-  feature->SetField("Id", this->get_id().c_str());
-  feature->SetField("Class", "Building");
-  feature->SetField("BaseHeight", z_to_float(this->get_height_base()));
-  feature->SetField("RoofHeight", z_to_float(this->get_height()));
-
-  if (layer->CreateFeature(feature) != OGRERR_NONE) {
-    std::cerr << "Failed to create feature " << this->get_id() << " in shapefile.\n";
-    return false;
-  }
-  OGRFeature::DestroyFeature(feature);
-  return true;
+  return TopoFeature::get_multipolygon_features(layer, "Building", true, this->get_height_base(), this->get_height());
 }

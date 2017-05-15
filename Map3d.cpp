@@ -373,7 +373,7 @@ bool Map3d::get_shapefile2d(std::string filename) {
 
 void Map3d::get_postgis(std::string ofname) {
 #if GDAL_VERSION_MAJOR < 2
-  std::cerr << "Exporting to a 3D Shapefile requires GDAL/OGR 2.0 or higher.\n";
+  std::cerr << "Exporting to a 3D Multipolygon requires GDAL/OGR 2.0 or higher.\n";
   return false;
 #else
   if (GDALGetDriverCount() == 0)
@@ -385,34 +385,75 @@ void Map3d::get_postgis(std::string ofname) {
     std::cerr << "\tERROR: could not open file, skipping it.\n";
     return;
   }
-  OGRLayer *layer = dataSource->CreateLayer("my3dmap", NULL, OGR_GT_SetZ(wkbMultiPolygon), NULL);
+  OGRLayer *layer = create_postgis_layer(dataSource, "my3dmap");
 
-  OGRFieldDefn oField("Id", OFTString);
-  if (layer->CreateField(&oField) != OGRERR_NONE) {
-    std::cerr << "Creating Id field failed.\n";
-    return;
-  }
-  OGRFieldDefn oField2("Class", OFTString);
-  if (layer->CreateField(&oField2) != OGRERR_NONE) {
-    std::cerr << "Creating Class field failed.\n";
-    return;
-  }
-  OGRFieldDefn oField3("BaseHeight", OFTReal);
-  if (layer->CreateField(&oField3) != OGRERR_NONE) {
-    std::cerr << "Creating BaseHeight field failed.\n";
-    return;
-  }
-  OGRFieldDefn oField4("RoofHeight", OFTReal);
-  if (layer->CreateField(&oField4) != OGRERR_NONE) {
-    std::cerr << "Creating RoofHeight field failed.\n";
-    return;
-  }
-
-  for (auto& p3 : _lsFeatures) {
-    p3->get_shape(layer);
+  for (auto& f : _lsFeatures) {
+    f->get_shape(layer);
   }
   GDALClose(dataSource);
 #endif
+}
+
+void Map3d::get_postgis_multi(std::string ofname) {
+#if GDAL_VERSION_MAJOR < 2
+  std::cerr << "Exporting to a 3D Multipolygon requires GDAL/OGR 2.0 or higher.\n";
+  return false;
+#else
+  if (GDALGetDriverCount() == 0)
+    GDALAllRegister();
+  GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("PostgreSQL");
+  GDALDataset *dataSource = driver->Create(ofname.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+
+  if (dataSource == NULL) {
+    std::cerr << "\tERROR: could not open file, skipping it.\n";
+    return;
+  }
+
+  std::unordered_map<std::string, OGRLayer*> layers;
+
+  for (auto& f : _lsFeatures) {
+    std::string layername = f->get_layername();
+    if (layers.find(layername) == layers.end()) {
+      layers.emplace(layername, create_postgis_layer(dataSource, layername));
+    }
+    f->get_shape(layers[layername]);
+  }
+
+  GDALClose(dataSource);
+#endif
+}
+
+OGRLayer* Map3d::create_postgis_layer(GDALDataset *dataSource, std::string layername) {
+  OGRLayer *layer = dataSource->GetLayerByName(layername.c_str());
+  if (layer == NULL) {
+    OGRSpatialReference* sr = new OGRSpatialReference();
+    sr->importFromEPSG(7415);
+    layer = dataSource->CreateLayer(layername.c_str(), sr, OGR_GT_SetZ(wkbMultiPolygon), NULL);
+
+    OGRFieldDefn oField("Id", OFTString);
+    if (layer->CreateField(&oField) != OGRERR_NONE) {
+      std::cerr << "Creating Id field failed.\n";
+      return NULL;
+    }
+    OGRFieldDefn oField2("Class", OFTString);
+    if (layer->CreateField(&oField2) != OGRERR_NONE) {
+      std::cerr << "Creating Class field failed.\n";
+      return NULL;
+    }
+    if (layername == "buildingpart") {
+      OGRFieldDefn oField3("BaseHeight", OFTReal);
+      if (layer->CreateField(&oField3) != OGRERR_NONE) {
+        std::cerr << "Creating BaseHeight field failed.\n";
+        return NULL;
+      }
+      OGRFieldDefn oField4("RoofHeight", OFTReal);
+      if (layer->CreateField(&oField4) != OGRERR_NONE) {
+        std::cerr << "Creating RoofHeight field failed.\n";
+        return NULL;
+      }
+    }
+  }
+  return layer;
 }
 
 unsigned long Map3d::get_num_polygons() {
