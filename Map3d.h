@@ -71,7 +71,6 @@ public:
   void get_obj_per_class(std::ofstream& of, int z_exaggeration = 0);
   bool get_gdal_output(std::string filename, std::string drivername, bool multi);
   bool get_shapefile2d(std::string filename);
-  OGRLayer* create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, bool forceHeightAttributes);
 
   void set_building_heightref_roof(float heightref);
   void set_building_heightref_floor(float heightref);
@@ -122,6 +121,7 @@ private:
 #if GDAL_VERSION_MAJOR < 2
   bool extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file);
 #else
+  OGRLayer* create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, bool forceHeightAttributes);
   bool extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file);
 #endif
   void extract_feature(OGRFeature * f, std::string layerName, const char * idfield, const char * heightfield, std::string layertype, bool multiple_heights);

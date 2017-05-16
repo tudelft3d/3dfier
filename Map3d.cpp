@@ -322,6 +322,7 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
 #endif
 }
 
+#if GDAL_VERSION_MAJOR > 2
 OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, bool forceHeightAttributes) {
   GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
 
@@ -329,7 +330,6 @@ OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std
     std::cerr << "ERROR: could not open file, skipping it.\n";
     return NULL;
   }
-  
   OGRLayer *layer = dataSource->GetLayerByName(layername.c_str());
   if (layer == NULL) {
     OGRSpatialReference* sr = new OGRSpatialReference();
@@ -361,6 +361,7 @@ OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std
   }
   return layer;
 }
+#endif
 
 bool Map3d::get_shapefile2d(std::string filename) {
 #if GDAL_VERSION_MAJOR < 2
