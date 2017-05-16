@@ -203,16 +203,28 @@ void Map3d::get_csv_buildings(std::ofstream &outputfile) {
 
 void Map3d::get_csv_buildings_multiple_heights(std::ofstream &outputfile) {
   //-- ground heights
-  std::vector<float> gpercentiles = {0.0, 0.1, 0.2, 0.5};
-  // std::vector<float> rpercentiles;
-
-
-  // outputfile << "id;roof;floor" << std::endl;
+  std::vector<float> gpercentiles = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5};
+  std::vector<float> rpercentiles = {0.0, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99};
+  outputfile << std::setprecision(2) << std::fixed;
+  outputfile << "id,";
+  for (auto& each : gpercentiles)
+    outputfile << "ground-" << each << ",";
+  for (auto& each : rpercentiles)
+    outputfile << "roof-" << each << ",";
+  outputfile << std::endl;
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
-      // outputfile << b->get_height_ground_at_percentile(gpercentiles[0]);
-      std::cout << b->get_height_ground_at_percentile(gpercentiles[0]) << std::endl;
+      outputfile << b->get_id() << ",";
+      for (auto& each : gpercentiles) {
+        int h = b->get_height_ground_at_percentile(each);
+        outputfile << float(h)/100 << ",";
+      }
+      for (auto& each : rpercentiles) {
+        int h = b->get_height_roof_at_percentile(each);
+        outputfile << float(h)/100 << ",";
+      }
+      outputfile << std::endl;
     }
   }
 }
