@@ -54,7 +54,7 @@ int main(int argc, const char * argv[]) {
   std::clog.imbue(loc);
 
   std::string licensewarning =
-    "3dfier Copyright (C) 2015-2016  3D geoinformation research group, TU Delft\n"
+    "3dfier Copyright (C) 2015-2017  3D geoinformation research group, TU Delft\n"
     "This program comes with ABSOLUTELY NO WARRANTY.\n"
     "This is free software, and you are welcome to redistribute it\n"
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
