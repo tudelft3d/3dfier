@@ -41,11 +41,6 @@ typedef CGAL::Exact_predicates_tag                                        Itag;
 typedef CGAL::Constrained_Delaunay_triangulation_2<K, TDS, Itag>          CDT;
 
 
-// typedef CGAL::Triangulation_vertex_base_with_info_2 <vertex_index,K>        Vb;
-// typedef CGAL::Constrained_triangulation_face_base_2<K>                      Fb;
-// typedef CGAL::Triangulation_data_structure_2<Vb,Fb>                         TDS;
-// typedef CGAL::Exact_intersections_tag                                       Itag;
-// typedef CGAL::Constrained_Delaunay_triangulation_2<K, TDS, Itag>            CDT;
           
 //explore set of facets connected with non constrained edges,
 //and attribute to each such set a nesting level.
@@ -53,7 +48,6 @@ typedef CGAL::Constrained_Delaunay_triangulation_2<K, TDS, Itag>          CDT;
 //level of 0. Then we recursively consider the non-explored facets incident 
 //to constrained edges bounding the former set and increase the nesting level by 1.
 //Facets in the domain are those with an odd nesting level.
-
 void 
 mark_domains(CDT& ct, 
              CDT::Face_handle start, 
@@ -103,7 +97,6 @@ void mark_domains(CDT& cdt)
  
 int main(int argc, char* argv[])
 {
-  // const char* filename = (argc > 1) ? argv[1] : "a.off";
   const char* filename = (argc > 1) ? argv[1] : "a_cleaned.off";
   std::ifstream input(filename);
   SMesh mesh;
@@ -112,13 +105,14 @@ int main(int argc, char* argv[])
     return 1;
   }
  
+  std::cout << "=====INPUT=====" << std::endl;
   std::cout << "# vertices: " << mesh.number_of_vertices() << std::endl;
   std::cout << "# faces: " << mesh.number_of_faces() << std::endl;
-
-  std::cout << "is_closed? " << CGAL::is_closed(mesh) << std::endl;
   std::cout << "is_valid? " << mesh.is_valid() << std::endl;
+  std::cout << "is_closed? " << CGAL::is_closed(mesh) << std::endl;
+  std::cout << std::endl;
 
-  //-- find the bbox
+  //-- calculate the bbox
   double tmpx, tmpy;
   double minx = 9e10;
   double miny = 9e10;
@@ -138,10 +132,11 @@ int main(int argc, char* argv[])
   miny -= 200;
   maxx += 200;
   maxy += 200;
-  std::cout << "minx (" << minx << ", " << miny << ")" << std::endl;
-  std::cout << "maxx (" << maxx << ", " << maxy << ")" << std::endl;
+  std::cout << "bbox min (" << minx << ", " << miny << ")" << std::endl;
+  std::cout << "bbox max (" << maxx << ", " << maxy << ")" << std::endl;
 
   //-- construct a CDT and link vertices of the SMesh
+  std::cout << "--construct CDT" << std::endl;
   CDT cdt;
   std::vector<vertex_index> bboxi;
   bboxi.push_back(mesh.add_vertex(Point3(minx, miny, 0)));
@@ -177,9 +172,6 @@ int main(int argc, char* argv[])
     }
   }
 
-  std::cout << "# vertices:  " << cdt.number_of_vertices() << std::endl;
-  std::cout << "# triangles: " << cdt.number_of_faces() << std::endl;
-
   mark_domains(cdt);
   CDT::Finite_faces_iterator fi = cdt.finite_faces_begin();
   for( ; fi != cdt.finite_faces_end(); fi++)
@@ -196,6 +188,7 @@ int main(int argc, char* argv[])
   }
 
   //-- close the 'bottom' of the model
+  std::cout << "--close bottom of model" << std::endl;
   std::vector<vertex_index> bboxi2;
   bboxi2.push_back(mesh.add_vertex(Point3(minx, miny, -100)));
   bboxi2.push_back(mesh.add_vertex(Point3(maxx, miny, -100)));
@@ -215,6 +208,7 @@ int main(int argc, char* argv[])
 
 
   //-- fill holes
+  std::cout << "--fill holes in model" << std::endl;
   std::vector<face_descriptor> patch_facets;
   for(auto hed : mesh.halfedges()) {
     if (mesh.is_border(hed) == true) {
@@ -227,18 +221,22 @@ int main(int argc, char* argv[])
     }
   } 
  
+
+  std::cout << "=====OUTPUT=====" << std::endl;
+  std::cout << "# vertices: " << mesh.number_of_vertices() << std::endl;
+  std::cout << "# faces: " << mesh.number_of_faces() << std::endl;
+  std::cout << "is_valid? " << mesh.is_valid() << std::endl;
+  std::cout << "is_closed? " << CGAL::is_closed(mesh) << std::endl;
+  std::cout << std::endl;
   //-- check for self-intersections
   if (PMP::does_self_intersect(mesh) == true)
     std::cout << "self-intersection? yes" << std::endl;
   else
     std::cout << "self-intersection? no" << std::endl;
  
-  // if (CGAL::Polygon_mesh_processing::is_outward_oriented(mesh) == true)
-  //   std::cout << "OUTWARDS" << std::endl;
-  // else
-  //   std::cout << "INWARDS" << std::endl;
  
   //-- save the updated SMesh in OFF
+  std::cout << "output mesh saved to out.off" << std::endl;
   std::ofstream out("out.off");
   out << mesh;
   out.close(); 
