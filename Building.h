@@ -46,6 +46,8 @@ public:
   TopoClass     get_class();
   bool          is_hard();
   int           get_height_base();
+  int           get_height_ground_at_percentile(float percentile);
+  int           get_height_roof_at_percentile(float percentile);
 private:
   std::vector<int>    _zvaluesground;
   static float        _heightref_top;

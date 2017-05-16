@@ -201,6 +201,23 @@ void Map3d::get_csv_buildings(std::ofstream &outputfile) {
   }
 }
 
+void Map3d::get_csv_buildings_multiple_heights(std::ofstream &outputfile) {
+  //-- ground heights
+  std::vector<float> gpercentiles = {0.0, 0.1, 0.2, 0.5};
+  // std::vector<float> rpercentiles;
+
+
+  // outputfile << "id;roof;floor" << std::endl;
+  for (auto& p : _lsFeatures) {
+    if (p->get_class() == BUILDING) {
+      Building* b = dynamic_cast<Building*>(p);
+      // outputfile << b->get_height_ground_at_percentile(gpercentiles[0]);
+      std::cout << b->get_height_ground_at_percentile(gpercentiles[0]) << std::endl;
+    }
+  }
+}
+
+
 void Map3d::get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration) {
   std::unordered_map< std::string, unsigned long > dPts;
   std::stringstream ssf;

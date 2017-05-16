@@ -39,6 +39,26 @@ Building::Building(char *wkt, std::string layername, std::vector<std::tuple<std:
   _heightref_base = heightref_base;
 }
 
+int Building::get_height_ground_at_percentile(float percentile) {
+  if (_zvaluesground.empty() == false) {
+    std::nth_element(_zvaluesground.begin(), _zvaluesground.begin() + (_zvaluesground.size() * percentile), _zvaluesground.end());
+    return _zvaluesground[_zvaluesground.size() * percentile];
+  }
+  else {
+    return -9999;
+  }
+}
+
+int Building::get_height_roof_at_percentile(float percentile) {
+  if (_zvaluesinside.empty() == false) {
+    std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
+    return _zvaluesinside[_zvaluesinside.size() * percentile];
+  }
+  else {
+    return -9999;
+  }
+}
+
 bool Building::lift() {
   //-- for the ground
   if (_zvaluesground.empty() == false) {
@@ -53,12 +73,11 @@ bool Building::lift() {
   else {
     _height_base = 0;
   }
-
   //-- for the roof
   Flat::lift_percentile(_heightref_top);
-
   return true;
 }
+
 
 bool Building::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn) {

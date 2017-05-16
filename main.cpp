@@ -336,6 +336,8 @@ int main(int argc, const char * argv[]) {
     map3d.threeDfy(false);
     map3d.construct_CDT();
   }
+  else if (format == "CSV-BUILDINGS-MULTIPLE")
+    std::clog << "CSV-BUILDINGS-MULTIPLE: no 3D reconstruction" << std::endl;
   else {
     map3d.threeDfy(bStitching);
     map3d.construct_CDT();
@@ -373,6 +375,10 @@ int main(int argc, const char * argv[]) {
   else if (format == "CSV-BUILDINGS") {
     std::clog << "CSV output (only of the buildings)" << std::endl;
     map3d.get_csv_buildings(outputfile);
+  }
+  else if (format == "CSV-BUILDINGS-MULTIPLE") {
+    std::clog << "CSV output with multiple heights (only of the buildings)" << std::endl;
+    map3d.get_csv_buildings_multiple_heights(outputfile);
   }
   else if (format == "Shapefile") {
     std::clog << "Shapefile output" << std::endl;
@@ -599,6 +605,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     (format != "CityGML-IMGeo") &&
     (format != "OBJ-BUILDINGS") &&
     (format != "CSV-BUILDINGS") &&
+    (format != "CSV-BUILDINGS-MULTIPLE") &&
     (format != "Shapefile")) {
     wentgood = false;
     std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-IMGeo | CSV-BUILDINGS | Shapefile)" << std::endl;
