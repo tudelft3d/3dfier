@@ -97,10 +97,7 @@
       </ImportLibrary>
       <ProgramDataBaseFile>$(OutDir)$(TargetName).pdb</ProgramDataBaseFile>
       <SubSystem>Console</SubSystem>
-      <Version>
-      </Version>
       <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <GenerateMapFile>false</GenerateMapFile>
     </Link>
     <ProjectReference>
@@ -140,7 +137,6 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalOptions> /machine:x64 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>C:\OSGeo4W64\lib\gdal_i.lib;..\..\libLAS-1.8.1\bin\Debug\liblas.lib;..\..\laszip-src-2.2.0\lib\laszip.lib;..\..\CGAL-4.8\build\lib\libCGAL_Core-vc140-mt-4.8.lib;..\..\CGAL-4.8\build\lib\libCGAL-vc140-mt-4.8.lib;..\..\CGAL-4.8\auxiliary\gmp\lib\libgmp-10.lib;..\..\CGAL-4.8\auxiliary\gmp\lib\libmpfr-4.lib;..\..\yaml-cpp\vs_build\lib\yaml-cpp-md.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\..\boost_1_60_0\lib64-msvc-14.0;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -149,10 +145,7 @@
       </ImportLibrary>
       <ProgramDataBaseFile>$(OutDir)$(TargetName).pdb</ProgramDataBaseFile>
       <SubSystem>Console</SubSystem>
-      <Version>
-      </Version>
       <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <GenerateMapFile>false</GenerateMapFile>
     </Link>
     <ProjectReference>

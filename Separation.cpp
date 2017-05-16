@@ -29,9 +29,9 @@
 #include "Separation.h"
 #include "io.h"
 
-float Separation::_heightref = 0.8;
+float Separation::_heightref = 0.8f;
 
-Separation::Separation(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, float heightref)
+Separation::Separation(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref)
   : Boundary3D(wkt, layername, attributes, pid) {
   _heightref = heightref;
 }
@@ -63,81 +63,75 @@ bool Separation::lift() {
   return true;
 }
 
-std::string Separation::get_citygml() {
-  std::stringstream ss;
-  ss << "<cityObjectMember>" << std::endl;
-  ss << "<gen:GenericCityObject gml:id=\"" << this->get_id() << "\">" << std::endl;
-  ss << get_citygml_attributes(_attributes);
-  ss << "<gen:lod1Geometry>" << std::endl;
-  ss << "<gml:MultiSurface>" << std::endl;
-  ss << std::setprecision(3) << std::fixed;
+void Separation::get_citygml(std::ofstream& of) {
+  of << "<cityObjectMember>\n";
+  of << "<gen:GenericCityObject gml:id=\"" << this->get_id() << "\">\n";
+  get_citygml_attributes(of, _attributes);
+  of << "<gen:lod1Geometry>\n";
+  of << "<gml:MultiSurface>\n";
   for (auto& t : _triangles)
-    ss << get_triangle_as_gml_surfacemember(t);
+    get_triangle_as_gml_surfacemember(of, t);
   for (auto& t : _triangles_vw)
-    ss << get_triangle_as_gml_surfacemember(t, true);
-  ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</gen:lod1Geometry>" << std::endl;
-  ss << "</gen:GenericCityObject>" << std::endl;
-  ss << "</cityObjectMember>" << std::endl;
-  return ss.str();
+    get_triangle_as_gml_surfacemember(of, t, true);
+  of << "</gml:MultiSurface>\n";
+  of << "</gen:lod1Geometry>\n";
+  of << "</gen:GenericCityObject>\n";
+  of << "</cityObjectMember>\n";
 }
 
-std::string Separation::get_citygml_imgeo() {
+void Separation::get_citygml_imgeo(std::ofstream& of) {
   bool kunstwerkdeel = _layername == "kunstwerkdeel";
   bool overigbouwwerk = _layername == "overigbouwwerk";
-  std::stringstream ss;
-  ss << "<cityObjectMember>" << std::endl;
+  of << "<cityObjectMember>\n";
   if (kunstwerkdeel) {
-    ss << "<imgeo:Kunstwerkdeel gml:id=\"" << this->get_id() << "\">" << std::endl;
+    of << "<imgeo:Kunstwerkdeel gml:id=\"" << this->get_id() << "\">\n";
   }
   else if (overigbouwwerk) {
-    ss << "<imgeo:OverigBouwwerk gml:id=\"" << this->get_id() << "\">" << std::endl;
+    of << "<imgeo:OverigBouwwerk gml:id=\"" << this->get_id() << "\">\n";
   }
   else {
-    ss << "<imgeo:Scheiding gml:id=\"" << this->get_id() << "\">" << std::endl;
+    of << "<imgeo:Scheiding gml:id=\"" << this->get_id() << "\">\n";
   }
-  ss << get_imgeo_object_info(this->get_id());
-  ss << "<imgeo:lod1Geometry>" << std::endl;
-  ss << "<gml:MultiSurface>" << std::endl;
-  ss << std::setprecision(3) << std::fixed;
+  get_imgeo_object_info(of, this->get_id());
+  of << "<imgeo:lod1Geometry>\n";
+  of << "<gml:MultiSurface>\n";
   for (auto& t : _triangles)
-    ss << get_triangle_as_gml_surfacemember(t);
+    get_triangle_as_gml_surfacemember(of, t);
   for (auto& t : _triangles_vw)
-    ss << get_triangle_as_gml_surfacemember(t, true);
-  ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</imgeo:lod1Geometry>" << std::endl;
+    get_triangle_as_gml_surfacemember(of, t, true);
+  of << "</gml:MultiSurface>\n";
+  of << "</imgeo:lod1Geometry>\n";
   std::string attribute;
   if (kunstwerkdeel) {
     if (get_attribute("bgt-type", attribute)) {
-      ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerk\">" << attribute << "</imgeo:bgt-type>" << std::endl;
+      of << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerk\">" << attribute << "</imgeo:bgt-type>\n";
     }
     if (get_attribute("plus-type", attribute)) {
-      ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerkPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
+      of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerkPlus\">" << attribute << "</imgeo:plus-type>\n";
     }
-    ss << "</imgeo:Kunstwerkdeel>" << std::endl;
+    of << "</imgeo:Kunstwerkdeel>\n";
   }
   else if (overigbouwwerk) {
     if (get_attribute("bgt-type", attribute)) {
-      ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerk\">" << attribute << "</imgeo:bgt-type>" << std::endl;
+      of << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerk\">" << attribute << "</imgeo:bgt-type>\n";
     }
     if (get_attribute("plus-type", attribute)) {
-      ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerkPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
+      of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerkPlus\">" << attribute << "</imgeo:plus-type>\n";
     }
-    ss << "</imgeo:OverigBouwwerk>" << std::endl;
+    of << "</imgeo:OverigBouwwerk>\n";
   }
   else {
     if (get_attribute("bgt-type", attribute)) {
-      ss << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheiding\">" << attribute << "</imgeo:bgt-type>" << std::endl;
+      of << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheiding\">" << attribute << "</imgeo:bgt-type>\n";
     }
     if (get_attribute("plus-type", attribute)) {
-      ss << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheidingPlus\">" << attribute << "</imgeo:plus-type>" << std::endl;
+      of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheidingPlus\">" << attribute << "</imgeo:plus-type>\n";
     }
-    ss << "</imgeo:Scheiding>" << std::endl;
+    of << "</imgeo:Scheiding>\n";
   }
-  ss << "</cityObjectMember>" << std::endl;
-  return ss.str();
+  of << "</cityObjectMember>\n";
 }
 
 bool Separation::get_shape(OGRLayer* layer) {
-  return TopoFeature::get_shape_features(layer, "Separation");
+  return TopoFeature::get_multipolygon_features(layer, "Separation");
 }

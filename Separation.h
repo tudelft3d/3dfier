@@ -33,11 +33,11 @@
 
 class Separation: public Boundary3D {
 public:
-  Separation(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, float heightref);
+  Separation(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref);
   bool        lift();
   bool        add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
-  std::string get_citygml();
-  std::string get_citygml_imgeo();
+  void        get_citygml(std::ofstream& of);
+  void        get_citygml_imgeo(std::ofstream& of);
   std::string get_mtl();
   bool        get_shape(OGRLayer * layer);
   TopoClass   get_class();

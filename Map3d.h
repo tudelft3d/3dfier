@@ -48,7 +48,7 @@ public:
   ~Map3d();
 
   bool add_polygons_files(std::vector<PolygonFile> &files);
-  bool add_las_file(std::string ifile, std::vector<int> lasomits, int skip = 0);
+  bool add_las_file(PointFile pointFile);
 
   void stitch_lifted_features();
   bool construct_rtree();
@@ -61,13 +61,17 @@ public:
   Box2 get_bbox();
   liblas::Bounds<double> get_bounds();
 
-  void get_citygml(std::ofstream &outputfile);
-  void get_citygml_imgeo(std::ofstream &outputfile);
-  void get_csv_buildings(std::ofstream &outputfile);
-  void get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration = 0);
-  void get_obj_per_class(std::ofstream &outputfile, int z_exaggeration = 0);
-  bool get_shapefile(std::string filename);
+  void get_citygml(std::ofstream& of);
+  void get_citygml_multifile(std::string);
+  void create_citygml_header(std::ofstream& of);
+  void get_citygml_imgeo(std::ofstream& of);
+  void get_citygml_imgeo_multifile(std::string ofname);
+  void get_csv_buildings(std::ofstream& of);
+  void get_obj_per_feature(std::ofstream& of, int z_exaggeration = 0);
+  void get_obj_per_class(std::ofstream& of, int z_exaggeration = 0);
+  bool get_gdal_output(std::string filename, std::string drivername, bool multi);
   bool get_shapefile2d(std::string filename);
+  OGRLayer* create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, bool forceHeightAttributes);
 
   void set_building_heightref_roof(float heightref);
   void set_building_heightref_floor(float heightref);
@@ -110,7 +114,7 @@ private:
   Box2        _bbox;
   Box2        _requestedExtent;
 
-  std::unordered_map< std::string, std::vector<int> > _nc;
+  NodeColumn                                          _nc;
   std::vector<TopoFeature*>                           _lsFeatures;
   std::vector<std::string>                            _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;

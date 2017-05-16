@@ -39,7 +39,7 @@ std::string gen_key_bucket(Point3* p, int z);
 bool triangle_contains_segment(Triangle t, int a, int b);
 bool getCDT(const Polygon2* pgn,
             const std::vector< std::vector<int> > &z, 
-            std::vector<Point3> &vertices, 
+            std::vector< std::pair<Point3, std::string> > &vertices, 
             std::vector<Triangle> &triangles, 
             const std::vector<Point3> &lidarpts = std::vector<Point3>());
 

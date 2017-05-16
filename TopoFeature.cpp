@@ -33,7 +33,7 @@ int TopoFeature::_count = 0;
 
 //-----------------------------------------------------------------------------
 
-TopoFeature::TopoFeature(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid) {
+TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attributes, std::string pid) {
   _id = pid;
   _counter = _count++;
   _toplevel = true;
@@ -58,7 +58,7 @@ TopoFeature::TopoFeature(char *wkt, std::string layername, std::vector<std::tupl
 
 TopoFeature::~TopoFeature() {
   // TODO: clear memory properly
-  std::clog << "I am dead now." << std::endl;
+  std::clog << "I am dead now.\n";
 }
 
 Box2 TopoFeature::get_bbox2d() {
@@ -67,6 +67,10 @@ Box2 TopoFeature::get_bbox2d() {
 
 std::string TopoFeature::get_id() {
   return _id;
+}
+
+std::string  TopoFeature::get_layername() {
+  return _layername;
 }
 
 bool TopoFeature::buildCDT() {
@@ -90,125 +94,125 @@ Polygon2* TopoFeature::get_Polygon2() {
   return _p2;
 }
 
-std::string TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl) {
-  std::stringstream ss;
-  ss << mtl << std::endl;
+void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs) {
+  fs += mtl; fs += "\n";
   for (auto& t : _triangles) {
     unsigned long a, b, c;
-    auto it = dPts.find(gen_key_bucket(&_vertices[t.v0]));
+    auto it = dPts.find(_vertices[t.v0].second);
     if (it == dPts.end()) {
       // first get the size + 1 and then store the size in dPts due to unspecified order of execution
       a = dPts.size() + 1;
-      dPts[gen_key_bucket(&_vertices[t.v0])] = a;
+      dPts[_vertices[t.v0].second] = a;
     }
     else
       a = it->second;
-    it = dPts.find(gen_key_bucket(&_vertices[t.v1]));
+    it = dPts.find(_vertices[t.v1].second);
     if (it == dPts.end()) {
       b = dPts.size() + 1;
-      dPts[gen_key_bucket(&_vertices[t.v1])] = b;
+      dPts[_vertices[t.v1].second] = b;
     }
     else
       b = it->second;
-    it = dPts.find(gen_key_bucket(&_vertices[t.v2]));
+    it = dPts.find(_vertices[t.v2].second);
     if (it == dPts.end()) {
       c = dPts.size() + 1;
-      dPts[gen_key_bucket(&_vertices[t.v2])] = c;
+      dPts[_vertices[t.v2].second] = c;
     }
     else
       c = it->second;
-    if ((a != b) && (a != c) && (b != c))
-      ss << "f " << a << " " << b << " " << c << std::endl;
+
+    if ((a != b) && (a != c) && (b != c)) {
+      fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
+    }
     // else
-    //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
+    //   std::clog << "COLLAPSED TRIANGLE REMOVED\n";
   }
 
   //-- vertical triangles
-  if (_bVerticalWalls == true && _triangles_vw.size() > 0)
-    ss << mtl << "Wall" << std::endl;
+  if (_bVerticalWalls == true && _triangles_vw.size() > 0) {
+    fs += mtl; fs += "Wall"; fs += "\n";
+  }
 
   for (auto& t : _triangles_vw) {
     unsigned long a, b, c;
-    auto it = dPts.find(gen_key_bucket(&_vertices_vw[t.v0]));
+    auto it = dPts.find(_vertices_vw[t.v0].second);
     if (it == dPts.end()) {
       a = dPts.size() + 1;
-      dPts[gen_key_bucket(&_vertices_vw[t.v0])] = a;
+      dPts[_vertices_vw[t.v0].second] = a;
     }
     else
       a = it->second;
-    it = dPts.find(gen_key_bucket(&_vertices_vw[t.v1]));
+    it = dPts.find(_vertices_vw[t.v1].second);
     if (it == dPts.end()) {
       b = dPts.size() + 1;
-      dPts[gen_key_bucket(&_vertices_vw[t.v1])] = b;
+      dPts[_vertices_vw[t.v1].second] = b;
     }
     else
       b = it->second;
-    it = dPts.find(gen_key_bucket(&_vertices_vw[t.v2]));
+    it = dPts.find(_vertices_vw[t.v2].second);
     if (it == dPts.end()) {
       c = dPts.size() + 1;
-      dPts[gen_key_bucket(&_vertices_vw[t.v2])] = c;
+      dPts[_vertices_vw[t.v2].second] = c;
     }
     else
       c = it->second;
-    if ((a != b) && (a != c) && (b != c))
-      ss << "f " << a << " " << b << " " << c << std::endl;
+
+    if ((a != b) && (a != c) && (b != c)) {
+      fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
+    }
     // else
-    //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
+    //   std::clog << "COLLAPSED TRIANGLE REMOVED\n";
   }
-  return ss.str();
 }
 
-std::string TopoFeature::get_imgeo_object_info(std::string id) {
-  std::stringstream ss;
+void TopoFeature::get_imgeo_object_info(std::ofstream& of, std::string id) {
   std::string attribute;
   if (get_attribute("creationDate", attribute)) {
-    ss << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>" << std::endl;
+    of << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>\n";
   }
   if (get_attribute("terminationDate", attribute)) {
-    ss << "<imgeo:terminationDate>" << attribute << "</imgeo:terminationDate>" << std::endl;
+    of << "<imgeo:terminationDate>" << attribute << "</imgeo:terminationDate>\n";
   }
   if (get_attribute("lokaalid", attribute)) {
-    ss << "<imgeo:identificatie>" << std::endl;
-    ss << "<imgeo:NEN3610ID>" << std::endl;
-    ss << "<imgeo:namespace>NL.IMGeo</imgeo:namespace>" << std::endl;
-    ss << "<imgeo:lokaalID>" << attribute << "</imgeo:lokaalID>" << std::endl;
-    ss << "</imgeo:NEN3610ID>" << std::endl;
-    ss << "</imgeo:identificatie>" << std::endl;
+    of << "<imgeo:identificatie>\n";
+    of << "<imgeo:NEN3610ID>\n";
+    of << "<imgeo:namespace>NL.IMGeo</imgeo:namespace>\n";
+    of << "<imgeo:lokaalID>" << attribute << "</imgeo:lokaalID>\n";
+    of << "</imgeo:NEN3610ID>\n";
+    of << "</imgeo:identificatie>\n";
   }
   if (get_attribute("tijdstipregistratie", attribute)) {
-    ss << "<imgeo:tijdstipRegistratie>" << attribute << "</imgeo:tijdstipRegistratie>" << std::endl;
+    of << "<imgeo:tijdstipRegistratie>" << attribute << "</imgeo:tijdstipRegistratie>\n";
   }
   if (get_attribute("eindregistratie", attribute)) {
-    ss << "<imgeo:eindRegistratie>" << attribute << "</imgeo:eindRegistratie>" << std::endl;
+    of << "<imgeo:eindRegistratie>" << attribute << "</imgeo:eindRegistratie>\n";
   }
   if (get_attribute("lv-publicatiedatum", attribute)) {
-    ss << "<imgeo:LV-publicatiedatum>" << attribute << "</imgeo:LV-publicatiedatum>" << std::endl;
+    of << "<imgeo:LV-publicatiedatum>" << attribute << "</imgeo:LV-publicatiedatum>\n";
   }
   if (get_attribute("bronhouder", attribute)) {
-    ss << "<imgeo:bronhouder>" << attribute << "</imgeo:bronhouder>" << std::endl;
+    of << "<imgeo:bronhouder>" << attribute << "</imgeo:bronhouder>\n";
   }
   if (get_attribute("inonderzoek", attribute)) {
-    ss << "<imgeo:inOnderzoek>" << attribute << "</imgeo:inOnderzoek>" << std::endl;
+    of << "<imgeo:inOnderzoek>" << attribute << "</imgeo:inOnderzoek>\n";
   }
   if (get_attribute("relatievehoogteligging", attribute)) {
-    ss << "<imgeo:relatieveHoogteligging>" << attribute << "</imgeo:relatieveHoogteligging>" << std::endl;
+    of << "<imgeo:relatieveHoogteligging>" << attribute << "</imgeo:relatieveHoogteligging>\n";
   }
   if (get_attribute("bgt-status", attribute, "bestaand")) {
-    ss << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" << attribute << "</imgeo:bgt-status>" << std::endl;
+    of << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" << attribute << "</imgeo:bgt-status>\n";
   }
   if (get_attribute("plus-status", attribute)) {
-    ss << "<imgeo:plus-status>" << attribute << "</imgeo:plus-status>" << std::endl;
+    of << "<imgeo:plus-status>" << attribute << "</imgeo:plus-status>\n";
   }
-  return ss.str();
 }
 
-std::string TopoFeature::get_citygml_attributes(std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes) {
-  std::stringstream ss;
+void TopoFeature::get_citygml_attributes(std::ofstream& of, AttributeMap attributes) {
   for (auto& attribute : attributes) {
     // add attributes except gml_id
-    if (std::get<0>(attribute).compare("gml_id") != 0) {
+    if (attribute.first.compare("gml_id") != 0) {
       std::string type;
-      switch (std::get<1>(attribute)) {
+      switch (attribute.second.first) {
       case OFTInteger:
         type = "int";
       case OFTReal:
@@ -218,50 +222,14 @@ std::string TopoFeature::get_citygml_attributes(std::vector<std::tuple<std::stri
       default:
         type = "string";
       }
-      ss << "<gen:" + type + "Attribute name=\"" + std::get<0>(attribute) + "\">" << std::endl;
-      ss << "<gen:value>" + std::get<2>(attribute) + "</gen:value>" << std::endl;
-      ss << "</gen:" + type << "Attribute>" << std::endl;
+      of << "<gen:" + type + "Attribute name=\"" + std::get<0>(attribute) + "\">\n";
+      of << "<gen:value>" + attribute.second.second + "</gen:value>\n";
+      of << "</gen:" + type << "Attribute>\n";
     }
   }
-  return ss.str();
 }
 
-std::string TopoFeature::get_wkt() {
-  //  std::string wkt;
-  //  wkt = "MULTIPOLYGONZ (";
-  //
-  //  for (auto& t: _triangles) {
-  //    char* buf = new char[200];
-  //    Point3 p1 = _vertices[t.v0];
-  //    Point3 p2 = _vertices[t.v1];
-  //    Point3 p3 = _vertices[t.v2];
-  //    std::sprintf(buf, "((%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f)),",
-  //      p1.get<0>(), p1.get<1>(), p1.get<2>(),
-  //      p2.get<0>(), p2.get<1>(), p2.get<2>(),
-  //      p3.get<0>(), p3.get<1>(), p3.get<2>(),
-  //      p1.get<0>(), p1.get<1>(), p1.get<2>());
-  //    wkt += std::string(buf);
-  //  }
-  //
-  //  for (auto& t: _triangles_vw) {
-  //    char* buf = new char[200];
-  //    Point3 p1 = *t.v0;
-  //    Point3 p2 = *t.v1;
-  //    Point3 p3 = *t.v2;
-  //    std::sprintf(buf, "((%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f,%.3f %.3f %.3f)),",
-  //      p1.get<0>(), p1.get<1>(), p1.get<2>(),
-  //      p2.get<0>(), p2.get<1>(), p2.get<2>(),
-  //      p3.get<0>(), p3.get<1>(), p3.get<2>(),
-  //      p1.get<0>(), p1.get<1>(), p1.get<2>());
-  //    wkt += std::string(buf);
-  //  }
-  //  wkt.pop_back();
-  //  wkt += ")";
-  //  return wkt;
-  return "";
-}
-
-bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
+bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeHeights, int height_base, int height) {
     OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
     OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
     OGRMultiPolygon multipolygon = OGRMultiPolygon();
@@ -272,11 +240,11 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
       OGRPolygon polygon = OGRPolygon();
       OGRLinearRing ring = OGRLinearRing();
       
-      p = _vertices[t.v0];
+      p = _vertices[t.v0].first;
       ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-      p = _vertices[t.v1];
+      p = _vertices[t.v1].first;
       ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-      p = _vertices[t.v2];
+      p = _vertices[t.v2].first;
       ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
   
       ring.closeRings();
@@ -289,11 +257,11 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
       OGRPolygon polygon = OGRPolygon();
       OGRLinearRing ring = OGRLinearRing();
   
-      p = _vertices_vw[t.v0];
+      p = _vertices_vw[t.v0].first;
       ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-      p = _vertices_vw[t.v1];
+      p = _vertices_vw[t.v1].first;
       ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-      p = _vertices_vw[t.v2];
+      p = _vertices_vw[t.v2].first;
       ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
   
       ring.closeRings();
@@ -304,10 +272,13 @@ bool TopoFeature::get_shape_features(OGRLayer* layer, std::string className) {
     feature->SetGeometry(&multipolygon);
     feature->SetField("Id", this->get_id().c_str());
     feature->SetField("Class", className.c_str());
-  
+    if (writeHeights) {
+      feature->SetField("BaseHeight", z_to_float(height_base));
+      feature->SetField("RoofHeight", z_to_float(height));
+    }
     if (layer->CreateFeature(feature) != OGRERR_NONE)
     {
-      std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
+      std::cerr << "Failed to create feature " << this->get_id() << " in shapefile.\n";
       return false;
     }
     OGRFeature::DestroyFeature(feature);
@@ -410,10 +381,10 @@ void TopoFeature::fix_bowtie() {
   }
 }
 
-void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::vector<int>> &nc, int baseheight) {
+void TopoFeature::construct_vertical_walls(NodeColumn& nc, int baseheight) {
   //std::clog << this->get_id() << std::endl;
   // if (this->get_id() == "bbdc52a89-00b3-11e6-b420-2bdcc4ab5d7f")
-  //   std::clog << "break" << std::endl;
+  //   std::clog << "break\n";
 
   if (this->has_vertical_walls() == false)
     return;
@@ -431,7 +402,7 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
   TopoFeature* fadj;
   int ringi = -1;
   //if (this->get_id() == "107720546")
-  //  std::clog << "yo" << std::endl;
+  //  std::clog << "yo\n";
   for (auto& ring : therings) {
     ringi++;
     for (int ai = 0; ai < ring.size(); ai++) {
@@ -506,13 +477,20 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
 
       //-- iterate to triangulate
       while ((sbit != ebit) && (sbit != bnc.end()) && ((sbit + 1) != bnc.end())) {
-        if (anc.size() == 0 || sait == anc.end())
-          _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(az)));
-        else
-          _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait)));
-        _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit)));
+        Point3 p;
+        if (anc.size() == 0 || sait == anc.end()) {
+          p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(az));
+          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+        }
+        else {
+          p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
+          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+        }
+        p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit));
+        _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
         sbit++;
-        _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit)));
+        p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit));
+        _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
         Triangle t;
         int size = int(_vertices_vw.size());
         t.v0 = size - 2;
@@ -521,13 +499,20 @@ void TopoFeature::construct_vertical_walls(std::unordered_map<std::string, std::
         _triangles_vw.push_back(t);
       }
       while (sait != eait && sait != anc.end() && (sait + 1) != anc.end()) {
-        if (bnc.size() == 0 || ebit == bnc.end())
-          _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(bz)));
-        else
-          _vertices_vw.push_back(Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*ebit)));
-        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait)));
+        Point3 p;
+        if (bnc.size() == 0 || ebit == bnc.end()) {
+          p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(bz));
+          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+        }
+        else {
+          p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*ebit));
+          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+        }
+        p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
+        _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
         sait++;
-        _vertices_vw.push_back(Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait)));
+        p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
+        _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
         Triangle t;
         int size = int(_vertices_vw.size());
         t.v0 = size - 3;
@@ -589,7 +574,7 @@ float TopoFeature::get_distance_to_boundaries(Point2& p) {
         dmin = d;
     }
   }
-  return dmin;
+  return (float)dmin;
 }
 
 bool TopoFeature::has_point2_(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis) {
@@ -720,7 +705,7 @@ bool TopoFeature::within_range(Point2 &p, Polygon2 &poly, double radius) {
 }
 
 // based on http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon/2922778#2922778
-bool TopoFeature::point_in_polygon(Point2 &p, Polygon2 &poly) {
+bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
   //test outer ring
   Ring2 oring = bg::exterior_ring(poly);
   int nvert = oring.size();
@@ -753,70 +738,66 @@ bool TopoFeature::point_in_polygon(Point2 &p, Polygon2 &poly) {
   return insideOuter;
 }
 
-std::string TopoFeature::get_triangle_as_gml_surfacemember(Triangle& t, bool verticalwall) {
-  std::stringstream ss;
-  ss << std::setprecision(3) << std::fixed;
-  ss << "<gml:surfaceMember>" << std::endl;
-  ss << "<gml:Polygon>" << std::endl;
-  ss << "<gml:exterior>" << std::endl;
-  ss << "<gml:LinearRing>" << std::endl;
+void TopoFeature::get_triangle_as_gml_surfacemember(std::ofstream& of, Triangle& t, bool verticalwall) {
+  of << "<gml:surfaceMember>\n";
+  of << "<gml:Polygon>\n";
+  of << "<gml:exterior>\n";
+  of << "<gml:LinearRing>\n";
   if (verticalwall == false) {
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << bg::get<2>(_vertices[t.v0]) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v1]) << " " << bg::get<1>(_vertices[t.v1]) << " " << bg::get<2>(_vertices[t.v1]) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v2]) << " " << bg::get<1>(_vertices[t.v2]) << " " << bg::get<2>(_vertices[t.v2]) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << bg::get<2>(_vertices[t.v0]) << "</gml:pos>" << std::endl;
+    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
   }
   else {
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v0]) << " " << bg::get<1>(_vertices_vw[t.v0]) << " " << bg::get<2>(_vertices_vw[t.v0]) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v1]) << " " << bg::get<1>(_vertices_vw[t.v1]) << " " << bg::get<2>(_vertices_vw[t.v1]) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v2]) << " " << bg::get<1>(_vertices_vw[t.v2]) << " " << bg::get<2>(_vertices_vw[t.v2]) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v0]) << " " << bg::get<1>(_vertices_vw[t.v0]) << " " << bg::get<2>(_vertices_vw[t.v0]) << "</gml:pos>" << std::endl;
+    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
   }
-  ss << "</gml:LinearRing>" << std::endl;
-  ss << "</gml:exterior>" << std::endl;
-  ss << "</gml:Polygon>" << std::endl;
-  ss << "</gml:surfaceMember>" << std::endl;
-  return ss.str();
+  of << "</gml:LinearRing>\n";
+  of << "</gml:exterior>\n";
+  of << "</gml:Polygon>\n";
+  of << "</gml:surfaceMember>\n";
 }
 
-std::string TopoFeature::get_triangle_as_gml_triangle(Triangle& t, bool verticalwall) {
-  std::stringstream ss;
-  ss << std::setprecision(3) << std::fixed;
-  ss << "<gml:Triangle>" << std::endl;
-  ss << "<gml:exterior>" << std::endl;
-  ss << "<gml:LinearRing>" << std::endl;
+void TopoFeature::get_triangle_as_gml_triangle(std::ofstream& of, Triangle& t, bool verticalwall) {
+  of << "<gml:Triangle>\n";
+  of << "<gml:exterior>\n";
+  of << "<gml:LinearRing>\n";
   if (verticalwall == false) {
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << bg::get<2>(_vertices[t.v0]) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v1]) << " " << bg::get<1>(_vertices[t.v1]) << " " << bg::get<2>(_vertices[t.v1]) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v2]) << " " << bg::get<1>(_vertices[t.v2]) << " " << bg::get<2>(_vertices[t.v2]) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices[t.v0]) << " " << bg::get<1>(_vertices[t.v0]) << " " << bg::get<2>(_vertices[t.v0]) << "</gml:pos>" << std::endl;
+    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>\n";
   }
   else {
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v0]) << " " << bg::get<1>(_vertices_vw[t.v0]) << " " << bg::get<2>(_vertices_vw[t.v0]) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v1]) << " " << bg::get<1>(_vertices_vw[t.v1]) << " " << bg::get<2>(_vertices_vw[t.v1]) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v2]) << " " << bg::get<1>(_vertices_vw[t.v2]) << " " << bg::get<2>(_vertices_vw[t.v2]) << "</gml:pos>" << std::endl;
-    ss << "<gml:pos>" << bg::get<0>(_vertices_vw[t.v0]) << " " << bg::get<1>(_vertices_vw[t.v0]) << " " << bg::get<2>(_vertices_vw[t.v0]) << "</gml:pos>" << std::endl;
+    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>\n";
+    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>\n";
   }
-  ss << "</gml:LinearRing>" << std::endl;
-  ss << "</gml:exterior>" << std::endl;
-  ss << "</gml:Triangle>" << std::endl;
-  return ss.str();
+  of << "</gml:LinearRing>\n";
+  of << "</gml:exterior>\n";
+  of << "</gml:Triangle>\n";
 }
 
 bool TopoFeature::get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue)
 {
-  for (auto& at : _attributes) {
-    if (std::get<0>(at).compare(attributeName) == 0) {
-      if (!std::get<2>(at).empty()) {
-        attribute = std::get<2>(at);
-      }
-      else if (!defaultValue.empty()) {
-        attribute = defaultValue;
-      }
+  auto it = _attributes.find(attributeName);
+  if (it != _attributes.end()) {
+    attribute = (*it).second.second;
+    if (!attribute.empty()) {
+      // attribute is empty
+      return true;
+    }
+    if (attribute.empty() && !defaultValue.empty()) {
+      // attribute is empty but default is given
+      attribute = defaultValue;
       return true;
     }
   }
-  // Return false if attribute does not exist
+  // attribute does not exist
   return false;
 }
 
@@ -909,7 +890,7 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
 //-------------------------------
 //-------------------------------
 
-Flat::Flat(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid)
+Flat::Flat(char *wkt, std::string layername, AttributeMap attributes, std::string pid)
   : TopoFeature(wkt, layername, attributes, pid) {}
 
 int Flat::get_number_vertices() {
@@ -945,7 +926,7 @@ bool Flat::lift_percentile(float percentile) {
 //-------------------------------
 //-------------------------------
 
-Boundary3D::Boundary3D(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid)
+Boundary3D::Boundary3D(char *wkt, std::string layername, AttributeMap attributes, std::string pid)
   : TopoFeature(wkt, layername, attributes, pid) {}
 
 int Boundary3D::get_number_vertices() {
@@ -1005,7 +986,7 @@ void Boundary3D::smooth_boundary(int passes) {
 //-------------------------------
 //-------------------------------
 
-TIN::TIN(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, int simplification, float innerbuffer)
+TIN::TIN(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, float innerbuffer)
   : TopoFeature(wkt, layername, attributes, pid) {
   _simplification = simplification;
   _innerbuffer = innerbuffer;

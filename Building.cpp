@@ -29,10 +29,10 @@
 #include "Building.h"
 #include "io.h"
 
-float Building::_heightref_top = 0.9;
-float Building::_heightref_base = 0.1;
+float Building::_heightref_top = 0.9f;
+float Building::_heightref_base = 0.1f;
 
-Building::Building(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, float heightref_top, float heightref_base)
+Building::Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base)
   : Flat(wkt, layername, attributes, pid)
 {
   _heightref_top = heightref_top;
@@ -87,163 +87,156 @@ bool Building::is_hard() {
   return true;
 }
 
-std::string Building::get_csv() {
-  std::stringstream ss;
-  ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << std::endl;
-  return ss.str();
+void Building::get_csv(std::ofstream& of) {
+  of << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << "\n";
 }
 
 std::string Building::get_mtl() {
   return "usemtl Building";
 }
 
-std::string Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl) {
-  std::stringstream ss;
+void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs) {
   if (lod == 1) {
-    ss << TopoFeature::get_obj(dPts, mtl);
+    TopoFeature::get_obj(dPts, mtl, fs);
   }
   else if (lod == 0) {
-    ss << mtl << std::endl;
+    fs += mtl; 
+    fs += "\n";
     for (auto& t : _triangles) {
       unsigned long a, b, c;
       int z = this->get_height_base();
-      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0], z));
+      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
       if (it == dPts.end()) {
         a = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v0], z)] = a;
+        dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
       }
       else {
         a = it->second;
       }
-      it = dPts.find(gen_key_bucket(&_vertices[t.v1], z));
+      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
       if (it == dPts.end()) {
         b = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v1], z)] = b;
+        dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
       }
       else {
         b = it->second;
       }
-      it = dPts.find(gen_key_bucket(&_vertices[t.v2], z));
+      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
       if (it == dPts.end()) {
         c = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v2], z)] = c;
+        dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
       }
       else {
         c = it->second;
       }
-      if ((a != b) && (a != c) && (b != c))
-        ss << "f " << a << " " << b << " " << c << std::endl;
+      if ((a != b) && (a != c) && (b != c)) {
+        fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
+      }
       // else
-      //   std::clog << "COLLAPSED TRIANGLE REMOVED" << std::endl;
+      //   std::clog << "COLLAPSED TRIANGLE REMOVED\n";
     }
   }
-  return ss.str();
 }
 
-std::string Building::get_citygml() {
+void Building::get_citygml(std::ofstream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
-  std::stringstream ss;
-  ss << "<cityObjectMember>" << std::endl;
-  ss << "<bldg:Building gml:id=\"" << this->get_id() << "\">" << std::endl;
-  ss << get_citygml_attributes(_attributes);
-  ss << "<gen:measureAttribute name=\"min height surface\">" << std::endl;
-  ss << "<gen:value uom=\"#m\">" << hbase << "</gen:value>" << std::endl;
-  ss << "</gen:measureAttribute>" << std::endl;
-  ss << "<bldg:measuredHeight uom=\"#m\">" << h << "</bldg:measuredHeight>" << std::endl;
+  of << "<cityObjectMember>\n";
+  of << "<bldg:Building gml:id=\"" << this->get_id() << "\">\n";
+  get_citygml_attributes(of, _attributes);
+  of << "<gen:measureAttribute name=\"min height surface\">\n";
+  of << "<gen:value uom=\"#m\">" << hbase << "</gen:value>\n";
+  of << "</gen:measureAttribute>\n";
+  of << "<bldg:measuredHeight uom=\"#m\">" << h << "</bldg:measuredHeight>\n";
   //-- LOD0 footprint
-  ss << "<bldg:lod0FootPrint>" << std::endl;
-  ss << "<gml:MultiSurface>" << std::endl;
-  ss << get_polygon_lifted_gml(this->_p2, hbase, true);
-  ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</bldg:lod0FootPrint>" << std::endl;
+  of << "<bldg:lod0FootPrint>\n";
+  of << "<gml:MultiSurface>\n";
+  get_polygon_lifted_gml(of, this->_p2, hbase, true);
+  of << "</gml:MultiSurface>\n";
+  of << "</bldg:lod0FootPrint>\n";
   //-- LOD0 roofedge
-  ss << "<bldg:lod0RoofEdge>" << std::endl;
-  ss << "<gml:MultiSurface>" << std::endl;
-  ss << get_polygon_lifted_gml(this->_p2, h, true);
-  ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</bldg:lod0RoofEdge>" << std::endl;
+  of << "<bldg:lod0RoofEdge>\n";
+  of << "<gml:MultiSurface>\n";
+  get_polygon_lifted_gml(of, this->_p2, h, true);
+  of << "</gml:MultiSurface>\n";
+  of << "</bldg:lod0RoofEdge>\n";
   //-- LOD1 Solid
-  ss << "<bldg:lod1Solid>" << std::endl;
-  ss << "<gml:Solid>" << std::endl;
-  ss << "<gml:exterior>" << std::endl;
-  ss << "<gml:CompositeSurface>" << std::endl;
+  of << "<bldg:lod1Solid>\n";
+  of << "<gml:Solid>\n";
+  of << "<gml:exterior>\n";
+  of << "<gml:CompositeSurface>\n";
   //-- get floor
-  ss << get_polygon_lifted_gml(this->_p2, hbase, false);
+  get_polygon_lifted_gml(of, this->_p2, hbase, false);
   //-- get roof
-  ss << get_polygon_lifted_gml(this->_p2, h, true);
+  get_polygon_lifted_gml(of, this->_p2, h, true);
   //-- get the walls
   auto r = bg::exterior_ring(*(this->_p2));
   int i;
   for (i = 0; i < (r.size() - 1); i++)
-    ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
-  ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
+    get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
+  get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   //-- irings
   auto irings = bg::interior_rings(*(this->_p2));
   for (Ring2& r : irings) {
     for (i = 0; i < (r.size() - 1); i++)
-      ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
-    ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
+      get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
+    get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   }
-  ss << "</gml:CompositeSurface>" << std::endl;
-  ss << "</gml:exterior>" << std::endl;
-  ss << "</gml:Solid>" << std::endl;
-  ss << "</bldg:lod1Solid>" << std::endl;
-  ss << "</bldg:Building>" << std::endl;
-  ss << "</cityObjectMember>" << std::endl;
-  return ss.str();
+  of << "</gml:CompositeSurface>\n";
+  of << "</gml:exterior>\n";
+  of << "</gml:Solid>\n";
+  of << "</bldg:lod1Solid>\n";
+  of << "</bldg:Building>\n";
+  of << "</cityObjectMember>\n";
 }
 
-std::string Building::get_citygml_imgeo() {
+void Building::get_citygml_imgeo(std::ofstream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
-  std::stringstream ss;
-  ss << "<cityObjectMember>" << std::endl;
-  ss << "<bui:Building gml:id=\"" << this->get_id() << "\">" << std::endl;
+  of << "<cityObjectMember>\n";
+  of << "<bui:Building gml:id=\"" << this->get_id() << "\">\n";
   //-- store building information
-  ss << get_imgeo_object_info(this->get_id());
-  ss << "<bui:consistsOfBuildingPart>" << std::endl;
-  ss << "<bui:BuildingPart>" << std::endl;
+  get_imgeo_object_info(of, this->get_id());
+  of << "<bui:consistsOfBuildingPart>\n";
+  of << "<bui:BuildingPart>\n";
   //-- LOD1 Solid
-  ss << "<bui:lod1Solid>" << std::endl;
-  ss << "<gml:Solid>" << std::endl;
-  ss << "<gml:exterior>" << std::endl;
-  ss << "<gml:CompositeSurface>" << std::endl;
+  of << "<bui:lod1Solid>\n";
+  of << "<gml:Solid>\n";
+  of << "<gml:exterior>\n";
+  of << "<gml:CompositeSurface>\n";
   //-- get floor
-  ss << get_polygon_lifted_gml(this->_p2, hbase, false);
+  get_polygon_lifted_gml(of, this->_p2, hbase, false);
   //-- get roof
-  ss << get_polygon_lifted_gml(this->_p2, h, true);
+  get_polygon_lifted_gml(of, this->_p2, h, true);
   //-- get the walls
   auto r = bg::exterior_ring(*(this->_p2));
   int i;
   for (i = 0; i < (r.size() - 1); i++)
-    ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
-  ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
+    get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
+  get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   //-- irings
   auto irings = bg::interior_rings(*(this->_p2));
   for (Ring2& r : irings) {
     for (i = 0; i < (r.size() - 1); i++)
-      ss << get_extruded_line_gml(&r[i], &r[i + 1], h, hbase, false);
-    ss << get_extruded_line_gml(&r[i], &r[0], h, hbase, false);
+      get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
+    get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   }
-  ss << "</gml:CompositeSurface>" << std::endl;
-  ss << "</gml:exterior>" << std::endl;
-  ss << "</gml:Solid>" << std::endl;
-  ss << "</bui:lod1Solid>" << std::endl;
+  of << "</gml:CompositeSurface>\n";
+  of << "</gml:exterior>\n";
+  of << "</gml:Solid>\n";
+  of << "</bui:lod1Solid>\n";
   std::string attribute;
   if (get_attribute("identificatiebagpnd", attribute)) {
-    ss << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>" << std::endl;
+    of << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>\n";
   }
-  ss << get_imgeo_nummeraanduiding();
-  ss << "</bui:BuildingPart>" << std::endl;
-  ss << "</bui:consistsOfBuildingPart>" << std::endl;
-  ss << "</bui:Building>" << std::endl;
-  ss << "</cityObjectMember>" << std::endl;
-  return ss.str();
+  get_imgeo_nummeraanduiding(of);
+  of << "</bui:BuildingPart>\n";
+  of << "</bui:consistsOfBuildingPart>\n";
+  of << "</bui:Building>\n";
+  of << "</cityObjectMember>\n";
 }
 
-std::string Building::get_imgeo_nummeraanduiding() {
-  std::stringstream ss;
+void Building::get_imgeo_nummeraanduiding(std::ofstream& of) {
   std::string attribute;
   bool btekst, bplaatsingspunt, bhoek, blaagnr, bhoognr;
   std::string tekst, plaatsingspunt, hoek, laagnr, hoognr;
@@ -274,83 +267,32 @@ std::string Building::get_imgeo_nummeraanduiding() {
     int count = boost::lexical_cast<int>(tekst[1]);
     for (int i = 0; i < count; i++) {
       if (i < tekst_split.size() && i < plaatsingspunt_split.size() && i < hoek_split.size()) {
-        ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
-        ss << "<imgeo:Nummeraanduidingreeks>" << std::endl;
-        ss << "<imgeo:nummeraanduidingreeks>" << std::endl;
-        ss << "<imgeo:Label>" << std::endl;
-        ss << "<imgeo:tekst>" << tekst_split.at(i) << "</imgeo:tekst>" << std::endl;
-        ss << "<imgeo:positie>" << std::endl;
-        ss << "<imgeo:Labelpositie>" << std::endl;
-        ss << "<imgeo:plaatsingspunt><gml:Point srsDimension=\"2\"><gml:pos>" << plaatsingspunt_split.at(i) << "</gml:pos></gml:Point></imgeo:plaatsingspunt>" << std::endl;
-        ss << "<imgeo:hoek>" << hoek_split.at(i) << "</imgeo:hoek>" << std::endl;
-        ss << "</imgeo:Labelpositie>" << std::endl;
-        ss << "</imgeo:positie>" << std::endl;
-        ss << "</imgeo:Label>" << std::endl;
-        ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
+        of << "<imgeo:nummeraanduidingreeks>\n";
+        of << "<imgeo:Nummeraanduidingreeks>\n";
+        of << "<imgeo:nummeraanduidingreeks>\n";
+        of << "<imgeo:Label>\n";
+        of << "<imgeo:tekst>" << tekst_split.at(i) << "</imgeo:tekst>\n";
+        of << "<imgeo:positie>\n";
+        of << "<imgeo:Labelpositie>\n";
+        of << "<imgeo:plaatsingspunt><gml:Point srsDimension=\"2\"><gml:pos>" << plaatsingspunt_split.at(i) << "</gml:pos></gml:Point></imgeo:plaatsingspunt>\n";
+        of << "<imgeo:hoek>" << hoek_split.at(i) << "</imgeo:hoek>\n";
+        of << "</imgeo:Labelpositie>\n";
+        of << "</imgeo:positie>\n";
+        of << "</imgeo:Label>\n";
+        of << "</imgeo:nummeraanduidingreeks>\n";
         if (i < laagnr_split.size()) {
-          ss << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << laagnr_split.at(i) << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>" << std::endl;
+          of << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << laagnr_split.at(i) << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>\n";
         }
         if (i < hoognr_split.size()) {
-          ss << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << hoognr_split.at(i) << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>" << std::endl;
+          of << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << hoognr_split.at(i) << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>\n";
         }
-        ss << "</imgeo:Nummeraanduidingreeks>" << std::endl;
-        ss << "</imgeo:nummeraanduidingreeks>" << std::endl;
+        of << "</imgeo:Nummeraanduidingreeks>\n";
+        of << "</imgeo:nummeraanduidingreeks>\n";
       }
     }
   }
-  return ss.str();
 }
 
 bool Building::get_shape(OGRLayer* layer) {
-  OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
-  OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
-  OGRMultiPolygon multipolygon = OGRMultiPolygon();
-  Point3 p;
-
-  //-- add all triangles to the layer
-  for (auto& t : _triangles) {
-    OGRPolygon polygon = OGRPolygon();
-    OGRLinearRing ring = OGRLinearRing();
-
-    p = _vertices[t.v0];
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices[t.v1];
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices[t.v2];
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-
-    ring.closeRings();
-    polygon.addRing(&ring);
-    multipolygon.addGeometry(&polygon);
-  }
-
-  //-- add all vertical wall triangles to the layer
-  for (auto& t : _triangles_vw) {
-    OGRPolygon polygon = OGRPolygon();
-    OGRLinearRing ring = OGRLinearRing();
-
-    p = _vertices_vw[t.v0];
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices_vw[t.v1];
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-    p = _vertices_vw[t.v2];
-    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-
-    ring.closeRings();
-    polygon.addRing(&ring);
-    multipolygon.addGeometry(&polygon);
-  }
-
-  feature->SetGeometry(&multipolygon);
-  feature->SetField("Id", this->get_id().c_str());
-  feature->SetField("Class", "Building");
-  feature->SetField("BaseHeight", z_to_float(this->get_height_base()));
-  feature->SetField("RoofHeight", z_to_float(this->get_height()));
-
-  if (layer->CreateFeature(feature) != OGRERR_NONE) {
-    std::cerr << "Failed to create feature " << this->get_id() << " in shapefile." << std::endl;
-    return false;
-  }
-  OGRFeature::DestroyFeature(feature);
-  return true;
+  return TopoFeature::get_multipolygon_features(layer, "Building", true, this->get_height_base(), this->get_height());
 }

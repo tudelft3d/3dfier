@@ -32,7 +32,7 @@
 
 bool Forest::_use_ground_points_only = false;
 
-Forest::Forest(char *wkt, std::string layername, std::vector<std::tuple<std::string, OGRFieldType, std::string>> attributes, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
+Forest::Forest(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
   : TIN(wkt, layername, attributes, pid, simplification, innerbuffer)
 {
   _use_ground_points_only = ground_points_only;
@@ -63,54 +63,48 @@ bool Forest::lift() {
   return true;
 }
 
-std::string Forest::get_citygml() {
-  std::stringstream ss;
-  ss << "<cityObjectMember>" << std::endl;
-  ss << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">" << std::endl;
-  ss << get_citygml_attributes(_attributes);
-  ss << "<veg:lod1MultiSurface>" << std::endl;
-  ss << "<gml:MultiSurface>" << std::endl;
-  ss << std::setprecision(3) << std::fixed;
+void Forest::get_citygml(std::ofstream& of) {
+  of << "<cityObjectMember>\n";
+  of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">\n";
+  get_citygml_attributes(of, _attributes);
+  of << "<veg:lod1MultiSurface>\n";
+  of << "<gml:MultiSurface>\n";
   for (auto& t : _triangles)
-    ss << get_triangle_as_gml_surfacemember(t);
+    get_triangle_as_gml_surfacemember(of, t);
   for (auto& t : _triangles_vw)
-    ss << get_triangle_as_gml_surfacemember(t, true);
-  ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</veg:lod1MultiSurface>" << std::endl;
-  ss << "</veg:PlantCover>" << std::endl;
-  ss << "</cityObjectMember>" << std::endl;
-  return ss.str();
+    get_triangle_as_gml_surfacemember(of, t, true);
+  of << "</gml:MultiSurface>\n";
+  of << "</veg:lod1MultiSurface>\n";
+  of << "</veg:PlantCover>\n";
+  of << "</cityObjectMember>\n";
 }
 
-std::string Forest::get_citygml_imgeo() {
-  std::stringstream ss;
-  ss << "<cityObjectMember>" << std::endl;
-  ss << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">" << std::endl;
-  ss << get_imgeo_object_info(this->get_id());
-  ss << "<veg:lod1MultiSurface>" << std::endl;
-  ss << "<gml:MultiSurface>" << std::endl;
-  ss << std::setprecision(3) << std::fixed;
+void Forest::get_citygml_imgeo(std::ofstream& of) {
+  of << "<cityObjectMember>\n";
+  of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">\n";
+  get_imgeo_object_info(of, this->get_id());
+  of << "<veg:lod1MultiSurface>\n";
+  of << "<gml:MultiSurface>\n";
   for (auto& t : _triangles)
-    ss << get_triangle_as_gml_surfacemember(t);
+    get_triangle_as_gml_surfacemember(of, t);
   for (auto& t : _triangles_vw)
-    ss << get_triangle_as_gml_surfacemember(t, true);
-  ss << "</gml:MultiSurface>" << std::endl;
-  ss << "</veg:lod1MultiSurface>" << std::endl;
+    get_triangle_as_gml_surfacemember(of, t, true);
+  of << "</gml:MultiSurface>\n";
+  of << "</veg:lod1MultiSurface>\n";
   std::string attribute;
   if (get_attribute("bgt-fysiekvoorkomen", attribute)) {
-    ss << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</veg:class>" << std::endl;
+    of << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</veg:class>\n";
   }
   if (get_attribute("begroeidterreindeeloptalud", attribute, "false")) {
-    ss << "<imgeo:begroeidTerreindeelOpTalud>" << attribute << "</imgeo:begroeidTerreindeelOpTalud>" << std::endl;
+    of << "<imgeo:begroeidTerreindeelOpTalud>" << attribute << "</imgeo:begroeidTerreindeelOpTalud>\n";
   }
   if (get_attribute("plus-fysiekvoorkomen", attribute)) {
-    ss << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>" << std::endl;
+    of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>\n";
   }
-  ss << "</veg:PlantCover>" << std::endl;
-  ss << "</cityObjectMember>" << std::endl;
-  return ss.str();
+  of << "</veg:PlantCover>\n";
+  of << "</cityObjectMember>\n";
 }
 
 bool Forest::get_shape(OGRLayer* layer) {
-  return TopoFeature::get_shape_features(layer, "Forest");
+  return TopoFeature::get_multipolygon_features(layer, "Forest");
 }

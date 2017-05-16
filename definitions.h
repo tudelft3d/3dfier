@@ -4,7 +4,6 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
-#include <fstream>  
 #include <vector>
 #include <set>
 #include <map>
@@ -19,6 +18,8 @@
 #include <boost/geometry/geometries/linestring.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
 #include <boost/geometry/index/rtree.hpp>
+#include "boost/filesystem.hpp"
+#include <boost/filesystem/operations.hpp>
 
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
@@ -29,6 +30,8 @@ typedef bg::model::polygon<Point2, true, false> Polygon2; //-- cw, first!=last
 typedef bg::model::ring<Point2, true, false> Ring2; //-- cw, first!=last
 typedef bg::model::box<Point2> Box2;
 typedef bg::model::point<double, 3, bg::cs::cartesian> Point3;
+
+typedef std::unordered_map< std::string, std::vector<int> > NodeColumn;
 
 typedef struct Segment {
   int v0;
@@ -48,6 +51,14 @@ typedef struct PolygonFile {
   bool handle_multiple_heights;
   std::vector< std::pair<std::string, std::string> > layers;
 } PolygonFile;
+
+typedef struct PointFile {
+  std::string filename;
+  std::vector<int> lasomits;
+  int thinning = 0;
+} PointFile;
+
+typedef std::unordered_map< std::string, std::pair<OGRFieldType, std::string> > AttributeMap;
 
 typedef enum {
    BUILDING   = 0,

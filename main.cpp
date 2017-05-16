@@ -39,12 +39,11 @@
 #include "Map3d.h"
 #include "boost/locale.hpp"
 #include "boost/chrono.hpp"
-#include "boost/filesystem.hpp"
-#include <boost/filesystem/operations.hpp>
 
-std::string VERSION = "0.9.5";
+std::string VERSION = "0.9.6";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
+int main(int argc, const char * argv[]);
 void print_license();
 
 int main(int argc, const char * argv[]) {
@@ -55,12 +54,12 @@ int main(int argc, const char * argv[]) {
   std::clog.imbue(loc);
 
   std::string licensewarning =
-    "3dfier Copyright (C) 2015-2016  3D geoinformation research group, TU Delft\n"
+    "3dfier Copyright (C) 2015-2017  3D geoinformation research group, TU Delft\n"
     "This program comes with ABSOLUTELY NO WARRANTY.\n"
     "This is free software, and you are welcome to redistribute it\n"
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
 
-  std::string outputFilename;
+  std::string ofname;
 
   //-- reading the config file
   if (argc == 2) {
@@ -75,16 +74,16 @@ int main(int argc, const char * argv[]) {
     }
     else {
       std::clog << licensewarning << std::endl;
-      std::cerr << "Usage: 3dfier config.yml -o output.ext" << std::endl;
+      std::cerr << "Usage: 3dfier config.yml -o output.ext\n";
       return 0;
     }
   }
   else if (argc == 4 && (std::string)argv[2] == "-o" && boost::filesystem::path(argv[1]).extension() == ".yml") {
-    outputFilename = argv[3];
+    ofname = argv[3];
   }
   else {
     std::clog << licensewarning << std::endl;
-    std::cerr << "Usage: 3dfier config.yml -o output.ext" << std::endl;
+    std::cerr << "Usage: 3dfier config.yml -o output.ext\n";
     return 0;
   }
 
@@ -92,7 +91,7 @@ int main(int argc, const char * argv[]) {
   // Check if the config file exists
   std::ifstream f(argv[1]);
   if (!f.good()) {
-    std::cerr << "Configuration file " + (std::string)argv[1] + " doesn't exist" << std::endl;
+    std::cerr << "Configuration file " + (std::string)argv[1] + " doesn't exist\n";
     return 0;
   }
   f.close();
@@ -103,10 +102,10 @@ int main(int argc, const char * argv[]) {
 
   //-- validate the YAML file right now, nicer for the user
   if (validate_yaml(argv[1], allowedFeatures) == false) {
-    std::cerr << "ERROR: config file (*.yml) is not valid. Aborting." << std::endl;
+    std::cerr << "ERROR: config file (*.yml) is not valid. Aborting.\n";
     return 0;
   }
-  std::clog << "Config file is valid." << std::endl;
+  std::clog << "Config file is valid.\n";
 
   Map3d map3d;
   YAML::Node nodes = YAML::LoadFile(argv[1]);
@@ -200,17 +199,17 @@ int main(int argc, const char * argv[]) {
     }
 
     if (!wentgood || xmin > xmax || ymin > ymax || boost::geometry::area(Box2(Point2(xmin, ymin), Point2(xmax, ymax))) <= 0.0) {
-      std::cerr << "ERROR: The supplied extent is not valid: (" << n["extent"].as<std::string>() << "), using all polygons" << std::endl;
+      std::cerr << "ERROR: The supplied extent is not valid: (" << n["extent"].as<std::string>() << "), using all polygons\n";
     }
     else
     {
-      std::clog << "Using extent for polygons: (" << n["extent"].as<std::string>() << ")" << std::endl;
+      std::clog << "Using extent for polygons: (" << n["extent"].as<std::string>() << ")\n";
       map3d.set_requested_extent(xmin, ymin, xmax, ymax);
     }
   }
 
   //-- add the polygons to the map3d
-  std::vector<PolygonFile> files;
+  std::vector<PolygonFile> polygonFiles;
   n = nodes["input_polygons"];
   for (auto it = n.begin(); it != n.end(); ++it) {
     // Get the correct uniqueid attribute
@@ -239,21 +238,21 @@ int main(int argc, const char * argv[]) {
       file.handle_multiple_heights = handle_multiple_heights;
       if ((*it)["lifting"]) {
         file.layers.emplace_back(std::string(), (*it)["lifting"].as<std::string>());
-        files.push_back(file);
+        polygonFiles.push_back(file);
       }
       else if ((*it)["lifting_per_layer"]) {
         YAML::Node layers = (*it)["lifting_per_layer"];
         for (auto it3 = layers.begin(); it3 != layers.end(); ++it3) {
           file.layers.emplace_back(it3->first.as<std::string>(), it3->second.as<std::string>());
         }
-        files.push_back(file);
+        polygonFiles.push_back(file);
       }
     }
   }
 
-  bool added = map3d.add_polygons_files(files);
+  bool added = map3d.add_polygons_files(polygonFiles);
   if (!added) {
-    std::cerr << "ERROR: Missing polygon data, cannot 3dfy the dataset. Aborting." << std::endl;
+    std::cerr << "ERROR: Missing polygon data, cannot 3dfy the dataset. Aborting.\n";
     return 0;
   }
   std::clog << "\nTotal # of polygons: " << boost::locale::as::number << map3d.get_num_polygons() << std::endl;
@@ -268,8 +267,11 @@ int main(int argc, const char * argv[]) {
     << bg::get<bg::min_corner, 0>(b) << ", "
     << bg::get<bg::min_corner, 1>(b) << ") ("
     << bg::get<bg::max_corner, 0>(b) << ", "
-    << bg::get<bg::max_corner, 1>(b) << ")" << std::endl;
+    << bg::get<bg::max_corner, 1>(b) << ")\n";
   
+  int threadPoolSize = 4;
+  std::vector<PointFile> fileList;
+
   //-- add elevation datasets
   n = nodes["input_elevation"];
   bool bElevData = false;
@@ -290,7 +292,7 @@ int main(int argc, const char * argv[]) {
       boost::filesystem::path rootPath = path.parent_path();
       if (path.stem() == "*") {
         if (!boost::filesystem::exists(rootPath) || !boost::filesystem::is_directory(rootPath)) {
-          std::cerr << "\tERROR: " << rootPath << "is not a directory, skipping it." << std::endl;
+          std::cerr << "\tERROR: " << rootPath << "is not a directory, skipping it.\n";
           bElevData = false;
           break;
         }
@@ -298,38 +300,53 @@ int main(int argc, const char * argv[]) {
           boost::filesystem::recursive_directory_iterator it_end;
           for (boost::filesystem::recursive_directory_iterator it(rootPath); it != it_end; ++it) {
             if (boost::filesystem::is_regular_file(*it) && it->path().extension() == path.extension()) {
-              bool added = map3d.add_las_file(it->path().string(), lasomits, thinning);
-              if (!added) {
-                bElevData = false;
-                break;
-              }
-              else {
-                bElevData = true;
-              }
+              PointFile pointFile;
+              pointFile.filename = it->path().string();
+              pointFile.lasomits = lasomits;
+              pointFile.thinning = thinning;
+              fileList.push_back(pointFile);
             }
           }
         }
       }
       else {
-        bool added = map3d.add_las_file(path.string(), lasomits, thinning);
-        if (!added) {
-          bElevData = false;
-          break;
-        }
-        else {
-          bElevData = true;
-        }
+        PointFile pointFile;
+        pointFile.filename = path.string();
+        pointFile.lasomits = lasomits;
+        pointFile.thinning = thinning;
+        fileList.push_back(pointFile);
       }
     }
   }
+  auto startPoints = boost::chrono::high_resolution_clock::now();
+
+  for (auto file : fileList) {
+    bool added = map3d.add_las_file(file);
+    if (!added) {
+      bElevData = false;
+      break;
+    }
+    else {
+      bElevData = true;
+    }
+  }
+
   if (bElevData == false) {
-    std::cerr << "ERROR: Missing elevation data, cannot 3dfy the dataset. Aborting." << std::endl;
+    std::cerr << "ERROR: Missing elevation data, cannot 3dfy the dataset. Aborting.\n";
      return 0;
   }
 
+  auto durationPoints = boost::chrono::high_resolution_clock::now() - startPoints;
+  printf("All points read in %ld seconds || %02d:%02d:%02d\n",
+    boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count(),
+    boost::chrono::duration_cast<boost::chrono::hours>(durationPoints).count(),
+    boost::chrono::duration_cast<boost::chrono::minutes>(durationPoints).count() % 60,
+    (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
+  );
+
   n = nodes["output"];
   std::string format = n["format"].as<std::string>();
-  std::clog << "Lifting all input polygons to 3D..." << std::endl;
+  std::clog << "Lifting all input polygons to 3D...\n";
   if (format == "CSV-BUILDINGS")
     map3d.threeDfy(false);
   else if (format == "OBJ-BUILDINGS") {
@@ -340,59 +357,80 @@ int main(int argc, const char * argv[]) {
     map3d.threeDfy(bStitching);
     map3d.construct_CDT();
   }
-  std::clog << "done." << std::endl;
-
+  std::clog << "done with calculations.\n";
 
   //-- output
+  std::clock_t startFileWriting = std::clock(); 
   if (n["building_floor"].as<std::string>() == "true")
     map3d.set_building_include_floor(true);
   int z_exaggeration = 0;
   if (n["vertical_exaggeration"])
     z_exaggeration = n["vertical_exaggeration"].as<int>();
 
-  std::ofstream outputfile;
-  if (format != "Shapefile")
-    outputfile.open(outputFilename);
+  std::ofstream of;
+  if (format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "PostGIS")
+    of.open(ofname);
 
   if (format == "CityGML") {
-    std::clog << "CityGML output" << std::endl;
-    map3d.get_citygml(outputfile);
+    std::clog << "CityGML output\n";
+    map3d.get_citygml(of);
+  }
+  else if (format == "CityGML-Multifile") {
+    std::clog << "CityGML-Multifile output\n";
+    map3d.get_citygml_multifile(ofname);
   }
   else if (format == "CityGML-IMGeo") {
-    std::clog << "CityGML-IMGeo output" << std::endl;
-    map3d.get_citygml_imgeo(outputfile);
+    std::clog << "CityGML-IMGeo output\n";
+    map3d.get_citygml_imgeo(of);
+  }
+  else if (format == "CityGML-IMGeo-Multifile") {
+    std::clog << "CityGML-IMGeo-Multifile output\n";
+    map3d.get_citygml_imgeo_multifile(ofname);
   }
   else if (format == "OBJ") {
-    std::clog << "OBJ output" << std::endl;
-    map3d.get_obj_per_feature(outputfile, z_exaggeration);
+    std::clog << "OBJ output\n";
+    map3d.get_obj_per_feature(of, z_exaggeration);
   }
   else if (format == "OBJ-NoID") {
-    std::clog << "OBJ (without IDs) output" << std::endl;
-    map3d.get_obj_per_class(outputfile, z_exaggeration);
+    std::clog << "OBJ (without IDs) output\n";
+    map3d.get_obj_per_class(of, z_exaggeration);
   }
   else if (format == "CSV-BUILDINGS") {
-    std::clog << "CSV output (only of the buildings)" << std::endl;
-    map3d.get_csv_buildings(outputfile);
+    std::clog << "CSV output (only of the buildings)\n";
+    map3d.get_csv_buildings(of);
   }
   else if (format == "Shapefile") {
-    std::clog << "Shapefile output" << std::endl;
-    if (map3d.get_shapefile(outputFilename)) {
-      std::clog << "Shapefile written" << std::endl;
-    }
-    else
-    {
-      std::cerr << "Writing shapefile failed" << std::endl;
-      return 0;
-    }
+    std::clog << "Shapefile output\n";
+    map3d.get_gdal_output(ofname, "ESRI Shapefile", false);
   }
-  outputfile.close();
+  else if (format == "Shapefile-Multi") {
+    std::clog << "Shapefile output\n";
+    map3d.get_gdal_output(ofname, "ESRI Shapefile", true);
+  }
+  else if (format == "PostGIS") {
+    std::clog << "PostGIS output\n";
+    map3d.get_gdal_output(ofname, "PostgreSQL", false);
+  }
+  else if (format == "PostGIS-Multi") {
+    std::clog << "PostGIS-Multi output\n";
+    map3d.get_gdal_output(ofname, "PostgreSQL", true);
+  }
+  else if (format == "GDAL") {
+    std::string driver = n["gdal_driver"].as<std::string>();
+    std::clog << "GDAL output using driver '" + driver + "'\n";
+    map3d.get_gdal_output(ofname, driver, false);
+  }
+  of.close();
+
+  printf("File written in %ld ms\n", std::clock() - startFileWriting);
 
   //-- bye-bye
   auto duration = boost::chrono::high_resolution_clock::now() - startTime;
-  printf("Successfully terminated in %d seconds || %02d:%02d:%02d\n", boost::chrono::duration_cast<boost::chrono::seconds>(duration),
+  printf("Successfully terminated in %ld seconds || %02d:%02d:%02d\n",
+    boost::chrono::duration_cast<boost::chrono::seconds>(duration).count(),
     boost::chrono::duration_cast<boost::chrono::hours>(duration).count(),
     boost::chrono::duration_cast<boost::chrono::minutes>(duration).count() % 60,
-    boost::chrono::duration_cast<boost::chrono::seconds>(duration).count() % 60
+    (int)boost::chrono::duration_cast<boost::chrono::seconds>(duration).count() % 60
   );
   return 1;
 }
@@ -431,7 +469,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       YAML::Node tmp = (*it)["lifting_per_layer"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
         if (allowedFeatures.count((it2->second).as<std::string>()) == 0) {
-          std::cerr << "\tLifting class '" << (it2->second).as<std::string>() << "' unknown." << std::endl;
+          std::cerr << "\tLifting class '" << (it2->second).as<std::string>() << "' unknown.\n";
           wentgood = false;
         }
       }
@@ -440,7 +478,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       YAML::Node tmp = (*it)["datasets"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
         if (allowedFeatures.count((*it)["lifting"].as<std::string>()) == 0) {
-          std::cerr << "\tLifting class '" << (*it)["lifting"].as<std::string>() << "' unknown." << std::endl;
+          std::cerr << "\tLifting class '" << (*it)["lifting"].as<std::string>() << "' unknown.\n";
           wentgood = false;
         }
       }
@@ -454,7 +492,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
         (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
         wentgood = false;
-        std::cerr << "\tOption 'Building.height_roof' invalid; must be 'percentile-XX'." << std::endl;
+        std::cerr << "\tOption 'Building.height_roof' invalid; must be 'percentile-XX'.\n";
       }
     }
     if (n["Building"]["height_ground"]) {
@@ -462,20 +500,20 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
         (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
         wentgood = false;
-        std::cerr << "\tOption 'Building.height_ground' invalid; must be 'percentile-XX'." << std::endl;
+        std::cerr << "\tOption 'Building.height_ground' invalid; must be 'percentile-XX'.\n";
       }
     }
     if (n["Building"]["lod"]) {
       if (is_string_integer(n["Building"]["lod"].as<std::string>(), 0, 1) == false) {
         wentgood = false;
-        std::cerr << "\tOption 'Building.lod' invalid; must be an integer between 0 and 1." << std::endl;
+        std::cerr << "\tOption 'Building.lod' invalid; must be an integer between 0 and 1.\n";
       }
     }
     if (n["Building"]["triangulate"]) {
       std::string s = n["Building"]["triangulate"].as<std::string>();
       if ((s != "true") && (s != "false")) {
         wentgood = false;
-        std::cerr << "\tOption 'Building.triangulate' invalid; must be 'true' or 'false'." << std::endl;
+        std::cerr << "\tOption 'Building.triangulate' invalid; must be 'true' or 'false'.\n";
       }
     }
   }
@@ -485,7 +523,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
         (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
         wentgood = false;
-        std::cerr << "\tOption 'Water.height' invalid; must be 'percentile-XX'." << std::endl;
+        std::cerr << "\tOption 'Water.height' invalid; must be 'percentile-XX'.\n";
       }
     }
   }
@@ -495,7 +533,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
         (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
         wentgood = false;
-        std::cerr << "\tOption 'Road.height' invalid; must be 'percentile-XX'." << std::endl;
+        std::cerr << "\tOption 'Road.height' invalid; must be 'percentile-XX'.\n";
       }
     }
   }
@@ -503,7 +541,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     if (n["Terrain"]["simplification"]) {
       if (is_string_integer(n["Terrain"]["simplification"].as<std::string>()) == false) {
         wentgood = false;
-        std::cerr << "\tOption 'Terrain.simplification' invalid; must be an integer." << std::endl;
+        std::cerr << "\tOption 'Terrain.simplification' invalid; must be an integer.\n";
       }
     }
     if (n["Terrain"]["innerbuffer"]) {
@@ -512,7 +550,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       }
       catch (boost::bad_lexical_cast& e) {
         wentgood = false;
-        std::cerr << "\tOption 'Terrain.innerbuffer' invalid; must be a float." << std::endl;
+        std::cerr << "\tOption 'Terrain.innerbuffer' invalid; must be a float.\n";
       }
     }
   }
@@ -520,7 +558,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     if (n["Forest"]["simplification"]) {
       if (is_string_integer(n["Forest"]["simplification"].as<std::string>()) == false) {
         wentgood = false;
-        std::cerr << "\tOption 'Forest.simplification' invalid; must be an integer." << std::endl;
+        std::cerr << "\tOption 'Forest.simplification' invalid; must be an integer.\n";
       }
     }
     if (n["Forest"]["innerbuffer"]) {
@@ -529,7 +567,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       }
       catch (boost::bad_lexical_cast& e) {
         wentgood = false;
-        std::cerr << "\tOption 'Forest.innerbuffer' invalid; must be a float." << std::endl;
+        std::cerr << "\tOption 'Forest.innerbuffer' invalid; must be a float.\n";
       }
     }
   }
@@ -539,7 +577,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
         (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
         wentgood = false;
-        std::cerr << "\tOption 'Separation.height' invalid; must be 'percentile-XX'." << std::endl;
+        std::cerr << "\tOption 'Separation.height' invalid; must be 'percentile-XX'.\n";
       }
     }
   }
@@ -549,7 +587,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
         (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
         wentgood = false;
-        std::cerr << "\tOption 'Bridge/Overpass.height' invalid; must be 'percentile-XX'." << std::endl;
+        std::cerr << "\tOption 'Bridge/Overpass.height' invalid; must be 'percentile-XX'.\n";
       }
     }
   }
@@ -560,13 +598,13 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
       if (is_string_integer(it2->as<std::string>()) == false) {
         wentgood = false;
-        std::cerr << "\tOption 'input_elevation.omit_LAS_class' invalid; must be an integer." << std::endl;
+        std::cerr << "\tOption 'input_elevation.omit_LAS_class' invalid; must be an integer.\n";
       }
     }
     if ((*it)["thinning"]) {
       if (is_string_integer((*it)["thinning"].as<std::string>()) == false) {
         wentgood = false;
-        std::cerr << "\tOption 'input_elevation.thinning' invalid; must be an integer." << std::endl;
+        std::cerr << "\tOption 'input_elevation.thinning' invalid; must be an integer.\n";
       }
     }
   }
@@ -578,7 +616,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     }
     catch (boost::bad_lexical_cast& e) {
       wentgood = false;
-      std::cerr << "\tOption 'options.radius_vertex_elevation' invalid." << std::endl;
+      std::cerr << "\tOption 'options.radius_vertex_elevation' invalid.\n";
     }
   }
   if (n["threshold_jump_edges"]) {
@@ -587,7 +625,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     }
     catch (boost::bad_lexical_cast& e) {
       wentgood = false;
-      std::cerr << "\tOption 'options.threshold_jump_edges' invalid." << std::endl;
+      std::cerr << "\tOption 'options.threshold_jump_edges' invalid.\n";
     }
   }
   //-- 5. output
@@ -596,12 +634,23 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
   if ((format != "OBJ") &&
     (format != "OBJ-NoID") &&
     (format != "CityGML") &&
+    (format != "CityGML-Multifile") &&
     (format != "CityGML-IMGeo") &&
+    (format != "CityGML-IMGeo-Multifile") &&
     (format != "OBJ-BUILDINGS") &&
     (format != "CSV-BUILDINGS") &&
-    (format != "Shapefile")) {
+    (format != "Shapefile") &&
+    (format != "Shapefile-Multi") &&
+    (format != "PostGIS") &&
+    (format != "PostGIS-Multi") &&
+    (format != "GDAL")) {
     wentgood = false;
-    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-IMGeo | CSV-BUILDINGS | Shapefile)" << std::endl;
+    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-Multifile | CityGML-IMGeo | CityGML-IMGeo-Multifile | CSV-BUILDINGS | Shapefile | Shapefile-Multi | PostGIS | PostGIS-Multi)\n";
   }
+  if (format == "GDAL" && (!n["gdal_driver"] || n["gdal_driver"].as<std::string>().empty())) {
+    wentgood = false;
+    std::cerr << "\tOption 'output.format' GDAL needs gdal_driver setting\n";
+  }
+
   return wentgood;
 }
