@@ -331,6 +331,11 @@ int main(int argc, const char * argv[]) {
     }
   }
 
+  if (bElevData == false) {
+    std::cerr << "ERROR: Missing elevation data, cannot 3dfy the dataset. Aborting.\n";
+     return 0;
+  }
+
   auto durationPoints = boost::chrono::high_resolution_clock::now() - startPoints;
   printf("All points read in %ld seconds || %02d:%02d:%02d\n",
     boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count(),
@@ -338,11 +343,6 @@ int main(int argc, const char * argv[]) {
     boost::chrono::duration_cast<boost::chrono::minutes>(durationPoints).count() % 60,
     (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
   );
-
-  if (bElevData == false) {
-    std::cerr << "ERROR: Missing elevation data, cannot 3dfy the dataset. Aborting.\n";
-     return 0;
-  }
 
   n = nodes["output"];
   std::string format = n["format"].as<std::string>();
