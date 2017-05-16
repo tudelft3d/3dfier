@@ -327,7 +327,7 @@ OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std
 
   if (dataSource == NULL) {
     std::cerr << "ERROR: could not open file, skipping it.\n";
-    return false;
+    return NULL;
   }
   
   OGRLayer *layer = dataSource->GetLayerByName(layername.c_str());
