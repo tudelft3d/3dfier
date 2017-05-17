@@ -41,6 +41,7 @@ public:
   std::string   get_citygml_imgeo();
   std::string   get_imgeo_nummeraanduiding();
   std::string   get_csv();
+  std::string   get_all_z_values();
   std::string   get_mtl();
   bool          get_shape(OGRLayer * layer);
   TopoClass     get_class();

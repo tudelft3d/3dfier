@@ -191,12 +191,24 @@ void Map3d::get_citygml_imgeo(std::ofstream &outputfile) {
 }
 
 void Map3d::get_csv_buildings(std::ofstream &outputfile) {
-  outputfile << "id;roof;floor" << std::endl;
+  outputfile << "id,roof,floor" << std::endl;
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
       // if (b != nullptr)
       outputfile << b->get_csv();
+    }
+  }
+}
+
+void Map3d::get_csv_buildings_all_elevation_points(std::ofstream &outputfile) {
+  outputfile << "id,allzvalues" << std::endl;
+  for (auto& p : _lsFeatures) {
+    if (p->get_class() == BUILDING) {
+      Building* b = dynamic_cast<Building*>(p);
+      outputfile << b->get_id() << ",";
+      outputfile << b->get_all_z_values();
+      outputfile << "," << std::endl;
     }
   }
 }

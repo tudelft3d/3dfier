@@ -28,6 +28,7 @@
 
 #include "Building.h"
 #include "io.h"
+#include <algorithm>    // std::sort
 
 float Building::_heightref_top = 0.9;
 float Building::_heightref_base = 0.1;
@@ -37,6 +38,16 @@ Building::Building(char *wkt, std::string layername, std::vector<std::tuple<std:
 {
   _heightref_top = heightref_top;
   _heightref_base = heightref_base;
+}
+
+std::string Building::get_all_z_values() {
+  std::vector<int> allz (_zvaluesground.begin(), _zvaluesground.end());
+  allz.insert(allz.end(), _zvaluesinside.begin(), _zvaluesinside.end());
+  std::sort(allz.begin(), allz.end());
+  std::stringstream ss;
+  for (auto& z : allz)
+    ss << z << "|";
+  return ss.str();
 }
 
 int Building::get_height_ground_at_percentile(float percentile) {
@@ -108,7 +119,7 @@ bool Building::is_hard() {
 
 std::string Building::get_csv() {
   std::stringstream ss;
-  ss << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << std::endl;
+  ss << this->get_id() << "," << std::setprecision(2) << std::fixed << this->get_height() << "," << this->get_height_base() << std::endl;
   return ss.str();
 }
 
