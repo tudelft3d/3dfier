@@ -1,44 +1,26 @@
 input_polygons:
-  - datasets: 
-      - bgt/bgt_waterdeel.sqlite
-      - bgt/bgt_ondersteunendwaterdeel.sqlite
-    uniqueid: gml_id
-    lifting: Water
-    height_field: relatievehoogteligging
-  - datasets: 
-      - bgt/bgt_onbegroeidterreindeel.sqlite
-    uniqueid: gml_id
-    lifting: Terrain
-    height_field: relatievehoogteligging
-  - datasets: 
-      - bgt/bgt_wegdeel.sqlite
-      - bgt/bgt_ondersteunendwegdeel.sqlite
-    uniqueid: gml_id
-    lifting: Road
-    height_field: relatievehoogteligging
+  # - datasets: 
+  #     - bgt/bgt_waterdeel.sqlite
+  #     - bgt/bgt_ondersteunendwaterdeel.sqlite
+  #   uniqueid: gml_id
+  #   lifting: Water
+  #   height_field: relatievehoogteligging
+  # - datasets: 
+  #     - bgt/bgt_onbegroeidterreindeel.sqlite
+  #   uniqueid: gml_id
+  #   lifting: Terrain
+  #   height_field: relatievehoogteligging
+  # - datasets: 
+  #     - bgt/bgt_wegdeel.sqlite
+  #     - bgt/bgt_ondersteunendwegdeel.sqlite
+  #   uniqueid: gml_id
+  #   lifting: Road
+  #   height_field: relatievehoogteligging
   - datasets: 
       - bgt/bgt_pand.sqlite
     uniqueid: gml_id
     lifting: Building
     height_field: relatievehoogteligging
-  - datasets: 
-      - bgt/bgt_begroeidterreindeel.sqlite
-    uniqueid: gml_id
-    lifting: Forest
-    height_field: relatievehoogteligging
-  - datasets: 
-      - bgt/bgt_scheiding.sqlite
-      - bgt/bgt_kunstwerkdeel.sqlite
-      - bgt/bgt_overigbouwwerk.sqlite
-    uniqueid: gml_id
-    lifting: Separation
-    height_field: relatievehoogteligging
-  - datasets: 
-      - bgt/bgt_overbruggingsdeel.sqlite
-    uniqueid: gml_id
-    lifting: Bridge/Overpass
-    height_field: relatievehoogteligging
-    handle_multiple_heights: true
 
 lifting_options: 
   Building:
@@ -72,7 +54,6 @@ options:
   threshold_jump_edges: 0.5
 
 output: 
-  format: OBJ
-  # format: CityGML
+  format: CSV-BUILDINGS-MULTIPLE
   building_floor: false
   vertical_exaggeration: 0

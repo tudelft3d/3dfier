@@ -214,7 +214,7 @@ void Map3d::create_citygml_header(std::ofstream& of) {
 }
 
 void Map3d::get_csv_buildings(std::ofstream& of) {
-  of << "id;roof;floor\n";
+  of << "id,roof,floor\n";
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
@@ -222,6 +222,47 @@ void Map3d::get_csv_buildings(std::ofstream& of) {
     }
   }
 }
+
+void Map3d::get_csv_buildings_all_elevation_points(std::ofstream &outputfile) {
+  outputfile << "id,allzvalues" << std::endl;
+  for (auto& p : _lsFeatures) {
+    if (p->get_class() == BUILDING) {
+      Building* b = dynamic_cast<Building*>(p);
+      outputfile << b->get_id() << ",";
+      outputfile << b->get_all_z_values();
+      outputfile << "," << std::endl;
+    }
+  }
+}
+
+void Map3d::get_csv_buildings_multiple_heights(std::ofstream &outputfile) {
+  //-- ground heights
+  std::vector<float> gpercentiles = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5};
+  std::vector<float> rpercentiles = {0.0, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99};
+  outputfile << std::setprecision(2) << std::fixed;
+  outputfile << "id,";
+  for (auto& each : gpercentiles)
+    outputfile << "ground-" << each << ",";
+  for (auto& each : rpercentiles)
+    outputfile << "roof-" << each << ",";
+  outputfile << std::endl;
+  for (auto& p : _lsFeatures) {
+    if (p->get_class() == BUILDING) {
+      Building* b = dynamic_cast<Building*>(p);
+      outputfile << b->get_id() << ",";
+      for (auto& each : gpercentiles) {
+        int h = b->get_height_ground_at_percentile(each);
+        outputfile << float(h)/100 << ",";
+      }
+      for (auto& each : rpercentiles) {
+        int h = b->get_height_roof_at_percentile(each);
+        outputfile << float(h)/100 << ",";
+      }
+      outputfile << std::endl;
+    }
+  }
+}
+
 
 void Map3d::get_obj_per_feature(std::ofstream& of, int z_exaggeration) {
   std::unordered_map< std::string, unsigned long > dPts;

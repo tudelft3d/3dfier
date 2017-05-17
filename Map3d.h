@@ -66,10 +66,13 @@ public:
   void create_citygml_header(std::ofstream& of);
   void get_citygml_imgeo(std::ofstream& of);
   void get_citygml_imgeo_multifile(std::string ofname);
-  void get_csv_buildings(std::ofstream& of);
-  void get_obj_per_feature(std::ofstream& of, int z_exaggeration = 0);
-  void get_obj_per_class(std::ofstream& of, int z_exaggeration = 0);
   bool get_gdal_output(std::string filename, std::string drivername, bool multi);
+  void get_csv_buildings(std::ofstream &outputfile);
+  void get_csv_buildings_multiple_heights(std::ofstream &outputfile);
+  void get_csv_buildings_all_elevation_points(std::ofstream &outputfile);
+  void get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration = 0);
+  void get_obj_per_class(std::ofstream &outputfile, int z_exaggeration = 0);
+  bool get_shapefile(std::string filename);
   bool get_shapefile2d(std::string filename);
 
   void set_building_heightref_roof(float heightref);
