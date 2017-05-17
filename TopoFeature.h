@@ -47,7 +47,7 @@ public:
   virtual std::string   get_mtl() = 0;
   virtual void          get_citygml(std::ofstream& of) = 0;
   virtual void          get_citygml_imgeo(std::ofstream& of) = 0;
-  virtual bool          get_shape(OGRLayer*) = 0;
+  virtual bool          get_shape(OGRLayer*, bool writeAttributes) = 0;
 
   std::string  get_id();
   void         construct_vertical_walls(NodeColumn& nc, int baseheight);
@@ -69,9 +69,9 @@ public:
   bool         has_vertical_walls();
   void         add_vertical_wall();
   bool         get_top_level();
-  bool         get_multipolygon_features(OGRLayer* layer, std::string className, bool writeHeights = false, int height_base = 0, int height = 0);
-  bool         get_polyhedral_features(OGRLayer* layer, std::string className);
+  bool         get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, bool writeHeights = false, int height_base = 0, int height = 0);
   void         get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs);
+  AttributeMap get_attributes();
   void         get_imgeo_object_info(std::ofstream& of, std::string id);
   void         get_citygml_attributes(std::ofstream& of, AttributeMap attributes);
 protected:

@@ -121,8 +121,8 @@ private:
 #if GDAL_VERSION_MAJOR < 2
   bool extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file);
 #else
-  OGRLayer* create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, bool forceHeightAttributes);
   bool extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file);
+  OGRLayer* create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, AttributeMap attributes, bool forceHeightAttributes);
 #endif
   void extract_feature(OGRFeature * f, std::string layerName, const char * idfield, const char * heightfield, std::string layertype, bool multiple_heights);
   void stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star);

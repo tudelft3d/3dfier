@@ -42,7 +42,7 @@ public:
   void          get_imgeo_nummeraanduiding(std::ofstream& of);
   void          get_csv(std::ofstream& of);
   std::string   get_mtl();
-  bool          get_shape(OGRLayer * layer);
+  bool          get_shape(OGRLayer* layer, bool writeAttributes);
   TopoClass     get_class();
   bool          is_hard();
   int           get_height_base();

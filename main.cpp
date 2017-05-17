@@ -333,11 +333,11 @@ int main(int argc, const char * argv[]) {
 
   if (bElevData == false) {
     std::cerr << "ERROR: Missing elevation data, cannot 3dfy the dataset. Aborting.\n";
-     return 0;
+    return 0;
   }
 
   auto durationPoints = boost::chrono::high_resolution_clock::now() - startPoints;
-  printf("All points read in %ld seconds || %02d:%02d:%02d\n",
+  printf("All points read in %lld seconds || %02d:%02d:%02d\n",
     boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count(),
     boost::chrono::duration_cast<boost::chrono::hours>(durationPoints).count(),
     boost::chrono::duration_cast<boost::chrono::minutes>(durationPoints).count() % 60,
@@ -367,6 +367,7 @@ int main(int argc, const char * argv[]) {
   if (n["vertical_exaggeration"])
     z_exaggeration = n["vertical_exaggeration"].as<int>();
 
+  bool fileWritten = true;
   std::ofstream of;
   if (format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "PostGIS")
     of.open(ofname);
@@ -401,32 +402,38 @@ int main(int argc, const char * argv[]) {
   }
   else if (format == "Shapefile") {
     std::clog << "Shapefile output\n";
-    map3d.get_gdal_output(ofname, "ESRI Shapefile", false);
+    fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", false);
   }
   else if (format == "Shapefile-Multi") {
     std::clog << "Shapefile output\n";
-    map3d.get_gdal_output(ofname, "ESRI Shapefile", true);
+    fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", true);
   }
   else if (format == "PostGIS") {
     std::clog << "PostGIS output\n";
-    map3d.get_gdal_output(ofname, "PostgreSQL", false);
+    fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", false);
   }
   else if (format == "PostGIS-Multi") {
     std::clog << "PostGIS-Multi output\n";
-    map3d.get_gdal_output(ofname, "PostgreSQL", true);
+    fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", true);
   }
   else if (format == "GDAL") {
     std::string driver = n["gdal_driver"].as<std::string>();
     std::clog << "GDAL output using driver '" + driver + "'\n";
-    map3d.get_gdal_output(ofname, driver, false);
+    fileWritten = map3d.get_gdal_output(ofname, driver, false);
   }
   of.close();
 
-  printf("File written in %ld ms\n", std::clock() - startFileWriting);
+  if (fileWritten) {
+    printf("Features written in %ld ms\n", std::clock() - startFileWriting);
+  }
+  else {
+    std::cerr << "ERROR: Writing features failed. Aborting.\n";
+    return 0;
+  }
 
   //-- bye-bye
   auto duration = boost::chrono::high_resolution_clock::now() - startTime;
-  printf("Successfully terminated in %ld seconds || %02d:%02d:%02d\n",
+  printf("Successfully terminated in %lld seconds || %02d:%02d:%02d\n",
     boost::chrono::duration_cast<boost::chrono::seconds>(duration).count(),
     boost::chrono::duration_cast<boost::chrono::hours>(duration).count(),
     boost::chrono::duration_cast<boost::chrono::minutes>(duration).count() % 60,

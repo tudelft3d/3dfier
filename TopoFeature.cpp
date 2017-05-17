@@ -165,6 +165,10 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
   }
 }
 
+AttributeMap TopoFeature::get_attributes() {
+  return _attributes;
+}
+
 void TopoFeature::get_imgeo_object_info(std::ofstream& of, std::string id) {
   std::string attribute;
   if (get_attribute("creationDate", attribute)) {
@@ -229,7 +233,7 @@ void TopoFeature::get_citygml_attributes(std::ofstream& of, AttributeMap attribu
   }
 }
 
-bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeHeights, int height_base, int height) {
+bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, bool writeHeights, int height_base, int height) {
     OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
     OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
     OGRMultiPolygon multipolygon = OGRMultiPolygon();
@@ -270,11 +274,16 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
     }
   
     feature->SetGeometry(&multipolygon);
-    feature->SetField("Id", this->get_id().c_str());
-    feature->SetField("Class", className.c_str());
+    feature->SetField("3dfier_Id", this->get_id().c_str());
+    feature->SetField("3dfier_Class", className.c_str());
     if (writeHeights) {
       feature->SetField("BaseHeight", z_to_float(height_base));
       feature->SetField("RoofHeight", z_to_float(height));
+    }
+    if (writeAttributes) {
+      for (auto attr : _attributes) {
+        feature->SetField(attr.first.c_str(), attr.second.second.c_str());
+      }
     }
     if (layer->CreateFeature(feature) != OGRERR_NONE)
     {
