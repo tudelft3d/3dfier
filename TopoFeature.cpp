@@ -165,6 +165,10 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
   }
 }
 
+AttributeMap TopoFeature::get_attributes() {
+  return _attributes;
+}
+
 void TopoFeature::get_imgeo_object_info(std::ofstream& of, std::string id) {
   std::string attribute;
   if (get_attribute("creationDate", attribute)) {
@@ -229,59 +233,65 @@ void TopoFeature::get_citygml_attributes(std::ofstream& of, AttributeMap attribu
   }
 }
 
-bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeHeights, int height_base, int height) {
-    OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
-    OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
-    OGRMultiPolygon multipolygon = OGRMultiPolygon();
-    Point3 p;
-  
-    //-- add all triangles to the layer
-    for (auto& t: _triangles) {
-      OGRPolygon polygon = OGRPolygon();
-      OGRLinearRing ring = OGRLinearRing();
-      
-      p = _vertices[t.v0].first;
-      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-      p = _vertices[t.v1].first;
-      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-      p = _vertices[t.v2].first;
-      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-  
-      ring.closeRings();
-      polygon.addRing(&ring);
-      multipolygon.addGeometry(&polygon);
+bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, bool writeHeights, int height_base, int height) {
+  OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
+  OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
+  OGRMultiPolygon multipolygon = OGRMultiPolygon();
+  Point3 p;
+
+  //-- add all triangles to the layer
+  for (auto& t : _triangles) {
+    OGRPolygon polygon = OGRPolygon();
+    OGRLinearRing ring = OGRLinearRing();
+
+    p = _vertices[t.v0].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices[t.v1].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices[t.v2].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+
+    ring.closeRings();
+    polygon.addRing(&ring);
+    multipolygon.addGeometry(&polygon);
+  }
+
+  //-- add all vertical wall triangles to the layer
+  for (auto& t : _triangles_vw) {
+    OGRPolygon polygon = OGRPolygon();
+    OGRLinearRing ring = OGRLinearRing();
+
+    p = _vertices_vw[t.v0].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices_vw[t.v1].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices_vw[t.v2].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+
+    ring.closeRings();
+    polygon.addRing(&ring);
+    multipolygon.addGeometry(&polygon);
+  }
+
+  feature->SetGeometry(&multipolygon);
+  feature->SetField("3dfier_Id", this->get_id().c_str());
+  feature->SetField("3dfier_Class", className.c_str());
+  if (writeHeights) {
+    feature->SetField("BaseHeight", z_to_float(height_base));
+    feature->SetField("RoofHeight", z_to_float(height));
+  }
+  if (writeAttributes) {
+    for (auto attr : _attributes) {
+      if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
+        feature->SetField(attr.first.c_str(), attr.second.second.c_str());
+      }
     }
-  
-    //-- add all vertical wall triangles to the layer
-    for (auto& t: _triangles_vw) {
-      OGRPolygon polygon = OGRPolygon();
-      OGRLinearRing ring = OGRLinearRing();
-  
-      p = _vertices_vw[t.v0].first;
-      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-      p = _vertices_vw[t.v1].first;
-      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-      p = _vertices_vw[t.v2].first;
-      ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
-  
-      ring.closeRings();
-      polygon.addRing(&ring);
-      multipolygon.addGeometry(&polygon);
-    }
-  
-    feature->SetGeometry(&multipolygon);
-    feature->SetField("Id", this->get_id().c_str());
-    feature->SetField("Class", className.c_str());
-    if (writeHeights) {
-      feature->SetField("BaseHeight", z_to_float(height_base));
-      feature->SetField("RoofHeight", z_to_float(height));
-    }
-    if (layer->CreateFeature(feature) != OGRERR_NONE)
-    {
-      std::cerr << "Failed to create feature " << this->get_id() << " in shapefile.\n";
-      return false;
-    }
-    OGRFeature::DestroyFeature(feature);
+  }
+  if (layer->CreateFeature(feature) != OGRERR_NONE) {
+    std::cerr << "Failed to create feature " << this->get_id() << " in shapefile.\n";
+    return false;
+  }
+  OGRFeature::DestroyFeature(feature);
   return true;
 }
 

@@ -323,6 +323,6 @@ void Building::get_imgeo_nummeraanduiding(std::ofstream& of) {
   }
 }
 
-bool Building::get_shape(OGRLayer* layer) {
-  return TopoFeature::get_multipolygon_features(layer, "Building", true, this->get_height_base(), this->get_height());
+bool Building::get_shape(OGRLayer* layer, bool writeAttributes) {
+  return TopoFeature::get_multipolygon_features(layer, "Building", writeAttributes, true, this->get_height_base(), this->get_height());
 }

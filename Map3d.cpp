@@ -326,6 +326,7 @@ void Map3d::get_obj_per_class(std::ofstream& of, int z_exaggeration) {
 
 bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool multi) {
 #if GDAL_VERSION_MAJOR < 2
+  std::cerr << "ERROR: cannot write MultiPolygonZ files with GDAL < 2.0.\n";
   return false;
 #else
   if (GDALGetDriverCount() == 0)
@@ -333,9 +334,15 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName(drivername.c_str());
 
   if (!multi) {
-    OGRLayer *layer = create_gdal_layer(driver, filename, "my3dmap", true);
+    OGRLayer *layer = create_gdal_layer(driver, filename, "my3dmap", AttributeMap(), true);
+    if (layer == NULL) {
+      std::cerr << "ERROR: Cannot open file '" + filename + "' for writing" << std::endl;
+      GDALClose(layer);
+      GDALClose(driver);
+      return false;
+    }
     for (auto& f : _lsFeatures) {
-      f->get_shape(layer);
+      f->get_shape(layer, false);
     }
     GDALClose(layer);
     GDALClose(driver);
@@ -350,9 +357,18 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
         if (drivername == "ESRI Shapefile") {
           tmpFilename = filename + layername;
         }
-        layers.emplace(layername, create_gdal_layer(driver, tmpFilename, layername, false));
+        OGRLayer *layer = create_gdal_layer(driver, tmpFilename, layername, f->get_attributes(), f->get_class() == BUILDING);
+        if (layer == NULL) {
+          std::cerr << "ERROR: Cannot open file '" + filename + "' for writing" << std::endl;
+          for (auto& layer : layers) {
+            GDALClose(layer.second);
+          }
+          GDALClose(driver);
+          return false;
+        }
+        layers.emplace(layername, layer);
       }
-      f->get_shape(layers[layername]);
+      f->get_shape(layers[layername], true);
     }
     for (auto& layer : layers) {
       GDALClose(layer.second);
@@ -363,8 +379,8 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
 #endif
 }
 
-#if GDAL_VERSION_MAJOR > 2
-OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, bool forceHeightAttributes) {
+#if GDAL_VERSION_MAJOR >= 2
+OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, AttributeMap attributes, bool addHeightAttributes) {
   GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
 
   if (dataSource == NULL) {
@@ -377,17 +393,17 @@ OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std
     sr->importFromEPSG(7415);
     layer = dataSource->CreateLayer(layername.c_str(), sr, OGR_GT_SetZ(wkbMultiPolygon), NULL);
 
-    OGRFieldDefn oField("Id", OFTString);
+    OGRFieldDefn oField("3dfier_Id", OFTString);
     if (layer->CreateField(&oField) != OGRERR_NONE) {
-      std::cerr << "Creating Id field failed.\n";
+      std::cerr << "Creating 3dfier_Id field failed.\n";
       return NULL;
     }
-    OGRFieldDefn oField2("Class", OFTString);
+    OGRFieldDefn oField2("3dfier_Class", OFTString);
     if (layer->CreateField(&oField2) != OGRERR_NONE) {
-      std::cerr << "Creating Class field failed.\n";
+      std::cerr << "Creating 3dfier_Class field failed.\n";
       return NULL;
     }
-    if (forceHeightAttributes || layername == "buildingpart") {
+    if (addHeightAttributes) {
       OGRFieldDefn oField3("BaseHeight", OFTReal);
       if (layer->CreateField(&oField3) != OGRERR_NONE) {
         std::cerr << "Creating BaseHeight field failed.\n";
@@ -399,6 +415,13 @@ OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std
         return NULL;
       }
     }
+    for (auto attr : attributes) {
+      OGRFieldDefn oField(attr.first.c_str(), attr.second.first);
+      if (layer->CreateField(&oField) != OGRERR_NONE) {
+        std::cerr << "Creating " + attr.first + " field failed.\n";
+        return NULL;
+      }
+    }
   }
   return layer;
 }
@@ -406,13 +429,16 @@ OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std
 
 bool Map3d::get_shapefile2d(std::string filename) {
 #if GDAL_VERSION_MAJOR < 2
-  return false;
+  if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0)
+    OGRRegisterAll();
+  OGRSFDriver *driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName("ESRI Shapefile");
+  OGRDataSource *dataSource = driver->CreateDataSource(filename.c_str(), NULL);
 #else
-
   if (GDALGetDriverCount() == 0)
     GDALAllRegister();
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("ESRI Shapefile");
   GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+#endif
 
   if (dataSource == NULL) {
     std::cerr << "\tERROR: could not open file, skipping it.\n";
@@ -420,14 +446,14 @@ bool Map3d::get_shapefile2d(std::string filename) {
   }
   OGRLayer *layer = dataSource->CreateLayer("my3dmap", NULL, wkbMultiPolygon, NULL);
 
-  OGRFieldDefn oField("Id", OFTString);
+  OGRFieldDefn oField("3dfier_Id", OFTString);
   if (layer->CreateField(&oField) != OGRERR_NONE) {
-    std::cerr << "Creating Id field failed.\n";
+    std::cerr << "Creating 3dfier_Id field failed.\n";
     return false;
   }
-  OGRFieldDefn oField2("Class", OFTString);
+  OGRFieldDefn oField2("3dfier_Class", OFTString);
   if (layer->CreateField(&oField2) != OGRERR_NONE) {
-    std::cerr << "Creating Class field failed.\n";
+    std::cerr << "Creating 3dfier_Class field failed.\n";
     return false;
   }
   OGRFieldDefn oField3("BaseHeight", OFTReal);
@@ -441,11 +467,14 @@ bool Map3d::get_shapefile2d(std::string filename) {
     return false;
   }
   for (auto& f : _lsFeatures) {
-    f->get_shape(layer);
+    f->get_shape(layer, false);
   }
+#if GDAL_VERSION_MAJOR < 2
+  OGRDataSource::DestroyDataSource(dataSource);
+#else
   GDALClose(dataSource);
-  return true;
 #endif
+  return true;
 }
 
 unsigned long Map3d::get_num_polygons() {

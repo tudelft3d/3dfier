@@ -40,7 +40,7 @@ public:
   void          get_citygml(std::ofstream& of);
   void          get_citygml_imgeo(std::ofstream& of);
   std::string   get_mtl();
-  bool          get_shape(OGRLayer * layer);
+  bool          get_shape(OGRLayer* layer, bool writeAttributes);
   TopoClass     get_class();
   bool          is_hard();
   static float  _heightref;
