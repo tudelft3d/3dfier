@@ -282,10 +282,7 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
   }
   if (writeAttributes) {
     for (auto attr : _attributes) {
-      if (attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00") {
-        feature->SetField(attr.first.c_str(), NULL);
-      }
-      else {
+      if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
         feature->SetField(attr.first.c_str(), attr.second.second.c_str());
       }
     }
