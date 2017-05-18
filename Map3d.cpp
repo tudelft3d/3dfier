@@ -316,7 +316,7 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
         if (drivername == "ESRI Shapefile") {
           tmpFilename = filename + layername;
         }
-        OGRLayer *layer = create_gdal_layer(driver, tmpFilename, layername, f->get_attributes(), false);
+        OGRLayer *layer = create_gdal_layer(driver, tmpFilename, layername, f->get_attributes(), f->get_class() == BUILDING);
         if (layer == NULL) {
           std::cerr << "ERROR: Cannot open file '" + filename + "' for writing" << std::endl;
           for (auto& layer : layers) {
@@ -339,7 +339,7 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
 }
 
 #if GDAL_VERSION_MAJOR >= 2
-OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, AttributeMap attributes, bool forceHeightAttributes) {
+OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, AttributeMap attributes, bool addHeightAttributes) {
   GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
 
   if (dataSource == NULL) {
@@ -354,15 +354,15 @@ OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std
 
     OGRFieldDefn oField("3dfier_Id", OFTString);
     if (layer->CreateField(&oField) != OGRERR_NONE) {
-      std::cerr << "Creating Id field failed.\n";
+      std::cerr << "Creating 3dfier_Id field failed.\n";
       return NULL;
     }
     OGRFieldDefn oField2("3dfier_Class", OFTString);
     if (layer->CreateField(&oField2) != OGRERR_NONE) {
-      std::cerr << "Creating Class field failed.\n";
+      std::cerr << "Creating 3dfier_Class field failed.\n";
       return NULL;
     }
-    if (forceHeightAttributes || layername == "buildingpart") {
+    if (addHeightAttributes) {
       OGRFieldDefn oField3("BaseHeight", OFTReal);
       if (layer->CreateField(&oField3) != OGRERR_NONE) {
         std::cerr << "Creating BaseHeight field failed.\n";
@@ -405,14 +405,14 @@ bool Map3d::get_shapefile2d(std::string filename) {
   }
   OGRLayer *layer = dataSource->CreateLayer("my3dmap", NULL, wkbMultiPolygon, NULL);
 
-  OGRFieldDefn oField("Id", OFTString);
+  OGRFieldDefn oField("3dfier_Id", OFTString);
   if (layer->CreateField(&oField) != OGRERR_NONE) {
-    std::cerr << "Creating Id field failed.\n";
+    std::cerr << "Creating 3dfier_Id field failed.\n";
     return false;
   }
-  OGRFieldDefn oField2("Class", OFTString);
+  OGRFieldDefn oField2("3dfier_Class", OFTString);
   if (layer->CreateField(&oField2) != OGRERR_NONE) {
-    std::cerr << "Creating Class field failed.\n";
+    std::cerr << "Creating 3dfier_Class field failed.\n";
     return false;
   }
   OGRFieldDefn oField3("BaseHeight", OFTReal);

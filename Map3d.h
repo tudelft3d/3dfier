@@ -122,7 +122,7 @@ private:
   bool extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file);
 #else
   bool extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file);
-  OGRLayer* create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, AttributeMap attributes, bool forceHeightAttributes);
+  OGRLayer* create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, AttributeMap attributes, bool addHeightAttributes);
 #endif
   void extract_feature(OGRFeature * f, std::string layerName, const char * idfield, const char * heightfield, std::string layertype, bool multiple_heights);
   void stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star);
