@@ -391,7 +391,7 @@ bool Map3d::get_shapefile2d(std::string filename) {
   if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0)
     OGRRegisterAll();
   OGRSFDriver *driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName("ESRI Shapefile");
-  OGRDataSource *dataSource = driver->CreateDataSource(file->filename.c_str(), NULL);
+  OGRDataSource *dataSource = driver->CreateDataSource(filename.c_str(), NULL);
 #else
   if (GDALGetDriverCount() == 0)
     GDALAllRegister();
