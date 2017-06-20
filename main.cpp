@@ -285,6 +285,9 @@ int main(int argc, const char * argv[]) {
       int thinning = 1;
       if ((*it)["thinning"]) {
         thinning = (*it)["thinning"].as<int>();
+        if (thinning == 0) {
+          thinning = 1;
+        }
       }
 
       //-- iterate over all files in directory
