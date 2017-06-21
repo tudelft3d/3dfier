@@ -84,7 +84,7 @@ make clean
 cd $1
 # download the current release
 # not that probably you'll need to update the link to the newest release
-wget https://github.com/tudelft3d/3dfier/archive/v0.9.6.tar.gz
+wget https://github.com/tudelft3d/3dfier/archive/v0.9.7.tar.gz
 tar -xvf v0.9.6.tar.gz
 cd 3dfier-0.9.6
 mkdir build
