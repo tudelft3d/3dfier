@@ -40,7 +40,7 @@
 #include "boost/locale.hpp"
 #include "boost/chrono.hpp"
 
-std::string VERSION = "0.9.6";
+std::string VERSION = "0.9.7";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
