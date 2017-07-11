@@ -4,10 +4,14 @@
     <ElementPath>TrafficArea</ElementPath>
 	<!-- beginning of additions -->
     <GeomPropertyDefn>
-        <Name>geometrie2dWegdeel</Name>
-        <ElementPath>geometrie2dWegdeel</ElementPath>
-        <!--CURVEPOLYGON-->
-        <GeometryType>10</GeometryType>
+      <Name>geometrie2dWegdeel</Name>
+      <ElementPath>geometrie2dWegdeel</ElementPath>
+      <!--CURVEPOLYGON-->
+      <GeometryType>10</GeometryType>
+    </GeomPropertyDefn>
+    <GeomPropertyDefn>
+      <Name>kruinlijnWegdeel</Name>
+      <ElementPath>kruinlijnWegdeel</ElementPath>
     </GeomPropertyDefn>
     <SRSName>urn:ogc:def:crs:EPSG::28992</SRSName>
     <!-- end of additions -->
