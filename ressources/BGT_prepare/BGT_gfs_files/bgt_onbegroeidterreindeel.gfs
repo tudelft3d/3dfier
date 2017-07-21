@@ -2,9 +2,15 @@
   <GMLFeatureClass>
     <Name>OnbegroeidTerreindeel</Name>
     <ElementPath>OnbegroeidTerreindeel</ElementPath>
-    <!--CURVEPOLYGON-->
-    <GeometryType>10</GeometryType>
+	<!-- beginning of additions -->
+    <GeomPropertyDefn>
+      <Name>geometrie2dOnbegroeidTerreindeel</Name>
+      <ElementPath>geometrie2dOnbegroeidTerreindeel</ElementPath>
+      <!--CURVEPOLYGON-->
+      <GeometryType>10</GeometryType>
+    </GeomPropertyDefn>
     <SRSName>urn:ogc:def:crs:EPSG::28992</SRSName>
+    <!-- end of additions -->
     <PropertyDefn>
       <Name>creationDate</Name>
       <ElementPath>creationDate</ElementPath>

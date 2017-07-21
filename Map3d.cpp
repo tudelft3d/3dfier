@@ -237,8 +237,8 @@ void Map3d::get_csv_buildings_all_elevation_points(std::ofstream &outputfile) {
 
 void Map3d::get_csv_buildings_multiple_heights(std::ofstream &outputfile) {
   //-- ground heights
-  std::vector<float> gpercentiles = {0.0, 0.1, 0.2, 0.3, 0.4, 0.5};
-  std::vector<float> rpercentiles = {0.0, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99};
+  std::vector<float> gpercentiles = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
+  std::vector<float> rpercentiles = {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
   outputfile << std::setprecision(2) << std::fixed;
   outputfile << "id,";
   for (auto& each : gpercentiles)
@@ -790,16 +790,12 @@ bool Map3d::add_las_file(PointFile pointFile) {
     std::cerr << "\tERROR: could not open file: " << pointFile.filename << std::endl;
     return false;
   }
-  //-- LAS classes to omit (create full list since eExclusion does not work
-  std::vector<liblas::Classification> liblasomits{
-    liblas::Classification(0), liblas::Classification(1), liblas::Classification(2), liblas::Classification(3),
-    liblas::Classification(4), liblas::Classification(5), liblas::Classification(6), liblas::Classification(7),
-    liblas::Classification(8), liblas::Classification(9), liblas::Classification(10), liblas::Classification(11),
-    liblas::Classification(12), liblas::Classification(13), liblas::Classification(14), liblas::Classification(15),
-    liblas::Classification(16), liblas::Classification(17), liblas::Classification(18)
-  };
-  for (int i : pointFile.lasomits)
-    liblasomits.erase(std::find(liblasomits.begin(), liblasomits.end(), liblas::Classification(i)));
+  //-- LAS classes to omit
+  std::vector<liblas::Classification> liblasomits;
+  for (int i : pointFile.lasomits) {
+    liblasomits.push_back(liblas::Classification(i));
+  }
+
   //-- read each point 1-by-1
   liblas::ReaderFactory f;
   liblas::Reader reader = f.CreateWithStream(ifs);
@@ -810,27 +806,6 @@ bool Map3d::add_las_file(PointFile pointFile) {
   liblas::Bounds<double> polygonBounds = get_bounds();
   uint32_t pointCount = header.GetPointRecordsCount();
   if (polygonBounds.intersects(bounds)) {
-    std::vector<liblas::FilterPtr> filters;
-
-    //-- set the class filter
-    liblas::FilterPtr class_filter = liblas::FilterPtr(new liblas::ClassificationFilter(liblasomits));
-    // eExclusion would throw out those that matched
-    class_filter->SetType(liblas::FilterI::eInclusion);
-    filters.push_back(class_filter);
-
-    //-- set the bounds filter
-    liblas::FilterPtr bounds_filter = liblas::FilterPtr(new liblas::BoundsFilter(polygonBounds));
-    bounds_filter->SetType(liblas::FilterI::eInclusion);
-    filters.push_back(bounds_filter);
-
-    //-- set the thinning filter if thinning is set
-    if (pointFile.thinning > 1) {
-      liblas::FilterPtr thinning_filter = liblas::FilterPtr(new liblas::ThinFilter(pointFile.thinning));
-      thinning_filter->SetType(liblas::FilterI::eInclusion);
-      filters.push_back(thinning_filter);
-    }
-    reader.SetFilters(filters);
-
     std::clog << "\t(" << boost::locale::as::number << pointCount << " points in the file)\n";
     if ((pointFile.thinning > 1)) {
       std::clog << "\t(skipping every " << pointFile.thinning << "th points, thus ";
@@ -847,16 +822,26 @@ bool Map3d::add_las_file(PointFile pointFile) {
     }
     printProgressBar(0);
     int i = 0;
+    
     try {
       while (reader.ReadNextPoint()) {
-        this->add_elevation_point(reader.GetPoint());
-
+        liblas::Point const& p = reader.GetPoint();
+        //-- set the thinning filter
+        if (i % pointFile.thinning == 0) {
+          //-- set the classification filter
+          if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end()) {
+            //-- set the bounds filter
+            if (polygonBounds.contains(p)) {
+              this->add_elevation_point(p);
+            }
+          }
+        }
         if (i % (pointCount / 100) == 0)
           printProgressBar(100 * (i / double(pointCount)));
         i++;
       }
       printProgressBar(100);
-      std::clog << "done\n";
+      std::clog << std::endl;
     }
     catch (std::exception e) {
       std::cerr << std::endl << e.what() << std::endl;

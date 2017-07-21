@@ -4,9 +4,10 @@
     <ElementPath>BuildingPart</ElementPath>
 	<!-- beginning of additions -->
     <GeomPropertyDefn>
-        <Name>geometrie2dGrondvlak</Name>
-        <ElementPath>geometrie2dGrondvlak</ElementPath>
-        <Type>MultiPolygon</Type>
+      <Name>geometrie2dGrondvlak</Name>
+      <ElementPath>geometrie2dGrondvlak</ElementPath>
+      <!--CURVEPOLYGON-->
+      <GeometryType>10</GeometryType>
     </GeomPropertyDefn>
     <SRSName>urn:ogc:def:crs:EPSG::28992</SRSName>
     <!-- end of additions -->

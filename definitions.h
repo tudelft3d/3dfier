@@ -55,7 +55,7 @@ typedef struct PolygonFile {
 typedef struct PointFile {
   std::string filename;
   std::vector<int> lasomits;
-  int thinning = 0;
+  int thinning = 1;
 } PointFile;
 
 typedef std::unordered_map< std::string, std::pair<OGRFieldType, std::string> > AttributeMap;
