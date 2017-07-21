@@ -85,8 +85,8 @@ cd $1
 # download the current release
 # not that probably you'll need to update the link to the newest release
 wget https://github.com/tudelft3d/3dfier/archive/v0.9.7.tar.gz
-tar -xvf v0.9.6.tar.gz
-cd 3dfier-0.9.6
+tar -xvf v0.9.7.tar.gz
+cd 3dfier-0.9.7
 mkdir build
 cd build
 # note that cmake might need to be run twice
@@ -99,7 +99,7 @@ make
 
 #------
 # clean up
-rm $1/laszip-src-2.2.0.tar.gz $1/libLAS-1.8.1.tar.bz2 $1/v0.9.6.tar.gz
+rm $1/laszip-src-2.2.0.tar.gz $1/libLAS-1.8.1.tar.bz2 $1/v0.9.7.tar.gz
 
 # run 3dfier
 # $1/build/3dfier
