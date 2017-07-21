@@ -497,12 +497,21 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       }
     }
     else if ((*it)["lifting"]) {
-      YAML::Node tmp = (*it)["datasets"];
-      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-        if (allowedFeatures.count((*it)["lifting"].as<std::string>()) == 0) {
-          std::cerr << "\tLifting class '" << (*it)["lifting"].as<std::string>() << "' unknown.\n";
-          wentgood = false;
-        }
+      if ((*it)["lifting"].IsNull()) {
+        std::cerr << "Option 'lifting' invalid; supplied empty attribute. \n";
+        wentgood = false;
+      }
+      else if (allowedFeatures.count((*it)["lifting"].as<std::string>()) == 0) {
+        std::cerr << "\tLifting class '" << (*it)["lifting"].as<std::string>() << "' unknown.\n";
+        wentgood = false;
+      }
+      if ((*it)["uniqueid"].IsNull()) {
+        std::cerr << "Option 'uniqueid' invalid; supplied empty attribute. \n";
+        wentgood = false;
+      }
+      if ((*it)["height_field"].IsNull()) {
+        std::cerr << "Option 'height_field' invalid; supplied empty attribute. \n";
+        wentgood = false;
       }
     }
   }
