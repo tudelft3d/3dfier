@@ -18,18 +18,16 @@ install:
   ############################################################################
   # Set boost variables
   ############################################################################
-  - "SET BOOST_ROOT=C:\\Libraries\\boost_1_64_0"
-  #- "SET BOOST_LIBRARYDIR=C:\\"
-
-  - ls C:\Libraries\boost_1_64_0
+  - set BOOST_ROOT=C:\Libraries\boost_1_64_0
+  - set BOOST_LIBRARYDIR=C:\Libraries\boost_1_64_0\lib64-msvc-14.1
 
   ############################################################################
   # Install YAML-cpp
   ############################################################################
   - appveyor DownloadFile https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.5.3.zip -FileName yaml-cpp-0.5.3.zip
-  - 7z x yaml-cpp-0.5.3.zip -oC:\deps\yamp-cpp-0.5.3 > nul
-  - set PATH=C:\deps\yamp-cpp-0.5.3;%PATH%
-  - SET YAML-CPP_DIR=C:\deps\yamp-cpp-0.5.3
+  - 7z x yaml-cpp-0.5.3.zip -oC:\deps\yaml-cpp-0.5.3 > nul
+  - set PATH=C:\deps\yaml-cpp-0.5.3;%PATH%
+  - SET YAML-CPP_DIR=C:\deps\yaml-cpp-0.5.3
   
   ############################################################################
   # Install CGAL 4.8
@@ -45,6 +43,8 @@ install:
   - appveyor DownloadFile http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe -FileName osgeo4w-setup-x86_64.exe
   - osgeo4w-setup-x86_64.exe --quiet-mode --upgrade-also --delete-orphans --no-desktop --advanced  --root C:\OSGeo4w --packages msvcrt setup shell avce00 zlib iconv libxml2 cairo openssl curl expat fcgi ffmpeg fftw freexl fribidi libpng libjpeg libjpeg12 libtiff libgeotiff proj-hpgn proj-datumgrid proj geos libmysql sqlite3 hdf5 netcdf libpq xerces-c-vc10 hdf4 ogdi openjpeg spatialite gdal liblas liblas-devel laszip --site http://download.osgeo.org/osgeo4w
   - set OSGEO4W_ROOT=C:\OSGeo4W
+  
+  - ls c:\OSGeo4W\include\liblas
 
   # ############################################################################
   # # Install GDAL 2.1.3
