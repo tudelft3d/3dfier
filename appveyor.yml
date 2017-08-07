@@ -21,13 +21,12 @@ install:
   #- "SET BOOST_ROOT=C:\\Libraries\\boost_1_60_0"
   #- "SET BOOST_LIBRARYDIR=C:\\"
 
-  #- ls C:\Libraries\boost_1_60_0
+  - ls C:\Libraries\boost_1_60_0
 
   ############################################################################
   # Install YAML-cpp
   ############################################################################
-  - set YAML-cpp_URL="https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.5.3.zip"
-  - appveyor DownloadFile %YAML-cpp_URL% -FileName yaml-cpp-0.5.3.zip
+  - appveyor DownloadFile https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.5.3.zip -FileName yaml-cpp-0.5.3.zip
   - 7z x yaml-cpp-0.5.3.zip -oC:\deps\yamp-cpp-0.5.3 > nul
   - set PATH=C:\deps\yamp-cpp-0.5.3;%PATH%
   - SET YAML-CPP_DIR=C:\deps\yamp-cpp-0.5.3
@@ -35,8 +34,7 @@ install:
   ############################################################################
   # Install CGAL 4.8
   ############################################################################
-  - set CGAL_URL="https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.8/CGAL-4.8.zip"
-  - appveyor DownloadFile %CGAL_URL% -FileName CGAL-4.8.zip
+  - appveyor DownloadFile https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.8/CGAL-4.8.zip -FileName CGAL-4.8.zip
   - 7z x CGAL-4.8.zip -oC:\deps\CGAL-4.8 > nul
   - set PATH=C:\deps\CGAL-4.8;%PATH%
   - set CGAL_DIR=C:\deps\CGAL-4.8
@@ -44,10 +42,10 @@ install:
   ############################################################################
   # Install OSGeo4W
   ############################################################################
-  - ps: (new-object net.webclient).DownloadFile('http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe', 'osgeo4w-setup-x86_64.exe')
+  - appveyor DownloadFile http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe -FileName osgeo4w-setup-x86_64.exe
   - osgeo4w-setup-x86_64.exe --quiet-mode --upgrade-also --delete-orphans --no-desktop --advanced  --root C:\OSGeo4w --packages msvcrt setup shell avce00 zlib iconv libxml2 cairo openssl curl expat fcgi ffmpeg fftw freexl fribidi libpng libjpeg libjpeg12 libtiff libgeotiff proj-hpgn proj-datumgrid proj geos libmysql sqlite3 hdf5 netcdf libpq xerces-c-vc10 hdf4 ogdi openjpeg spatialite gdal liblas liblas-devel laszip --site http://download.osgeo.org/osgeo4w
- 
-  #- SET OSGEO4W_ROOT=C:\OSGeo4W
+  - awr OSGEO4W_ROOT=C:\OSGeo4W
+
   # ############################################################################
   # # Install GDAL 2.1.3
   # ############################################################################
