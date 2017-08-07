@@ -18,10 +18,10 @@ install:
   ############################################################################
   # Set boost variables
   ############################################################################
-  #- "SET BOOST_ROOT=C:\\Libraries\\boost_1_60_0"
+  - "SET BOOST_ROOT=C:\\Libraries\\boost_1_64_0"
   #- "SET BOOST_LIBRARYDIR=C:\\"
 
-  - ls C:\Libraries\
+  - ls C:\Libraries\boost_1_64_0
 
   ############################################################################
   # Install YAML-cpp
@@ -44,7 +44,7 @@ install:
   ############################################################################
   - appveyor DownloadFile http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe -FileName osgeo4w-setup-x86_64.exe
   - osgeo4w-setup-x86_64.exe --quiet-mode --upgrade-also --delete-orphans --no-desktop --advanced  --root C:\OSGeo4w --packages msvcrt setup shell avce00 zlib iconv libxml2 cairo openssl curl expat fcgi ffmpeg fftw freexl fribidi libpng libjpeg libjpeg12 libtiff libgeotiff proj-hpgn proj-datumgrid proj geos libmysql sqlite3 hdf5 netcdf libpq xerces-c-vc10 hdf4 ogdi openjpeg spatialite gdal liblas liblas-devel laszip --site http://download.osgeo.org/osgeo4w
-  - awr OSGEO4W_ROOT=C:\OSGeo4W
+  - set OSGEO4W_ROOT=C:\OSGeo4W
 
   # ############################################################################
   # # Install GDAL 2.1.3
