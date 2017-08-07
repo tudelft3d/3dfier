@@ -44,7 +44,9 @@ install:
   - osgeo4w-setup-x86_64.exe --quiet-mode --upgrade-also --delete-orphans --no-desktop --advanced  --root C:\OSGeo4w --packages msvcrt setup shell avce00 zlib iconv libxml2 cairo openssl curl expat fcgi ffmpeg fftw freexl fribidi libpng libjpeg libjpeg12 libtiff libgeotiff proj-hpgn proj-datumgrid proj geos libmysql sqlite3 hdf5 netcdf libpq xerces-c-vc10 hdf4 ogdi openjpeg spatialite gdal liblas liblas-devel laszip --site http://download.osgeo.org/osgeo4w
   - set OSGEO4W_ROOT=C:\OSGeo4W
   
-  - ls c:\OSGeo4W\include\liblas
+  - ls C:\OSGeo4W\include\
+  
+  - Get-ChildItem -Path C:\OSGeo4W -Filter liblas.hpp -Recurse
 
   # ############################################################################
   # # Install GDAL 2.1.3
