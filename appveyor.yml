@@ -21,7 +21,7 @@ install:
   #- "SET BOOST_ROOT=C:\\Libraries\\boost_1_60_0"
   #- "SET BOOST_LIBRARYDIR=C:\\"
 
-  - ls C:\Libraries\boost_1_60_0
+  - ls C:\Libraries\
 
   ############################################################################
   # Install YAML-cpp
