@@ -40,7 +40,7 @@
 #include "boost/locale.hpp"
 #include "boost/chrono.hpp"
 
-std::string VERSION = "0.9.7";
+std::string VERSION = "0.9.8";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
@@ -70,6 +70,8 @@ int main(int argc, const char * argv[]) {
     }
     if (s == "--version") {
       std::clog << "3dfier " << VERSION << std::endl;
+      std::clog << liblas::GetFullVersion() << std::endl;
+      std::clog << "GDAL " << GDALVersionInfo("--version") << std::endl;
       return 0;
     }
     else {
