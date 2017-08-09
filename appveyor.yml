@@ -42,12 +42,10 @@ install:
   ############################################################################
   - set OSGEO4W_ROOT=C:\OSGeo4W
   - appveyor DownloadFile http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe -FileName osgeo4w-setup-x86_64.exe
-#  - osgeo4w-setup-x86_64.exe --quiet-mode --upgrade-also --delete-orphans --no-desktop --advanced  --root C:\OSGeo4w --packages liblas-devel liblas laszip gdal --site http://download.osgeo.org/osgeo4w
   - osgeo4w-setup-x86_64.exe -q -k -r -A -s http://download.osgeo.org/osgeo4w/ -a x86_64 -P liblas-devel,liblas,laszip,gdal -R %OSGEO4W_ROOT% > NUL
   - set LIBLAS_ROOT=C:\OSGeo4W
   - set LASZIP_ROOT=C:\OSGeo4W
   - set PATH=C:\OSGeo4W\bin;%PATH%
-  - call %OSGEO4W_ROOT%\OSGeo4W.bat
   
   # ############################################################################
   # # Install GDAL 2.1.3
@@ -60,8 +58,6 @@ install:
   # - 7z x gdallibs.zip -oC:\deps\gdal
   # - set PATH=C:\deps\gdal;C:\deps\gdal\bin;C:\deps\gdal\data;C:\deps\gdal\bin\gdal\apps;%PATH%
   # - set GDAL_DATA=C:\deps\gdal\bin\gdal-data
-  
-  - set
 build:
   project: vs_build\3dfier.sln
   verbosity: minimal
