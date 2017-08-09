@@ -26,8 +26,8 @@ install:
   ############################################################################
   - appveyor DownloadFile https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.5.3.zip -FileName yaml-cpp-0.5.3.zip
   - 7z x yaml-cpp-0.5.3.zip -oC:\deps > nul
-  - set PATH=C:\deps\yaml-cpp-0.5.3;%PATH%
-  - SET YAML-CPP_DIR=C:\deps\yaml-cpp-0.5.3
+  - set PATH=C:\deps\yaml-cpp-yaml-cpp-0.5.3;%PATH%
+  - SET YAML-CPP_DIR=C:\deps\yaml-cpp-yaml-cpp-0.5.3
   
   ############################################################################
   # Install CGAL 4.8
@@ -38,9 +38,9 @@ install:
   - set CGAL_DIR=C:\deps\CGAL-4.8
   
   - ls c:\deps
-  - ls C:\deps\yaml-cpp-0.5.3
+  - ls C:\deps\yaml-cpp-yaml-cpp-0.5.3
   - ls C:\deps\CGAL-4.8
-  - ls C:\deps\yaml-cpp-0.5.3\include
+  - ls C:\deps\yaml-cpp-yaml-cpp-0.5.3\include
   - ls C:\deps\CGAL-4.8\include
   
   ############################################################################
