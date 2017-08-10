@@ -30,6 +30,16 @@ install:
   - SET YAML-CPP_DIR=C:\deps\yaml-cpp-yaml-cpp-0.5.3
   
   ############################################################################
+  # Install OSGeo4W
+  ############################################################################
+  - set OSGEO4W_ROOT=C:\OSGeo4W
+  - appveyor DownloadFile http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe -FileName osgeo4w-setup-x86_64.exe
+  - osgeo4w-setup-x86_64.exe -q -k -r -A -s http://download.osgeo.org/osgeo4w/ -a x86_64 -P liblas-devel,liblas,laszip,gdal -R %OSGEO4W_ROOT% > NUL
+  - set LIBLAS_ROOT=C:\OSGeo4W
+  - set LASZIP_ROOT=C:\OSGeo4W
+  - set PATH=C:\OSGeo4W\bin;%PATH%
+  
+  ############################################################################
   # Install CGAL 4.8
   ############################################################################
   - appveyor DownloadFile https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.8/CGAL-4.8.zip -FileName CGAL-4.8.zip
@@ -44,16 +54,10 @@ install:
   - set PATH=C:\deps\CGAL-4.8;%PATH%
   - set CGAL_DIR=C:\deps\CGAL-4.8
   
-  ############################################################################
-  # Install OSGeo4W
-  ############################################################################
-  - set OSGEO4W_ROOT=C:\OSGeo4W
-  - appveyor DownloadFile http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe -FileName osgeo4w-setup-x86_64.exe
-  - osgeo4w-setup-x86_64.exe -q -k -r -A -s http://download.osgeo.org/osgeo4w/ -a x86_64 -P liblas-devel,liblas,laszip,gdal -R %OSGEO4W_ROOT% > NUL
-  - set LIBLAS_ROOT=C:\OSGeo4W
-  - set LASZIP_ROOT=C:\OSGeo4W
-  - set PATH=C:\OSGeo4W\bin;%PATH%
-
+  - ls C:\deps\CGAL-4.8
+  - ls C:\deps\CGAL-4.8\build
+  - ls C:\deps\CGAL-4.8\build\src
+  - ls C:\deps\CGAL-4.8\build\src\CGAL_Core
 build:
   project: vs_build\3dfier.sln
   verbosity: minimal
