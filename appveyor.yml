@@ -36,7 +36,7 @@ install:
   - 7z x CGAL-4.8.zip -oC:\deps > nul
   
   - appveyor DownloadFile https://www.dropbox.com/s/okbl2nvdj36y31i/gmp.zip?dl=1 -FileName gmp.zip
-  - 7z x gmp.zip -oC:\deps\CGAL-4.8\auxiliary
+  - 7z x gmp.zip -aoa -oC:\deps\CGAL-4.8\auxiliary > nul
   
   - cd C:\deps\CGAL-4.8
   - cmake -G "Visual Studio 15 2017 Win64" -H.\ -B.\build
