@@ -54,8 +54,11 @@ install:
   - set PATH=C:\deps\CGAL-4.8;%PATH%
   - set CGAL_DIR=C:\deps\CGAL-4.8
 
-  - msbuild "%CGAL_DIR%\build\src\CGAL_Core\CGAL_Core.vcxproj" /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - msbuild "%CGAL_DIR%\build\src\CGAL\CGAL.vcxproj" /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - msbuild "%CGAL_DIR%\build\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+#  - msbuild "%CGAL_DIR%\build\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - msbuild "%CGAL_DIR%\build\src\CGAL\CGAL.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+#  - msbuild "%CGAL_DIR%\build\src\CGAL\CGAL.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+    
 build:
   project: vs_build\3dfier.sln
   verbosity: minimal
