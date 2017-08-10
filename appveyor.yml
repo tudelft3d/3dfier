@@ -55,6 +55,8 @@ install:
   - set CGAL_DIR=C:\deps\CGAL-4.8
 
   - ls %CGAL_DIR%\build\src\CGAL_Core
+  - msbuild "%CGAL_DIR%\build\src\CGAL_Core\CGAL_Core.vcxproj" /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - msbuild "%CGAL_DIR%\build\src\CGAL\CGAL.vcxproj" /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 build:
   project: vs_build\3dfier.sln
   verbosity: detailed
