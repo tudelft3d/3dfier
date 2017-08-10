@@ -49,17 +49,16 @@ install:
   - 7z x gmp.zip -aoa -oC:\deps\CGAL-4.8\auxiliary > nul
   
   - cd C:\deps\CGAL-4.8
-  - cmake -G "Visual Studio 15 2017 Win64" -H.\ -B.\build
+  - cmake -G "Visual Studio 15 2017 Win64" -H.\ -B.\build -DBUILD_SHARED_LIBS=OFF -DBoost_USE_STATIC_LIBS=ON
   
   - set PATH=C:\deps\CGAL-4.8;%PATH%
   - set CGAL_DIR=C:\deps\CGAL-4.8
 
-  - ls %CGAL_DIR%\build\src\CGAL_Core
   - msbuild "%CGAL_DIR%\build\src\CGAL_Core\CGAL_Core.vcxproj" /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
   - msbuild "%CGAL_DIR%\build\src\CGAL\CGAL.vcxproj" /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 build:
   project: vs_build\3dfier.sln
-  verbosity: detailed
+  verbosity: minimal
 # notifications:
 # - provider: Email
   # to:
