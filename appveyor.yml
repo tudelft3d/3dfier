@@ -54,10 +54,10 @@ install:
   - set PATH=C:\deps\CGAL-4.8;%PATH%
   - set CGAL_DIR=C:\deps\CGAL-4.8
   
-  - ls C:\deps\CGAL-4.8
-  - ls C:\deps\CGAL-4.8\build
-  - ls C:\deps\CGAL-4.8\build\src
-  - ls C:\deps\CGAL-4.8\build\src\CGAL_Core
+  - ls $(CGAL_DIR)
+  - ls $(CGAL_DIR)\build
+  - ls $(CGAL_DIR)\build\src
+  - ls $(CGAL_DIR)\build\src\CGAL_Core
 build:
   project: vs_build\3dfier.sln
   verbosity: minimal
