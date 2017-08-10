@@ -34,14 +34,15 @@ install:
   ############################################################################
   - appveyor DownloadFile https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.8/CGAL-4.8.zip -FileName CGAL-4.8.zip
   - 7z x CGAL-4.8.zip -oC:\deps > nul
+  
+  - appveyor DownloadFile https://www.dropbox.com/s/okbl2nvdj36y31i/gmp.zip?dl=1 -FileName gmp.zip
+  - 7z x gmp.zip -oC:\deps\CGAL-4.8\auxiliary > nul
+  
+  - cd C:\deps\CGAL-4.8
+  - cmake -G "Visual Studio 15 2017 Win64" -H.\ -B.\build
+  
   - set PATH=C:\deps\CGAL-4.8;%PATH%
   - set CGAL_DIR=C:\deps\CGAL-4.8
-  
-  - ls c:\deps
-  - ls C:\deps\yaml-cpp-yaml-cpp-0.5.3
-  - ls C:\deps\CGAL-4.8
-  - ls C:\deps\yaml-cpp-yaml-cpp-0.5.3\include
-  - ls C:\deps\CGAL-4.8\include
   
   ############################################################################
   # Install OSGeo4W
@@ -52,18 +53,7 @@ install:
   - set LIBLAS_ROOT=C:\OSGeo4W
   - set LASZIP_ROOT=C:\OSGeo4W
   - set PATH=C:\OSGeo4W\bin;%PATH%
-  
-  # ############################################################################
-  # # Install GDAL 2.1.3
-  # ############################################################################
-  # - ps: mkdir C:\deps\gdal | out-null
-  
-  # - curl http://download.gisinternals.com/sdk/downloads/release-1800-x64-gdal-2-1-3-mapserver-7-0-4-20170202.zip --output gdalbin.zip
-  # - 7z x gdalbin.zip -oC:\deps\gdal
-  # - curl http://download.gisinternals.com/sdk/downloads/release-1800-x64-gdal-2-1-3-mapserver-7-0-4-20170202-libs.zip --output gdallibs.zip  
-  # - 7z x gdallibs.zip -oC:\deps\gdal
-  # - set PATH=C:\deps\gdal;C:\deps\gdal\bin;C:\deps\gdal\data;C:\deps\gdal\bin\gdal\apps;%PATH%
-  # - set GDAL_DATA=C:\deps\gdal\bin\gdal-data
+
 build:
   project: vs_build\3dfier.sln
   verbosity: minimal
