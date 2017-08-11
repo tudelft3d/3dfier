@@ -21,9 +21,6 @@ install:
   - set BOOST_ROOT=C:\Libraries\boost_1_60_0
   - set BOOST_INCLUDEDIR=C:\Libraries\boost_1_60_0
   - set BOOST_LIBRARYDIR=C:\Libraries\boost_1_60_0\lib64-msvc-14.0
-  
-  - ls C:\Libraries\boost_1_60_0
-  - ls %BOOST_INCLUDEDIR%
 
   ############################################################################
   # Install YAML-cpp
@@ -38,7 +35,6 @@ install:
   - msbuild "%YAML-CPP_DIR%\vs_build\yaml-cpp.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
   - mkdir "%YAML-CPP_DIR%\vs_build\lib\"
   - copy /Y "%YAML-CPP_DIR%\vs_build\Release\libyaml-cppmd.lib" "%YAML-CPP_DIR%\vs_build\lib"
-
   
   ############################################################################
   # Install OSGeo4W
