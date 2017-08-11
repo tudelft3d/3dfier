@@ -21,6 +21,9 @@ install:
   - set BOOST_ROOT=C:\Libraries\boost_1_60_0
   - set BOOST_INCLUDEDIR=C:\Libraries\boost_1_60_0
   - set BOOST_LIBRARYDIR=C:\Libraries\boost_1_60_0\lib64-msvc-14.0
+  
+  - ls C:\Libraries\boost_1_60_0
+  - ls %BOOST_INCLUDEDIR%
 
   ############################################################################
   # Install YAML-cpp
