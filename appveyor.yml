@@ -5,7 +5,7 @@ branches:
 skip_tags: true
 image: Visual Studio 2015
 configuration:
-# - Debug
+- Debug
 - Release
 platform: x64
 install:
@@ -63,12 +63,12 @@ install:
 
   - msbuild "%CGAL_DIR%\build\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
   - copy /Y "%CGAL_DIR%\build\lib\Release\libCGAL_Core-vc140-mt-4.8.lib" "%CGAL_DIR%\build\lib"
-#  - msbuild "%CGAL_DIR%\build\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-#  - copy /Y "%CGAL_DIR%\build\lib\Debug\libCGAL_Core-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\build\lib"
+  - msbuild "%CGAL_DIR%\build\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - copy /Y "%CGAL_DIR%\build\lib\Debug\libCGAL_Core-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\build\lib"
   - msbuild "%CGAL_DIR%\build\src\CGAL\CGAL.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
   - copy /Y "%CGAL_DIR%\build\lib\Release\libCGAL-vc140-mt-4.8.lib" "%CGAL_DIR%\build\lib"  
-#  - msbuild "%CGAL_DIR%\build\src\CGAL\CGAL.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-#  - copy /Y "%CGAL_DIR%\build\lib\Debug\libCGAL-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\build\lib"
+  - msbuild "%CGAL_DIR%\build\src\CGAL\CGAL.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - copy /Y "%CGAL_DIR%\build\lib\Debug\libCGAL-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\build\lib"
 build:
   project: vs_build\3dfier.sln
   verbosity: minimal
