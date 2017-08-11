@@ -28,6 +28,13 @@ install:
   - 7z x yaml-cpp-0.5.3.zip -oC:\deps > nul
   - set PATH=C:\deps\yaml-cpp-yaml-cpp-0.5.3;%PATH%
   - SET YAML-CPP_DIR=C:\deps\yaml-cpp-yaml-cpp-0.5.3
+  - cd C:\deps\yaml-cpp-yaml-cpp-0.5.3
+  - mkdir vs_build
+  - CMake -G "Visual Studio 15 2017 Win64" -H.\ -B.\vs_build
+  - msbuild "%YAML-CPP_DIR%\vs_build\yaml-cpp.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - mkdir "%YAML-CPP_DIR%\vs_build\lib\"
+  - copy /Y "%YAML-CPP_DIR%\vs_build\Release\libyaml-cppmd.lib" "%YAML-CPP_DIR%\vs_build\lib"
+
   
   ############################################################################
   # Install OSGeo4W
