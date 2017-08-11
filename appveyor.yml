@@ -19,6 +19,7 @@ install:
   # Set boost variables
   ############################################################################
   - set BOOST_ROOT=C:\Libraries\boost_1_60_0
+  - set BOOST_INCLUDE_DIR=C:\Libraries\boost_1_60_0
   - set BOOST_LIBRARYDIR=C:\Libraries\boost_1_60_0\lib64-msvc-14.0
 
   ############################################################################
