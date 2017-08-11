@@ -18,8 +18,8 @@ install:
   ############################################################################
   # Set boost variables
   ############################################################################
-  - set BOOST_ROOT=C:\Libraries\boost_1_64_0
-  - set BOOST_LIBRARYDIR=C:\Libraries\boost_1_64_0\lib64-msvc-14.1
+  - set BOOST_ROOT=C:\Libraries\boost_1_60_0
+  - set BOOST_LIBRARYDIR=C:\Libraries\boost_1_60_0\lib64-msvc-14.0
 
   ############################################################################
   # Install YAML-cpp
