@@ -89,7 +89,7 @@
     </Midl>
     <Link>
       <AdditionalOptions> /machine:x64 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>gdal_i.lib;liblas.lib;laszip.lib;libCGAL_Core-vc140-mt-4.8.lib;libCGAL-vc140-mt-4.8.lib;libgmp-10.lib;libmpfr-4.lib;yaml-cpp-md.lib</AdditionalDependencies>
+      <AdditionalDependencies>gdal_i.lib;liblas.lib;laszip.lib;libCGAL_Core-vc140-mt-4.8.lib;libCGAL-vc140-mt-4.8.lib;libgmp-10.lib;libyaml-cppmd.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(LIBLAS_ROOT)\bin;$(LASZIP_ROOT)\lib;$(BOOST_LIBRARYDIR);$(OSGEO4W_ROOT)\lib;$(CGAL_DIR)\build\lib\;$(CGAL_DIR)\auxiliary\gmp\lib\;$(YAML-CPP_DIR)\vs_build\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -137,7 +137,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>gdal_i.lib;liblasd.lib;laszipd.lib;libCGAL_Core-vc140-mt-4.8.lib;libCGAL-vc140-mt-4.8.lib;libgmp-10.lib;yaml-cpp-md.lib</AdditionalDependencies>
+      <AdditionalDependencies>gdal_i.lib;liblas.lib;laszip.lib;libCGAL_Core-vc140-mt-4.8.lib;libCGAL-vc140-mt-4.8.lib;libgmp-10.lib;libyaml-cppmd.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(LIBLAS_ROOT)\bin;$(LASZIP_ROOT)\lib;$(BOOST_LIBRARYDIR);$(OSGEO4W_ROOT)\lib;$(CGAL_DIR)\build\lib\;$(CGAL_DIR)\auxiliary\gmp\lib\;$(YAML-CPP_DIR)\vs_build\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>

@@ -1,9 +1,9 @@
 version: 1.0.{build}
 branches:
   only:
-  - master
+  - appveyor
 skip_tags: true
-image: Visual Studio 2017
+image: Visual Studio 2015
 configuration:
 - Debug
 - Release
@@ -18,46 +18,57 @@ install:
   ############################################################################
   # Set boost variables
   ############################################################################
-  - set BOOST_ROOT=C:\Libraries\boost_1_64_0
-  - set BOOST_LIBRARYDIR=C:\Libraries\boost_1_64_0\lib64-msvc-14.1
+  - set BOOST_ROOT=C:\Libraries\boost_1_60_0
+  - set BOOST_INCLUDEDIR=C:\Libraries\boost_1_60_0
+  - set BOOST_LIBRARYDIR=C:\Libraries\boost_1_60_0\lib64-msvc-14.0
 
   ############################################################################
   # Install YAML-cpp
   ############################################################################
   - appveyor DownloadFile https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.5.3.zip -FileName yaml-cpp-0.5.3.zip
-  - 7z x yaml-cpp-0.5.3.zip -oC:\deps\yaml-cpp-0.5.3 > nul
-  - set PATH=C:\deps\yaml-cpp-0.5.3;%PATH%
-  - SET YAML-CPP_DIR=C:\deps\yaml-cpp-0.5.3
+  - 7z x yaml-cpp-0.5.3.zip -oC:\deps > nul
+  - set PATH=C:\deps\yaml-cpp-yaml-cpp-0.5.3;%PATH%
+  - SET YAML-CPP_DIR=C:\deps\yaml-cpp-yaml-cpp-0.5.3
+  - cd C:\deps\yaml-cpp-yaml-cpp-0.5.3
+  - mkdir vs_build
+  - CMake -G "Visual Studio 14 2015 Win64" -H.\ -B.\vs_build
+  - msbuild "%YAML-CPP_DIR%\vs_build\yaml-cpp.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - mkdir "%YAML-CPP_DIR%\vs_build\lib\"
+  - copy /Y "%YAML-CPP_DIR%\vs_build\Release\libyaml-cppmd.lib" "%YAML-CPP_DIR%\vs_build\lib"
+  
+  ############################################################################
+  # Install OSGeo4W
+  ############################################################################
+  - set OSGEO4W_ROOT=C:\OSGeo4W
+  - appveyor DownloadFile http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe -FileName osgeo4w-setup-x86_64.exe
+  - osgeo4w-setup-x86_64.exe -q -k -r -A -s http://download.osgeo.org/osgeo4w/ -a x86_64 -P liblas-devel,liblas,laszip,gdal -R %OSGEO4W_ROOT% > NUL
+  - set LIBLAS_ROOT=C:\OSGeo4W
+  - set LASZIP_ROOT=C:\OSGeo4W
+  - set PATH=C:\OSGeo4W\bin;%PATH%
   
   ############################################################################
   # Install CGAL 4.8
   ############################################################################
   - appveyor DownloadFile https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.8/CGAL-4.8.zip -FileName CGAL-4.8.zip
-  - 7z x CGAL-4.8.zip -oC:\deps\CGAL-4.8 > nul
+  - 7z x CGAL-4.8.zip -oC:\deps > nul
+  
+  - appveyor DownloadFile https://www.dropbox.com/s/okbl2nvdj36y31i/gmp.zip?dl=1 -FileName gmp.zip
+  - 7z x gmp.zip -aoa -oC:\deps\CGAL-4.8\auxiliary > nul
+  
+  - cd C:\deps\CGAL-4.8
+  - cmake -G "Visual Studio 14 2015 Win64" -H.\ -B.\build -DBUILD_SHARED_LIBS=OFF -DBoost_USE_STATIC_LIBS=ON
+  
   - set PATH=C:\deps\CGAL-4.8;%PATH%
-  - set CGAL_DIR=C:\deps\CGAL-4.8
-  
-  ############################################################################
-  # Install OSGeo4W
-  ############################################################################
-  - appveyor DownloadFile http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe -FileName osgeo4w-setup-x86_64.exe
-  - osgeo4w-setup-x86_64.exe --quiet-mode --upgrade-also --delete-orphans --no-desktop --advanced  --root C:\OSGeo4w --packages liblas liblas-devel laszip avce00 zlib iconv libxml2 cairo openssl curl expat fcgi ffmpeg fftw freexl fribidi libpng libjpeg libjpeg12 libtiff libgeotiff proj-hpgn proj-datumgrid proj geos libmysql sqlite3 hdf5 netcdf libpq xerces-c-vc10 hdf4 ogdi openjpeg spatialite gdal --site http://download.osgeo.org/osgeo4w
-  - set OSGEO4W_ROOT=C:\OSGeo4W
-  - call %OSGEO4W_ROOT%\OSGeo4W.bat
-  
-  # ############################################################################
-  # # Install GDAL 2.1.3
-  # ############################################################################
-  # - ps: mkdir C:\deps\gdal | out-null
-  
-  # - curl http://download.gisinternals.com/sdk/downloads/release-1800-x64-gdal-2-1-3-mapserver-7-0-4-20170202.zip --output gdalbin.zip
-  # - 7z x gdalbin.zip -oC:\deps\gdal
-  # - curl http://download.gisinternals.com/sdk/downloads/release-1800-x64-gdal-2-1-3-mapserver-7-0-4-20170202-libs.zip --output gdallibs.zip  
-  # - 7z x gdallibs.zip -oC:\deps\gdal
-  # - set PATH=C:\deps\gdal;C:\deps\gdal\bin;C:\deps\gdal\data;C:\deps\gdal\bin\gdal\apps;%PATH%
-  # - set GDAL_DATA=C:\deps\gdal\bin\gdal-data
-  
-  - set
+  - set CGAL_DIR=C:\deps\CGAL-4.8\
+
+  - msbuild "%CGAL_DIR%\build\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - copy /Y "%CGAL_DIR%\build\lib\Release\libCGAL_Core-vc140-mt-4.8.lib" "%CGAL_DIR%\build\lib"
+  - msbuild "%CGAL_DIR%\build\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - copy /Y "%CGAL_DIR%\build\lib\Debug\libCGAL_Core-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\build\lib"
+  - msbuild "%CGAL_DIR%\build\src\CGAL\CGAL.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - copy /Y "%CGAL_DIR%\build\lib\Release\libCGAL-vc140-mt-4.8.lib" "%CGAL_DIR%\build\lib"  
+  - msbuild "%CGAL_DIR%\build\src\CGAL\CGAL.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - copy /Y "%CGAL_DIR%\build\lib\Debug\libCGAL-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\build\lib"
 build:
   project: vs_build\3dfier.sln
   verbosity: minimal
