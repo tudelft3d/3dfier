@@ -1,4 +1,3 @@
-# 3dfier
 ## Continuous integration
 | Build server | Platform | Build status |
 | :---- | :------ | :---- |
@@ -7,6 +6,7 @@
 [1]: https://ci.appveyor.com/api/projects/status/github/tudelft3d/3dfier?branch=master&svg=true
 [2]: https://ci.appveyor.com/project/tudelft3d/3dfier/branch/master
 
+# 3dfier
 ![](https://dl.dropboxusercontent.com/s/tojiay8cmomu2v5/Delft_3dfier-3.png)
 
 
