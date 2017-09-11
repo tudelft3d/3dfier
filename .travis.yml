@@ -18,11 +18,13 @@ addons:
       - libboost-locale-dev
       - libyaml-cpp0.5
       - libyaml-cpp-dev
+      - libproj-dev
+      - libgeotiff-dev
 env: COMPILER=g++-6
 # Someone should rename this folder
 before_script: cd ressources
 script: ./build_ubuntu1604.sh /opt
 after_script:
-        - cd example_data
+        - cd ../example_data
         - ../build/3dfier testarea_config.yml -o output/testarea.obj
 
