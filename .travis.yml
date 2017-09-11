@@ -22,15 +22,15 @@ addons:
       - libyaml-cpp-dev
       - libproj-dev
       - libgeotiff-dev
-env: 
-      - COMPILER=g++-6
-      - CC=gcc-6
-      - CXX=g++-6
+
+
+
+
 # Someone should rename this folder
 before_script: cd ressources
 script: 
-        - export CC=/usr/local/bin/gcc-6
-        - export CXX=/usr/local/bin/g++-6
+        - export CC=gcc-6
+        - export CXX=g++-6
         - ./build_ubuntu1604.sh /opt
         - cd ../example_data
         - ../build/3dfier testarea_config.yml -o output/testarea.obj
