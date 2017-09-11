@@ -6,6 +6,7 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
+      - sourceline: 'ppa:ubuntugis/ppa'
     packages:
       - gcc-6
       - g++-6
@@ -21,11 +22,16 @@ addons:
       - libyaml-cpp-dev
       - libproj-dev
       - libgeotiff-dev
-env: COMPILER=g++-6
+env: 
+      - COMPILER=g++-6
+      - CC=gcc-6
+      - CXX=g++-6
 # Someone should rename this folder
 before_script: cd ressources
-script: ./build_ubuntu1604.sh /opt
-after_script:
+script: 
+        - export CC=/usr/local/bin/gcc-6
+        - export CXX=/usr/local/bin/g++-6
+        - ./build_ubuntu1604.sh /opt
         - cd ../example_data
         - ../build/3dfier testarea_config.yml -o output/testarea.obj
 
