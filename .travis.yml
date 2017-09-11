@@ -16,6 +16,7 @@ addons:
       - libboost-dev
       - libboost-filesystem-dev
       - libboost-locale-dev
+      - libboost-iostreams-dev
       - libyaml-cpp0.5
       - libyaml-cpp-dev
       - libproj-dev
