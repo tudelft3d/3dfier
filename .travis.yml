@@ -17,6 +17,7 @@ addons:
       - libboost-filesystem-dev
       - libboost-locale-dev
       - libyaml-cpp0.5
+      - libyaml-cpp-dev
 env: COMPILER=g++-6
 # Someone should rename this folder
 before_script: cd ressources
