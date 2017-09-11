@@ -1,0 +1,17 @@
+sudo: false
+dist: trusty
+language: cpp
+compiler: gcc
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-6
+      - g++-6
+      - cmake
+env: COMPILER=g++-6
+# Someone should rename this folder
+before_script: cd ressources
+script: ./build_ubuntu.sh /opt
+
