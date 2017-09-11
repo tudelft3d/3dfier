@@ -3,35 +3,32 @@ dist: trusty
 language: cpp
 compiler: gcc
 addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-      - sourceline: 'ppa:ubuntugis/ppa'
-    packages:
-      - gcc-6
-      - g++-6
-      - cmake
-      - gdal-bin
-      - libcgal-dev
-      - libgdal-dev
-      - libboost-dev
-      - libboost-filesystem-dev
-      - libboost-locale-dev
-      - libboost-iostreams-dev
-      - libyaml-cpp0.5
-      - libyaml-cpp-dev
-      - libproj-dev
-      - libgeotiff-dev
-
-
-
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+            - sourceline: 'ppa:ubuntugis/ppa'
+        packages:
+            - gcc-6
+            - g++-6
+            - cmake
+            - gdal-bin
+            - libcgal-dev
+            - libgdal-dev
+            - libboost-dev
+            - libboost-filesystem-dev
+            - libboost-locale-dev
+            - libboost-iostreams-dev
+            - libyaml-cpp0.5÷÷
+            - libyaml-cpp-dev
+            - libproj-dev
+            - libgeotiff-dev
 
 # Someone should rename this folder
-before_script: cd ressources
-script: 
-        - export CC=gcc-6
-        - export CXX=g++-6
-        - ./build_ubuntu1604.sh /opt
-        - cd ../example_data
-        - ../build/3dfier testarea_config.yml -o output/testarea.obj
-
+before_script: cd ressources/build_ubuntu
+script:
+    - ./build_deps.sh /opt
+    - export CC=gcc-6
+    - export CXX=g++-6
+    - ./build_3dfier.sh /opt
+    - cd ../example_data
+    - ../build/3dfier testarea_config.yml -o output/testarea.obj
