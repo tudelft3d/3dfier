@@ -10,10 +10,10 @@ addons:
       - gcc-6
       - g++-6
       - cmake
-      - gdal-bini
-      - libgdal
-      - libcgal
-      - libboost
+      - gdal-bin
+      - libcgal-dev
+      - libgdal-dev
+      - libboost-dev
       - libyaml-cpp0.5
 env: COMPILER=g++-6
 # Someone should rename this folder
