@@ -10,8 +10,13 @@ addons:
       - gcc-6
       - g++-6
       - cmake
+      - gdal-bini
+      - libgdal
+      - libcgal
+      - libboost
+      - libyaml-cpp0.5
 env: COMPILER=g++-6
 # Someone should rename this folder
 before_script: cd ressources
-script: ./build_ubuntu.sh /opt
+script: ./build_ubuntu1604.sh /opt
 
