@@ -24,8 +24,7 @@ addons:
             - libgmp-dev
             - libmpfr-dev
 
-# Someone should rename this folder
-before_script: cd ressources/build_ubuntu
+before_script: cd resources/build_ubuntu
 script:
     - ./build_deps.sh /opt
     - export CC=gcc-6

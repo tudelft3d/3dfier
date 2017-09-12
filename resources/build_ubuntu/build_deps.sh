@@ -75,4 +75,4 @@ make clean
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$1/libLAS-1.8.1/build/lib
 
 # test installation, should GDAL, LASzip should be listed
-$1/libLAS-1.8.1/build/bin/lasinfo
+$1/libLAS-1.8.1/build/bin/lasinfo -h
