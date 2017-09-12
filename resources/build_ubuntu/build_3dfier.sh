@@ -3,6 +3,7 @@
 cd $1
 # download the current release
 # not that probably you'll need to update the link to the newest release
+# TODO: Fetch master and build it
 wget https://github.com/tudelft3d/3dfier/archive/v0.9.7.tar.gz
 tar -xf v0.9.7.tar.gz
 rm v0.9.7.tar.gz
@@ -30,4 +31,4 @@ cmake .. \
 make
 
 cd ../example_data
-../build/3dfier testarea_config.yml -o output/testarea.obj
+../build/3dfier testarea_config.yml -o output/testarea.obj | grep -iq "Successfully terminated"

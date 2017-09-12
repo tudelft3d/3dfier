@@ -1,20 +1,15 @@
 #!/bin/bash
 
-# Install script for 3dfier on Ubuntu 16.04 LTS
+# Install script for 3dfier deps on Ubuntu 16.04 LTS
 # Parameters:
-#   $1 – path to Source Directory where LASzip, libLAS, 3dfier will be installed, e.g. /opt
+#   $1 – path to Source Directory where LASzip, libLAS, will be installed, e.g. /opt
 # Usage:
-#   ./build_ubuntu.sh /opt
+#   ./build_deps.sh /opt
 
 # You need to have write permission on the Source Directory
-# The script downloads the source files of LASzip, libLAS and 3dfier. You might
-# need to update the link to the latest 3dfier below.
+# The script downloads the source files of LASzip, libLAS.
 
-# Install CGAL, GDAL, yaml-cpp, boost on your own.
-# If you have the ubuntugis-(un)stable PPA added to your repositories, you can easily
-# install these with sudo apt install ...
-# Or you can use e.g. Synaptic Package Manager to the same.
-# you'll need libgdal, libcgal, libboost, libyaml-cpp0.5
+# For trusty you need the ubuntugis and ubuntu-toolchain-r ppa repositories.
 
 # -------
 # LASzip
@@ -75,4 +70,4 @@ make clean
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$1/libLAS-1.8.1/build/lib
 
 # test installation, should GDAL, LASzip should be listed
-$1/libLAS-1.8.1/build/bin/lasinfo -h
+$1/libLAS-1.8.1/build/bin/lasinfo -h | grep -iq "lasinfo (libLAS 1.8.1 with GeoTIFF 1.4.0 GDAL 2.1.0 LASzip 2.2.0)"
