@@ -4,7 +4,8 @@ cd $1
 # download the current release
 # not that probably you'll need to update the link to the newest release
 wget https://github.com/tudelft3d/3dfier/archive/v0.9.7.tar.gz
-tar -xvf v0.9.7.tar.gz
+tar -xf v0.9.7.tar.gz
+rm v0.9.7.tar.gz
 cd 3dfier-0.9.7
 mkdir build
 cd build
@@ -26,8 +27,7 @@ cmake .. \
 -DLASZIP_INCLUDE_DIR=$1/laszip-src-2.2.0/build/include \
 -DLASZIP_LIBRARY=$1/laszip-src-2.2.0/build/lib/liblaszip.so \
 -DCGAL_DIR=$1/cgal-releases-CGAL-4.10/build
-make
+make -j `nproc`
 
-#------
-# clean up
-rm $1/laszip-src-2.2.0.tar.gz $1/libLAS-1.8.1.tar.bz2 $1/v0.9.6.tar.gz
+cd ../example_data
+../build/3dfier testarea_config.yml -o output/testarea.obj

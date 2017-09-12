@@ -32,5 +32,3 @@ script:
     - export CXX=g++-6
     - ./build_cgal.sh /opt
     - ./build_3dfier.sh /opt
-    - cd ../example_data
-    - ../build/3dfier testarea_config.yml -o output/testarea.obj

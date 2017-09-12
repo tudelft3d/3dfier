@@ -25,7 +25,8 @@ wget https://github.com/LASzip/LASzip/releases/download/v2.2.0/laszip-src-2.2.0.
 wget https://github.com/LASzip/LASzip/releases/download/v2.2.0/laszip-src-2.2.0.tar.gz.md5
 md5sum -c laszip-src-2.2.0.tar.gz.md5
 rm laszip-src-2.2.0.tar.gz.md5
-tar -xvf laszip-src-2.2.0.tar.gz
+tar -xf laszip-src-2.2.0.tar.gz
+rm laszip-src-2.2.0.tar.gz
 cd laszip-src-2.2.0
 
 # The Makefile need to be modified in order to be compliant to what libLAS
@@ -38,9 +39,11 @@ sed -i 's/laszipdir = $(includedir)\//laszipdir = $(includedir)\/laszip/' ./incl
 # the executables this way.
 mkdir build
 ./configure --prefix=$1/laszip-src-2.2.0/build
-make
+make -j `nproc`
 make install
 make clean
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$1/laszip-src-2.2.0/build/lib
 
 #--------
 # libLAS
@@ -51,7 +54,8 @@ wget http://download.osgeo.org/liblas/libLAS-1.8.1.tar.bz2
 # wget http://download2.osgeo.org/liblas/libLAS-1.8.1.tar.bz2.md5
 # md5sum -c libLAS-1.8.1.tar.bz2.md5
 # rm libLAS-1.8.1.tar.bz2.md5
-tar -xvf libLAS-1.8.1.tar.bz2
+tar -xf libLAS-1.8.1.tar.bz2
+rm libLAS-1.8.1.tar.bz2
 cd libLAS-1.8.1
 mkdir build
 mkdir cmake_build
@@ -64,8 +68,11 @@ cmake .. \
 -DWITH_LASZIP=ON \
 -DLASZIP_INCLUDE_DIR=$1/laszip-src-2.2.0/build/include \
 -DLASZIP_LIBRARY=$1/laszip-src-2.2.0/build/lib/liblaszip.so
-make
+make -j `nproc`
 make install
 make clean
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$1/libLAS-1.8.1/build/lib
+
 # test installation, should GDAL, LASzip should be listed
 $1/libLAS-1.8.1/build/bin/lasinfo
