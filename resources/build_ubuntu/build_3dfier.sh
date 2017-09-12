@@ -1,15 +1,9 @@
 #!/bin/bash
 
-cd $1
-# download the current release
-# not that probably you'll need to update the link to the newest release
-# TODO: Fetch master and build it
-wget https://github.com/tudelft3d/3dfier/archive/v0.9.7.tar.gz
-tar -xf v0.9.7.tar.gz
-rm v0.9.7.tar.gz
-cd 3dfier-0.9.7
 mkdir build
-cd build
+mkdir $1/3dfier
+cp -rp . $1/3dfier
+cd $1/3dfier/build
 
 # note that cmake might need to be run twice
 cmake .. \
