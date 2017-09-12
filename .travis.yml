@@ -17,6 +17,7 @@ addons:
             - libboost-locale-dev
             - libboost-thread-dev
             - libboost-iostreams-dev
+            - libboost-program-options-dev
             - libyaml-cpp-dev
             - libproj-dev
             - libgeotiff-dev
