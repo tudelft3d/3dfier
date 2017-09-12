@@ -39,7 +39,7 @@ sed -i 's/laszipdir = $(includedir)\//laszipdir = $(includedir)\/laszip/' ./incl
 # the executables this way.
 mkdir build
 ./configure --prefix=$1/laszip-src-2.2.0/build
-make -j `nproc`
+make
 make install
 make clean
 
@@ -68,7 +68,7 @@ cmake .. \
 -DWITH_LASZIP=ON \
 -DLASZIP_INCLUDE_DIR=$1/laszip-src-2.2.0/build/include \
 -DLASZIP_LIBRARY=$1/laszip-src-2.2.0/build/lib/liblaszip.so
-make -j `nproc`
+make
 make install
 make clean
 

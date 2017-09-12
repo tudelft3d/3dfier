@@ -28,6 +28,6 @@ cd cgal-releases-CGAL-4.10
 mkdir build
 cd build
 cmake ..
-make -j `nproc`
+make
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$1/cgal-releases-CGAL-4.10/build/lib

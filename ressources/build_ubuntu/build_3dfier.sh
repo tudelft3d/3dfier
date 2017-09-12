@@ -27,7 +27,7 @@ cmake .. \
 -DLASZIP_INCLUDE_DIR=$1/laszip-src-2.2.0/build/include \
 -DLASZIP_LIBRARY=$1/laszip-src-2.2.0/build/lib/liblaszip.so \
 -DCGAL_DIR=$1/cgal-releases-CGAL-4.10/build
-make -j `nproc`
+make
 
 cd ../example_data
 ../build/3dfier testarea_config.yml -o output/testarea.obj
