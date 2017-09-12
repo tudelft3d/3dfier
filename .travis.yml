@@ -11,16 +11,17 @@ addons:
             - gcc-6
             - g++-6
             - cmake
-            - gdal-bin
-            - libcgal-dev
             - libgdal-dev
             - libboost-dev
             - libboost-filesystem-dev
             - libboost-locale-dev
+            - libboost-thread-dev
             - libboost-iostreams-dev
             - libyaml-cpp-dev
             - libproj-dev
             - libgeotiff-dev
+            - libgmp-dev
+            - libmpfr-dev
 
 # Someone should rename this folder
 before_script: cd ressources/build_ubuntu
@@ -28,6 +29,7 @@ script:
     - ./build_deps.sh /opt
     - export CC=gcc-6
     - export CXX=g++-6
+    - ./build_cgal.sh /opt
     - ./build_3dfier.sh /opt
     - cd ../example_data
     - ../build/3dfier testarea_config.yml -o output/testarea.obj
