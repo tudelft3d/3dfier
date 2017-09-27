@@ -58,7 +58,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(LIBLAS_ROOT)\include;$(LASZIP_ROOT)\include;$(BOOST_ROOT);$(OSGEO4W_ROOT)\include;$(YAML-CPP_DIR)\include;$(CGAL_DIR)\include;$(CGAL_DIR)\build\include;$(CGAL_DIR)\auxiliary\gmp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LIBLAS_ROOT)\include;$(LASZIP_ROOT)\include;$(BOOST_ROOT);$(OSGEO4W_ROOT)\include;$(YAML-CPP_DIR)\include;$(CGAL_DIR)\include;$(CGAL_DIR)\auxiliary\gmp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <CompileAs>Default</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -90,7 +90,7 @@
     <Link>
       <AdditionalOptions> /machine:x64 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>gdal_i.lib;liblas.lib;laszip.lib;libCGAL_Core-vc140-mt-4.8.lib;libCGAL-vc140-mt-4.8.lib;libgmp-10.lib;libyaml-cppmd.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(LIBLAS_ROOT)\bin;$(LASZIP_ROOT)\lib;$(BOOST_LIBRARYDIR);$(OSGEO4W_ROOT)\lib;$(CGAL_DIR)\build\lib\;$(CGAL_DIR)\auxiliary\gmp\lib\;$(YAML-CPP_DIR)\vs_build\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(LIBLAS_ROOT)\bin;$(LASZIP_ROOT)\lib;$(BOOST_LIBRARYDIR);$(OSGEO4W_ROOT)\lib;$(CGAL_DIR)\lib\;$(CGAL_DIR)\auxiliary\gmp\lib\;$(YAML-CPP_DIR)\vs_build\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImportLibrary>
@@ -106,7 +106,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(BOOST_ROOT);$(OSGEO4W_ROOT)\include;$(YAML-CPP_DIR)\include;$(CGAL_DIR)\include;$(CGAL_DIR)\build\include;$(CGAL_DIR)\auxiliary\gmp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(BOOST_ROOT);$(OSGEO4W_ROOT)\include;$(YAML-CPP_DIR)\include;$(CGAL_DIR)\include;$(CGAL_DIR)\auxiliary\gmp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <CompileAs>Default</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -138,7 +138,7 @@
     </Midl>
     <Link>
       <AdditionalDependencies>gdal_i.lib;liblas.lib;laszip.lib;libCGAL_Core-vc140-mt-4.8.lib;libCGAL-vc140-mt-4.8.lib;libgmp-10.lib;libyaml-cppmd.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(LIBLAS_ROOT)\bin;$(LASZIP_ROOT)\lib;$(BOOST_LIBRARYDIR);$(OSGEO4W_ROOT)\lib;$(CGAL_DIR)\build\lib\;$(CGAL_DIR)\auxiliary\gmp\lib\;$(YAML-CPP_DIR)\vs_build\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(LIBLAS_ROOT)\bin;$(LASZIP_ROOT)\lib;$(BOOST_LIBRARYDIR);$(OSGEO4W_ROOT)\lib;$(CGAL_DIR)\lib\;$(CGAL_DIR)\auxiliary\gmp\lib\;$(YAML-CPP_DIR)\vs_build\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImportLibrary>
