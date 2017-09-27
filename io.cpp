@@ -94,48 +94,48 @@ void get_citygml_imgeo_namespaces(std::ostream& of) {
 void get_polygon_lifted_gml(std::ostream& of, Polygon2* p2, double height, bool reverse) {
   if (reverse)
     bg::reverse(*p2);
-  of << "<gml:surfaceMember>\n";
-  of << "<gml:Polygon>\n";
+  of << "<gml:surfaceMember>";
+  of << "<gml:Polygon>";
   //-- oring  
   auto r = bg::exterior_ring(*p2);
-  of << "<gml:exterior>\n";
-  of << "<gml:LinearRing>\n";
+  of << "<gml:exterior>";
+  of << "<gml:LinearRing>";
   for (int i = 0; i < r.size(); i++)
-    of << "<gml:pos>" << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << "</gml:pos>\n";
-  of << "<gml:pos>" << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << height << "</gml:pos>\n";
-  of << "</gml:LinearRing>\n";
-  of << "</gml:exterior>\n";
+    of << "<gml:pos>" << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << "</gml:pos>";
+  of << "<gml:pos>" << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << height << "</gml:pos>";
+  of << "</gml:LinearRing>";
+  of << "</gml:exterior>";
   //-- irings
   auto irings = bg::interior_rings(*p2);
   for (Ring2& r : irings) {
-    of << "<gml:interior>\n";
-    of << "<gml:LinearRing>\n";
+    of << "<gml:interior>";
+    of << "<gml:LinearRing>";
     for (int i = 0; i < r.size(); i++)
-      of << "<gml:pos>" << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << "</gml:pos>\n";
-    of << "<gml:pos>" << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << height << "</gml:pos>\n";
-    of << "</gml:LinearRing>\n";
-    of << "</gml:interior>\n";
+      of << "<gml:pos>" << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << "</gml:pos>";
+    of << "<gml:pos>" << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << height << "</gml:pos>";
+    of << "</gml:LinearRing>";
+    of << "</gml:interior>";
   }
-  of << "</gml:Polygon>\n";
-  of << "</gml:surfaceMember>\n";
+  of << "</gml:Polygon>";
+  of << "</gml:surfaceMember>";
   if (reverse)
     bg::reverse(*p2);
 }
 
 void get_extruded_line_gml(std::ostream& of, Point2* a, Point2* b, double high, double low, bool reverse) {
-  of << "<gml:surfaceMember>\n";
-  of << "<gml:Polygon>\n";
-  of << "<gml:exterior>\n";
-  of << "<gml:LinearRing>\n";
-  of << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low << "</gml:pos>\n";
-  of << "<gml:pos>" << bg::get<0>(a) << " " << bg::get<1>(a) << " " << low << "</gml:pos>\n";
-  of << "<gml:pos>" << bg::get<0>(a) << " " << bg::get<1>(a) << " " << high << "</gml:pos>\n";
-  of << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << high << "</gml:pos>\n";
-  of << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low << "</gml:pos>\n";
-  of << "</gml:LinearRing>\n";
-  of << "</gml:exterior>\n";
-  of << "</gml:Polygon>\n";
-  of << "</gml:surfaceMember>\n";
+  of << "<gml:surfaceMember>";
+  of << "<gml:Polygon>";
+  of << "<gml:exterior>";
+  of << "<gml:LinearRing>";
+  of << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low << "</gml:pos>";
+  of << "<gml:pos>" << bg::get<0>(a) << " " << bg::get<1>(a) << " " << low << "</gml:pos>";
+  of << "<gml:pos>" << bg::get<0>(a) << " " << bg::get<1>(a) << " " << high << "</gml:pos>";
+  of << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << high << "</gml:pos>";
+  of << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low << "</gml:pos>";
+  of << "</gml:LinearRing>";
+  of << "</gml:exterior>";
+  of << "</gml:Polygon>";
+  of << "</gml:surfaceMember>";
 }
 
 void get_extruded_lod1_block_gml(std::ostream& of, Polygon2* p2, double high, double low) {
