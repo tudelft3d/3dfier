@@ -66,6 +66,7 @@ public:
   void create_citygml_header(std::ostream& of);
   void get_citygml_imgeo(std::ostream& of);
   void get_citygml_imgeo_multifile(std::string ofname);
+  void create_citygml_imgeo_header(std::ostream& of);
   bool get_pdok_output(std::string filename);
   bool get_gdal_output(std::string filename, std::string drivername, bool multi);
   void get_csv_buildings(std::ostream &outputfile);
