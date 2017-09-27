@@ -63,7 +63,7 @@ bool Forest::lift() {
   return true;
 }
 
-void Forest::get_citygml(std::ofstream& of) {
+void Forest::get_citygml(std::ostream& of) {
   of << "<cityObjectMember>\n";
   of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">\n";
   get_citygml_attributes(of, _attributes);
@@ -79,7 +79,7 @@ void Forest::get_citygml(std::ofstream& of) {
   of << "</cityObjectMember>\n";
 }
 
-void Forest::get_citygml_imgeo(std::ofstream& of) {
+void Forest::get_citygml_imgeo(std::ostream& of) {
   of << "<cityObjectMember>\n";
   of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">\n";
   get_imgeo_object_info(of, this->get_id());
@@ -105,6 +105,6 @@ void Forest::get_citygml_imgeo(std::ofstream& of) {
   of << "</cityObjectMember>\n";
 }
 
-bool Forest::get_shape(OGRLayer* layer, bool writeAttributes) {
-  return TopoFeature::get_multipolygon_features(layer, "Forest", writeAttributes);
+bool Forest::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+  return TopoFeature::get_multipolygon_features(layer, "Forest", writeAttributes, extraAttributes);
 }

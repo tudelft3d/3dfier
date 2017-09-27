@@ -117,7 +117,7 @@ bool Building::is_hard() {
   return true;
 }
 
-void Building::get_csv(std::ofstream& of) {
+void Building::get_csv(std::ostream& of) {
   of << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << "\n";
 }
 
@@ -168,7 +168,7 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   }
 }
 
-void Building::get_citygml(std::ofstream& of) {
+void Building::get_citygml(std::ostream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
   of << "<cityObjectMember>\n";
@@ -220,7 +220,7 @@ void Building::get_citygml(std::ofstream& of) {
   of << "</cityObjectMember>\n";
 }
 
-void Building::get_citygml_imgeo(std::ofstream& of) {
+void Building::get_citygml_imgeo(std::ostream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
   of << "<cityObjectMember>\n";
@@ -266,7 +266,7 @@ void Building::get_citygml_imgeo(std::ofstream& of) {
   of << "</cityObjectMember>\n";
 }
 
-void Building::get_imgeo_nummeraanduiding(std::ofstream& of) {
+void Building::get_imgeo_nummeraanduiding(std::ostream& of) {
   std::string attribute;
   bool btekst, bplaatsingspunt, bhoek, blaagnr, bhoognr;
   std::string tekst, plaatsingspunt, hoek, laagnr, hoognr;
@@ -323,6 +323,6 @@ void Building::get_imgeo_nummeraanduiding(std::ofstream& of) {
   }
 }
 
-bool Building::get_shape(OGRLayer* layer, bool writeAttributes) {
-  return TopoFeature::get_multipolygon_features(layer, "Building", writeAttributes, true, this->get_height_base(), this->get_height());
+bool Building::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+  return TopoFeature::get_multipolygon_features(layer, "Building", writeAttributes, extraAttributes, true, this->get_height_base(), this->get_height());
 }

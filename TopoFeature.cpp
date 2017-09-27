@@ -169,7 +169,7 @@ AttributeMap TopoFeature::get_attributes() {
   return _attributes;
 }
 
-void TopoFeature::get_imgeo_object_info(std::ofstream& of, std::string id) {
+void TopoFeature::get_imgeo_object_info(std::ostream& of, std::string id) {
   std::string attribute;
   if (get_attribute("creationDate", attribute)) {
     of << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>\n";
@@ -211,7 +211,7 @@ void TopoFeature::get_imgeo_object_info(std::ofstream& of, std::string id) {
   }
 }
 
-void TopoFeature::get_citygml_attributes(std::ofstream& of, AttributeMap attributes) {
+void TopoFeature::get_citygml_attributes(std::ostream& of, AttributeMap attributes) {
   for (auto& attribute : attributes) {
     // add attributes except gml_id
     if (attribute.first.compare("gml_id") != 0) {
@@ -233,7 +233,7 @@ void TopoFeature::get_citygml_attributes(std::ofstream& of, AttributeMap attribu
   }
 }
 
-bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, bool writeHeights, int height_base, int height) {
+bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, AttributeMap extraAttributes, bool writeHeights, int height_base, int height) {
   OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
   OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
   OGRMultiPolygon multipolygon = OGRMultiPolygon();
@@ -285,6 +285,10 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
       if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
         feature->SetField(attr.first.c_str(), attr.second.second.c_str());
       }
+    }
+    
+    for (auto attr : extraAttributes) {
+      feature->SetField(attr.first.c_str(), attr.second.second.c_str());
     }
   }
   if (layer->CreateFeature(feature) != OGRERR_NONE) {
@@ -748,7 +752,7 @@ bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
   return insideOuter;
 }
 
-void TopoFeature::get_triangle_as_gml_surfacemember(std::ofstream& of, Triangle& t, bool verticalwall) {
+void TopoFeature::get_triangle_as_gml_surfacemember(std::ostream& of, Triangle& t, bool verticalwall) {
   of << "<gml:surfaceMember>\n";
   of << "<gml:Polygon>\n";
   of << "<gml:exterior>\n";
@@ -771,7 +775,7 @@ void TopoFeature::get_triangle_as_gml_surfacemember(std::ofstream& of, Triangle&
   of << "</gml:surfaceMember>\n";
 }
 
-void TopoFeature::get_triangle_as_gml_triangle(std::ofstream& of, Triangle& t, bool verticalwall) {
+void TopoFeature::get_triangle_as_gml_triangle(std::ostream& of, Triangle& t, bool verticalwall) {
   of << "<gml:Triangle>\n";
   of << "<gml:exterior>\n";
   of << "<gml:LinearRing>\n";

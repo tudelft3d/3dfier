@@ -143,7 +143,7 @@ liblas::Bounds<double> Map3d::get_bounds() {
   return bounds;
 }
 
-void Map3d::get_citygml(std::ofstream& of) {
+void Map3d::get_citygml(std::ostream& of) {
   create_citygml_header(of);
   for (auto& f : _lsFeatures) {
     f->get_citygml(of);
@@ -169,7 +169,7 @@ void Map3d::get_citygml_multifile(std::string ofname) {
   }
 }
 
-void Map3d::get_citygml_imgeo(std::ofstream& of) {
+void Map3d::get_citygml_imgeo(std::ostream& of) {
   create_citygml_header(of);
   for (auto& f : _lsFeatures) {
     f->get_citygml_imgeo(of);
@@ -195,7 +195,7 @@ void Map3d::get_citygml_imgeo_multifile(std::string ofname) {
   }
 }
 
-void Map3d::create_citygml_header(std::ofstream& of) {
+void Map3d::create_citygml_header(std::ostream& of) {
     of << std::setprecision(3) << std::fixed;
     get_xml_header(of);
     get_citygml_namespaces(of);
@@ -213,7 +213,7 @@ void Map3d::create_citygml_header(std::ofstream& of) {
     of << "</gml:boundedBy>\n";
 }
 
-void Map3d::get_csv_buildings(std::ofstream& of) {
+void Map3d::get_csv_buildings(std::ostream& of) {
   of << "id,roof,floor\n";
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
@@ -223,7 +223,7 @@ void Map3d::get_csv_buildings(std::ofstream& of) {
   }
 }
 
-void Map3d::get_csv_buildings_all_elevation_points(std::ofstream &outputfile) {
+void Map3d::get_csv_buildings_all_elevation_points(std::ostream &outputfile) {
   outputfile << "id,allzvalues" << std::endl;
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
@@ -235,7 +235,7 @@ void Map3d::get_csv_buildings_all_elevation_points(std::ofstream &outputfile) {
   }
 }
 
-void Map3d::get_csv_buildings_multiple_heights(std::ofstream &outputfile) {
+void Map3d::get_csv_buildings_multiple_heights(std::ostream &outputfile) {
   //-- ground heights
   std::vector<float> gpercentiles = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
   std::vector<float> rpercentiles = {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
@@ -264,7 +264,7 @@ void Map3d::get_csv_buildings_multiple_heights(std::ofstream &outputfile) {
 }
 
 
-void Map3d::get_obj_per_feature(std::ofstream& of, int z_exaggeration) {
+void Map3d::get_obj_per_feature(std::ostream& of, int z_exaggeration) {
   std::unordered_map< std::string, unsigned long > dPts;
   std::string fs;
   
@@ -293,7 +293,7 @@ void Map3d::get_obj_per_feature(std::ofstream& of, int z_exaggeration) {
   of << fs << std::endl;
 }
 
-void Map3d::get_obj_per_class(std::ofstream& of, int z_exaggeration) {
+void Map3d::get_obj_per_class(std::ostream& of, int z_exaggeration) {
   std::unordered_map< std::string, unsigned long > dPts;
   std::string fs;
   for (int c = 0; c < 6; c++) {
@@ -322,6 +322,54 @@ void Map3d::get_obj_per_class(std::ofstream& of, int z_exaggeration) {
     of << "v " << p << std::endl;
   }
   of << fs << std::endl;
+}
+
+bool Map3d::get_pdok_output(std::string filename) {
+#if GDAL_VERSION_MAJOR < 2
+  std::cerr << "ERROR: cannot write MultiPolygonZ files with GDAL < 2.0.\n";
+  return false;
+#else
+  if (GDALGetDriverCount() == 0)
+    GDALAllRegister();
+  GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("PostgreSQL");
+
+  std::unordered_map<std::string, OGRLayer*> layers;
+
+  for (auto& f : _lsFeatures) {
+    std::string layername = f->get_layername();
+    if (layers.find(layername) == layers.end()) {
+      std::string tmpFilename = filename;
+      AttributeMap attributes = f->get_attributes();
+      //Add additional attribute to list for layer creation
+      attributes["xml"] = std::make_pair(OFTString, "");
+      OGRLayer *layer = create_gdal_layer(driver, tmpFilename, layername, attributes, f->get_class() == BUILDING);
+      if (layer == NULL) {
+        std::cerr << "ERROR: Cannot open database '" + filename + "' for writing" << std::endl;
+        for (auto& layer : layers) {
+          GDALClose(layer.second);
+        }
+        GDALClose(driver);
+        return false;
+      }
+      layers.emplace(layername, layer);
+    }
+
+    //Add additional attribute describing CityGML of feature
+    std::stringstream ss;
+    f->get_citygml_imgeo(ss);
+    std::string gmlAttribute = ss.str();
+    ss.clear();
+    AttributeMap extraAttribute = AttributeMap();
+    extraAttribute["xml"] = std::make_pair(OFTString, gmlAttribute);
+
+    f->get_shape(layers[layername], true, extraAttribute);
+  }
+  for (auto& layer : layers) {
+    GDALClose(layer.second);
+  }
+  GDALClose(driver);
+  return true;
+#endif
 }
 
 bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool multi) {

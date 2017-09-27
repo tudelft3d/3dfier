@@ -61,18 +61,18 @@ public:
   Box2 get_bbox();
   liblas::Bounds<double> get_bounds();
 
-  void get_citygml(std::ofstream& of);
+  void get_citygml(std::ostream& of);
   void get_citygml_multifile(std::string);
-  void create_citygml_header(std::ofstream& of);
-  void get_citygml_imgeo(std::ofstream& of);
+  void create_citygml_header(std::ostream& of);
+  void get_citygml_imgeo(std::ostream& of);
   void get_citygml_imgeo_multifile(std::string ofname);
+  bool get_pdok_output(std::string filename);
   bool get_gdal_output(std::string filename, std::string drivername, bool multi);
-  void get_csv_buildings(std::ofstream &outputfile);
-  void get_csv_buildings_multiple_heights(std::ofstream &outputfile);
-  void get_csv_buildings_all_elevation_points(std::ofstream &outputfile);
-  void get_obj_per_feature(std::ofstream &outputfile, int z_exaggeration = 0);
-  void get_obj_per_class(std::ofstream &outputfile, int z_exaggeration = 0);
-  bool get_shapefile(std::string filename);
+  void get_csv_buildings(std::ostream &outputfile);
+  void get_csv_buildings_multiple_heights(std::ostream &outputfile);
+  void get_csv_buildings_all_elevation_points(std::ostream &outputfile);
+  void get_obj_per_feature(std::ostream &outputfile, int z_exaggeration = 0);
+  void get_obj_per_class(std::ostream &outputfile, int z_exaggeration = 0);
   bool get_shapefile2d(std::string filename);
 
   void set_building_heightref_roof(float heightref);

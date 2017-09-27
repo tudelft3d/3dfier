@@ -63,7 +63,7 @@ bool Separation::lift() {
   return true;
 }
 
-void Separation::get_citygml(std::ofstream& of) {
+void Separation::get_citygml(std::ostream& of) {
   of << "<cityObjectMember>\n";
   of << "<gen:GenericCityObject gml:id=\"" << this->get_id() << "\">\n";
   get_citygml_attributes(of, _attributes);
@@ -79,7 +79,7 @@ void Separation::get_citygml(std::ofstream& of) {
   of << "</cityObjectMember>\n";
 }
 
-void Separation::get_citygml_imgeo(std::ofstream& of) {
+void Separation::get_citygml_imgeo(std::ostream& of) {
   bool kunstwerkdeel = _layername == "kunstwerkdeel";
   bool overigbouwwerk = _layername == "overigbouwwerk";
   of << "<cityObjectMember>\n";
@@ -132,6 +132,6 @@ void Separation::get_citygml_imgeo(std::ofstream& of) {
   of << "</cityObjectMember>\n";
 }
 
-bool Separation::get_shape(OGRLayer* layer, bool writeAttributes) {
-  return TopoFeature::get_multipolygon_features(layer, "Separation", writeAttributes);
+bool Separation::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+  return TopoFeature::get_multipolygon_features(layer, "Separation", writeAttributes, extraAttributes);
 }

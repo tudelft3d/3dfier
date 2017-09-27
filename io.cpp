@@ -46,11 +46,11 @@ void printProgressBar(int percent) {
   std::clog << percent << "%     " << std::flush;
 }
 
-void get_xml_header(std::ofstream& of) {
+void get_xml_header(std::ostream& of) {
   of << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
 }
 
-void get_citygml_namespaces(std::ofstream& of) {
+void get_citygml_namespaces(std::ostream& of) {
   of << "<CityModel xmlns=\"http://www.opengis.net/citygml/2.0\"\n";
   of << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n";
   of << "xmlns:xAL=\"urn:oasis:names:tc:ciq:xsdschema:xAL:2.0\"\n";
@@ -70,7 +70,7 @@ void get_citygml_namespaces(std::ofstream& of) {
   of << "xsi:schemaLocation=\"http://www.opengis.net/citygml/2.0 ./CityGML_2.0/CityGML.xsd\">\n";
 }
 
-void get_citygml_imgeo_namespaces(std::ofstream& of) {
+void get_citygml_imgeo_namespaces(std::ostream& of) {
   of << "<CityModel xmlns=\"http://www.opengis.net/citygml/2.0\"\n";
   of << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n";
   of << "xmlns:xAL=\"urn:oasis:names:tc:ciq:xsdschema:xAL:2.0\"\n";
@@ -91,7 +91,7 @@ void get_citygml_imgeo_namespaces(std::ofstream& of) {
   of << "xsi:schemaLocation=\"http://www.opengis.net/citygml/2.0 http://schemas.opengis.net/citygml/2.0/cityGMLBase.xsd http://www.geostandaarden.nl/imgeo/2.1 http://schemas.geonovum.nl/imgeo/2.1/imgeo-2.1.1.xsd\">\n";
 }
 
-void get_polygon_lifted_gml(std::ofstream& of, Polygon2* p2, double height, bool reverse) {
+void get_polygon_lifted_gml(std::ostream& of, Polygon2* p2, double height, bool reverse) {
   if (reverse)
     bg::reverse(*p2);
   of << "<gml:surfaceMember>\n";
@@ -122,7 +122,7 @@ void get_polygon_lifted_gml(std::ofstream& of, Polygon2* p2, double height, bool
     bg::reverse(*p2);
 }
 
-void get_extruded_line_gml(std::ofstream& of, Point2* a, Point2* b, double high, double low, bool reverse) {
+void get_extruded_line_gml(std::ostream& of, Point2* a, Point2* b, double high, double low, bool reverse) {
   of << "<gml:surfaceMember>\n";
   of << "<gml:Polygon>\n";
   of << "<gml:exterior>\n";
@@ -138,7 +138,7 @@ void get_extruded_line_gml(std::ofstream& of, Point2* a, Point2* b, double high,
   of << "</gml:surfaceMember>\n";
 }
 
-void get_extruded_lod1_block_gml(std::ofstream& of, Polygon2* p2, double high, double low) {
+void get_extruded_lod1_block_gml(std::ostream& of, Polygon2* p2, double high, double low) {
   //-- get floor
   get_polygon_lifted_gml(of, p2, low, false);
   //-- get roof

@@ -59,7 +59,7 @@ bool Terrain::lift() {
   return true;
 }
 
-void Terrain::get_citygml(std::ofstream& of) {
+void Terrain::get_citygml(std::ostream& of) {
   of << "<cityObjectMember>\n";
   of << "<luse:LandUse gml:id=\"" << this->get_id() << "\">\n";
   get_citygml_attributes(of, _attributes);
@@ -75,7 +75,7 @@ void Terrain::get_citygml(std::ofstream& of) {
   of << "</cityObjectMember>\n";
 }
 
-void Terrain::get_citygml_imgeo(std::ofstream& of) {
+void Terrain::get_citygml_imgeo(std::ostream& of) {
   of << "<cityObjectMember>\n";
   of << "<imgeo:OnbegroeidTerreindeel gml:id=\"" << this->get_id() << "\">\n";
   get_imgeo_object_info(of, this->get_id());
@@ -101,6 +101,6 @@ void Terrain::get_citygml_imgeo(std::ofstream& of) {
   of << "</cityObjectMember>\n";
 }
 
-bool Terrain::get_shape(OGRLayer* layer, bool writeAttributes) {
-  return TopoFeature::get_multipolygon_features(layer, "Terrain", writeAttributes);
+bool Terrain::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+  return TopoFeature::get_multipolygon_features(layer, "Terrain", writeAttributes, extraAttributes);
 }

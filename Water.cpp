@@ -63,7 +63,7 @@ bool Water::lift() {
   return true;
 }
 
-void Water::get_citygml(std::ofstream& of) {
+void Water::get_citygml(std::ostream& of) {
   of << "<cityObjectMember>\n";
   of << "<wtr:WaterBody gml:id=\"" << this->get_id() << "\">\n";
   get_citygml_attributes(of, _attributes);
@@ -79,7 +79,7 @@ void Water::get_citygml(std::ofstream& of) {
   of << "</cityObjectMember>\n";
 }
 
-void Water::get_citygml_imgeo(std::ofstream& of) {
+void Water::get_citygml_imgeo(std::ostream& of) {
   bool ondersteunend = _layername == "ondersteunendwaterdeel";
   of << "<cityObjectMember>\n";
   if (ondersteunend) {
@@ -119,6 +119,6 @@ void Water::get_citygml_imgeo(std::ofstream& of) {
   of << "</cityObjectMember>\n";
 }
 
-bool Water::get_shape(OGRLayer* layer, bool writeAttributes) {
-  return TopoFeature::get_multipolygon_features(layer, "Water", writeAttributes);
+bool Water::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+  return TopoFeature::get_multipolygon_features(layer, "Water", writeAttributes, extraAttributes);
 }

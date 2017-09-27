@@ -62,7 +62,7 @@ bool Bridge::lift() {
   return true;
 }
 
-void Bridge::get_citygml(std::ofstream& of) {
+void Bridge::get_citygml(std::ostream& of) {
   of << "<cityObjectMember>\n";
   of << "<brg:Bridge gml:id=\"" << this->get_id() << "\">\n";
   get_citygml_attributes(of, _attributes);
@@ -78,7 +78,7 @@ void Bridge::get_citygml(std::ofstream& of) {
   of << "</cityObjectMember>\n";
 }
 
-void Bridge::get_citygml_imgeo(std::ofstream& of) {
+void Bridge::get_citygml_imgeo(std::ostream& of) {
   of << "<cityObjectMember>\n";
   of << "<bri:BridgeConstructionElement gml:id=\"" << this->get_id() << "\">\n";
   get_imgeo_object_info(of, this->get_id());
@@ -104,6 +104,6 @@ void Bridge::get_citygml_imgeo(std::ofstream& of) {
   of << "</cityObjectMember>\n";
 }
 
-bool Bridge::get_shape(OGRLayer* layer, bool writeAttributes) {
-  return TopoFeature::get_multipolygon_features(layer, "Bridge", writeAttributes);
+bool Bridge::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+  return TopoFeature::get_multipolygon_features(layer, "Bridge", writeAttributes, extraAttributes);
 }
