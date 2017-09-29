@@ -72,7 +72,7 @@ void Terrain::get_citygml(std::ostream& of) {
   of << "</gml:MultiSurface>";
   of << "</luse:lod1MultiSurface>";
   of << "</luse:LandUse>";
-  of << "</cityObjectMember>\n";
+  of << "</cityObjectMember>";
 }
 
 void Terrain::get_citygml_imgeo(std::ostream& of) {
@@ -98,7 +98,7 @@ void Terrain::get_citygml_imgeo(std::ostream& of) {
     of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>";
   }
   of << "</imgeo:OnbegroeidTerreindeel>";
-  of << "</cityObjectMember>\n";
+  of << "</cityObjectMember>";
 }
 
 bool Terrain::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {

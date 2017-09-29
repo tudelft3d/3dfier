@@ -76,7 +76,7 @@ void Water::get_citygml(std::ostream& of) {
   of << "</gml:MultiSurface>";
   of << "</wtr:lod1MultiSurface>";
   of << "</wtr:WaterBody>";
-  of << "</cityObjectMember>\n";
+  of << "</cityObjectMember>";
 }
 
 void Water::get_citygml_imgeo(std::ostream& of) {
@@ -116,7 +116,7 @@ void Water::get_citygml_imgeo(std::ostream& of) {
     }
     of << "</imgeo:Waterdeel>";
   }
-  of << "</cityObjectMember>\n";
+  of << "</cityObjectMember>";
 }
 
 bool Water::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {

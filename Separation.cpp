@@ -76,7 +76,7 @@ void Separation::get_citygml(std::ostream& of) {
   of << "</gml:MultiSurface>";
   of << "</gen:lod1Geometry>";
   of << "</gen:GenericCityObject>";
-  of << "</cityObjectMember>\n";
+  of << "</cityObjectMember>";
 }
 
 void Separation::get_citygml_imgeo(std::ostream& of) {
@@ -129,7 +129,7 @@ void Separation::get_citygml_imgeo(std::ostream& of) {
     }
     of << "</imgeo:Scheiding>";
   }
-  of << "</cityObjectMember>\n";
+  of << "</cityObjectMember>";
 }
 
 bool Separation::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {

@@ -217,7 +217,7 @@ void Building::get_citygml(std::ostream& of) {
   of << "</gml:Solid>";
   of << "</bldg:lod1Solid>";
   of << "</bldg:Building>";
-  of << "</cityObjectMember>\n";
+  of << "</cityObjectMember>";
 }
 
 void Building::get_citygml_imgeo(std::ostream& of) {
@@ -263,7 +263,7 @@ void Building::get_citygml_imgeo(std::ostream& of) {
   of << "</bui:BuildingPart>";
   of << "</bui:consistsOfBuildingPart>";
   of << "</bui:Building>";
-  of << "</cityObjectMember>\n";
+  of << "</cityObjectMember>";
 }
 
 void Building::get_imgeo_nummeraanduiding(std::ostream& of) {

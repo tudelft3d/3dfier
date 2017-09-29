@@ -147,6 +147,7 @@ void Map3d::get_citygml(std::ostream& of) {
   create_citygml_header(of);
   for (auto& f : _lsFeatures) {
     f->get_citygml(of);
+    of << "\n";
   }
   of << "</CityModel>\n";
 }
@@ -161,6 +162,7 @@ void Map3d::get_citygml_multifile(std::string ofname) {
       create_citygml_header(ofs[filename]);
     }
     f->get_citygml(ofs[filename]);
+    ofs[filename] << "\n";
   }
   for (auto i = ofs.begin(); i != ofs.end(); i++) {
     std::ofstream& of = ofs[(*i).first];
@@ -173,6 +175,7 @@ void Map3d::get_citygml_imgeo(std::ostream& of) {
   create_citygml_imgeo_header(of);
   for (auto& f : _lsFeatures) {
     f->get_citygml_imgeo(of);
+    of << "\n";
   }
   of << "</CityModel>\n";
 }
@@ -187,6 +190,7 @@ void Map3d::get_citygml_imgeo_multifile(std::string ofname) {
       create_citygml_imgeo_header(ofs[filename]);
     }
     f->get_citygml_imgeo(ofs[filename]);
+    ofs[filename] << "\n";
   }
   for (auto it = ofs.begin(); it != ofs.end(); it++) {
     std::ofstream& of = ofs[(*it).first];
@@ -230,6 +234,7 @@ void Map3d::create_citygml_imgeo_header(std::ostream& of) {
     of << "</gml:Envelope>";
     of << "</gml:boundedBy>\n";
 }
+
 void Map3d::get_csv_buildings(std::ostream& of) {
   of << "id,roof,floor\n";
   for (auto& p : _lsFeatures) {

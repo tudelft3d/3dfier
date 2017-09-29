@@ -75,7 +75,7 @@ void Bridge::get_citygml(std::ostream& of) {
   of << "</gml:MultiSurface>";
   of << "</brg:lod1MultiSurface>";
   of << "</brg:Bridge>";
-  of << "</cityObjectMember>\n";
+  of << "</cityObjectMember>";
 }
 
 void Bridge::get_citygml_imgeo(std::ostream& of) {
@@ -101,7 +101,7 @@ void Bridge::get_citygml_imgeo(std::ostream& of) {
     of << "<imgeo:overbruggingIsBeweegbaar>" << attribute << "</imgeo:overbruggingIsBeweegbaar>";
   }
   of << "</bri:BridgeConstructionElement>";
-  of << "</cityObjectMember>\n";
+  of << "</cityObjectMember>";
 }
 
 bool Bridge::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {

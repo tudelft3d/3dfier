@@ -76,7 +76,7 @@ void Forest::get_citygml(std::ostream& of) {
   of << "</gml:MultiSurface>";
   of << "</veg:lod1MultiSurface>";
   of << "</veg:PlantCover>";
-  of << "</cityObjectMember>\n";
+  of << "</cityObjectMember>";
 }
 
 void Forest::get_citygml_imgeo(std::ostream& of) {
@@ -102,7 +102,7 @@ void Forest::get_citygml_imgeo(std::ostream& of) {
     of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>";
   }
   of << "</veg:PlantCover>";
-  of << "</cityObjectMember>\n";
+  of << "</cityObjectMember>";
 }
 
 bool Forest::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {

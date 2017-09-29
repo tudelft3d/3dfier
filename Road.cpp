@@ -74,7 +74,7 @@ void Road::get_citygml(std::ostream& of) {
   of << "</gml:MultiSurface>";
   of << "</tran:lod1MultiSurface>";
   of << "</tran:Road>";
-  of << "</cityObjectMember>\n";
+  of << "</cityObjectMember>";
 }
 
 void Road::get_citygml_imgeo(std::ostream& of) {
@@ -147,7 +147,7 @@ void Road::get_citygml_imgeo(std::ostream& of) {
     }
     of << "</tra:TrafficArea>";
   }
-  of << "</cityObjectMember>\n";
+  of << "</cityObjectMember>";
 }
 
 bool Road::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
