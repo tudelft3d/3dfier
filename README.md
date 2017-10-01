@@ -2,9 +2,12 @@
 | Build server | Platform | Build status |
 | :---- | :------ | :---- |
 | AppVeyor | Windows | [![AppVeyor build status][1]][2]
-
+| Travis | Ubuntu | [![Travis build status][3]][4]
 [1]: https://ci.appveyor.com/api/projects/status/github/tudelft3d/3dfier?branch=master&svg=true
 [2]: https://ci.appveyor.com/project/tudelft3d/3dfier/branch/master
+[3]: https://api.travis-ci.org/tudelft3d/3dfier.svg?branch=master
+[4]: https://travis-ci.org/tudelft3d/3dfier
+
 
 # 3dfier
 ![](https://dl.dropboxusercontent.com/s/tojiay8cmomu2v5/Delft_3dfier-3.png)
