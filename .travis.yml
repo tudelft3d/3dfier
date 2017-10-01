@@ -24,10 +24,9 @@ addons:
             - libgmp-dev
             - libmpfr-dev
 
-before_script: cd resources/build_ubuntu
 script:
-    - ./build_deps.sh /opt
+    - resources/build_ubuntu/build_deps.sh /opt
     - export CC=gcc-6
     - export CXX=g++-6
-    - ./build_cgal.sh /opt
-    - ./build_3dfier.sh /opt
+    - resources/build_ubuntu/build_cgal.sh /opt
+    - resources/build_ubuntu/build_3dfier.sh /opt
