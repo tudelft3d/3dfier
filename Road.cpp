@@ -61,6 +61,11 @@ bool Road::lift() {
   return true;
 }
 
+void Road::get_cityjson(nlohmann::json& j) {
+
+}
+
+
 void Road::get_citygml(std::ofstream& of) {
   of << "<cityObjectMember>\n";
   of << "<tran:Road gml:id=\"" << this->get_id() << "\">\n";

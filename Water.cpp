@@ -63,6 +63,13 @@ bool Water::lift() {
   return true;
 }
 
+
+void Water::get_cityjson(nlohmann::json& j) {
+
+}
+
+
+
 void Water::get_citygml(std::ofstream& of) {
   of << "<cityObjectMember>\n";
   of << "<wtr:WaterBody gml:id=\"" << this->get_id() << "\">\n";

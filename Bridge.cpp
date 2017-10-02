@@ -62,6 +62,12 @@ bool Bridge::lift() {
   return true;
 }
 
+
+void Bridge::get_cityjson(nlohmann::json& j) {
+
+}
+
+
 void Bridge::get_citygml(std::ofstream& of) {
   of << "<cityObjectMember>\n";
   of << "<brg:Bridge gml:id=\"" << this->get_id() << "\">\n";

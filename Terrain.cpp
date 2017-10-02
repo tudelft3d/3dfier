@@ -59,6 +59,11 @@ bool Terrain::lift() {
   return true;
 }
 
+void Terrain::get_cityjson(nlohmann::json& j) {
+
+}
+
+
 void Terrain::get_citygml(std::ofstream& of) {
   of << "<cityObjectMember>\n";
   of << "<luse:LandUse gml:id=\"" << this->get_id() << "\">\n";

@@ -31,6 +31,7 @@
 
 #include "definitions.h"
 #include "geomtools.h"
+#include "json.hpp"
 #include <random>
 
 class TopoFeature {
@@ -46,6 +47,7 @@ public:
   virtual bool          is_hard() = 0;
   virtual std::string   get_mtl() = 0;
   virtual void          get_citygml(std::ofstream& of) = 0;
+  virtual void          get_cityjson(nlohmann::json& j) = 0;
   virtual void          get_citygml_imgeo(std::ofstream& of) = 0;
   virtual bool          get_shape(OGRLayer*, bool writeAttributes) = 0;
 
@@ -117,6 +119,7 @@ public:
   virtual bool        is_hard() = 0;
   virtual bool        lift() = 0;
   virtual void        get_citygml(std::ofstream& of) = 0;
+  virtual void        get_cityjson(nlohmann::json& j) = 0;
 protected:
   std::vector<int>    _zvaluesinside;
   bool                lift_percentile(float percentile);
@@ -133,6 +136,7 @@ public:
   virtual bool         is_hard() = 0;
   virtual bool         lift() = 0;
   virtual void         get_citygml(std::ofstream& of) = 0;
+  virtual void         get_cityjson(nlohmann::json& j) = 0;
 protected:
   int                  _simplification;
   void                 smooth_boundary(int passes = 1);
@@ -149,6 +153,7 @@ public:
   virtual bool        is_hard() = 0;
   virtual bool        lift() = 0;
   virtual void        get_citygml(std::ofstream& of) = 0;
+  virtual void        get_cityjson(nlohmann::json& j) = 0;
   bool                buildCDT();
 protected:
   int                 _simplification;

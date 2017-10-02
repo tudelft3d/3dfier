@@ -168,6 +168,20 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   }
 }
 
+
+void Building::get_cityjson(nlohmann::json& j) {
+
+  nlohmann::json b;
+  b["type"] = "Building";
+  b["attributes"];
+  b["attributes"]["min-height-surface"] = z_to_float(this->get_height_base());
+  b["attributes"]["measuredHeight"] = z_to_float(this->get_height());
+  b["geometry"];
+  // j["geometry"]
+
+  j["CityObjects"][this->get_id()] = b;
+}
+
 void Building::get_citygml(std::ofstream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());

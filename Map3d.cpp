@@ -29,6 +29,8 @@
 #include "Map3d.h"
 #include "io.h"
 #include "boost/locale.hpp"
+#include "json.hpp"
+
 
 Map3d::Map3d() {
   OGRRegisterAll();
@@ -143,6 +145,34 @@ liblas::Bounds<double> Map3d::get_bounds() {
   return bounds;
 }
 
+
+bool Map3d::get_cityjson(std::string filename) {
+  std::cout << "CityJSON" << std::endl;
+  nlohmann::json j;
+  
+  j["type"] = "CityModel";
+  j["version"] = "http://www.cityjson.org/version/0.2";
+  j["metadata"] = {};
+  j["metadata"]["datasetTitle"] = "my 3dfied map";
+
+  double b[] = {bg::get<bg::min_corner, 0>(_bbox),
+                bg::get<bg::min_corner, 1>(_bbox), 
+                0,
+                bg::get<bg::max_corner, 0>(_bbox),
+                bg::get<bg::max_corner, 1>(_bbox), 
+                0};
+  j["metadata"]["bbox"] = b;
+
+
+  for (auto& f : _lsFeatures) {
+    f->get_cityjson(j);
+  }
+  std::ofstream o(filename);
+  o << j.dump(2) << std::endl;      
+  return true;
+}
+
+
 void Map3d::get_citygml(std::ofstream& of) {
   create_citygml_header(of);
   for (auto& f : _lsFeatures) {
@@ -150,6 +180,7 @@ void Map3d::get_citygml(std::ofstream& of) {
   }
   of << "</CityModel>\n";
 }
+
 
 void Map3d::get_citygml_multifile(std::string ofname) {
   std::unordered_map<std::string, std::ofstream> ofs;

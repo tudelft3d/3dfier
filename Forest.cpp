@@ -63,6 +63,11 @@ bool Forest::lift() {
   return true;
 }
 
+void Forest::get_cityjson(nlohmann::json& j) {
+
+}
+
+
 void Forest::get_citygml(std::ofstream& of) {
   of << "<cityObjectMember>\n";
   of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">\n";

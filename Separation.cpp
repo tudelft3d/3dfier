@@ -63,6 +63,12 @@ bool Separation::lift() {
   return true;
 }
 
+
+void Separation::get_cityjson(nlohmann::json& j) {
+
+}
+
+
 void Separation::get_citygml(std::ofstream& of) {
   of << "<cityObjectMember>\n";
   of << "<gen:GenericCityObject gml:id=\"" << this->get_id() << "\">\n";

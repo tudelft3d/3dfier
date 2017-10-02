@@ -64,6 +64,7 @@ public:
   void get_citygml(std::ofstream& of);
   void get_citygml_multifile(std::string);
   void create_citygml_header(std::ofstream& of);
+  bool get_cityjson(std::string filename);
   void get_citygml_imgeo(std::ofstream& of);
   void get_citygml_imgeo_multifile(std::string ofname);
   bool get_gdal_output(std::string filename, std::string drivername, bool multi);

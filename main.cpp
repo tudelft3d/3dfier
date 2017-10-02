@@ -40,6 +40,7 @@
 #include "boost/locale.hpp"
 #include "boost/chrono.hpp"
 
+
 std::string VERSION = "0.9.8";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
@@ -378,7 +379,7 @@ int main(int argc, const char * argv[]) {
 
   bool fileWritten = true;
   std::ofstream of;
-  if (format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "PostGIS")
+  if (format != "CityJSON" && format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "PostGIS")
     of.open(ofname);
 
   if (format == "CityGML") {
@@ -397,6 +398,10 @@ int main(int argc, const char * argv[]) {
     std::clog << "CityGML-IMGeo-Multifile output\n";
     map3d.get_citygml_imgeo_multifile(ofname);
   }
+  else if (format == "CityJSON") {
+    std::clog << "CityJSON output\n";
+    fileWritten = map3d.get_cityjson(ofname);
+  }  
   else if (format == "OBJ") {
     std::clog << "OBJ output\n";
     map3d.get_obj_per_feature(of, z_exaggeration);
@@ -666,6 +671,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
   std::string format = n["format"].as<std::string>();
   if ((format != "OBJ") &&
     (format != "OBJ-NoID") &&
+    (format != "CityJSON") &&
     (format != "CityGML") &&
     (format != "CityGML-Multifile") &&
     (format != "CityGML-IMGeo") &&
