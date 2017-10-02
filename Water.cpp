@@ -65,7 +65,12 @@ bool Water::lift() {
 
 
 void Water::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
-
+  nlohmann::json f;
+  f["type"] = "WaterBody";
+  nlohmann::json g;
+  this->get_cityjson_geom(g, dPts);
+  f["geometry"].push_back(g);
+  j["CityObjects"][this->get_id()] = f;
 }
 
 

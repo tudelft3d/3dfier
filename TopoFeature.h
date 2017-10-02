@@ -102,7 +102,7 @@ protected:
   void    lift_each_boundary_vertices(float percentile);
   void    lift_all_boundary_vertices_same_height(int height);
 
-  void get_cityjson_geom(nlohmann::json& g, std::unordered_map<std::string, unsigned long> &dPts);
+  void get_cityjson_geom(nlohmann::json& g, std::unordered_map<std::string, unsigned long> &dPts, std::string primitive = "MultiSurface");
   void get_triangle_as_gml_surfacemember(std::ofstream& of, Triangle& t, bool verticalwall = false);
   void get_triangle_as_gml_triangle(std::ofstream& of, Triangle& t, bool verticalwall = false);
   bool get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue = "");

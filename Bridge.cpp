@@ -64,7 +64,14 @@ bool Bridge::lift() {
 
 
 void Bridge::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
-
+  // TODO: implement Bridges in CityJSON
+  // nlohmann::json f;
+  // f["type"] = "Bridge";
+  // f["attributes"];
+  // nlohmann::json g;
+  // this->get_cityjson_geom(g, dPts);
+  // f["geometry"].push_back(g);
+  // j["CityObjects"][this->get_id()] = f;
 }
 
 

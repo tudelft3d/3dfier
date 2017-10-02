@@ -95,9 +95,9 @@ Polygon2* TopoFeature::get_Polygon2() {
 }
 
 
-void TopoFeature::get_cityjson_geom(nlohmann::json& g, std::unordered_map<std::string,unsigned long> &dPts) {
-  g["type"] = "Solid";
-  g["lod"] = "1";
+void TopoFeature::get_cityjson_geom(nlohmann::json& g, std::unordered_map<std::string,unsigned long> &dPts, std::string primitive) {
+  g["type"] = primitive;
+  g["lod"] = 1;
   g["boundaries"];
   std::vector<std::vector<std::vector<unsigned long>>>  shelli;
   for (auto& t : _triangles) {
@@ -152,7 +152,10 @@ void TopoFeature::get_cityjson_geom(nlohmann::json& g, std::unordered_map<std::s
     if ((a != b) && (a != c) && (b != c)) 
       shelli.push_back({{a, b, c}});
   }
-  g["boundaries"].push_back(shelli);
+  if (primitive == "MultiSurface")
+    g["boundaries"] = shelli;
+  else
+    g["boundaries"].push_back(shelli);
 }
 
 void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs) {

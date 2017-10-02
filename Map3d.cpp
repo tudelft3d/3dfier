@@ -165,45 +165,23 @@ bool Map3d::get_cityjson(std::string filename) {
  
   std::unordered_map< std::string, unsigned long > dPts;
   for (auto& f : _lsFeatures) {
-    if (f->get_class() == BUILDING) // TODO : all classes
+    if (f->get_class() != BRIDGE) // TODO : all classes
       f->get_cityjson(j, dPts);
   }
- 
   //-- vertices
   std::vector<std::string> thepts;
   thepts.resize(dPts.size());
   for (auto& p : dPts)
     thepts[p.second] = p.first;
   dPts.clear();
-  
   for (auto& p : thepts) {
     std::vector<std::string> c;
     boost::split(c, p, boost::is_any_of(" "));
-      
     j["vertices"].push_back({std::stod(c[0], NULL), std::stod(c[1], NULL), std::stod(c[2], NULL) });
-
-    // // std::string orbits ("365.24 29.53");
-    // std::string::size_type sz;     
-    // std::string::size_type sz2;     
-
-    // double x = std::stod(p, &sz);
-    // double y = std::stod(p.substr(sz), &sz2);
-    // double z = std::stod(p.substr(sz2));
-    // std::cout << p << std::endl;
-    // std::cout << "  x: " << x << std::endl;
-    // std::cout << "  y: " << y << std::endl;
-    // std::cout << "  z: " << z << std::endl;
-
-    // // std::cout << coord[0] << std::endl;
-    // std::vector<double> d;
-    // for (auto& each : coord)
-    //   d.push_back(atof(each));
-    
   }
-
   std::ofstream o(filename);
-  o << j.dump(2) << std::endl;      
-  // o << j.dump() << std::endl;      
+  // o << j.dump(2) << std::endl;      
+  o << j.dump() << std::endl;      
   return true;
 }
 
