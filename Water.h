@@ -37,7 +37,7 @@ public:
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   void          get_citygml(std::ofstream& of);
-  void          get_cityjson(nlohmann::json& j);
+  void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts);
   void          get_citygml_imgeo(std::ofstream& of);
   std::string   get_mtl();
   bool          get_shape(OGRLayer* layer, bool writeAttributes);

@@ -149,12 +149,10 @@ liblas::Bounds<double> Map3d::get_bounds() {
 bool Map3d::get_cityjson(std::string filename) {
   std::cout << "CityJSON" << std::endl;
   nlohmann::json j;
-  
   j["type"] = "CityModel";
   j["version"] = "http://www.cityjson.org/version/0.2";
   j["metadata"] = {};
   j["metadata"]["datasetTitle"] = "my 3dfied map";
-
   double b[] = {bg::get<bg::min_corner, 0>(_bbox),
                 bg::get<bg::min_corner, 1>(_bbox), 
                 0,
@@ -162,13 +160,15 @@ bool Map3d::get_cityjson(std::string filename) {
                 bg::get<bg::max_corner, 1>(_bbox), 
                 0};
   j["metadata"]["bbox"] = b;
-
-
+ 
+  std::unordered_map< std::string, unsigned long > dPts;
   for (auto& f : _lsFeatures) {
-    f->get_cityjson(j);
+    f->get_cityjson(j, dPts);
   }
+ 
   std::ofstream o(filename);
   o << j.dump(2) << std::endl;      
+  // o << j.dump() << std::endl;      
   return true;
 }
 

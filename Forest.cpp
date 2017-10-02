@@ -63,7 +63,7 @@ bool Forest::lift() {
   return true;
 }
 
-void Forest::get_cityjson(nlohmann::json& j) {
+void Forest::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
 
 }
 

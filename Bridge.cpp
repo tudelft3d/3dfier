@@ -63,7 +63,7 @@ bool Bridge::lift() {
 }
 
 
-void Bridge::get_cityjson(nlohmann::json& j) {
+void Bridge::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
 
 }
 

@@ -64,7 +64,7 @@ bool Water::lift() {
 }
 
 
-void Water::get_cityjson(nlohmann::json& j) {
+void Water::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
 
 }
 

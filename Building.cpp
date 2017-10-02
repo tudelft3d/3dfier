@@ -30,6 +30,7 @@
 #include "io.h"
 #include <algorithm>    // std::sort
 
+
 float Building::_heightref_top = 0.9f;
 float Building::_heightref_base = 0.1f;
 
@@ -169,18 +170,65 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
 }
 
 
-void Building::get_cityjson(nlohmann::json& j) {
-
+void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) {
   nlohmann::json b;
   b["type"] = "Building";
   b["attributes"];
-  b["attributes"]["min-height-surface"] = z_to_float(this->get_height_base());
-  b["attributes"]["measuredHeight"] = z_to_float(this->get_height());
-  b["geometry"];
-  // j["geometry"]
+  float hbase = z_to_float(this->get_height_base());
+  float h = z_to_float(this->get_height());
+  b["attributes"]["min-height-surface"] = hbase;
+  b["attributes"]["measuredHeight"] = h;
+  
+  // //-- LoD1
+  // nlohmann::json g;
+  // g["type"] = "Solid";
+  // g["lod"] = "1";
+  // g["boundaries"];
+  // // std::vector<std::vector<std::vector<int>>> shelli;
+  // // std::vector<std::vector<int>> polyi;
+  // // std::vector<std::vector<double>> vertices;
+  // // //--base
+  // // get_polygon_lifted_cityjson(this->_p2, hbase, false, polyi, vertices, j["vertices"].size());
+  // // shelli.push_back(polyi);
+  // // for (auto& v : vertices)
+  // //   j["vertices"].push_back(v);
+  // // //--top
+  // // polyi.clear();
+  // // vertices.clear();
+  // // get_polygon_lifted_cityjson(this->_p2, h, true, polyi, vertices, j["vertices"].size());
+  // // shelli.push_back(polyi);
+  // // for (auto& v : vertices)
+  // //   j["vertices"].push_back(v);
+  
+  // // //-- get the walls
+  // // r = bg::exterior_ring(*(this->_p2));
+  // // int i;
+  // // for (i = 0; i < (r.size() - 1); i++) {
+  // //   // get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
+  // //   int offset = j["vertices"].size();
 
+  // bg::get<0>(b) << " " << bg::get<1>(b) << " " << low <<
+  // bg::get<0>(a) << " " << bg::get<1>(a) << " " << low <<
+  // bg::get<0>(a) << " " << bg::get<1>(a) << " " << high <<
+  // bg::get<0>(b) << " " << bg::get<1>(b) << " " << high <<
+
+
+
+  // }
+  // get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
+  // //-- irings
+  // auto irings = bg::interior_rings(*(this->_p2));
+  // for (Ring2& r : irings) {
+  //   for (i = 0; i < (r.size() - 1); i++)
+  //     get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
+  //   get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
+  // }
+
+  // g["boundaries"].push_back(shelli);
+  // b["geometry"].push_back(g);
   j["CityObjects"][this->get_id()] = b;
 }
+
 
 void Building::get_citygml(std::ofstream& of) {
   float h = z_to_float(this->get_height());

@@ -64,7 +64,7 @@ bool Separation::lift() {
 }
 
 
-void Separation::get_cityjson(nlohmann::json& j) {
+void Separation::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
 
 }
 

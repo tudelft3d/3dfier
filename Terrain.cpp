@@ -59,7 +59,7 @@ bool Terrain::lift() {
   return true;
 }
 
-void Terrain::get_cityjson(nlohmann::json& j) {
+void Terrain::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
 
 }
 
