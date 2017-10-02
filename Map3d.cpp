@@ -165,7 +165,7 @@ bool Map3d::get_cityjson(std::string filename) {
   j["metadata"]["bbox"] = b;
   std::unordered_map< std::string, unsigned long > dPts;
   for (auto& f : _lsFeatures) {
-    if (f->get_class() != BRIDGE) // TODO : all classes
+    // if (f->get_class() != BRIDGE) // TODO : all classes
       f->get_cityjson(j, dPts);
   }
   //-- vertices
