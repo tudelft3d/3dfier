@@ -155,6 +155,7 @@ bool Map3d::get_cityjson(std::string filename) {
   j["version"] = "http://www.cityjson.org/version/0.2";
   j["metadata"] = {};
   j["metadata"]["datasetTitle"] = "my 3dfied map";
+  j["metadata"]["pointOfContact"] = "https://3d.bk.tudelft.nl";
   double b[] = {bg::get<bg::min_corner, 0>(_bbox),
                 bg::get<bg::min_corner, 1>(_bbox), 
                 0,
@@ -162,7 +163,6 @@ bool Map3d::get_cityjson(std::string filename) {
                 bg::get<bg::max_corner, 1>(_bbox), 
                 0};
   j["metadata"]["bbox"] = b;
- 
   std::unordered_map< std::string, unsigned long > dPts;
   for (auto& f : _lsFeatures) {
     if (f->get_class() != BRIDGE) // TODO : all classes
