@@ -174,6 +174,7 @@ void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, u
   nlohmann::json b;
   b["type"] = "Building";
   b["attributes"];
+  get_cityjson_attributes(b, _attributes);
   float hbase = z_to_float(this->get_height_base());
   float h = z_to_float(this->get_height());
   b["attributes"]["min-height-surface"] = hbase;

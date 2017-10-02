@@ -275,6 +275,15 @@ void TopoFeature::get_imgeo_object_info(std::ofstream& of, std::string id) {
   }
 }
 
+void TopoFeature::get_cityjson_attributes(nlohmann::json& f, AttributeMap attributes) {
+  for (auto& attribute : attributes) {
+    // add attributes except gml_id
+    if (attribute.first.compare("gml_id") != 0) 
+      f["attributes"][std::get<0>(attribute)] = attribute.second.second;
+  }
+}
+
+
 void TopoFeature::get_citygml_attributes(std::ofstream& of, AttributeMap attributes) {
   for (auto& attribute : attributes) {
     // add attributes except gml_id

@@ -76,6 +76,7 @@ public:
   AttributeMap get_attributes();
   void         get_imgeo_object_info(std::ofstream& of, std::string id);
   void         get_citygml_attributes(std::ofstream& of, AttributeMap attributes);
+  void         get_cityjson_attributes(nlohmann::json& f, AttributeMap attributes);
 protected:
   Polygon2*                         _p2;
   std::vector< std::vector<int> >   _p2z;

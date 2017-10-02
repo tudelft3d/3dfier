@@ -65,6 +65,8 @@ void Road::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsign
   nlohmann::json f;
   // f["type"] = "Road"; // TODO : change back to Road when implemented
   f["type"] = "GenericCityObject";
+  f["attributes"];
+  get_cityjson_attributes(f, _attributes);
   nlohmann::json g;
   this->get_cityjson_geom(g, dPts);
   f["geometry"].push_back(g);
