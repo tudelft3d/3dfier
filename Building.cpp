@@ -179,6 +179,13 @@ void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, u
   b["attributes"]["min-height-surface"] = hbase;
   b["attributes"]["measuredHeight"] = h;
   
+  // g["boundaries"].push_back(shelli);
+  nlohmann::json g;
+  this->get_cityjson_geom(g, dPts);
+  b["geometry"].push_back(g);
+  j["CityObjects"][this->get_id()] = b;
+}
+
   // //-- LoD1
   // nlohmann::json g;
   // g["type"] = "Solid";
@@ -224,10 +231,7 @@ void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, u
   //   get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   // }
 
-  // g["boundaries"].push_back(shelli);
-  // b["geometry"].push_back(g);
-  j["CityObjects"][this->get_id()] = b;
-}
+  
 
 
 void Building::get_citygml(std::ofstream& of) {

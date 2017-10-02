@@ -94,6 +94,67 @@ Polygon2* TopoFeature::get_Polygon2() {
   return _p2;
 }
 
+
+void TopoFeature::get_cityjson_geom(nlohmann::json& g, std::unordered_map<std::string,unsigned long> &dPts) {
+  g["type"] = "Solid";
+  g["lod"] = "1";
+  g["boundaries"];
+  std::vector<std::vector<std::vector<unsigned long>>>  shelli;
+  for (auto& t : _triangles) {
+    unsigned long a, b, c;
+    auto it = dPts.find(_vertices[t.v0].second);
+    if (it == dPts.end()) {
+      a = dPts.size();
+      dPts[_vertices[t.v0].second] = a;
+    }
+    else
+      a = it->second;
+    it = dPts.find(_vertices[t.v1].second);
+    if (it == dPts.end()) {
+      b = dPts.size();
+      dPts[_vertices[t.v1].second] = b;
+    }
+    else
+      b = it->second;
+    it = dPts.find(_vertices[t.v2].second);
+    if (it == dPts.end()) {
+      c = dPts.size();
+      dPts[_vertices[t.v2].second] = c;
+    }
+    else
+      c = it->second;
+    if ((a != b) && (a != c) && (b != c))
+      shelli.push_back({{a, b, c}});
+  }
+  for (auto& t : _triangles_vw) {
+    unsigned long a, b, c;
+    auto it = dPts.find(_vertices_vw[t.v0].second);
+    if (it == dPts.end()) {
+      a = dPts.size();
+      dPts[_vertices_vw[t.v0].second] = a;
+    }
+    else
+      a = it->second;
+    it = dPts.find(_vertices_vw[t.v1].second);
+    if (it == dPts.end()) {
+      b = dPts.size();
+      dPts[_vertices_vw[t.v1].second] = b;
+    }
+    else
+      b = it->second;
+    it = dPts.find(_vertices_vw[t.v2].second);
+    if (it == dPts.end()) {
+      c = dPts.size();
+      dPts[_vertices_vw[t.v2].second] = c;
+    }
+    else
+      c = it->second;
+    if ((a != b) && (a != c) && (b != c)) 
+      shelli.push_back({{a, b, c}});
+  }
+  g["boundaries"].push_back(shelli);
+}
+
 void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs) {
   fs += mtl; fs += "\n";
   for (auto& t : _triangles) {
