@@ -10,7 +10,7 @@ if you want CityGML output, change line 74 in `testarea_config.yml` to `format: 
 
 ## 2D input data: the BGT
 
-The files in the folder `bgt` are a crop of the [BGT datasets](http://www.kadaster.nl/web/Themas/Registraties/BGT.htm) in Delft. There were created with the script in `ressources/BGT_prepare/..` 
+The files in the folder `bgt` are a crop of the [BGT datasets](http://www.kadaster.nl/web/Themas/Registraties/BGT.htm) in Delft. There were created with the script in `resources/BGT_prepare/..` 
 
 ## LIDAR point cloud input: AHN3
 

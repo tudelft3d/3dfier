@@ -2,9 +2,12 @@
 | Build server | Platform | Build status |
 | :---- | :------ | :---- |
 | AppVeyor | Windows | [![AppVeyor build status][1]][2]
-
+| Travis | Ubuntu | [![Travis build status][3]][4]
 [1]: https://ci.appveyor.com/api/projects/status/github/tudelft3d/3dfier?branch=master&svg=true
 [2]: https://ci.appveyor.com/project/tudelft3d/3dfier/branch/master
+[3]: https://api.travis-ci.org/tudelft3d/3dfier.svg?branch=master
+[4]: https://travis-ci.org/tudelft3d/3dfier
+
 
 # 3dfier
 ![](https://dl.dropboxusercontent.com/s/tojiay8cmomu2v5/Delft_3dfier-3.png)
@@ -71,6 +74,8 @@ The dependencies that are necessary (under Mac we suggest using [Homebrew](http:
   1. CGAL (`brew install cgal`)
   4. yaml-cpp (`brew install yaml-cpp`)
 
+For Linux we suggest taking a look at the travis build scripts for Ubuntu.
+
 ## Compiling Windows 10 using Visual Studio
 
 1. Download and install Boost precompiled binaries https://sourceforge.net/projects/boost/files/boost-binaries (`Visual Studio 2015, 64-bit; boost_1_62_0-msvc-14.0-64.exe`)
@@ -95,4 +100,4 @@ The resulting model (in OBJ) can be found in `example_data/output/test_area.obj`
 Further, there is an [open data website](https://3d.bk.tudelft.nl/opendata/3dfier/) that contains 3D models of a few Dutch cities, generated with 3dfier.
 
 ## Prepare BGT data
-For preparing BGT data as input for 3dfier look at [ressources/BGT_prepare/ReadMe.md](https://github.com/tudelft3d/3dfier/blob/master/ressources/BGT_prepare/ReadMe.md)
+For preparing BGT data as input for 3dfier look at [resources/BGT_prepare/ReadMe.md](https://github.com/tudelft3d/3dfier/blob/master/resources/BGT_prepare/ReadMe.md)

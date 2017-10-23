@@ -1,0 +1,32 @@
+sudo: false
+dist: trusty
+language: cpp
+compiler: gcc
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+            - sourceline: 'ppa:ubuntugis/ppa'
+        packages:
+            - gcc-6
+            - g++-6
+            - cmake
+            - libgdal-dev
+            - libboost-dev
+            - libboost-filesystem-dev
+            - libboost-locale-dev
+            - libboost-thread-dev
+            - libboost-iostreams-dev
+            - libboost-program-options-dev
+            - libyaml-cpp-dev
+            - libproj-dev
+            - libgeotiff-dev
+            - libgmp-dev
+            - libmpfr-dev
+
+script:
+    - resources/build_ubuntu/build_deps.sh /opt
+    - export CC=gcc-6
+    - export CXX=g++-6
+    - resources/build_ubuntu/build_cgal.sh /opt
+    - resources/build_ubuntu/build_3dfier.sh /opt
