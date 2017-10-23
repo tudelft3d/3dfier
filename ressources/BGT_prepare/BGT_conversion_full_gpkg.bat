@@ -1,3 +1,12 @@
+:: rename the files
+move bgt_begroeidterreindeel.gml bgt_begroeidterreindeel_org.gml
+move bgt_onbegroeidterreindeel.gml bgt_onbegroeidterreindeel_org.gml
+
+:: add the srsDimension to the posList for the kruinlijn
+powershell -Command "(gc 'bgt_begroeidterreindeel_org.gml') -replace '<gml:posList>', '<gml:posList srsDimension=\"2\">' | Out-File bgt_begroeidterreindeel.gml" -Encoding ASCII
+powershell -Command "(gc 'bgt_onbegroeidterreindeel_org.gml') -replace '<gml:posList>', '<gml:posList srsDimension=\"2\">' | Out-File bgt_onbegroeidterreindeel.gml" -Encoding ASCII
+
+:: convert the files to GPKG, filter eindregistratie and stroke geometries
 ogr2ogr -nlt CONVERT_TO_LINEAR -where "eindregistratie is NULL" --config GML_GFS_TEMPLATE bgt_ondersteunendwegdeel.gfs -f GPKG bgt_ondersteunendwegdeel.gpkg bgt_ondersteunendwegdeel.gml
 ogr2ogr -nlt CONVERT_TO_LINEAR -where "eindregistratie is NULL" --config GML_GFS_TEMPLATE bgt_wegdeel.gfs -f GPKG bgt_wegdeel.gpkg bgt_wegdeel.gml
 ogr2ogr -nlt CONVERT_TO_LINEAR -where "eindregistratie is NULL" --config GML_GFS_TEMPLATE bgt_begroeidterreindeel.gfs -f GPKG bgt_begroeidterreindeel.gpkg bgt_begroeidterreindeel.gml

@@ -56,19 +56,19 @@ install:
   - 7z x gmp.zip -aoa -oC:\deps\CGAL-4.8\auxiliary > nul
   
   - cd C:\deps\CGAL-4.8
-  - cmake -G "Visual Studio 14 2015 Win64" -H.\ -B.\build -DBUILD_SHARED_LIBS=OFF -DBoost_USE_STATIC_LIBS=ON
+  - cmake -G "Visual Studio 14 2015 Win64" -H.\ -B.\ -DBUILD_SHARED_LIBS=OFF -DBoost_USE_STATIC_LIBS=ON
   
   - set PATH=C:\deps\CGAL-4.8;%PATH%
   - set CGAL_DIR=C:\deps\CGAL-4.8\
 
-  - msbuild "%CGAL_DIR%\build\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - copy /Y "%CGAL_DIR%\build\lib\Release\libCGAL_Core-vc140-mt-4.8.lib" "%CGAL_DIR%\build\lib"
-  - msbuild "%CGAL_DIR%\build\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - copy /Y "%CGAL_DIR%\build\lib\Debug\libCGAL_Core-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\build\lib"
-  - msbuild "%CGAL_DIR%\build\src\CGAL\CGAL.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - copy /Y "%CGAL_DIR%\build\lib\Release\libCGAL-vc140-mt-4.8.lib" "%CGAL_DIR%\build\lib"  
-  - msbuild "%CGAL_DIR%\build\src\CGAL\CGAL.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  - copy /Y "%CGAL_DIR%\build\lib\Debug\libCGAL-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\build\lib"
+  - msbuild "%CGAL_DIR%\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - copy /Y "%CGAL_DIR%\lib\Release\libCGAL_Core-vc140-mt-4.8.lib" "%CGAL_DIR%\lib"
+  - msbuild "%CGAL_DIR%\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - copy /Y "%CGAL_DIR%\lib\Debug\libCGAL_Core-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\lib"
+  - msbuild "%CGAL_DIR%\src\CGAL\CGAL.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - copy /Y "%CGAL_DIR%\lib\Release\libCGAL-vc140-mt-4.8.lib" "%CGAL_DIR%\lib"  
+  - msbuild "%CGAL_DIR%\src\CGAL\CGAL.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - copy /Y "%CGAL_DIR%\lib\Debug\libCGAL-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\lib"
 build:
   project: vs_build\3dfier.sln
   verbosity: minimal

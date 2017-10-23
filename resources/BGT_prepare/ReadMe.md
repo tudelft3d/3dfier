@@ -5,15 +5,8 @@ OGR is used to only select polygonal geometries and stroke CurvePolygons, it als
 Usage:
 - Extract the BGT GML files in a folder
 - Copy all GFS files from "BGT gfs files" into the same folder
-- Make sure all GFS files are newer then the GML files (assure this by editing all GFS files, add/remove a character, save, restore character, save)
 - Run BGT_conversion.bat (or the commands within if on Linux/Mac)
-- Use generated sqlite files as input to 3dfier
-
-Usage Windows:
-- Extract the BGT GML files in a folder
-- Copy all GFS files from "BGT gfs files" into the same folder
-- Run BGT_conversion_full.bat (this script is a combination of BGT_fix_srs_win.bat, BGT_fix_gfs_date_win.bat and BGT_conversion.bat)
-- Use generated sqlite files as input to 3dfier
+- Use generated GPKG files as input to 3dfier
 
 Known issues:
 * Sqlite doesn't support dashes in column names (IMGeo atrributes) thus for IMGeo output we changed to conversion to GeoPackage
