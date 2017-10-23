@@ -1163,13 +1163,9 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
   //-- Buildings involved
   if ((f1->get_class() == BUILDING) || (f2->get_class() == BUILDING)) {
     if ((f1->get_class() == BUILDING) && (f2->get_class() == BUILDING)) {
-      //- add a wall to the heighest feature
-      if (f1z > f2z) {
-        f1->add_vertical_wall();
-      }
-      else if (f2z > f1z) {
-        f2->add_vertical_wall();
-      }
+      // add a wall to both buildings
+      f1->add_vertical_wall();
+      f2->add_vertical_wall();
       _nc[key_bucket].push_back(f1z);
       _nc[key_bucket].push_back(f2z);
       int f1base = dynamic_cast<Building*>(f1)->get_height_base();
