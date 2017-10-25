@@ -1,13 +1,6 @@
 
 # 3dfier2sim
                                             
- ___   _ ___ _         ___     _       
-|_  |_| |  _|_|___ ___|_  |___|_|_____ 
-|_  | . |  _| | -_|  _|  _|_ -| |     |
-|___|___|_| |_|___|_| |___|___|_|_|_|_|
-                                       
-
- 
 Small utility program to convert the output of 3dfier to a mesh that can be used directly (in most cases! we can't guarantee it) as input in [ANSYS](http://www.ansys.com/) software to perform simulation.
 
 Main operations performed:
