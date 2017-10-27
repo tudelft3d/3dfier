@@ -55,7 +55,3 @@ output:
   format: OBJ # OBJ-NoID, OBJ-BUILDINGS, CityGML, CSV-BUILDINGS or Shapefile
   building_floor: false
   vertical_exaggeration: 3
-
-buildings:
-  horizontal_floor: true
-  triangulated: false
