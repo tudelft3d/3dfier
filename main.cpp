@@ -220,7 +220,7 @@ int main(int argc, const char * argv[]) {
       uniqueid = (*it)["uniqueid"].as<std::string>();
     }
     // Get the correct height attribute
-    std::string heightfield = "hoogtenive";
+    std::string heightfield = "heightfield";
     if ((*it)["height_field"]) {
       heightfield = (*it)["height_field"].as<std::string>();
     }

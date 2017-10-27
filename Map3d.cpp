@@ -664,7 +664,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
       return false;
     }
     if (dataLayer->FindFieldIndex(heightfield, false) == -1) {
-      std::cerr << "ERROR: field '" << heightfield << "' not found in layer '" << l.first << "', using all polygons.\n";
+      std::clog << "Warning: field '" << heightfield << "' not found in layer '" << l.first << "', using all polygons.\n";
     }
     dataLayer->ResetReading();
     unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
