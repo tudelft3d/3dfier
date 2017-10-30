@@ -484,7 +484,14 @@ void print_license() {
 }
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
-  YAML::Node nodes = YAML::LoadFile(arg);
+  YAML::Node nodes;
+  try {
+     nodes = YAML::LoadFile(arg);
+  }
+  catch(const std::exception&) {
+    std::cerr << "ERROR: YAML structure of config is invalid.\n";
+    return false;
+  }
   bool wentgood = true;
   //-- 1. input polygons classes
   YAML::Node n = nodes["input_polygons"];
