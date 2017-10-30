@@ -52,6 +52,38 @@ We expect the LAS/LAZ to be classified according to the ASPRS Standard LIDAR Poi
 
 If the vegetation is not classified or not filtered out, then buildings might be taller and there might be artefacts in the terrain.
 
+## Binary releases for Windows and Mac OS X
+
+In order to make easy use of 3dfier we created pre-build binaries which can be downloaded from the [releases page](https://github.com/tudelft3d/3dfier/releases). 
+
+Download the latest release and unzip the archive in a easy to find location, not in the download folder of your browser. 
+
+To be able to quickly test 3dfier one can download the [example dataset](https://github.com/tudelft3d/3dfier/releases/tag/example_data) and unzip the archive in the folder of 3dfier. 
+
+## Test data
+
+In the folder `example_data` (download [example dataset](https://github.com/tudelft3d/3dfier/releases/tag/example_data)) there is a small part of the [BGT datasets](http://www.kadaster.nl/web/Themas/Registraties/BGT.htm) (2D 1:1k topographic datasets of the Netherlands), and a part of the [AHN3 LIDAR dataset](https://www.pdok.nl/nl/ahn3-downloads) that can be used for testing. 
+The resulting model (in OBJ) can be found in `example_data/output/test_area.obj`
+
+Further, there is an [open data website](https://3d.bk.tudelft.nl/opendata/3dfier/) that contains 3D models of a few Dutch cities, generated with 3dfier.
+
+## Validate config file
+The configuration is stored in [YAML format](http://docs.ansible.com/ansible/latest/YAMLSyntax.html) and needs to be valid for the parser to read the file. Config files can be schema validated using [YAML Lint](http://www.yamllint.com)
+
+## Run 3dfier:
+**Windows** 
+Open a command line (click start and type `command` or `cmd`). Using the command line browse to the folder where you extracted the example files and run:
+`3dfier myconfig.yml -o output.ext`
+
+**Mac OS X and Linux**
+Open a console. Using the console browse to the folder where you extracted the example files and run:
+`$ ./3dfier myconfig.yml -o output.ext`
+
+There is also a [tutorial](https://github.com/tudelft3d/3dfier/wiki/General-3dfier-tutorial-to-generate-LOD1-models) on how to generate a 3D model with 3dfier.
+
+## Prepare BGT data
+For preparing BGT data as input for 3dfier look at [resources/BGT_prepare/ReadMe.md](https://github.com/tudelft3d/3dfier/blob/master/resources/BGT_prepare/ReadMe.md)
+
 ## Compiling Mac OS X/Linux
 
 To build you'll normally do (from 3dfier root directory):
@@ -77,28 +109,17 @@ The dependencies that are necessary (under Mac we suggest using [Homebrew](http:
 
 For Linux we suggest taking a look at the travis build scripts for Ubuntu.
 
-## Compiling Windows 10 using Visual Studio
+## Compiling Windows using Visual Studio
 
-1. Download and install Boost precompiled binaries https://sourceforge.net/projects/boost/files/boost-binaries (`Visual Studio 2015, 64-bit; boost_1_62_0-msvc-14.0-64.exe`)
-2. Download and install OSGeo4W64 https://trac.osgeo.org/osgeo4w/
-3. Compile your own copies of Yaml-cpp and CGAL
-4. Set the path to the include folders in `Project->C/C++->General->Additional Include Directories`
-5. Set the path to the boost binaries in `Project->Linker->General->Additional Library Directories`
-6. Set the path to other libraries in `Project->Linker->Input->Additional Dependencies`
-7. Build solution
-
-## To run:
-
-`$ ./3dfier myconfig.yml -o output.ext`
-
-There is also a [tutorial](https://github.com/tudelft3d/3dfier/wiki/General-3dfier-tutorial-to-generate-LOD1-models) on how to generate a 3D model with 3dfier.
-
-## Test data
-
-In the folder `example_data` there is a small part of the [BGT datasets](http://www.kadaster.nl/web/Themas/Registraties/BGT.htm) (2D 1:1k topographic datasets of the Netherlands), and a part of the [AHN3 LIDAR dataset](https://www.pdok.nl/nl/ahn3-downloads) that can be used for testing. 
-The resulting model (in OBJ) can be found in `example_data/output/test_area.obj`
-
-Further, there is an [open data website](https://3d.bk.tudelft.nl/opendata/3dfier/) that contains 3D models of a few Dutch cities, generated with 3dfier.
-
-## Prepare BGT data
-For preparing BGT data as input for 3dfier look at [resources/BGT_prepare/ReadMe.md](https://github.com/tudelft3d/3dfier/blob/master/resources/BGT_prepare/ReadMe.md)
+1. Download and install [Boost precompiled binaries](https://sourceforge.net/projects/boost/files/boost-binaries) (tested with `Visual Studio 2015, 64-bit; boost_1_62_0-msvc-14.0-64.exe`)
+2. Download and install [OSGeo4W](https://trac.osgeo.org/osgeo4w)
+3. Compile your own copies of [Yaml-cpp](https://github.com/jbeder/yaml-cpp) and [CGAL](https://www.cgal.org)
+4. Add environment variables for:
+5. - `OSGEO4W_ROOT` (set by OSGeo4W installer)
+    - `BOOST_ROOT` (root of the boost directory)
+    - `BOOST_LIBRARYDIR` (dir of the boost lib files)
+    - `LIBLAS_ROOT` (same as OSGEO4W_ROOT if that liblas is used)
+    - `LASZIP_ROOT` (same as OSGEO4W_ROOT if that liblas is used)
+    - `YAML-CPP_DIR` (root of the Yaml-cpp directory)
+    - `CGAL_DIR` (root of the CGAL directory)
+5. Build solution using Visual Studio
