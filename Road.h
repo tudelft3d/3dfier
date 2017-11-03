@@ -36,10 +36,10 @@ public:
   Road(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref);
   bool                lift();
   bool                add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
-  void                get_citygml(std::ofstream& of);
-  void                get_citygml_imgeo(std::ofstream& of);
+  void                get_citygml(std::ostream& of);
+  void                get_citygml_imgeo(std::ostream& of);
   std::string         get_mtl();
-  bool                get_shape(OGRLayer* layer, bool writeAttributes);
+  bool                get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes = AttributeMap());
   static float        _heightref;
   TopoClass           get_class();
   bool                is_hard();

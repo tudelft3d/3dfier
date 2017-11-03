@@ -117,7 +117,7 @@ bool Building::is_hard() {
   return true;
 }
 
-void Building::get_csv(std::ofstream& of) {
+void Building::get_csv(std::ostream& of) {
   of << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << "\n";
 }
 
@@ -168,33 +168,33 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   }
 }
 
-void Building::get_citygml(std::ofstream& of) {
+void Building::get_citygml(std::ostream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
-  of << "<cityObjectMember>\n";
-  of << "<bldg:Building gml:id=\"" << this->get_id() << "\">\n";
+  of << "<cityObjectMember>";
+  of << "<bldg:Building gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
-  of << "<gen:measureAttribute name=\"min height surface\">\n";
-  of << "<gen:value uom=\"#m\">" << hbase << "</gen:value>\n";
-  of << "</gen:measureAttribute>\n";
-  of << "<bldg:measuredHeight uom=\"#m\">" << h << "</bldg:measuredHeight>\n";
+  of << "<gen:measureAttribute name=\"min height surface\">";
+  of << "<gen:value uom=\"#m\">" << hbase << "</gen:value>";
+  of << "</gen:measureAttribute>";
+  of << "<bldg:measuredHeight uom=\"#m\">" << h << "</bldg:measuredHeight>";
   //-- LOD0 footprint
-  of << "<bldg:lod0FootPrint>\n";
-  of << "<gml:MultiSurface>\n";
+  of << "<bldg:lod0FootPrint>";
+  of << "<gml:MultiSurface>";
   get_polygon_lifted_gml(of, this->_p2, hbase, true);
-  of << "</gml:MultiSurface>\n";
-  of << "</bldg:lod0FootPrint>\n";
+  of << "</gml:MultiSurface>";
+  of << "</bldg:lod0FootPrint>";
   //-- LOD0 roofedge
-  of << "<bldg:lod0RoofEdge>\n";
-  of << "<gml:MultiSurface>\n";
+  of << "<bldg:lod0RoofEdge>";
+  of << "<gml:MultiSurface>";
   get_polygon_lifted_gml(of, this->_p2, h, true);
-  of << "</gml:MultiSurface>\n";
-  of << "</bldg:lod0RoofEdge>\n";
+  of << "</gml:MultiSurface>";
+  of << "</bldg:lod0RoofEdge>";
   //-- LOD1 Solid
-  of << "<bldg:lod1Solid>\n";
-  of << "<gml:Solid>\n";
-  of << "<gml:exterior>\n";
-  of << "<gml:CompositeSurface>\n";
+  of << "<bldg:lod1Solid>";
+  of << "<gml:Solid>";
+  of << "<gml:exterior>";
+  of << "<gml:CompositeSurface>";
   //-- get floor
   get_polygon_lifted_gml(of, this->_p2, hbase, false);
   //-- get roof
@@ -212,28 +212,28 @@ void Building::get_citygml(std::ofstream& of) {
       get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
     get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   }
-  of << "</gml:CompositeSurface>\n";
-  of << "</gml:exterior>\n";
-  of << "</gml:Solid>\n";
-  of << "</bldg:lod1Solid>\n";
-  of << "</bldg:Building>\n";
-  of << "</cityObjectMember>\n";
+  of << "</gml:CompositeSurface>";
+  of << "</gml:exterior>";
+  of << "</gml:Solid>";
+  of << "</bldg:lod1Solid>";
+  of << "</bldg:Building>";
+  of << "</cityObjectMember>";
 }
 
-void Building::get_citygml_imgeo(std::ofstream& of) {
+void Building::get_citygml_imgeo(std::ostream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
-  of << "<cityObjectMember>\n";
-  of << "<bui:Building gml:id=\"" << this->get_id() << "\">\n";
+  of << "<cityObjectMember>";
+  of << "<bui:Building gml:id=\"" << this->get_id() << "\">";
   //-- store building information
   get_imgeo_object_info(of, this->get_id());
-  of << "<bui:consistsOfBuildingPart>\n";
-  of << "<bui:BuildingPart>\n";
+  of << "<bui:consistsOfBuildingPart>";
+  of << "<bui:BuildingPart>";
   //-- LOD1 Solid
-  of << "<bui:lod1Solid>\n";
-  of << "<gml:Solid>\n";
-  of << "<gml:exterior>\n";
-  of << "<gml:CompositeSurface>\n";
+  of << "<bui:lod1Solid>";
+  of << "<gml:Solid>";
+  of << "<gml:exterior>";
+  of << "<gml:CompositeSurface>";
   //-- get floor
   get_polygon_lifted_gml(of, this->_p2, hbase, false);
   //-- get roof
@@ -251,22 +251,22 @@ void Building::get_citygml_imgeo(std::ofstream& of) {
       get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
     get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   }
-  of << "</gml:CompositeSurface>\n";
-  of << "</gml:exterior>\n";
-  of << "</gml:Solid>\n";
-  of << "</bui:lod1Solid>\n";
+  of << "</gml:CompositeSurface>";
+  of << "</gml:exterior>";
+  of << "</gml:Solid>";
+  of << "</bui:lod1Solid>";
   std::string attribute;
   if (get_attribute("identificatiebagpnd", attribute)) {
-    of << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>\n";
+    of << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>";
   }
   get_imgeo_nummeraanduiding(of);
-  of << "</bui:BuildingPart>\n";
-  of << "</bui:consistsOfBuildingPart>\n";
-  of << "</bui:Building>\n";
-  of << "</cityObjectMember>\n";
+  of << "</bui:BuildingPart>";
+  of << "</bui:consistsOfBuildingPart>";
+  of << "</bui:Building>";
+  of << "</cityObjectMember>";
 }
 
-void Building::get_imgeo_nummeraanduiding(std::ofstream& of) {
+void Building::get_imgeo_nummeraanduiding(std::ostream& of) {
   std::string attribute;
   bool btekst, bplaatsingspunt, bhoek, blaagnr, bhoognr;
   std::string tekst, plaatsingspunt, hoek, laagnr, hoognr;
@@ -297,32 +297,32 @@ void Building::get_imgeo_nummeraanduiding(std::ofstream& of) {
     int count = boost::lexical_cast<int>(tekst[1]);
     for (int i = 0; i < count; i++) {
       if (i < tekst_split.size() && i < plaatsingspunt_split.size() && i < hoek_split.size()) {
-        of << "<imgeo:nummeraanduidingreeks>\n";
-        of << "<imgeo:Nummeraanduidingreeks>\n";
-        of << "<imgeo:nummeraanduidingreeks>\n";
-        of << "<imgeo:Label>\n";
-        of << "<imgeo:tekst>" << tekst_split.at(i) << "</imgeo:tekst>\n";
-        of << "<imgeo:positie>\n";
-        of << "<imgeo:Labelpositie>\n";
-        of << "<imgeo:plaatsingspunt><gml:Point srsDimension=\"2\"><gml:pos>" << plaatsingspunt_split.at(i) << "</gml:pos></gml:Point></imgeo:plaatsingspunt>\n";
-        of << "<imgeo:hoek>" << hoek_split.at(i) << "</imgeo:hoek>\n";
-        of << "</imgeo:Labelpositie>\n";
-        of << "</imgeo:positie>\n";
-        of << "</imgeo:Label>\n";
-        of << "</imgeo:nummeraanduidingreeks>\n";
+        of << "<imgeo:nummeraanduidingreeks>";
+        of << "<imgeo:Nummeraanduidingreeks>";
+        of << "<imgeo:nummeraanduidingreeks>";
+        of << "<imgeo:Label>";
+        of << "<imgeo:tekst>" << tekst_split.at(i) << "</imgeo:tekst>";
+        of << "<imgeo:positie>";
+        of << "<imgeo:Labelpositie>";
+        of << "<imgeo:plaatsingspunt><gml:Point srsDimension=\"2\"><gml:pos>" << plaatsingspunt_split.at(i) << "</gml:pos></gml:Point></imgeo:plaatsingspunt>";
+        of << "<imgeo:hoek>" << hoek_split.at(i) << "</imgeo:hoek>";
+        of << "</imgeo:Labelpositie>";
+        of << "</imgeo:positie>";
+        of << "</imgeo:Label>";
+        of << "</imgeo:nummeraanduidingreeks>";
         if (i < laagnr_split.size()) {
-          of << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << laagnr_split.at(i) << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>\n";
+          of << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << laagnr_split.at(i) << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>";
         }
         if (i < hoognr_split.size()) {
-          of << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << hoognr_split.at(i) << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>\n";
+          of << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << hoognr_split.at(i) << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>";
         }
-        of << "</imgeo:Nummeraanduidingreeks>\n";
-        of << "</imgeo:nummeraanduidingreeks>\n";
+        of << "</imgeo:Nummeraanduidingreeks>";
+        of << "</imgeo:nummeraanduidingreeks>";
       }
     }
   }
 }
 
-bool Building::get_shape(OGRLayer* layer, bool writeAttributes) {
-  return TopoFeature::get_multipolygon_features(layer, "Building", writeAttributes, true, this->get_height_base(), this->get_height());
+bool Building::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+  return TopoFeature::get_multipolygon_features(layer, "Building", writeAttributes, extraAttributes, true, this->get_height_base(), this->get_height());
 }

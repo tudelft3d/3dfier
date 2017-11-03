@@ -59,48 +59,48 @@ bool Terrain::lift() {
   return true;
 }
 
-void Terrain::get_citygml(std::ofstream& of) {
-  of << "<cityObjectMember>\n";
-  of << "<luse:LandUse gml:id=\"" << this->get_id() << "\">\n";
+void Terrain::get_citygml(std::ostream& of) {
+  of << "<cityObjectMember>";
+  of << "<luse:LandUse gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
-  of << "<luse:lod1MultiSurface>\n";
-  of << "<gml:MultiSurface>\n";
+  of << "<luse:lod1MultiSurface>";
+  of << "<gml:MultiSurface>";
   for (auto& t : _triangles)
     get_triangle_as_gml_surfacemember(of, t);
   for (auto& t : _triangles_vw)
     get_triangle_as_gml_surfacemember(of, t, true);
-  of << "</gml:MultiSurface>\n";
-  of << "</luse:lod1MultiSurface>\n";
-  of << "</luse:LandUse>\n";
-  of << "</cityObjectMember>\n";
+  of << "</gml:MultiSurface>";
+  of << "</luse:lod1MultiSurface>";
+  of << "</luse:LandUse>";
+  of << "</cityObjectMember>";
 }
 
-void Terrain::get_citygml_imgeo(std::ofstream& of) {
-  of << "<cityObjectMember>\n";
-  of << "<imgeo:OnbegroeidTerreindeel gml:id=\"" << this->get_id() << "\">\n";
+void Terrain::get_citygml_imgeo(std::ostream& of) {
+  of << "<cityObjectMember>";
+  of << "<imgeo:OnbegroeidTerreindeel gml:id=\"" << this->get_id() << "\">";
   get_imgeo_object_info(of, this->get_id());
-  of << "<lu:lod1MultiSurface>\n";
-  of << "<gml:MultiSurface>\n";
+  of << "<lu:lod1MultiSurface>";
+  of << "<gml:MultiSurface>";
   for (auto& t : _triangles)
     get_triangle_as_gml_surfacemember(of, t);
   for (auto& t : _triangles_vw)
     get_triangle_as_gml_surfacemember(of, t, true);
-  of << "</gml:MultiSurface>\n";
-  of << "</lu:lod1MultiSurface>\n";
+  of << "</gml:MultiSurface>";
+  of << "</lu:lod1MultiSurface>";
   std::string attribute;
   if (get_attribute("bgt-fysiekvoorkomen", attribute)) {
-    of << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" << attribute /*"erf"*/ << "</imgeo:bgt-fysiekVoorkomen>\n";
+    of << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" << attribute /*"erf"*/ << "</imgeo:bgt-fysiekVoorkomen>";
   }
   if (get_attribute("onbegroeidterreindeeloptalud", attribute, "false")) {
-    of << "<imgeo:onbegroeidTerreindeelOpTalud>" << attribute << "</imgeo:onbegroeidTerreindeelOpTalud>\n";
+    of << "<imgeo:onbegroeidTerreindeelOpTalud>" << attribute << "</imgeo:onbegroeidTerreindeelOpTalud>";
   }
   if (get_attribute("plus-fysiekvoorkomen", attribute)) {
-    of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>\n";
+    of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>";
   }
-  of << "</imgeo:OnbegroeidTerreindeel>\n";
-  of << "</cityObjectMember>\n";
+  of << "</imgeo:OnbegroeidTerreindeel>";
+  of << "</cityObjectMember>";
 }
 
-bool Terrain::get_shape(OGRLayer* layer, bool writeAttributes) {
-  return TopoFeature::get_multipolygon_features(layer, "Terrain", writeAttributes);
+bool Terrain::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+  return TopoFeature::get_multipolygon_features(layer, "Terrain", writeAttributes, extraAttributes);
 }
