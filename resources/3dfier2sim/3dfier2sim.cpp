@@ -1,4 +1,38 @@
 
+/*
+ ___   _ ___ _         ___     _       
+|_  |_| |  _|_|___ ___|_  |___|_|_____ 
+|_  | . |  _| | -_|  _|  _|_ -| |     |
+|___|___|_| |_|___|_| |___|___|_|_|_|_|
+                                       
+
+  3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
+
+  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+
+  This file is part of 3dfier.
+
+  3dfier is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  3dfier is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with 3difer.  If not, see <http://www.gnu.org/licenses/>.
+
+  For any information or further details about the use of 3dfier, contact
+  Hugo Ledoux
+  <h.ledoux@tudelft.nl>
+  Faculty of Architecture & the Built Environment
+  Delft University of Technology
+  Julianalaan 134, Delft 2628BL, the Netherlands
+*/
+
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/Polygon_mesh_processing/compute_normal.h>
@@ -113,7 +147,6 @@ int main(int argc, char* argv[])
   std::cout << std::endl;
 
   //-- calculate the bbox
-  double tmpx, tmpy;
   double minx = 9e10;
   double miny = 9e10;
   double maxx = -9e10;
@@ -241,5 +274,5 @@ int main(int argc, char* argv[])
   out << mesh;
   out.close(); 
  
-  return (1);
+  return (0);
 }

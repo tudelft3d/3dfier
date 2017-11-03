@@ -734,7 +734,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
       return false;
     }
     if (dataLayer->FindFieldIndex(heightfield, false) == -1) {
-      std::cerr << "ERROR: field '" << heightfield << "' not found in layer '" << l.first << "', using all polygons.\n";
+      std::clog << "Warning: field '" << heightfield << "' not found in layer '" << l.first << "', using all polygons.\n";
     }
     dataLayer->ResetReading();
     unsigned int numberOfPolygons = dataLayer->GetFeatureCount(true);
@@ -754,6 +754,8 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
       useRequestedExtent = true;
     }
 
+    int numSplitMulti = 0;
+    int numSplitPoly = 0;
     while ((f = dataLayer->GetNextFeature()) != NULL) {
       OGRGeometry *geometry = f->GetGeometryRef();
       if (!geometry->IsValid()) {
@@ -786,7 +788,8 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
               cf->SetGeometry((OGRPolygon*)multipolygon->getGeometryRef(i));
               extract_feature(cf, layerName, idfield, heightfield, l.second, multiple_heights);
             }
-            std::clog << "\t(MultiPolygon split into " << numGeom << " Polygons)\n";
+            numSplitMulti++;
+            numSplitPoly += numGeom;
           }
           break;
         }
@@ -795,6 +798,9 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
         }
         }
       }
+    }
+    if (numSplitMulti > 0) {
+      std::clog << "\tSplit " << numSplitMulti << " MultiPolygon(s) into " << numSplitPoly << " Polygon(s)\n";
     }
     wentgood = true;
   }

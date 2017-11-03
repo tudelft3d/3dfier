@@ -50,7 +50,11 @@ std::string Bridge::get_mtl() {
 
 bool Bridge::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (lastreturn == true && lasclass != LAS_BUILDING && lasclass != LAS_WATER) {
-    Flat::add_elevation_point(p, z, radius, lasclass, lastreturn);
+    if (point_in_polygon(p, *(_p2))) {
+      int zcm = int(z * 100);
+      //-- 1. assign to polygon since within the threshold value (buffering of polygon)
+      _zvaluesinside.push_back(zcm);
+    }
   }
   return true;
 }
