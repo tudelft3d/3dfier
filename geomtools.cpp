@@ -37,7 +37,6 @@
 #include <iostream>
 
 #include <vector>
-#include <string>
 
 struct FaceInfo2
 {
@@ -61,7 +60,7 @@ typedef CGAL::Polygon_2<Gt>											Polygon_2;
 
 typedef std::map<CDT::Vertex_handle, double> Vertex_map; // a vertex and an error
 double estimateZ_LIN(CDT &dt, CDT::Vertex_handle);
-void updateCache(CDT &dt, Vertex_map &vmap, CDT::Vertex_handle v);  
+void updateMap(CDT &dt, Vertex_map &vmap, CDT::Vertex_handle v);  
 void simplify(CDT &dt, double treshold);
 
 
@@ -239,7 +238,7 @@ double estimateZ_LIN(CDT &dt, CDT::Vertex_handle v)
   return - plane.a()/plane.c() * q.x() - plane.b()/plane.c()*q.y() - plane.d()/plane.c();
 }
 
-void updateCache(CDT &dt, Vertex_map &vmap, CDT::Vertex_handle v)
+void updateMap(CDT &dt, Vertex_map &vmap, CDT::Vertex_handle v)
 {
   // check if vertex v is not in a constrained edge or on the convex hull
   CDT::Face_circulator iFace = dt.incident_faces(v), done(iFace);
@@ -256,6 +255,7 @@ void updateCache(CDT &dt, Vertex_map &vmap, CDT::Vertex_handle v)
   vmap[v] = std::fabs(e);
 }
 
+// TIN simplification algorithm based on article "A drop heuristic conversion method for extracting irregular network for digital elevation models" by J Lee (1989)
 void simplify(CDT &dt, double treshold)
 {
   Vertex_map vmap;
@@ -264,7 +264,7 @@ void simplify(CDT &dt, double treshold)
    
   // compute initial errors for all vertices
   for( CDT::Finite_vertices_iterator vit=dt.finite_vertices_begin() ; vit != dt.finite_vertices_end(); ++vit ) {
-      updateCache(dt, vmap, vit);
+      updateMap(dt, vmap, vit);
   }
   
   // drop vertices from triangulation until error threshold is violated
@@ -300,7 +300,7 @@ void simplify(CDT &dt, double treshold)
     
     //update vmap for neighbours
     for(std::vector<CDT::Vertex_handle>::iterator iVertex = neighbours.begin(); iVertex != neighbours.end(); ++iVertex){
-      updateCache(dt, vmap, *iVertex);
+      updateMap(dt, vmap, *iVertex);
     }
 
     //stop in case there are no more vertices left
