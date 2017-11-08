@@ -36,6 +36,9 @@
 #include <CGAL/Polygon_2.h>
 #include <iostream>
 
+#include <vector>
+#include <string>
+
 struct FaceInfo2
 {
   FaceInfo2() {}
@@ -55,6 +58,12 @@ typedef CGAL::Exact_predicates_tag									Itag;
 typedef CGAL::Constrained_Delaunay_triangulation_2<Gt, Tds, Itag>	CDT;
 typedef CDT::Point													Point;
 typedef CGAL::Polygon_2<Gt>											Polygon_2;
+
+typedef std::map<CDT::Vertex_handle, double> Vertex_map; // a vertex and an error
+double estimateZ_LIN(CDT &dt, CDT::Vertex_handle);
+void updateCache(CDT &dt, Vertex_map &vmap, CDT::Vertex_handle v);  
+void simplify(CDT &dt, double treshold);
+
 
 bool triangle_contains_segment(Triangle t, int a, int b) {
   if ((t.v0 == a) && (t.v1 == b))
@@ -148,8 +157,12 @@ bool getCDT(const Polygon2* pgn,
   }
 
   //-- add the lidar points to the CDT, if any
-  for (auto &pt : lidarpts) {
-    cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
+  if (lidarpts.size() > 0) {
+    for (auto &pt : lidarpts) {
+      cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
+    } 
+    //-- simplify lidar points
+    simplify(cdt, 0.1);
   }
 
   //Mark facets that are inside the domain bounded by the polygon
@@ -199,4 +212,99 @@ std::string gen_key_bucket(Point3* p, int z) {
   char* buf = new char[50];
   std::sprintf(buf, "%.3f %.3f %d", p->get<0>(), p->get<1>(), z);
   return buf;
+}
+
+
+//--- TIN Simplification
+
+// estimate the depth on (x,y) position of vertex v after removal of that vertex, using Linear interpolation.
+double estimateZ_LIN(CDT &dt, CDT::Vertex_handle v)
+{
+  Point p1,p2,p3,q = v->point();
+  
+  CDT t2;
+  CDT::Vertex_circulator vc = dt.incident_vertices(v), done(vc);
+  do{
+    if(!dt.is_infinite(vc))
+      t2.insert(vc->point());
+  } while(++vc!=done);
+  
+  CDT::Face_handle face = t2.locate(q);
+
+  p1 = face->vertex(0)->point();
+  p2 = face->vertex(1)->point();
+  p3 = face->vertex(2)->point();
+  CGAL::Plane_3<K> plane(p1,p2,p3);
+  
+  return - plane.a()/plane.c() * q.x() - plane.b()/plane.c()*q.y() - plane.d()/plane.c();
+}
+
+void updateCache(CDT &dt, Vertex_map &vmap, CDT::Vertex_handle v)
+{
+  // check if vertex v is not in a constrained edge or on the convex hull
+  CDT::Face_circulator iFace = dt.incident_faces(v), done(iFace);
+  do{
+    int vi = iFace->index(v);
+    if(iFace->is_constrained(CDT::cw(vi)) or iFace->is_constrained(CDT::ccw(vi))) 
+      return;
+    if(iFace->has_vertex(dt.infinite_vertex()))
+      return;
+  } while(++iFace != done);
+
+  // Compute and store vertical error
+  double e = v->point().z() - estimateZ_LIN(dt, v);
+  vmap[v] = std::fabs(e);
+}
+
+void simplify(CDT &dt, double treshold)
+{
+  Vertex_map vmap;
+  double min_error = treshold-1;
+  CDT::Vertex_handle min_error_vertex;
+   
+  // compute initial errors for all vertices
+  for( CDT::Finite_vertices_iterator vit=dt.finite_vertices_begin() ; vit != dt.finite_vertices_end(); ++vit ) {
+      updateCache(dt, vmap, vit);
+  }
+  
+  // drop vertices from triangulation until error threshold is violated
+  int numberOfDroppedPoints = 0;
+  while(true) {
+    //find vertex with smallest error
+    Vertex_map::iterator currentPosIt = vmap.begin();
+    min_error = treshold;
+    for (Vertex_map::iterator it = vmap.begin(); it != vmap.end(); ++it) {
+        if (min_error >= it->second) {
+          min_error = it->second;
+          min_error_vertex = it->first;
+          currentPosIt = it;
+        }
+    }
+    
+    //stop in case the threshold is reached
+    if (min_error == treshold)
+      break;
+
+    //store its neighbours
+    CDT::Vertex_circulator iVertex = dt.incident_vertices(min_error_vertex), done(iVertex);
+    std::vector<CDT::Vertex_handle> neighbours;
+    do{
+      if(!dt.is_infinite(iVertex))
+        neighbours.push_back(iVertex);
+    } while(++iVertex != done);
+    
+    //remove vertex
+    dt.remove(min_error_vertex);
+    vmap.erase(min_error_vertex);
+    numberOfDroppedPoints++;
+    
+    //update vmap for neighbours
+    for(std::vector<CDT::Vertex_handle>::iterator iVertex = neighbours.begin(); iVertex != neighbours.end(); ++iVertex){
+      updateCache(dt, vmap, *iVertex);
+    }
+
+    //stop in case there are no more vertices left
+    if(vmap.size()==0)
+      break;
+  }
 }
