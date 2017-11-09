@@ -32,8 +32,8 @@
 
 bool Forest::_use_ground_points_only = false;
 
-Forest::Forest(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
-  : TIN(wkt, layername, attributes, pid, simplification, innerbuffer)
+Forest::Forest(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer, bool ground_points_only)
+  : TIN(wkt, layername, attributes, pid, simplification, simplification_tinsimp, innerbuffer)
 {
   _use_ground_points_only = ground_points_only;
 }

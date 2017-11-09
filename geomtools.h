@@ -41,6 +41,7 @@ bool getCDT(const Polygon2* pgn,
             const std::vector< std::vector<int> > &z, 
             std::vector< std::pair<Point3, std::string> > &vertices, 
             std::vector<Triangle> &triangles, 
-            const std::vector<Point3> &lidarpts = std::vector<Point3>());
+            const std::vector<Point3> &lidarpts = std::vector<Point3>(),
+            double tinsimp_threshold=0);
 
 #endif /* geomtools_h */

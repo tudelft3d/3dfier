@@ -83,6 +83,8 @@ public:
   void set_building_lod(int lod);
   void set_terrain_simplification(int simplification);
   void set_forest_simplification(int simplification);
+  void set_terrain_simplification_tinsimp(double tinsimp_threshold);
+  void set_forest_simplification_tinsimp(double tinsimp_threshold);
   void set_terrain_innerbuffer(float innerbuffer);
   void set_forest_innerbuffer(float innerbuffer);
   void set_forest_ground_points_only(bool only_ground_points);
@@ -104,6 +106,8 @@ private:
   bool        _use_vertical_walls;
   int         _terrain_simplification;
   int         _forest_simplification;
+  double       _terrain_simplification_tinsimp;
+  double       _forest_simplification_tinsimp;
   float       _terrain_innerbuffer;
   float       _forest_innerbuffer;
   bool        _forest_ground_points_only;

@@ -61,7 +61,7 @@ typedef CGAL::Polygon_2<Gt>											Polygon_2;
 typedef std::map<CDT::Vertex_handle, double> Vertex_map; // a vertex and an error
 double estimateZ_LIN(CDT &dt, CDT::Vertex_handle);
 void updateMap(CDT &dt, Vertex_map &vmap, CDT::Vertex_handle v);  
-void simplify(CDT &dt, double treshold);
+void simplify(CDT &dt, double threshold);
 
 
 bool triangle_contains_segment(Triangle t, int a, int b) {
@@ -126,7 +126,8 @@ bool getCDT(const Polygon2* pgn,
   const std::vector< std::vector<int> > &z,
   std::vector< std::pair<Point3, std::string> > &vertices,
   std::vector<Triangle> &triangles,
-  const std::vector<Point3> &lidarpts) {
+  const std::vector<Point3> &lidarpts,
+  double tinsimp_threshold) {
   CDT cdt;
 
   Ring2 oring = bg::exterior_ring(*pgn);
@@ -161,7 +162,8 @@ bool getCDT(const Polygon2* pgn,
       cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
     } 
     //-- simplify lidar points
-    simplify(cdt, 0.1);
+    if (tinsimp_threshold != 0)
+      simplify(cdt, tinsimp_threshold);
   }
 
   //Mark facets that are inside the domain bounded by the polygon
@@ -256,10 +258,10 @@ void updateMap(CDT &dt, Vertex_map &vmap, CDT::Vertex_handle v)
 }
 
 // TIN simplification algorithm based on article "A drop heuristic conversion method for extracting irregular network for digital elevation models" by J Lee (1989)
-void simplify(CDT &dt, double treshold)
+void simplify(CDT &dt, double threshold)
 {
   Vertex_map vmap;
-  double min_error = treshold-1;
+  double min_error = threshold-1;
   CDT::Vertex_handle min_error_vertex;
    
   // compute initial errors for all vertices
@@ -272,7 +274,7 @@ void simplify(CDT &dt, double treshold)
   while(true) {
     //find vertex with smallest error
     Vertex_map::iterator currentPosIt = vmap.begin();
-    min_error = treshold;
+    min_error = threshold;
     for (Vertex_map::iterator it = vmap.begin(); it != vmap.end(); ++it) {
         if (min_error >= it->second) {
           min_error = it->second;
@@ -282,7 +284,7 @@ void simplify(CDT &dt, double treshold)
     }
     
     //stop in case the threshold is reached
-    if (min_error == treshold)
+    if (min_error == threshold)
       break;
 
     //store its neighbours

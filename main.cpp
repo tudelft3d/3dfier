@@ -135,12 +135,16 @@ int main(int argc, const char * argv[]) {
   if (n["Terrain"]) {
     if (n["Terrain"]["simplification"])
       map3d.set_terrain_simplification(n["Terrain"]["simplification"].as<int>());
+    if (n["Terrain"]["simplification_tinsimp"] != 0)
+      map3d.set_terrain_simplification_tinsimp(n["Terrain"]["simplification_tinsimp"].as<double>());
     if (n["Terrain"]["innerbuffer"])
       map3d.set_terrain_innerbuffer(n["Terrain"]["innerbuffer"].as<float>());
   }
   if (n["Forest"]) {
     if (n["Forest"]["simplification"])
       map3d.set_forest_simplification(n["Forest"]["simplification"].as<int>());
+    if (n["Forest"]["simplification_tinsimp"] != 0)
+      map3d.set_forest_simplification_tinsimp(n["Forest"]["simplification_tinsimp"].as<double>());
     if (n["Forest"]["innerbuffer"])
       map3d.set_forest_innerbuffer(n["Forest"]["innerbuffer"].as<float>());
     if (n["Forest"]["ground_points_only"] && n["Forest"]["ground_points_only"].as<std::string>() == "true")
