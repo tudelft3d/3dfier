@@ -592,6 +592,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
         std::cerr << "\tOption 'Terrain.simplification' invalid; must be an integer.\n";
       }
     }
+    if (n["Terrain"]["simplification_tinsimp"]) {
+      try {
+        boost::lexical_cast<float>(n["Terrain"]["simplification_tinsimp"].as<std::string>());
+      }
+      catch (boost::bad_lexical_cast& e) {
+        wentgood = false;
+        std::cerr << "\tOption 'Terrain.simplification_tinsimp' invalid; must be a double.\n";
+      }
+    }
     if (n["Terrain"]["innerbuffer"]) {
       try {
         boost::lexical_cast<float>(n["Terrain"]["innerbuffer"].as<std::string>());
@@ -607,6 +616,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       if (is_string_integer(n["Forest"]["simplification"].as<std::string>()) == false) {
         wentgood = false;
         std::cerr << "\tOption 'Forest.simplification' invalid; must be an integer.\n";
+      }
+    }
+    if (n["Forest"]["simplification_tinsimp"]) {
+      try {
+        boost::lexical_cast<float>(n["Forest"]["simplification_tinsimp"].as<std::string>());
+      }
+      catch (boost::bad_lexical_cast& e) {
+        wentgood = false;
+        std::cerr << "\tOption 'Forest.simplification_tinsimp' invalid; must be a double.\n";
       }
     }
     if (n["Forest"]["innerbuffer"]) {

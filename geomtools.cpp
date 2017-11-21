@@ -246,7 +246,7 @@ void updateMap(CDT &dt, Vertex_map &vmap, CDT::Vertex_handle v)
   CDT::Face_circulator iFace = dt.incident_faces(v), done(iFace);
   do{
     int vi = iFace->index(v);
-    if(iFace->is_constrained(CDT::cw(vi)) or iFace->is_constrained(CDT::ccw(vi))) 
+    if(iFace->is_constrained(CDT::cw(vi)) || iFace->is_constrained(CDT::ccw(vi))) 
       return;
     if(iFace->has_vertex(dt.infinite_vertex()))
       return;
