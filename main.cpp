@@ -39,6 +39,7 @@
 #include "Map3d.h"
 #include "boost/locale.hpp"
 #include "boost/chrono.hpp"
+#include "codecvt"
 
 std::string VERSION = "0.9.8";
 
@@ -48,6 +49,8 @@ void print_license();
 
 int main(int argc, const char * argv[]) {
   auto startTime = boost::chrono::high_resolution_clock::now();
+  // Create proper UTF-8 character conversion
+  std::locale locutf = std::locale(std::locale(), new std::codecvt_utf8<wchar_t>);
   boost::locale::generator gen;
   std::locale loc = gen("en_US.UTF-8");
   std::locale::global(loc);
@@ -377,9 +380,11 @@ int main(int argc, const char * argv[]) {
     z_exaggeration = n["vertical_exaggeration"].as<int>();
 
   bool fileWritten = true;
-  std::ofstream of;
-  if (format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "PostGIS" && format != "PostGIS-Multi" && format != "PostGIS-PDOK")
+  std::wofstream of;
+  if (format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "PostGIS" && format != "PostGIS-Multi" && format != "PostGIS-PDOK") {
     of.open(ofname);
+    of.imbue(locutf);
+  }
 
   if (format == "CityGML") {
     std::clog << "CityGML output\n";

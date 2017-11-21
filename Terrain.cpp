@@ -59,9 +59,9 @@ bool Terrain::lift() {
   return true;
 }
 
-void Terrain::get_citygml(std::ostream& of) {
+void Terrain::get_citygml(std::wostream& of) {
   of << "<cityObjectMember>";
-  of << "<luse:LandUse gml:id=\"" << this->get_id() << "\">";
+  of << "<luse:LandUse gml:id=\"" << this->get_id().c_str() << "\">";
   get_citygml_attributes(of, _attributes);
   of << "<luse:lod1MultiSurface>";
   of << "<gml:MultiSurface>";
@@ -75,9 +75,9 @@ void Terrain::get_citygml(std::ostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Terrain::get_citygml_imgeo(std::ostream& of) {
+void Terrain::get_citygml_imgeo(std::wostream& of) {
   of << "<cityObjectMember>";
-  of << "<imgeo:OnbegroeidTerreindeel gml:id=\"" << this->get_id() << "\">";
+  of << "<imgeo:OnbegroeidTerreindeel gml:id=\"" << this->get_id().c_str() << "\">";
   get_imgeo_object_info(of, this->get_id());
   of << "<lu:lod1MultiSurface>";
   of << "<gml:MultiSurface>";
@@ -89,13 +89,13 @@ void Terrain::get_citygml_imgeo(std::ostream& of) {
   of << "</lu:lod1MultiSurface>";
   std::string attribute;
   if (get_attribute("bgt-fysiekvoorkomen", attribute)) {
-    of << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" << attribute /*"erf"*/ << "</imgeo:bgt-fysiekVoorkomen>";
+    of << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" << attribute.c_str() << "</imgeo:bgt-fysiekVoorkomen>";
   }
   if (get_attribute("onbegroeidterreindeeloptalud", attribute, "false")) {
-    of << "<imgeo:onbegroeidTerreindeelOpTalud>" << attribute << "</imgeo:onbegroeidTerreindeelOpTalud>";
+    of << "<imgeo:onbegroeidTerreindeelOpTalud>" << attribute.c_str() << "</imgeo:onbegroeidTerreindeelOpTalud>";
   }
   if (get_attribute("plus-fysiekvoorkomen", attribute)) {
-    of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>";
+    of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" << attribute.c_str() << "</imgeo:plus-fysiekVoorkomen>";
   }
   of << "</imgeo:OnbegroeidTerreindeel>";
   of << "</cityObjectMember>";

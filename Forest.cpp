@@ -63,9 +63,9 @@ bool Forest::lift() {
   return true;
 }
 
-void Forest::get_citygml(std::ostream& of) {
+void Forest::get_citygml(std::wostream& of) {
   of << "<cityObjectMember>";
-  of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">";
+  of << "<veg:PlantCover gml:id=\"" << this->get_id().c_str() << "\">";
   get_citygml_attributes(of, _attributes);
   of << "<veg:lod1MultiSurface>";
   of << "<gml:MultiSurface>";
@@ -79,9 +79,9 @@ void Forest::get_citygml(std::ostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Forest::get_citygml_imgeo(std::ostream& of) {
+void Forest::get_citygml_imgeo(std::wostream& of) {
   of << "<cityObjectMember>";
-  of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">";
+  of << "<veg:PlantCover gml:id=\"" << this->get_id().c_str() << "\">";
   get_imgeo_object_info(of, this->get_id());
   of << "<veg:lod1MultiSurface>";
   of << "<gml:MultiSurface>";
@@ -93,13 +93,13 @@ void Forest::get_citygml_imgeo(std::ostream& of) {
   of << "</veg:lod1MultiSurface>";
   std::string attribute;
   if (get_attribute("bgt-fysiekvoorkomen", attribute)) {
-    of << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</veg:class>";
+    of << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute.c_str() << "</veg:class>";
   }
   if (get_attribute("begroeidterreindeeloptalud", attribute, "false")) {
-    of << "<imgeo:begroeidTerreindeelOpTalud>" << attribute << "</imgeo:begroeidTerreindeelOpTalud>";
+    of << "<imgeo:begroeidTerreindeelOpTalud>" << attribute.c_str() << "</imgeo:begroeidTerreindeelOpTalud>";
   }
   if (get_attribute("plus-fysiekvoorkomen", attribute)) {
-    of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>";
+    of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" << attribute.c_str() << "</imgeo:plus-fysiekVoorkomen>";
   }
   of << "</veg:PlantCover>";
   of << "</cityObjectMember>";
