@@ -37,7 +37,28 @@
 #include <iostream>
 
 #include <vector>
+#include <iterator>
+#include <memory>
+#include <boost/heap/binomial_heap.hpp>
 
+struct point_error {
+  point_error(int i, double e) : index(i), error(e){}
+  int index;
+  double error;
+};
+struct compare_error {
+  inline bool operator()
+    (const point_error &e1 , const point_error &e2) const {
+      return e1.error < e2.error;
+}
+};
+namespace bh = boost::heap;
+typedef bh::binomial_heap<point_error, bh::compare<compare_error>> Heap;
+typedef Heap::handle_type heap_handle;
+
+typedef CGAL::Exact_predicates_inexact_constructions_kernel			K;
+typedef CGAL::Projection_traits_xy_3<K>								Gt;
+typedef CGAL::Triangulation_vertex_base_with_id_2<Gt>				Vb;
 struct FaceInfo2
 {
   FaceInfo2() {}
@@ -45,11 +66,9 @@ struct FaceInfo2
   bool in_domain() {
     return nesting_level % 2 == 1;
   }
+  std::vector<heap_handle>* points_inside = nullptr;
+  CGAL::Plane_3<K>* plane = nullptr;
 };
-
-typedef CGAL::Exact_predicates_inexact_constructions_kernel			K;
-typedef CGAL::Projection_traits_xy_3<K>								Gt;
-typedef CGAL::Triangulation_vertex_base_with_id_2<Gt>				Vb;
 typedef CGAL::Triangulation_face_base_with_info_2<FaceInfo2, Gt>	Fbb;
 typedef CGAL::Constrained_triangulation_face_base_2<Gt, Fbb>		Fb;
 typedef CGAL::Triangulation_data_structure_2<Vb, Fb>				Tds;
@@ -63,6 +82,8 @@ double estimateZ_LIN(CDT &dt, CDT::Vertex_handle);
 void updateMap(CDT &dt, Vertex_map &vmap, CDT::Vertex_handle v);  
 void simplify(CDT &dt, double threshold);
 
+inline double compute_error(Point &p, CDT::Face_handle &face);
+void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold);
 
 bool triangle_contains_segment(Triangle t, int a, int b) {
   if ((t.v0 == a) && (t.v1 == b))
@@ -157,14 +178,16 @@ bool getCDT(const Polygon2* pgn,
   }
 
   //-- add the lidar points to the CDT, if any
-  if (lidarpts.size() > 0) {
-    for (auto &pt : lidarpts) {
-      cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
-    } 
-    //-- simplify lidar points
-    if (tinsimp_threshold != 0)
-      simplify(cdt, tinsimp_threshold);
-  }
+  if (tinsimp_threshold != 0)
+    greedy_insert(cdt, lidarpts, tinsimp_threshold);
+  // if (lidarpts.size() > 0) {
+  //   for (auto &pt : lidarpts) {
+  //     cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
+  //   } 
+  //   //-- simplify lidar points
+  //   if (tinsimp_threshold != 0)
+  //     simplify(cdt, tinsimp_threshold);
+  // }
 
   //Mark facets that are inside the domain bounded by the polygon
   mark_domains(cdt);
@@ -218,6 +241,103 @@ std::string gen_key_bucket(Point3* p, int z) {
 
 //--- TIN Simplification
 
+// Greedy insertion/incremental refinement algorithm adapted from "Fast polygonal approximation of terrain and height fields" by Garland, Michael and Heckbert, Paul S.
+inline double compute_error(Point &p, CDT::Face_handle &face) {
+  if(!face->info().plane)
+    face->info().plane = new CGAL::Plane_3<K>(
+      face->vertex(0)->point(),
+      face->vertex(1)->point(),
+      face->vertex(2)->point());
+  if(!face->info().points_inside)
+    face->info().points_inside = new std::vector<heap_handle>();
+
+  auto plane = face->info().plane;
+  auto interpolate = - plane->a()/plane->c() * p.x() - plane->b()/plane->c()*p.y() - plane->d()/plane->c();
+  double error = std::fabs(interpolate - p.z());
+  return error;
+}
+
+void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
+  // assumes all lidar points are inside a triangle
+  Heap heap;
+
+  for(int i=0; i<pts.size(); i++){
+    auto p3 = pts[i];
+    auto p = Point(bg::get<0>(p3), bg::get<1>(p3), bg::get<2>(p3));
+    auto face = T.locate(p);
+    auto e = compute_error(p, face);
+    auto handle = heap.push(point_error(i,e));
+    face->info().points_inside->push_back(handle);
+  }
+
+  double error;
+  do{
+    if (heap.empty())
+      break;
+    
+    auto maxelement = heap.top();
+    error = maxelement.error;
+    auto max_element_index = maxelement.index;
+    auto p3 = pts[maxelement.index];
+    auto max_p = Point(bg::get<0>(p3), bg::get<1>(p3), bg::get<2>(p3));
+
+    std::vector<CDT::Face_handle> faces;
+    T.get_conflicts ( max_p, std::back_inserter(faces) );
+
+    auto v = T.insert(max_p); //TODO: use face hint
+    auto face_hint = v->face();
+    
+    std::vector<heap_handle> points_to_update;
+    for (auto face : faces) {
+      if (face->info().plane){
+        delete face->info().plane;
+        face->info().plane = nullptr;
+      }
+      if (face->info().points_inside) {
+        for (auto h :*face->info().points_inside){
+          if(max_element_index != (*h).index)
+            points_to_update.push_back(h);
+        }
+        //OR? face->info().points_inside->clear();
+        delete face->info().points_inside;
+        face->info().points_inside = nullptr;
+      }
+    }
+    heap.pop();
+    
+    for (auto curelement : points_to_update){
+      auto p3 = pts[(*curelement).index];
+      auto p = Point(bg::get<0>(p3), bg::get<1>(p3), bg::get<2>(p3));
+      auto containing_face = T.locate(p, face_hint);
+      const double e = compute_error(p, containing_face);
+      heap.update(curelement, point_error((*curelement).index,e));
+      containing_face->info().points_inside->push_back(curelement);
+    }
+  }while(error > threshold);
+
+  //TODO: cleanup all the .points_inside and .plane pointers in the triangle faces
+
+}
+
+
+// TIN simplification algorithm based on article "A drop heuristic conversion method for extracting irregular network for digital elevation models" by J Lee (1989)
+void updateMap(CDT &dt, Vertex_map &vmap, CDT::Vertex_handle v)
+{
+  // check if vertex v is not in a constrained edge or on the convex hull
+  CDT::Face_circulator iFace = dt.incident_faces(v), done(iFace);
+  do{
+    int vi = iFace->index(v);
+    if(iFace->is_constrained(CDT::cw(vi)) || iFace->is_constrained(CDT::ccw(vi))) 
+      return;
+    if(iFace->has_vertex(dt.infinite_vertex()))
+      return;
+  } while(++iFace != done);
+
+  // Compute and store vertical error
+  double e = v->point().z() - estimateZ_LIN(dt, v);
+  vmap[v] = std::fabs(e);
+}
+
 // estimate the depth on (x,y) position of vertex v after removal of that vertex, using Linear interpolation.
 double estimateZ_LIN(CDT &dt, CDT::Vertex_handle v)
 {
@@ -240,24 +360,6 @@ double estimateZ_LIN(CDT &dt, CDT::Vertex_handle v)
   return - plane.a()/plane.c() * q.x() - plane.b()/plane.c()*q.y() - plane.d()/plane.c();
 }
 
-void updateMap(CDT &dt, Vertex_map &vmap, CDT::Vertex_handle v)
-{
-  // check if vertex v is not in a constrained edge or on the convex hull
-  CDT::Face_circulator iFace = dt.incident_faces(v), done(iFace);
-  do{
-    int vi = iFace->index(v);
-    if(iFace->is_constrained(CDT::cw(vi)) || iFace->is_constrained(CDT::ccw(vi))) 
-      return;
-    if(iFace->has_vertex(dt.infinite_vertex()))
-      return;
-  } while(++iFace != done);
-
-  // Compute and store vertical error
-  double e = v->point().z() - estimateZ_LIN(dt, v);
-  vmap[v] = std::fabs(e);
-}
-
-// TIN simplification algorithm based on article "A drop heuristic conversion method for extracting irregular network for digital elevation models" by J Lee (1989)
 void simplify(CDT &dt, double threshold)
 {
   Vertex_map vmap;
