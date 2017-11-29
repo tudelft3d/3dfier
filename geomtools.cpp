@@ -284,8 +284,9 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     std::vector<CDT::Face_handle> faces;
     T.get_conflicts ( max_p, std::back_inserter(faces) );
 
-    auto v = T.insert(max_p); //TODO: use face hint
-    auto face_hint = v->face();
+    auto face_hint = faces[0];
+    auto v = T.insert(max_p, face_hint);
+    face_hint = v->face();
     
     std::vector<heap_handle> points_to_update;
     for (auto face : faces) {
