@@ -178,16 +178,18 @@ bool getCDT(const Polygon2* pgn,
   }
 
   //-- add the lidar points to the CDT, if any
-  if (tinsimp_threshold != 0)
-    greedy_insert(cdt, lidarpts, tinsimp_threshold);
-  // if (lidarpts.size() > 0) {
-  //   for (auto &pt : lidarpts) {
-  //     cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
-  //   } 
-  //   //-- simplify lidar points
+  if (lidarpts.size() > 0) {
+      if (tinsimp_threshold != 0)
+        greedy_insert(cdt, lidarpts, tinsimp_threshold);
+      else {
+        for (auto &pt : lidarpts) {
+          cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
+        } 
+     //-- simplify lidar points
   //   if (tinsimp_threshold != 0)
   //     simplify(cdt, tinsimp_threshold);
-  // }
+      }
+  }
 
   //Mark facets that are inside the domain bounded by the polygon
   mark_domains(cdt);
