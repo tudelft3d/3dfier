@@ -261,6 +261,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   // assumes all lidar points are inside a triangle
   Heap heap;
 
+  // compute initial point errors, build heap, store point indices in triangles
   for(int i=0; i<pts.size(); i++){
     auto p3 = pts[i];
     auto p = Point(bg::get<0>(p3), bg::get<1>(p3), bg::get<2>(p3));
@@ -270,6 +271,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     face->info().points_inside->push_back(handle);
   }
 
+  // insert points, update errors of affected triangles until threshold error is reached
   double error;
   do{
     if (heap.empty())
@@ -316,7 +318,18 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     }
   }while(error > threshold);
 
-  //TODO: cleanup all the .points_inside and .plane pointers in the triangle faces
+  //cleanup the stuff I put in face info of triangles
+  for (CDT::Finite_faces_iterator fit = T.finite_faces_begin();
+    fit != T.finite_faces_end(); ++fit) {
+      if (fit->info().plane){
+        delete fit->info().plane;
+        fit->info().plane = nullptr;
+      }
+      if (fit->info().points_inside) {
+        delete fit->info().points_inside;
+        fit->info().points_inside = nullptr;
+      }
+    }
 
 }
 
