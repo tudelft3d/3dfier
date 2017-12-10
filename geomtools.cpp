@@ -35,8 +35,10 @@
 #include <CGAL/Triangulation_face_base_with_info_2.h>
 #include <CGAL/Polygon_2.h>
 #include <iostream>
-
+#include <iomanip>
+#include <sstream>
 #include <vector>
+#include <unordered_set>
 #include <iterator>
 #include <memory>
 #include <boost/heap/binomial_heap.hpp>
@@ -264,15 +266,24 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   Heap heap;
 
   // compute initial point errors, build heap, store point indices in triangles
-  for(int i=0; i<pts.size(); i++){
-    auto p3 = pts[i];
-    auto p = Point(bg::get<0>(p3), bg::get<1>(p3), bg::get<2>(p3));
-    auto face = T.locate(p);
-    auto e = compute_error(p, face);
-    auto handle = heap.push(point_error(i,e));
-    face->info().points_inside->push_back(handle);
+  {
+    std::unordered_set<std::string> set;
+    for(int i=0; i<pts.size(); i++){
+      auto p3 = pts[i];
+      // detect and skip duplicate points
+      std::stringstream key;
+      key << std::fixed << std::setprecision(2) << bg::get<0>(p3) << " " << bg::get<1>(p3);
+      auto success = set.insert(key.str()).second;
+      if(!success){
+        continue;
+      }
+      auto p = Point(bg::get<0>(p3), bg::get<1>(p3), bg::get<2>(p3));
+      auto face = T.locate(p);
+      auto e = compute_error(p, face);
+      auto handle = heap.push(point_error(i,e));
+      face->info().points_inside->push_back(handle);
+    }
   }
-
   // insert points, update errors of affected triangles until threshold error is reached
   double error;
   do{
