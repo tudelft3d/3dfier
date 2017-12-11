@@ -34,15 +34,31 @@
 #include <CGAL/Triangulation_vertex_base_with_id_2.h>
 #include <CGAL/Triangulation_face_base_with_info_2.h>
 #include <CGAL/Polygon_2.h>
-#include <iostream>
-#include <iomanip>
-#include <sstream>
+
 #include <vector>
 #include <unordered_set>
 #include <iterator>
 #include <memory>
 #include <boost/heap/binomial_heap.hpp>
 
+struct PointXYHash
+{
+  std::size_t operator()(Point3 const& p) const noexcept
+  {
+    std::size_t h1 = std::hash<double>{}(bg::get<0>(p));
+    std::size_t h2 = std::hash<double>{}(bg::get<1>(p));
+    return h1 ^ (h2 << 1);
+  }
+};
+struct PointXYEqual
+{
+  std::size_t operator()(Point3 const& p1, Point3 const& p2) const noexcept
+  {
+    auto ex = bg::get<0>(p1) == bg::get<0>(p2);
+    auto ey = bg::get<1>(p1) == bg::get<1>(p2);
+    return ex && ey;
+  }
+};
 struct point_error {
   point_error(int i, double e) : index(i), error(e){}
   int index;
@@ -267,21 +283,18 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
 
   // compute initial point errors, build heap, store point indices in triangles
   {
-    std::unordered_set<std::string> set;
+    std::unordered_set<Point3, PointXYHash, PointXYEqual> set;
     for(int i=0; i<pts.size(); i++){
       auto p3 = pts[i];
       // detect and skip duplicate points
-      std::stringstream key;
-      key << std::fixed << std::setprecision(2) << bg::get<0>(p3) << " " << bg::get<1>(p3);
-      auto success = set.insert(key.str()).second;
-      if(!success){
-        continue;
+      auto not_duplicate = set.insert(p3).second;
+      if(not_duplicate){
+        auto p = Point(bg::get<0>(p3), bg::get<1>(p3), bg::get<2>(p3));
+        auto face = T.locate(p);
+        auto e = compute_error(p, face);
+        auto handle = heap.push(point_error(i,e));
+        face->info().points_inside->push_back(handle);
       }
-      auto p = Point(bg::get<0>(p3), bg::get<1>(p3), bg::get<2>(p3));
-      auto face = T.locate(p);
-      auto e = compute_error(p, face);
-      auto handle = heap.push(point_error(i,e));
-      face->info().points_inside->push_back(handle);
     }
   }
   // insert points, update errors of affected triangles until threshold error is reached
@@ -314,9 +327,9 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
           if(max_element_index != (*h).index)
             points_to_update.push_back(h);
         }
-        //OR? face->info().points_inside->clear();
-        delete face->info().points_inside;
-        face->info().points_inside = nullptr;
+        face->info().points_inside->clear();
+//        delete face->info().points_inside;
+//        face->info().points_inside = nullptr;
       }
     }
     heap.pop();
