@@ -105,21 +105,22 @@ The dependencies that are necessary (under Mac we suggest using [Homebrew](http:
   1. GDAL (`brew install gdal`)
   1. Boost (`brew install boost`)
   1. CGAL (`brew install cgal`)
-  4. yaml-cpp (`brew install yaml-cpp`)
+  1. yaml-cpp (`brew install yaml-cpp`)
 
 For Linux we suggest taking a look at the travis build scripts for Ubuntu.
 
 ## Compiling Windows using Visual Studio
+Detailed instructions can be found on our [wiki](https://github.com/tudelft3d/3dfier/wiki/Building-on-Windows-10). Short version:
 
-1. Download and install [Boost precompiled binaries](https://sourceforge.net/projects/boost/files/boost-binaries) (tested with `Visual Studio 2015, 64-bit; boost_1_62_0-msvc-14.0-64.exe`)
-2. Download and install [OSGeo4W](https://trac.osgeo.org/osgeo4w)
-3. Compile your own copies of [Yaml-cpp](https://github.com/jbeder/yaml-cpp) and [CGAL](https://www.cgal.org)
-4. Add environment variables for:
-5. - `OSGEO4W_ROOT` (set by OSGeo4W installer)
+1. Download and install [Boost precompiled binaries](https://sourceforge.net/projects/boost/files/boost-binaries)
+1. Download and install [OSGeo4W](https://trac.osgeo.org/osgeo4w)
+1. Compile your own copies of [Yaml-cpp](https://github.com/jbeder/yaml-cpp) and [CGAL](https://www.cgal.org)
+1. Add environment variables for:
+1. - `OSGEO4W_ROOT` (set by OSGeo4W installer)
     - `BOOST_ROOT` (root of the boost directory)
     - `BOOST_LIBRARYDIR` (dir of the boost lib files)
     - `LIBLAS_ROOT` (same as OSGEO4W_ROOT if that liblas is used)
     - `LASZIP_ROOT` (same as OSGEO4W_ROOT if that liblas is used)
     - `YAML-CPP_DIR` (root of the Yaml-cpp directory)
     - `CGAL_DIR` (root of the CGAL directory)
-5. Build solution using Visual Studio
+1. Build solution using Visual Studio
