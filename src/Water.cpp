@@ -63,6 +63,20 @@ bool Water::lift() {
   return true;
 }
 
+
+void Water::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
+  nlohmann::json f;
+  f["type"] = "WaterBody";
+  f["attributes"];
+  get_cityjson_attributes(f, _attributes);
+  nlohmann::json g;
+  this->get_cityjson_geom(g, dPts);
+  f["geometry"].push_back(g);
+  j["CityObjects"][this->get_id()] = f;
+}
+
+
+
 void Water::get_citygml(std::ostream& of) {
   of << "<cityObjectMember>";
   of << "<wtr:WaterBody gml:id=\"" << this->get_id() << "\">";

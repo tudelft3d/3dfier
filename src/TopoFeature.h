@@ -31,6 +31,7 @@
 
 #include "definitions.h"
 #include "geomtools.h"
+#include "json.hpp"
 #include <random>
 
 class TopoFeature {
@@ -46,6 +47,7 @@ public:
   virtual bool          is_hard() = 0;
   virtual std::string   get_mtl() = 0;
   virtual void          get_citygml(std::ostream& of) = 0;
+  virtual void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) = 0;
   virtual void          get_citygml_imgeo(std::ostream& of) = 0;
   virtual bool          get_shape(OGRLayer*, bool writeAttributes, AttributeMap extraAttributes = AttributeMap()) = 0;
 
@@ -74,6 +76,7 @@ public:
   AttributeMap get_attributes();
   void         get_imgeo_object_info(std::ostream& of, std::string id);
   void         get_citygml_attributes(std::ostream& of, AttributeMap attributes);
+  void         get_cityjson_attributes(nlohmann::json& f, AttributeMap attributes);
 protected:
   Polygon2*                         _p2;
   std::vector< std::vector<int> >   _p2z;
@@ -100,6 +103,7 @@ protected:
   void    lift_each_boundary_vertices(float percentile);
   void    lift_all_boundary_vertices_same_height(int height);
 
+  void get_cityjson_geom(nlohmann::json& g, std::unordered_map<std::string, unsigned long> &dPts, std::string primitive = "MultiSurface");
   void get_triangle_as_gml_surfacemember(std::ostream& of, Triangle& t, bool verticalwall = false);
   void get_triangle_as_gml_triangle(std::ostream& of, Triangle& t, bool verticalwall = false);
   bool get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue = "");
@@ -117,6 +121,7 @@ public:
   virtual bool        is_hard() = 0;
   virtual bool        lift() = 0;
   virtual void        get_citygml(std::ostream& of) = 0;
+  virtual void        get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) = 0;
 protected:
   std::vector<int>    _zvaluesinside;
   bool                lift_percentile(float percentile);
@@ -133,6 +138,7 @@ public:
   virtual bool         is_hard() = 0;
   virtual bool         lift() = 0;
   virtual void         get_citygml(std::ostream& of) = 0;
+  virtual void         get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) = 0;
 protected:
   int                  _simplification;
   void                 smooth_boundary(int passes = 1);
@@ -149,6 +155,7 @@ public:
   virtual bool        is_hard() = 0;
   virtual bool        lift() = 0;
   virtual void        get_citygml(std::ostream& of) = 0;
+  virtual void        get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) = 0;
   bool                buildCDT();
 protected:
   int                 _simplification;

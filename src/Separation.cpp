@@ -63,9 +63,28 @@ bool Separation::lift() {
   return true;
 }
 
+<<<<<<< HEAD:src/Separation.cpp
 void Separation::get_citygml(std::ostream& of) {
   of << "<cityObjectMember>";
   of << "<gen:GenericCityObject gml:id=\"" << this->get_id() << "\">";
+=======
+
+void Separation::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
+  nlohmann::json f;
+  f["type"] = "GenericCityObject";
+  f["attributes"];
+  get_cityjson_attributes(f, _attributes);
+  nlohmann::json g;
+  this->get_cityjson_geom(g, dPts);
+  f["geometry"].push_back(g);
+  j["CityObjects"][this->get_id()] = f;
+}
+
+
+void Separation::get_citygml(std::ofstream& of) {
+  of << "<cityObjectMember>\n";
+  of << "<gen:GenericCityObject gml:id=\"" << this->get_id() << "\">\n";
+>>>>>>> origin/cityjson-output:Separation.cpp
   get_citygml_attributes(of, _attributes);
   of << "<gen:lod1Geometry>";
   of << "<gml:MultiSurface>";

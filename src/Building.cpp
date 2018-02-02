@@ -30,6 +30,7 @@
 #include "io.h"
 #include <algorithm>    // std::sort
 
+
 float Building::_heightref_top = 0.9f;
 float Building::_heightref_base = 0.1f;
 
@@ -168,7 +169,30 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   }
 }
 
+<<<<<<< HEAD:src/Building.cpp
 void Building::get_citygml(std::ostream& of) {
+=======
+
+void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) {
+  nlohmann::json b;
+  b["type"] = "Building";
+  b["attributes"];
+  get_cityjson_attributes(b, _attributes);
+  float hbase = z_to_float(this->get_height_base());
+  float h = z_to_float(this->get_height());
+  b["attributes"]["min-height-surface"] = hbase;
+  b["attributes"]["measuredHeight"] = h;
+  nlohmann::json g;
+  this->get_cityjson_geom(g, dPts, "Solid");
+  b["geometry"].push_back(g);
+  j["CityObjects"][this->get_id()] = b;
+}
+
+  
+
+
+void Building::get_citygml(std::ofstream& of) {
+>>>>>>> origin/cityjson-output:Building.cpp
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
   of << "<cityObjectMember>";

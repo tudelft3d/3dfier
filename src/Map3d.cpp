@@ -29,6 +29,10 @@
 #include "Map3d.h"
 #include "io.h"
 #include "boost/locale.hpp"
+#include "boost/tokenizer.hpp"
+#include "boost/algorithm/string.hpp"
+#include "json.hpp"
+
 
 Map3d::Map3d() {
   OGRRegisterAll();
@@ -143,7 +147,50 @@ liblas::Bounds<double> Map3d::get_bounds() {
   return bounds;
 }
 
+<<<<<<< HEAD:src/Map3d.cpp
 void Map3d::get_citygml(std::ostream& of) {
+=======
+
+bool Map3d::get_cityjson(std::string filename) {
+  std::cout << "CityJSON" << std::endl;
+  nlohmann::json j;
+  j["type"] = "CityModel";
+  j["version"] = "http://www.cityjson.org/version/0.2";
+  j["metadata"] = {};
+  j["metadata"]["datasetTitle"] = "my 3dfied map";
+  j["metadata"]["pointOfContact"] = "https://3d.bk.tudelft.nl";
+  double b[] = {bg::get<bg::min_corner, 0>(_bbox),
+                bg::get<bg::min_corner, 1>(_bbox), 
+                0,
+                bg::get<bg::max_corner, 0>(_bbox),
+                bg::get<bg::max_corner, 1>(_bbox), 
+                0};
+  j["metadata"]["bbox"] = b;
+  std::unordered_map< std::string, unsigned long > dPts;
+  for (auto& f : _lsFeatures) {
+    // if (f->get_class() != BRIDGE) // TODO : all classes
+      f->get_cityjson(j, dPts);
+  }
+  //-- vertices
+  std::vector<std::string> thepts;
+  thepts.resize(dPts.size());
+  for (auto& p : dPts)
+    thepts[p.second] = p.first;
+  dPts.clear();
+  for (auto& p : thepts) {
+    std::vector<std::string> c;
+    boost::split(c, p, boost::is_any_of(" "));
+    j["vertices"].push_back({std::stod(c[0], NULL), std::stod(c[1], NULL), std::stod(c[2], NULL) });
+  }
+  std::ofstream o(filename);
+  // o << j.dump(2) << std::endl;      
+  o << j.dump() << std::endl;      
+  return true;
+}
+
+
+void Map3d::get_citygml(std::ofstream& of) {
+>>>>>>> origin/cityjson-output:Map3d.cpp
   create_citygml_header(of);
   for (auto& f : _lsFeatures) {
     f->get_citygml(of);
@@ -151,6 +198,7 @@ void Map3d::get_citygml(std::ostream& of) {
   }
   of << "</CityModel>\n";
 }
+
 
 void Map3d::get_citygml_multifile(std::string ofname) {
   std::unordered_map<std::string, std::ofstream> ofs;

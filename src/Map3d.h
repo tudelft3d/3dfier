@@ -63,8 +63,14 @@ public:
 
   void get_citygml(std::ostream& of);
   void get_citygml_multifile(std::string);
+<<<<<<< HEAD:src/Map3d.h
   void create_citygml_header(std::ostream& of);
   void get_citygml_imgeo(std::ostream& of);
+=======
+  void create_citygml_header(std::ofstream& of);
+  bool get_cityjson(std::string filename);
+  void get_citygml_imgeo(std::ofstream& of);
+>>>>>>> origin/cityjson-output:Map3d.h
   void get_citygml_imgeo_multifile(std::string ofname);
   void create_citygml_imgeo_header(std::ostream& of);
   bool get_pdok_output(std::string filename);
