@@ -59,7 +59,7 @@ link_directories(${YamlCpp_LIBRARY_DIRS})
 
 # Creating entries for target: 3dfier
 FILE(GLOB SRC_FILES src/*.cpp)
-add_executable(val3dity ${SRC_FILES})
+add_executable(3dfier ${SRC_FILES})
 
 target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY} ${Boost_LIBRARIES})
 
