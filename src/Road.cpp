@@ -61,11 +61,6 @@ bool Road::lift() {
   return true;
 }
 
-<<<<<<< HEAD:src/Road.cpp
-void Road::get_citygml(std::ostream& of) {
-  of << "<cityObjectMember>";
-  of << "<tran:Road gml:id=\"" << this->get_id() << "\">";
-=======
 void Road::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
   nlohmann::json f;
   // f["type"] = "Road"; // TODO : change back to Road when implemented
@@ -79,10 +74,9 @@ void Road::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsign
 }
 
 
-void Road::get_citygml(std::ofstream& of) {
-  of << "<cityObjectMember>\n";
-  of << "<tran:Road gml:id=\"" << this->get_id() << "\">\n";
->>>>>>> origin/cityjson-output:Road.cpp
+void Road::get_citygml(std::ostream& of) {
+  of << "<cityObjectMember>";
+  of << "<tran:Road gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
   of << "<tran:lod1MultiSurface>";
   of << "<gml:MultiSurface>";

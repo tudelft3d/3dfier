@@ -379,11 +379,7 @@ int main(int argc, const char * argv[]) {
 
   bool fileWritten = true;
   std::ofstream of;
-<<<<<<< HEAD:src/main.cpp
-  if (format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "PostGIS" && format != "PostGIS-Multi" && format != "PostGIS-PDOK")
-=======
   if (format != "CityJSON" && format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "PostGIS")
->>>>>>> origin/cityjson-output:main.cpp
     of.open(ofname);
 
   if (format == "CityGML") {

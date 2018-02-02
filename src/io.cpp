@@ -91,58 +91,8 @@ void get_citygml_imgeo_namespaces(std::ostream& of) {
   of << "xsi:schemaLocation=\"http://www.opengis.net/citygml/2.0 http://schemas.opengis.net/citygml/2.0/cityGMLBase.xsd http://www.geostandaarden.nl/imgeo/2.1 http://schemas.geonovum.nl/imgeo/2.1/imgeo-2.1.1.xsd\">\n";
 }
 
-<<<<<<< HEAD:src/io.cpp
+
 void get_polygon_lifted_gml(std::ostream& of, Polygon2* p2, double height, bool reverse) {
-=======
-
-// void get_polygon_lifted_cityjson(Polygon2* p2, double height, bool reverse, std::vector<std::vector<int>>& outp, std::vector<std::vector<double>>& vertices, int offset) {
-//   if (reverse)
-//     bg::reverse(*p2);
-//   std::vector<int> ringi;
-//   auto r = bg::exterior_ring(*p2);
-//   for (int i = 0; i < r.size(); i++) {
-//     vertices.push_back({bg::get<0>(r[i]), bg::get<1>(r[i]), height});
-//     ringi.push_back(i+offset);
-//   }
-//   outp.push_back(ringi);
-//   auto irings = bg::interior_rings(*p2);
-//   for (Ring2& r : irings) {
-//     ringi.clear();
-//     offset = vertices.size();
-//     for (int i = 0; i < r.size(); i++) {
-//       vertices.push_back({bg::get<0>(r[i]), bg::get<1>(r[i]), height});
-//       ringi.push_back(i+offset);
-//     }
-//     outp.push_back(ringi);
-//   }
-//   if (reverse)
-//     bg::reverse(*p2);
-// }
-
-// void get_extruded_line_cityjson(Point2* a, Point2* b, double high, double low, std::vector<std::vector<int>>& outp, std::vector<std::vector<double>>& vertices, int offset) {
-  
-//   []
-//   std::vector<int> ringi;
-//   auto r = bg::exterior_ring(*p2);
-//   for (int i = 0; i < r.size(); i++) {
-//     vertices.push_back({bg::get<0>(r[i]), bg::get<1>(r[i]), height});
-//     ringi.push_back(i+offset);
-//   }
-//   outp.push_back(ringi);
-//   auto irings = bg::interior_rings(*p2);
-//   for (Ring2& r : irings) {
-//     ringi.clear();
-//     offset = vertices.size();
-//     for (int i = 0; i < r.size(); i++) {
-//       vertices.push_back({bg::get<0>(r[i]), bg::get<1>(r[i]), height});
-//       ringi.push_back(i+offset);
-//     }
-//     outp.push_back(ringi);
-//   }
-// }
-
-void get_polygon_lifted_gml(std::ofstream& of, Polygon2* p2, double height, bool reverse) {
->>>>>>> origin/cityjson-output:io.cpp
   if (reverse)
     bg::reverse(*p2);
   of << "<gml:surfaceMember>";

@@ -59,11 +59,6 @@ bool Terrain::lift() {
   return true;
 }
 
-<<<<<<< HEAD:src/Terrain.cpp
-void Terrain::get_citygml(std::ostream& of) {
-  of << "<cityObjectMember>";
-  of << "<luse:LandUse gml:id=\"" << this->get_id() << "\">";
-=======
 void Terrain::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
   nlohmann::json f;
   f["type"] = "LandUse";
@@ -76,10 +71,9 @@ void Terrain::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,uns
 }
 
 
-void Terrain::get_citygml(std::ofstream& of) {
-  of << "<cityObjectMember>\n";
-  of << "<luse:LandUse gml:id=\"" << this->get_id() << "\">\n";
->>>>>>> origin/cityjson-output:Terrain.cpp
+void Terrain::get_citygml(std::ostream& of) {
+  of << "<cityObjectMember>";
+  of << "<luse:LandUse gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
   of << "<luse:lod1MultiSurface>";
   of << "<gml:MultiSurface>";

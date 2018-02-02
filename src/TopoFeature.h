@@ -31,7 +31,7 @@
 
 #include "definitions.h"
 #include "geomtools.h"
-#include "json.hpp"
+#include "nlohmann-json/json.hpp"
 #include <random>
 
 class TopoFeature {

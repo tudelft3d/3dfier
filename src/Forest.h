@@ -36,14 +36,9 @@ public:
   Forest(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, float innerbuffer, bool only_ground_points);
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
-<<<<<<< HEAD:src/Forest.h
   void          get_citygml(std::ostream& of);
   void          get_citygml_imgeo(std::ostream& of);
-=======
-  void          get_citygml(std::ofstream& of);
   void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts);
-  void          get_citygml_imgeo(std::ofstream& of);
->>>>>>> origin/cityjson-output:Forest.h
   std::string   get_mtl();
   bool          get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes = AttributeMap());
   TopoClass     get_class();

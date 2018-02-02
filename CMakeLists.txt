@@ -55,10 +55,6 @@ include( ${CGAL_USE_FILE} )
 
 include_directories( ${CMAKE_SOURCE_DIR}/thirdparty )
 
-FILE(GLOB_RECURSE THIRDPARTY thirdparty/*.cpp)
-add_library(thirdparty STATIC ${THIRDPARTY})
-
-
 include_directories( ${CGAL_INCLUDE_DIR} ${CGAL_3RD_PARTY_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${LIBLAS_INCLUDE_DIR} ${LASZIP_INCLUDE_DIR} ${YAMLCPP_INCLUDE_DIR} ${GDAL_INCLUDE_DIR})
 link_directories(${YamlCpp_LIBRARY_DIRS})
 
@@ -66,6 +62,6 @@ link_directories(${YamlCpp_LIBRARY_DIRS})
 FILE(GLOB SRC_FILES src/*.cpp)
 add_executable(3dfier ${SRC_FILES})
 
-target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY} ${Boost_LIBRARIES} thirdparty)
+target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY} ${Boost_LIBRARIES} )
 
 install(TARGETS 3dfier DESTINATION bin)

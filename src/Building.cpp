@@ -169,10 +169,6 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   }
 }
 
-<<<<<<< HEAD:src/Building.cpp
-void Building::get_citygml(std::ostream& of) {
-=======
-
 void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) {
   nlohmann::json b;
   b["type"] = "Building";
@@ -188,11 +184,7 @@ void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, u
   j["CityObjects"][this->get_id()] = b;
 }
 
-  
-
-
-void Building::get_citygml(std::ofstream& of) {
->>>>>>> origin/cityjson-output:Building.cpp
+void Building::get_citygml(std::ostream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
   of << "<cityObjectMember>";

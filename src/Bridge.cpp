@@ -66,12 +66,6 @@ bool Bridge::lift() {
   return true;
 }
 
-<<<<<<< HEAD:src/Bridge.cpp
-void Bridge::get_citygml(std::ostream& of) {
-  of << "<cityObjectMember>";
-  of << "<brg:Bridge gml:id=\"" << this->get_id() << "\">";
-=======
-
 void Bridge::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
   // TODO: implement Bridges in CityJSON
   // nlohmann::json f;
@@ -84,10 +78,9 @@ void Bridge::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsi
 }
 
 
-void Bridge::get_citygml(std::ofstream& of) {
-  of << "<cityObjectMember>\n";
-  of << "<brg:Bridge gml:id=\"" << this->get_id() << "\">\n";
->>>>>>> origin/cityjson-output:Bridge.cpp
+void Bridge::get_citygml(std::ostream& of) {
+  of << "<cityObjectMember>";
+  of << "<brg:Bridge gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
   of << "<brg:lod1MultiSurface>";
   of << "<gml:MultiSurface>";

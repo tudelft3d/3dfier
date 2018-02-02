@@ -63,11 +63,7 @@ bool Forest::lift() {
   return true;
 }
 
-<<<<<<< HEAD:src/Forest.cpp
-void Forest::get_citygml(std::ostream& of) {
-  of << "<cityObjectMember>";
-  of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">";
-=======
+
 void Forest::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
   nlohmann::json f;
   f["type"] = "PlantCover";
@@ -80,10 +76,9 @@ void Forest::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsi
 }
 
 
-void Forest::get_citygml(std::ofstream& of) {
-  of << "<cityObjectMember>\n";
-  of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">\n";
->>>>>>> origin/cityjson-output:Forest.cpp
+void Forest::get_citygml(std::ostream& of) {
+  of << "<cityObjectMember>";
+  of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
   of << "<veg:lod1MultiSurface>";
   of << "<gml:MultiSurface>";

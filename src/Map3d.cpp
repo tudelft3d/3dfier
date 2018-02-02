@@ -31,7 +31,8 @@
 #include "boost/locale.hpp"
 #include "boost/tokenizer.hpp"
 #include "boost/algorithm/string.hpp"
-#include "json.hpp"
+#include "nlohmann-json/json.hpp"
+
 
 
 Map3d::Map3d() {
@@ -147,9 +148,6 @@ liblas::Bounds<double> Map3d::get_bounds() {
   return bounds;
 }
 
-<<<<<<< HEAD:src/Map3d.cpp
-void Map3d::get_citygml(std::ostream& of) {
-=======
 
 bool Map3d::get_cityjson(std::string filename) {
   std::cout << "CityJSON" << std::endl;
@@ -189,8 +187,7 @@ bool Map3d::get_cityjson(std::string filename) {
 }
 
 
-void Map3d::get_citygml(std::ofstream& of) {
->>>>>>> origin/cityjson-output:Map3d.cpp
+void Map3d::get_citygml(std::ostream& of) {
   create_citygml_header(of);
   for (auto& f : _lsFeatures) {
     f->get_citygml(of);
