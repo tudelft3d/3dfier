@@ -1073,9 +1073,10 @@ void Boundary3D::smooth_boundary(int passes) {
 //-------------------------------
 //-------------------------------
 
-TIN::TIN(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, float innerbuffer)
+TIN::TIN(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer)
   : TopoFeature(wkt, layername, attributes, pid) {
   _simplification = simplification;
+  _simplification_tinsimp = simplification_tinsimp;
   _innerbuffer = innerbuffer;
 }
 
@@ -1104,6 +1105,6 @@ bool TIN::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasc
 }
 
 bool TIN::buildCDT() {
-  getCDT(_p2, _p2z, _vertices, _triangles, _lidarpts);
+  getCDT(_p2, _p2z, _vertices, _triangles, _lidarpts, _simplification_tinsimp);
   return true;
 }

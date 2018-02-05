@@ -63,8 +63,9 @@ input_elevation:
       - ahn3/ahn3_cropped_1.laz
       - ahn3/ahn3_cropped_2.laz
     omit_LAS_classes:
+      - 0 # unclassified
       - 1 # unclassified
-    thinning: 0
+    thinning: 10
 
 options:
   building_radius_vertex_elevation: 3.0

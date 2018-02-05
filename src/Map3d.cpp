@@ -45,6 +45,8 @@ Map3d::Map3d() {
   _building_triangulate = true;
   _terrain_simplification = 0;
   _forest_simplification = 0;
+  _terrain_simplification_tinsimp = 0;
+  _forest_simplification_tinsimp = 0;
   _terrain_innerbuffer = 0.0;
   _forest_innerbuffer = 0.0;
   _forest_ground_points_only = false;
@@ -104,6 +106,13 @@ void Map3d::set_terrain_simplification(int simplification) {
 
 void Map3d::set_forest_simplification(int simplification) {
   _forest_simplification = simplification;
+}
+
+void Map3d::set_terrain_simplification_tinsimp(double tinsimp_threshold){
+  _terrain_simplification_tinsimp = tinsimp_threshold;
+}
+void Map3d::set_forest_simplification_tinsimp(double tinsimp_threshold){
+  _forest_simplification_tinsimp = tinsimp_threshold;
 }
 
 void Map3d::set_terrain_innerbuffer(float innerbuffer) {
@@ -867,11 +876,11 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Terrain") {
-    Terrain* p3 = new Terrain(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_terrain_simplification, this->_terrain_innerbuffer);
+    Terrain* p3 = new Terrain(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_terrain_simplification, this->_terrain_simplification_tinsimp, this->_terrain_innerbuffer);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Forest") {
-    Forest* p3 = new Forest(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_forest_simplification, this->_forest_innerbuffer, this->_forest_ground_points_only);
+    Forest* p3 = new Forest(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_forest_simplification, this->_forest_simplification_tinsimp, this->_forest_innerbuffer, this->_forest_ground_points_only);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Water") {

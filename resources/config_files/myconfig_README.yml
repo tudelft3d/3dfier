@@ -34,9 +34,11 @@ lifting_options:                                        # Group for class liftin
     height: percentile-50
   Terrain:                                              # Class definition for Terrain
     simplification: 100                                 # Simplification factor for points added within terrain polygons, points are added random
+    simplification_tinsimp: 0.1                         # Simplification threshold for points added within terrain polygons, points are removed after triangulation until specified error threshold value is reached
     inner_buffer: 1.0                                   # Inner buffer in meters where no additional points will be added within the terrain polygon
   Forest:                                               # Class definition for Forest
     simplification: 10                                  # Simplification factor for points added within forest polygons, points are added random
+    simplification_tinsimp: 0.1                         # Simplification threshold for points added within forest polygons, points are removed after triangulation until specified error threshold value is reached
     inner_buffer: 1.0                                   # Inner buffer in meters where no additional points will be added within the forest polygon
     ground_points_only: true                            # Use only lidar points classified as ground points for lifting the forest polygons if set to true, use all but points classified as building if set to false
 

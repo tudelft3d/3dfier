@@ -148,7 +148,7 @@ protected:
 
 class TIN: public TopoFeature {
 public:
-  TIN(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification = 0, float innerbuffer = 0);
+  TIN(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification = 0, double simplification_tinsimp = 0, float innerbuffer = 0);
   int                 get_number_vertices();
   bool                add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
   virtual TopoClass   get_class() = 0;
@@ -159,6 +159,7 @@ public:
   bool                buildCDT();
 protected:
   int                 _simplification;
+  double              _simplification_tinsimp;
   float               _innerbuffer;
   std::vector<Point3> _lidarpts;
 };
