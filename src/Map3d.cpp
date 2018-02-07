@@ -161,8 +161,8 @@ liblas::Bounds<double> Map3d::get_bounds() {
 bool Map3d::get_cityjson(std::string filename) {
   std::cout << "CityJSON" << std::endl;
   nlohmann::json j;
-  j["type"] = "CityModel";
-  j["version"] = "http://www.cityjson.org/version/0.2";
+  j["type"] = "CityJSON";
+  j["version"] = "0.6";
   j["metadata"] = {};
   j["metadata"]["datasetTitle"] = "my 3dfied map";
   j["metadata"]["pointOfContact"] = "https://3d.bk.tudelft.nl";
