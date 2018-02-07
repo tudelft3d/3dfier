@@ -33,13 +33,13 @@
 #include "TopoFeature.h"
 
 void printProgressBar(int percent);
-void get_xml_header(std::ostream& of);
-void get_citygml_namespaces(std::ostream& of);
-void get_citygml_imgeo_namespaces(std::ostream& of);
+void get_xml_header(std::wostream& of);
+void get_citygml_namespaces(std::wostream& of);
+void get_citygml_imgeo_namespaces(std::wostream& of);
 
-void get_polygon_lifted_gml(std::ostream& of, Polygon2* p2, double height, bool reverse = false);
-void get_extruded_line_gml(std::ostream& of, Point2* a, Point2* b, double high, double low, bool reverse = false);
-void get_extruded_lod1_block_gml(std::ostream& of, Polygon2* p2, double high, double low = 0.0);
+void get_polygon_lifted_gml(std::wostream& of, Polygon2* p2, double height, bool reverse = false);
+void get_extruded_line_gml(std::wostream& of, Point2* a, Point2* b, double high, double low, bool reverse = false);
+void get_extruded_lod1_block_gml(std::wostream& of, Polygon2* p2, double high, double low = 0.0);
 
 bool  is_string_integer(std::string s, int min = 0, int max = 1e6);
 float z_to_float(int z);

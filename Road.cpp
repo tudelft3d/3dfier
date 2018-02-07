@@ -61,9 +61,9 @@ bool Road::lift() {
   return true;
 }
 
-void Road::get_citygml(std::ostream& of) {
+void Road::get_citygml(std::wostream& of) {
   of << "<cityObjectMember>";
-  of << "<tran:Road gml:id=\"" << this->get_id() << "\">";
+  of << "<tran:Road gml:id=\"" << this->get_id().c_str() << "\">";
   get_citygml_attributes(of, _attributes);
   of << "<tran:lod1MultiSurface>";
   of << "<gml:MultiSurface>";
@@ -77,18 +77,18 @@ void Road::get_citygml(std::ostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Road::get_citygml_imgeo(std::ostream& of) {
+void Road::get_citygml_imgeo(std::wostream& of) {
   bool auxiliary = _layername == "auxiliarytrafficarea";
   bool spoor = _layername == "spoor";
   of << "<cityObjectMember>";
   if (spoor) {
-    of << "<tra:Railway gml:id=\"" << this->get_id() << "\">";
+    of << "<tra:Railway gml:id=\"" << this->get_id().c_str() << "\">";
   }
   else if (auxiliary) {
-    of << "<tra:AuxiliaryTrafficArea gml:id=\"" << this->get_id() << "\">";
+    of << "<tra:AuxiliaryTrafficArea gml:id=\"" << this->get_id().c_str() << "\">";
   }
   else {
-    of << "<tra:TrafficArea gml:id=\"" << this->get_id() << "\">";
+    of << "<tra:TrafficArea gml:id=\"" << this->get_id().c_str() << "\">";
   }
   get_imgeo_object_info(of, this->get_id());
   of << "<tra:lod2MultiSurface>";
@@ -103,47 +103,47 @@ void Road::get_citygml_imgeo(std::ostream& of) {
 
   if (spoor) {
     if (get_attribute("bgt-functie", attribute)) {
-      of << "<tra:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieSpoor\">" << attribute << "</tra:function>";
+      of << "<tra:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieSpoor\">" << attribute.c_str() << "</tra:function>";
     }
     if (get_attribute("plus-functiespoor", attribute)) {
-      of << "<imgeo:plus-functieSpoor codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieSpoorPlus\">" << attribute << "</imgeo:plus-functieSpoor>";
+      of << "<imgeo:plus-functieSpoor codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieSpoorPlus\">" << attribute.c_str() << "</imgeo:plus-functieSpoor>";
     }
     of << "</tra:Railway>";
   }
   else if (auxiliary) {
     if (get_attribute("bgt-functie", attribute)) {
-      of << "<tra:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOndersteunendWegdeel\">" << attribute << "</tra:function>";
+      of << "<tra:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOndersteunendWegdeel\">" << attribute.c_str() << "</tra:function>";
     }
     if (get_attribute("bgt-fysiekvoorkomen", attribute)) {
-      of << "<tra:surfaceMaterial codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOndersteunendWegdeel\">" << attribute << "</imgeo:tra:surfaceMaterial>";
+      of << "<tra:surfaceMaterial codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOndersteunendWegdeel\">" << attribute.c_str() << "</imgeo:tra:surfaceMaterial>";
     }
     if (get_attribute("ondersteunendwegdeeloptalud", attribute, "false")) {
-      of << "<imgeo:ondersteunendWegdeelOpTalud>" << attribute << "</imgeo:ondersteunendWegdeelOpTalud>";
+      of << "<imgeo:ondersteunendWegdeelOpTalud>" << attribute.c_str() << "</imgeo:ondersteunendWegdeelOpTalud>";
     }
     if (get_attribute("plus-functieondersteunendwegdeel", attribute)) {
-      of << "<imgeo:plus-functieOndersteunendWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOndersteunendWegdeelPlus\">" << attribute << "</imgeo:plus-functieOndersteunendWegdeel>";
+      of << "<imgeo:plus-functieOndersteunendWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOndersteunendWegdeelPlus\">" << attribute.c_str() << "</imgeo:plus-functieOndersteunendWegdeel>";
     }
     if (get_attribute("plus-fysiekvoorkomenondersteunendwegdeel", attribute)) {
-      of << "<imgeo:plus-fysiekVoorkomenOndersteunendWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOndersteunendWegdeelPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomenOndersteunendWegdeel>";
+      of << "<imgeo:plus-fysiekVoorkomenOndersteunendWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOndersteunendWegdeelPlus\">" << attribute.c_str() << "</imgeo:plus-fysiekVoorkomenOndersteunendWegdeel>";
     }
     of << "</tra:AuxiliaryTrafficArea>";
   }
   else
   {
     if (get_attribute("bgt-functie", attribute)) {
-      of << "<tra:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWeg\">" << attribute << "</tra:function>";
+      of << "<tra:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWeg\">" << attribute.c_str() << "</tra:function>";
     }
     if (get_attribute("bgt-fysiekvoorkomen", attribute)) {
-      of << "<tra:surfaceMaterial codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWeg\">" << attribute << "</tra:surfaceMaterial>";
+      of << "<tra:surfaceMaterial codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWeg\">" << attribute.c_str() << "</tra:surfaceMaterial>";
     }
     if (!get_attribute("wegdeeloptalud", attribute, "false")) {
-      of << "<imgeo:wegdeelOpTalud>" << attribute << "</imgeo:wegdeelOpTalud>";
+      of << "<imgeo:wegdeelOpTalud>" << attribute.c_str() << "</imgeo:wegdeelOpTalud>";
     }
     if (get_attribute("plus-functiewegdeel", attribute)) {
-      of << "<imgeo:plus-functieWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWegPlus\">" << attribute << "</imgeo:plus-functieWegdeel>";
+      of << "<imgeo:plus-functieWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FunctieWegPlus\">" << attribute.c_str() << "</imgeo:plus-functieWegdeel>";
     }
     if (get_attribute("plus-fysiekvoorkomenwegdeel", attribute)) {
-      of << "<imgeo:plus-fysiekVoorkomenWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWegPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomenWegdeel>";
+      of << "<imgeo:plus-fysiekVoorkomenWegdeel codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenWegPlus\">" << attribute.c_str() << "</imgeo:plus-fysiekVoorkomenWegdeel>";
     }
     of << "</tra:TrafficArea>";
   }

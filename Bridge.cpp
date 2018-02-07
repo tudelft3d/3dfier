@@ -66,9 +66,9 @@ bool Bridge::lift() {
   return true;
 }
 
-void Bridge::get_citygml(std::ostream& of) {
+void Bridge::get_citygml(std::wostream& of) {
   of << "<cityObjectMember>";
-  of << "<brg:Bridge gml:id=\"" << this->get_id() << "\">";
+  of << "<brg:Bridge gml:id=\"" << this->get_id().c_str() << "\">";
   get_citygml_attributes(of, _attributes);
   of << "<brg:lod1MultiSurface>";
   of << "<gml:MultiSurface>";
@@ -82,9 +82,9 @@ void Bridge::get_citygml(std::ostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Bridge::get_citygml_imgeo(std::ostream& of) {
+void Bridge::get_citygml_imgeo(std::wostream& of) {
   of << "<cityObjectMember>";
-  of << "<bri:BridgeConstructionElement gml:id=\"" << this->get_id() << "\">";
+  of << "<bri:BridgeConstructionElement gml:id=\"" << this->get_id().c_str() << "\">";
   get_imgeo_object_info(of, this->get_id());
   of << "<bri:lod1Geometry>";
   of << "<gml:MultiSurface>";
@@ -96,13 +96,13 @@ void Bridge::get_citygml_imgeo(std::ostream& of) {
   of << "</bri:lod1Geometry>";
   std::string attribute;
   if (get_attribute("bgt-type", attribute)) {
-    of << "<bri:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbruggingsdeel\">" << attribute << "</bri:function>";
+    of << "<bri:function codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbruggingsdeel\">" << attribute.c_str() << "</bri:function>";
   }
   if (get_attribute("hoortbijtypeoverbrugging", attribute)) {
-    of << "<imgeo:hoortBijTypeOverbrugging codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbrugging\">" << attribute << "</imgeo:hoortBijTypeOverbrugging>";
+    of << "<imgeo:hoortBijTypeOverbrugging codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverbrugging\">" << attribute.c_str() << "</imgeo:hoortBijTypeOverbrugging>";
   }
   if (get_attribute("overbruggingisbeweegbaar", attribute)) {
-    of << "<imgeo:overbruggingIsBeweegbaar>" << attribute << "</imgeo:overbruggingIsBeweegbaar>";
+    of << "<imgeo:overbruggingIsBeweegbaar>" << attribute.c_str() << "</imgeo:overbruggingIsBeweegbaar>";
   }
   of << "</bri:BridgeConstructionElement>";
   of << "</cityObjectMember>";

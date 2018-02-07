@@ -117,8 +117,8 @@ bool Building::is_hard() {
   return true;
 }
 
-void Building::get_csv(std::ostream& of) {
-  of << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << "\n";
+void Building::get_csv(std::wostream& of) {
+  of << this->get_id().c_str() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << "\n";
 }
 
 std::string Building::get_mtl() {
@@ -168,11 +168,11 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   }
 }
 
-void Building::get_citygml(std::ostream& of) {
+void Building::get_citygml(std::wostream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
   of << "<cityObjectMember>";
-  of << "<bldg:Building gml:id=\"" << this->get_id() << "\">";
+  of << "<bldg:Building gml:id=\"" << this->get_id().c_str() << "\">";
   get_citygml_attributes(of, _attributes);
   of << "<gen:measureAttribute name=\"min height surface\">";
   of << "<gen:value uom=\"#m\">" << hbase << "</gen:value>";
@@ -220,11 +220,11 @@ void Building::get_citygml(std::ostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Building::get_citygml_imgeo(std::ostream& of) {
+void Building::get_citygml_imgeo(std::wostream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
   of << "<cityObjectMember>";
-  of << "<bui:Building gml:id=\"" << this->get_id() << "\">";
+  of << "<bui:Building gml:id=\"" << this->get_id().c_str() << "\">";
   //-- store building information
   get_imgeo_object_info(of, this->get_id());
   of << "<bui:consistsOfBuildingPart>";
@@ -257,7 +257,7 @@ void Building::get_citygml_imgeo(std::ostream& of) {
   of << "</bui:lod1Solid>";
   std::string attribute;
   if (get_attribute("identificatiebagpnd", attribute)) {
-    of << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>";
+    of << "<imgeo:identificatieBAGPND>" << attribute.c_str() << "</imgeo:identificatieBAGPND>";
   }
   get_imgeo_nummeraanduiding(of);
   of << "</bui:BuildingPart>";
@@ -266,7 +266,7 @@ void Building::get_citygml_imgeo(std::ostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Building::get_imgeo_nummeraanduiding(std::ostream& of) {
+void Building::get_imgeo_nummeraanduiding(std::wostream& of) {
   std::string attribute;
   bool btekst, bplaatsingspunt, bhoek, blaagnr, bhoognr;
   std::string tekst, plaatsingspunt, hoek, laagnr, hoognr;
@@ -301,20 +301,20 @@ void Building::get_imgeo_nummeraanduiding(std::ostream& of) {
         of << "<imgeo:Nummeraanduidingreeks>";
         of << "<imgeo:nummeraanduidingreeks>";
         of << "<imgeo:Label>";
-        of << "<imgeo:tekst>" << tekst_split.at(i) << "</imgeo:tekst>";
+        of << "<imgeo:tekst>" << tekst_split.at(i).c_str() << "</imgeo:tekst>";
         of << "<imgeo:positie>";
         of << "<imgeo:Labelpositie>";
-        of << "<imgeo:plaatsingspunt><gml:Point srsDimension=\"2\"><gml:pos>" << plaatsingspunt_split.at(i) << "</gml:pos></gml:Point></imgeo:plaatsingspunt>";
-        of << "<imgeo:hoek>" << hoek_split.at(i) << "</imgeo:hoek>";
+        of << "<imgeo:plaatsingspunt><gml:Point srsDimension=\"2\"><gml:pos>" << plaatsingspunt_split.at(i).c_str() << "</gml:pos></gml:Point></imgeo:plaatsingspunt>";
+        of << "<imgeo:hoek>" << hoek_split.at(i).c_str() << "</imgeo:hoek>";
         of << "</imgeo:Labelpositie>";
         of << "</imgeo:positie>";
         of << "</imgeo:Label>";
         of << "</imgeo:nummeraanduidingreeks>";
         if (i < laagnr_split.size()) {
-          of << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << laagnr_split.at(i) << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>";
+          of << "<imgeo:identificatieBAGVBOLaagsteHuisnummer>" << laagnr_split.at(i).c_str() << "</imgeo:identificatieBAGVBOLaagsteHuisnummer>";
         }
         if (i < hoognr_split.size()) {
-          of << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << hoognr_split.at(i) << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>";
+          of << "<imgeo:identificatieBAGVBOHoogsteHuisnummer>" << hoognr_split.at(i).c_str() << "</imgeo:identificatieBAGVBOHoogsteHuisnummer>";
         }
         of << "</imgeo:Nummeraanduidingreeks>";
         of << "</imgeo:nummeraanduidingreeks>";

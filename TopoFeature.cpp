@@ -169,49 +169,49 @@ AttributeMap TopoFeature::get_attributes() {
   return _attributes;
 }
 
-void TopoFeature::get_imgeo_object_info(std::ostream& of, std::string id) {
+void TopoFeature::get_imgeo_object_info(std::wostream& of, std::string id) {
   std::string attribute;
   if (get_attribute("creationDate", attribute)) {
-    of << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>";
+    of << "<imgeo:creationDate>" << attribute.c_str() << "</imgeo:creationDate>";
   }
   if (get_attribute("terminationDate", attribute)) {
-    of << "<imgeo:terminationDate>" << attribute << "</imgeo:terminationDate>";
+    of << "<imgeo:terminationDate>" << attribute.c_str() << "</imgeo:terminationDate>";
   }
   if (get_attribute("lokaalid", attribute)) {
     of << "<imgeo:identificatie>";
     of << "<imgeo:NEN3610ID>";
     of << "<imgeo:namespace>NL.IMGeo</imgeo:namespace>";
-    of << "<imgeo:lokaalID>" << attribute << "</imgeo:lokaalID>";
+    of << "<imgeo:lokaalID>" << attribute.c_str() << "</imgeo:lokaalID>";
     of << "</imgeo:NEN3610ID>";
     of << "</imgeo:identificatie>";
   }
   if (get_attribute("tijdstipregistratie", attribute)) {
-    of << "<imgeo:tijdstipRegistratie>" << attribute << "</imgeo:tijdstipRegistratie>";
+    of << "<imgeo:tijdstipRegistratie>" << attribute.c_str() << "</imgeo:tijdstipRegistratie>";
   }
   if (get_attribute("eindregistratie", attribute)) {
-    of << "<imgeo:eindRegistratie>" << attribute << "</imgeo:eindRegistratie>";
+    of << "<imgeo:eindRegistratie>" << attribute.c_str() << "</imgeo:eindRegistratie>";
   }
   if (get_attribute("lv-publicatiedatum", attribute)) {
-    of << "<imgeo:LV-publicatiedatum>" << attribute << "</imgeo:LV-publicatiedatum>";
+    of << "<imgeo:LV-publicatiedatum>" << attribute.c_str() << "</imgeo:LV-publicatiedatum>";
   }
   if (get_attribute("bronhouder", attribute)) {
-    of << "<imgeo:bronhouder>" << attribute << "</imgeo:bronhouder>";
+    of << "<imgeo:bronhouder>" << attribute.c_str() << "</imgeo:bronhouder>";
   }
   if (get_attribute("inonderzoek", attribute)) {
-    of << "<imgeo:inOnderzoek>" << attribute << "</imgeo:inOnderzoek>";
+    of << "<imgeo:inOnderzoek>" << attribute.c_str() << "</imgeo:inOnderzoek>";
   }
   if (get_attribute("relatievehoogteligging", attribute)) {
-    of << "<imgeo:relatieveHoogteligging>" << attribute << "</imgeo:relatieveHoogteligging>";
+    of << "<imgeo:relatieveHoogteligging>" << attribute.c_str() << "</imgeo:relatieveHoogteligging>";
   }
   if (get_attribute("bgt-status", attribute, "bestaand")) {
-    of << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" << attribute << "</imgeo:bgt-status>";
+    of << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" << attribute.c_str() << "</imgeo:bgt-status>";
   }
   if (get_attribute("plus-status", attribute)) {
-    of << "<imgeo:plus-status>" << attribute << "</imgeo:plus-status>";
+    of << "<imgeo:plus-status>" << attribute.c_str() << "</imgeo:plus-status>";
   }
 }
 
-void TopoFeature::get_citygml_attributes(std::ostream& of, AttributeMap attributes) {
+void TopoFeature::get_citygml_attributes(std::wostream& of, AttributeMap attributes) {
   for (auto& attribute : attributes) {
     // add attributes except gml_id
     if (attribute.first.compare("gml_id") != 0) {
@@ -226,9 +226,9 @@ void TopoFeature::get_citygml_attributes(std::ostream& of, AttributeMap attribut
       default:
         type = "string";
       }
-      of << "<gen:" + type + "Attribute name=\"" + std::get<0>(attribute) + "\">";
-      of << "<gen:value>" + attribute.second.second + "</gen:value>";
-      of << "</gen:" + type << "Attribute>";
+      of << "<gen:" << type.c_str() << "Attribute name=\"" << std::get<0>(attribute).c_str() << "\">";
+      of << "<gen:value>" << attribute.second.second.c_str() << "</gen:value>";
+      of << "</gen:"<< type.c_str() << "Attribute>";
     }
   }
 }
@@ -752,22 +752,22 @@ bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
   return insideOuter;
 }
 
-void TopoFeature::get_triangle_as_gml_surfacemember(std::ostream& of, Triangle& t, bool verticalwall) {
+void TopoFeature::get_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, bool verticalwall) {
   of << "<gml:surfaceMember>";
   of << "<gml:Polygon>";
   of << "<gml:exterior>";
   of << "<gml:LinearRing>";
   if (verticalwall == false) {
-    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
+    of << "<gml:pos>" << _vertices[t.v0].second.c_str() << "</gml:pos>";
+    of << "<gml:pos>" << _vertices[t.v1].second.c_str() << "</gml:pos>";
+    of << "<gml:pos>" << _vertices[t.v2].second.c_str() << "</gml:pos>";
+    of << "<gml:pos>" << _vertices[t.v0].second.c_str() << "</gml:pos>";
   }
   else {
-    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
+    of << "<gml:pos>" << _vertices_vw[t.v0].second.c_str() << "</gml:pos>";
+    of << "<gml:pos>" << _vertices_vw[t.v1].second.c_str() << "</gml:pos>";
+    of << "<gml:pos>" << _vertices_vw[t.v2].second.c_str() << "</gml:pos>";
+    of << "<gml:pos>" << _vertices_vw[t.v0].second.c_str() << "</gml:pos>";
   }
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
@@ -775,21 +775,21 @@ void TopoFeature::get_triangle_as_gml_surfacemember(std::ostream& of, Triangle& 
   of << "</gml:surfaceMember>";
 }
 
-void TopoFeature::get_triangle_as_gml_triangle(std::ostream& of, Triangle& t, bool verticalwall) {
+void TopoFeature::get_triangle_as_gml_triangle(std::wostream& of, Triangle& t, bool verticalwall) {
   of << "<gml:Triangle>";
   of << "<gml:exterior>";
   of << "<gml:LinearRing>";
   if (verticalwall == false) {
-    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
+    of << "<gml:pos>" << _vertices[t.v0].second.c_str() << "</gml:pos>";
+    of << "<gml:pos>" << _vertices[t.v1].second.c_str() << "</gml:pos>";
+    of << "<gml:pos>" << _vertices[t.v2].second.c_str() << "</gml:pos>";
+    of << "<gml:pos>" << _vertices[t.v0].second.c_str() << "</gml:pos>";
   }
   else {
-    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
+    of << "<gml:pos>" << _vertices_vw[t.v0].second.c_str() << "</gml:pos>";
+    of << "<gml:pos>" << _vertices_vw[t.v1].second.c_str() << "</gml:pos>";
+    of << "<gml:pos>" << _vertices_vw[t.v2].second.c_str() << "</gml:pos>";
+    of << "<gml:pos>" << _vertices_vw[t.v0].second.c_str() << "</gml:pos>";
   }
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
