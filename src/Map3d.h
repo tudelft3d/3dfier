@@ -40,6 +40,8 @@
 #include "Separation.h"
 #include "Bridge.h"
 
+#include <set>
+
 typedef std::pair<Box2, TopoFeature*> PairIndexed;
 
 class Map3d {
@@ -98,6 +100,9 @@ public:
   void set_threshold_jump_edges(float threshold);
   void set_use_vertical_walls(bool useverticalwalls);
   void set_requested_extent(double xmin, double ymin, double xmax, double ymax);
+
+  void add_las_water(int i);
+
 private:
   float       _building_heightref_roof;
   float       _building_heightref_floor;
@@ -121,6 +126,15 @@ private:
   int         _threshold_jump_edges; //-- in cm/integer
   Box2        _bbox;
   Box2        _requestedExtent;
+
+  //-- storing here the LAS allowed for each TopoFeature
+  std::set<int>    _bridge_las_classes;
+  std::set<int>    _building_las_classes;
+  std::set<int>    _forest_las_classes;
+  std::set<int>    _road_las_classes;
+  std::set<int>    _separation_las_classes;
+  std::set<int>    _terrain_las_classes;
+  std::set<int>    _water_las_classes;
 
   NodeColumn                                          _nc;
   std::vector<TopoFeature*>                           _lsFeatures;

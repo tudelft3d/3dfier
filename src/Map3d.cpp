@@ -611,20 +611,20 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
 
 void Map3d::add_elevation_point(liblas::Point const& laspt) {
   Point2 p(laspt.GetX(), laspt.GetY());
-  LAS14Class lasclass = LAS_UNKNOWN;
-  //-- get LAS class
-  if (laspt.GetClassification() == liblas::Classification(LAS_UNCLASSIFIED))
-    lasclass = LAS_UNCLASSIFIED;
-  else if (laspt.GetClassification() == liblas::Classification(LAS_GROUND))
-    lasclass = LAS_GROUND;
-  else if (laspt.GetClassification() == liblas::Classification(LAS_BUILDING))
-    lasclass = LAS_BUILDING;
-  else if (laspt.GetClassification() == liblas::Classification(LAS_WATER))
-    lasclass = LAS_WATER;
-  else if (laspt.GetClassification() == liblas::Classification(LAS_BRIDGE))
-    lasclass = LAS_BRIDGE;
-  else
-    lasclass = LAS_UNKNOWN;
+  // LAS14Class lasclass = LAS_UNKNOWN;
+  // //-- get LAS class
+  // if (laspt.GetClassification() == liblas::Classification(LAS_UNCLASSIFIED))
+  //   lasclass = LAS_UNCLASSIFIED;
+  // else if (laspt.GetClassification() == liblas::Classification(LAS_GROUND))
+  //   lasclass = LAS_GROUND;
+  // else if (laspt.GetClassification() == liblas::Classification(LAS_BUILDING))
+  //   lasclass = LAS_BUILDING;
+  // else if (laspt.GetClassification() == liblas::Classification(LAS_WATER))
+  //   lasclass = LAS_WATER;
+  // else if (laspt.GetClassification() == liblas::Classification(LAS_BRIDGE))
+  //   lasclass = LAS_BRIDGE;
+  // else
+  //   lasclass = LAS_UNKNOWN;
 
   std::vector<PairIndexed> re;
   float radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
@@ -635,19 +635,29 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
 
   for (auto& v : re) {
     TopoFeature* f = v.second;
-    if (f->get_class() == BUILDING) {
-      radius = _building_radius_vertex_elevation;
+    bool bInsert = false;
+    radius = _radius_vertex_elevation;
+    if ( (f->get_class() == BUILDING)  && (_building_las_classes.count(laspt.GetClassification().GetClass()) > 0) ){
+      bInsert = true;
+      if (f->get_class() == BUILDING) 
+        radius = _building_radius_vertex_elevation;
     }
-    else {
-      radius = _radius_vertex_elevation;
+
+    if ( (f->get_class() == WATER) && (_water_las_classes.count(laspt.GetClassification().GetClass()) > 0) )
+          bInsert = true;
+    if ( (f->get_class() == ROAD)  && (_road_las_classes.count(laspt.GetClassification().GetClass()) > 0) )
+          bInsert = true;
+ 
+    if (bInsert == true) { //-- only insert if in the allowed LAS classes
+      f->add_elevation_point(p,
+        laspt.GetZ(),
+        radius,
+        LAS_UNKNOWN, // lasclass TODO: update LAS class
+        (laspt.GetReturnNumber() == laspt.GetNumberOfReturns()));
     }
-    f->add_elevation_point(p,
-      laspt.GetZ(),
-      radius,
-      lasclass,
-      (laspt.GetReturnNumber() == laspt.GetNumberOfReturns()));
   }
 }
+
 
 bool Map3d::threeDfy(bool stitching) {
   /*
@@ -1298,3 +1308,8 @@ void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2
   Point2 p = f1->get_point2(ringi1, pi1);
   _nc[gen_key_bucket(&p)].push_back(avgz);
 }
+
+void Map3d::add_las_water(int i) {
+  _water_las_classes.insert(i);
+}
+

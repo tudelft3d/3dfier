@@ -104,11 +104,13 @@ int main(int argc, const char * argv[]) {
   std::set<std::string> allowedFeatures{"Building", "Water", "Terrain", "Road", "Forest", "Separation", "Bridge/Overpass"};
 
   //-- validate the YAML file right now, nicer for the user
-  if (validate_yaml(argv[1], allowedFeatures) == false) {
-    std::cerr << "ERROR: config file (*.yml) is not valid. Aborting.\n";
-    return 0;
-  }
-  std::clog << "Config file is valid.\n";
+  std::clog << "SKIPPING VALIDATION YAML" << std::endl;
+  // TODO : write the validation of yaml updated
+  // if (validate_yaml(argv[1], allowedFeatures) == false) {
+  //   std::cerr << "ERROR: config file (*.yml) is not valid. Aborting.\n";
+  //   return 0;
+  // }
+  // std::clog << "Config file is valid.\n";
 
   Map3d map3d;
   YAML::Node nodes = YAML::LoadFile(argv[1]);
@@ -156,6 +158,9 @@ int main(int argc, const char * argv[]) {
       std::string height = n["Water"]["height"].as<std::string>();
       map3d.set_water_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
+    YAML::Node tmp = n["Water"]["use_LAS_classes"];
+    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+      map3d.add_las_water(it2->as<int>());
   }
   if (n["Road"]) {
     if (n["Road"]["height"]) {

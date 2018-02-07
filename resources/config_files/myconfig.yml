@@ -25,6 +25,9 @@ lifting_options:
     triangulate: true
   Water:
     height: percentile-10
+    use_LAS_classes:
+      - 3
+      - 6
   Road:
     height: percentile-50
   Separation:
