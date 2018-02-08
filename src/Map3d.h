@@ -128,15 +128,7 @@ private:
   Box2        _bbox;
   Box2        _requestedExtent;
 
-  //-- storing here the LAS allowed for each TopoFeature
-  std::set<int>    _bridge_las_classes;
-  std::set<int>    _building_las_classes;
-  std::set<int>    _forest_las_classes;
-  std::set<int>    _road_las_classes;
-  std::set<int>    _separation_las_classes;
-  std::set<int>    _terrain_las_classes;
-  std::set<int>    _water_las_classes;
-
+  //-- storing the LAS allowed for each TopoFeature
   std::array<std::set<int>,NUM_CLASSES> _las_classes_allowed;
 
   NodeColumn                                          _nc;

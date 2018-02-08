@@ -635,16 +635,15 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
 
   for (auto& v : re) {
     TopoFeature* f = v.second;
-    bool bInsert = false;
     radius = _radius_vertex_elevation;
-    
     //-- only process last returns; 
     //-- although perhaps not smart for vegetation/forest in the future
+    //-- TODO: always ignore the non-last-return points?
     if (laspt.GetReturnNumber() != laspt.GetNumberOfReturns()) 
       continue;
 
     int c = laspt.GetClassification().GetClass();
-
+    bool bInsert = false;
     if ( (f->get_class() == BUILDING) && 
          ( (_las_classes_allowed[BUILDING].empty() == true) || (_las_classes_allowed[BUILDING].count(c) > 0) ) ) {
       bInsert = true;
@@ -671,7 +670,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
         laspt.GetZ(),
         radius,
         LAS_UNKNOWN, // lasclass TODO: update LAS class
-        (laspt.GetReturnNumber() == laspt.GetNumberOfReturns()));
+        true); // (laspt.GetReturnNumber() == laspt.GetNumberOfReturns()));
     }
   }
 }

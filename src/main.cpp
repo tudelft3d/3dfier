@@ -134,6 +134,9 @@ int main(int argc, const char * argv[]) {
       else
         map3d.set_building_triangulate(false);
     }
+    YAML::Node tmp = n["Building"]["use_LAS_classes"];
+    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+      map3d.add_allowed_las_class(BUILDING, it2->as<int>());
   }
   if (n["Terrain"]) {
     if (n["Terrain"]["simplification"])
@@ -142,6 +145,9 @@ int main(int argc, const char * argv[]) {
       map3d.set_terrain_simplification_tinsimp(n["Terrain"]["simplification_tinsimp"].as<double>());
     if (n["Terrain"]["innerbuffer"])
       map3d.set_terrain_innerbuffer(n["Terrain"]["innerbuffer"].as<float>());
+    YAML::Node tmp = n["Terrain"]["use_LAS_classes"];
+    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+      map3d.add_allowed_las_class(TERRAIN, it2->as<int>());
   }
   if (n["Forest"]) {
     if (n["Forest"]["simplification"])
@@ -152,6 +158,9 @@ int main(int argc, const char * argv[]) {
       map3d.set_forest_innerbuffer(n["Forest"]["innerbuffer"].as<float>());
     if (n["Forest"]["ground_points_only"] && n["Forest"]["ground_points_only"].as<std::string>() == "true")
       map3d.set_forest_ground_points_only(true);
+    YAML::Node tmp = n["Forest"]["use_LAS_classes"];
+    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+      map3d.add_allowed_las_class(FOREST, it2->as<int>());
   }
   if (n["Water"]) {
     if (n["Water"]["height"]) {
@@ -167,18 +176,27 @@ int main(int argc, const char * argv[]) {
       std::string height = n["Road"]["height"].as<std::string>();
       map3d.set_road_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
+    YAML::Node tmp = n["Road"]["use_LAS_classes"];
+    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+      map3d.add_allowed_las_class(ROAD, it2->as<int>());
   }
   if (n["Separation"]) {
     if (n["Separation"]["height"]) {
       std::string height = n["Separation"]["height"].as<std::string>();
       map3d.set_separation_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
+    YAML::Node tmp = n["Separation"]["use_LAS_classes"];
+    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+      map3d.add_allowed_las_class(SEPARATION, it2->as<int>());
   }
   if (n["Bridge/Overpass"]) {
     if (n["Bridge/Overpass"]["height"]) {
       std::string height = n["Bridge/Overpass"]["height"].as<std::string>();
       map3d.set_bridge_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
     }
+    YAML::Node tmp = n["Bridge/Overpass"]["use_LAS_classes"];
+    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+      map3d.add_allowed_las_class(BRIDGE, it2->as<int>());
   }
 
   n = nodes["options"];
