@@ -41,6 +41,7 @@
 #include "Bridge.h"
 
 #include <set>
+#include <array>
 
 typedef std::pair<Box2, TopoFeature*> PairIndexed;
 
@@ -101,7 +102,7 @@ public:
   void set_use_vertical_walls(bool useverticalwalls);
   void set_requested_extent(double xmin, double ymin, double xmax, double ymax);
 
-  void add_las_water(int i);
+  void add_allowed_las_class(TopoClass c, int i);
 
 private:
   float       _building_heightref_roof;
@@ -135,6 +136,8 @@ private:
   std::set<int>    _separation_las_classes;
   std::set<int>    _terrain_las_classes;
   std::set<int>    _water_las_classes;
+
+  std::array<std::set<int>,NUM_CLASSES> _las_classes_allowed;
 
   NodeColumn                                          _nc;
   std::vector<TopoFeature*>                           _lsFeatures;

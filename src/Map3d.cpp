@@ -637,15 +637,33 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
     TopoFeature* f = v.second;
     bool bInsert = false;
     radius = _radius_vertex_elevation;
-    if ( (f->get_class() == BUILDING)  && (_building_las_classes.count(laspt.GetClassification().GetClass()) > 0) ){
-      bInsert = true;
-      if (f->get_class() == BUILDING) 
-        radius = _building_radius_vertex_elevation;
-    }
+    
+    //-- only process last returns; 
+    //-- although perhaps not smart for vegetation/forest in the future
+    if (laspt.GetReturnNumber() != laspt.GetNumberOfReturns()) 
+      continue;
 
-    if ( (f->get_class() == WATER) && (_water_las_classes.count(laspt.GetClassification().GetClass()) > 0) )
+    int c = laspt.GetClassification().GetClass();
+
+    if ( (f->get_class() == BUILDING) && 
+         ( (_las_classes_allowed[BUILDING].empty() == true) || (_las_classes_allowed[BUILDING].count(c) > 0) ) ) {
+      bInsert = true;
+      radius = _building_radius_vertex_elevation;
+    }
+    if ( (f->get_class() == WATER) && 
+         ( (_las_classes_allowed[WATER].empty() == true) || (_las_classes_allowed[WATER].count(c) > 0) ) )
           bInsert = true;
-    if ( (f->get_class() == ROAD)  && (_road_las_classes.count(laspt.GetClassification().GetClass()) > 0) )
+    if ( (f->get_class() == ROAD) && 
+         ( (_las_classes_allowed[ROAD].empty() == true) || (_las_classes_allowed[ROAD].count(c) > 0) ) )
+          bInsert = true;
+    if ( (f->get_class() == BRIDGE) && 
+         ( (_las_classes_allowed[BRIDGE].empty() == true) || (_las_classes_allowed[BRIDGE].count(c) > 0) ) )
+          bInsert = true;
+    if ( (f->get_class() == SEPARATION) && 
+         ( (_las_classes_allowed[SEPARATION].empty() == true) || (_las_classes_allowed[SEPARATION].count(c) > 0) ) )
+          bInsert = true;
+    if ( (f->get_class() == TERRAIN) && 
+         ( (_las_classes_allowed[TERRAIN].empty() == true) || (_las_classes_allowed[TERRAIN].count(c) > 0) ) )
           bInsert = true;
  
     if (bInsert == true) { //-- only insert if in the allowed LAS classes
@@ -1301,6 +1319,7 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
   }
 }
 
+
 void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
   int avgz = (f1->get_vertex_elevation(ringi1, pi1) + f2->get_vertex_elevation(ringi2, pi2)) / 2;
   f1->set_vertex_elevation(ringi1, pi1, avgz);
@@ -1309,7 +1328,9 @@ void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2
   _nc[gen_key_bucket(&p)].push_back(avgz);
 }
 
-void Map3d::add_las_water(int i) {
-  _water_las_classes.insert(i);
+
+void Map3d::add_allowed_las_class(TopoClass c, int i) {
+  _las_classes_allowed[c].insert(i);
 }
+
 

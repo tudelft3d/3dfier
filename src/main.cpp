@@ -160,7 +160,7 @@ int main(int argc, const char * argv[]) {
     }
     YAML::Node tmp = n["Water"]["use_LAS_classes"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
-      map3d.add_las_water(it2->as<int>());
+      map3d.add_allowed_las_class(WATER, it2->as<int>());
   }
   if (n["Road"]) {
     if (n["Road"]["height"]) {
