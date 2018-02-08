@@ -51,12 +51,15 @@ std::string Forest::get_mtl() {
 }
 
 bool Forest::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  bool toadd = false;
-  if (lastreturn && ((_use_ground_points_only && lasclass == LAS_GROUND) || (_use_ground_points_only == false && lasclass != LAS_BUILDING))) {
-    toadd = TIN::add_elevation_point(p, z, radius, lasclass, lastreturn);
-  }
-  return toadd;
+  return TIN::add_elevation_point(p, z, radius, lasclass, lastreturn);
 }
+//   bool toadd = false;
+//   if (lastreturn && ((_use_ground_points_only && lasclass == LAS_GROUND) || (_use_ground_points_only == false && lasclass != LAS_BUILDING))) {
+//     toadd = TIN::add_elevation_point(p, z, radius, lasclass, lastreturn);
+//   }
+//   return toadd;
+// }
+
 
 bool Forest::lift() {
   TopoFeature::lift_each_boundary_vertices(0.5);

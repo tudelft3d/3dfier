@@ -46,13 +46,14 @@ std::string Terrain::get_mtl() {
 }
 
 bool Terrain::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  bool toadd = false;
-  if (lastreturn && lasclass == LAS_GROUND) {
-    toadd = TIN::add_elevation_point(p, z, radius, lasclass, lastreturn);
-  }
-  return toadd;
+  return TIN::add_elevation_point(p, z, radius, lasclass, lastreturn);
 }
-
+//   bool toadd = false;
+//   if (lastreturn && lasclass == LAS_GROUND) {
+//     toadd = TIN::add_elevation_point(p, z, radius, lasclass, lastreturn);
+//   }
+//   return toadd;
+// }
 bool Terrain::lift() {
   //-- lift vertices to their median of lidar points
   TopoFeature::lift_each_boundary_vertices(0.5);

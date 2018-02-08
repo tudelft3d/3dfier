@@ -49,12 +49,14 @@ std::string Road::get_mtl() {
 }
 
 bool Road::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  if (lastreturn == true && lasclass == LAS_GROUND) {
-    Boundary3D::add_elevation_point(p, z, radius, lasclass, lastreturn);
-  }
+  Boundary3D::add_elevation_point(p, z, radius, lasclass, lastreturn);
   return true;
 }
-
+//   if (lastreturn == true && lasclass == LAS_GROUND) {
+//     Boundary3D::add_elevation_point(p, z, radius, lasclass, lastreturn);
+//   }
+//   return true;
+// }
 bool Road::lift() {
   lift_each_boundary_vertices(_heightref);
   smooth_boundary(5);

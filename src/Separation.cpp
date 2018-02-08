@@ -49,11 +49,14 @@ std::string Separation::get_mtl() {
 }
 
 bool Separation::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  if (lastreturn == true && lasclass != LAS_BUILDING && lasclass != LAS_WATER && lasclass != LAS_BRIDGE) {
-    Boundary3D::add_elevation_point(p, z, radius, lasclass, lastreturn);
-  }
+  Boundary3D::add_elevation_point(p, z, radius, lasclass, lastreturn);
   return true;
 }
+//   if (lastreturn == true && lasclass != LAS_BUILDING && lasclass != LAS_WATER && lasclass != LAS_BRIDGE) {
+//     Boundary3D::add_elevation_point(p, z, radius, lasclass, lastreturn);
+//   }
+//   return true;
+// }
 
 bool Separation::lift() {
   //lift_percentile(_heightref);
