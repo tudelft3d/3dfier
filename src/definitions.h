@@ -61,15 +61,19 @@ typedef struct PointFile {
 typedef std::unordered_map< std::string, std::pair<OGRFieldType, std::string> > AttributeMap;
 
 typedef enum {
-   BUILDING    = 0,
-   WATER       = 1,
-   BRIDGE      = 2,
-   ROAD        = 3,
-   TERRAIN     = 4,
-   FOREST      = 5,
-   SEPARATION  = 6,
-   NUM_CLASSES = 7
+   BUILDING        = 0,
+   BUILDING_ROOF   = 1,
+   BUILDING_GROUND = 2,
+   WATER           = 3,
+   BRIDGE          = 4,
+   ROAD            = 5,
+   TERRAIN         = 6,
+   FOREST          = 7,
+   SEPARATION      = 8,
+   NUM_CLASSES     = 9
 } TopoClass;
+
+
 
 typedef enum {
   LAS_UNKNOWN      =  0,

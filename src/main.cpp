@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2017  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -117,14 +117,24 @@ int main(int argc, const char * argv[]) {
   //-- store the lifting options in the Map3d
   YAML::Node n = nodes["lifting_options"];
   if (n["Building"]) {
-    if (n["Building"]["height_roof"]) {
-      std::string height = n["Building"]["height_roof"].as<std::string>();
-      map3d.set_building_heightref_roof(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
+    if (n["Building"]["roof"]) {
+      if (n["Building"]["roof"]["height"]) {
+        std::string height = n["Building"]["roof"]["height"].as<std::string>();
+        map3d.set_building_heightref_roof(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
+      }
+      YAML::Node tmp = n["Building"]["roof"]["use_LAS_classes"];
+      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+        map3d.add_allowed_las_class(BUILDING_ROOF, it2->as<int>());
     }
-    if (n["Building"]["height_floor"]) {
-      std::string height = n["Building"]["height_floor"].as<std::string>();
-      map3d.set_building_heightref_floor(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
-    }
+    if (n["Building"]["ground"]) {
+      if (n["Building"]["ground"]["height"]) {
+        std::string height = n["Building"]["ground"]["height"].as<std::string>();
+        map3d.set_building_heightref_ground(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
+      }
+      YAML::Node tmp = n["Building"]["ground"]["use_LAS_classes"];
+      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+        map3d.add_allowed_las_class(BUILDING_GROUND, it2->as<int>());
+    }    
     if (n["Building"]["lod"]) {
       map3d.set_building_lod(n["Building"]["lod"].as<int>());
     }
@@ -134,9 +144,6 @@ int main(int argc, const char * argv[]) {
       else
         map3d.set_building_triangulate(false);
     }
-    YAML::Node tmp = n["Building"]["use_LAS_classes"];
-    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
-      map3d.add_allowed_las_class(BUILDING, it2->as<int>());
   }
   if (n["Terrain"]) {
     if (n["Terrain"]["simplification"])
@@ -287,6 +294,8 @@ int main(int argc, const char * argv[]) {
   }
   std::clog << "\nTotal # of polygons: " << boost::locale::as::number << map3d.get_num_polygons() << std::endl;
 
+
+  map3d.save_building_variables();
   //-- spatially index the polygons
   map3d.construct_rtree();
 

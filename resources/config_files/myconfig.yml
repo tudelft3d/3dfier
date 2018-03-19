@@ -20,8 +20,16 @@ input_polygons:
   
 lifting_options: 
   Building:
-    height_roof: percentile-95
-    height_floor: percentile-10
+    roof:
+      height: percentile-95
+      use_LAS_classes:
+        - 1
+        - 2
+    ground:
+      height: percentile-10
+      use_LAS_classes:
+        - 3
+        - 6
     triangulate: true
   Water:
     height: percentile-10

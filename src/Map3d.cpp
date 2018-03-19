@@ -41,7 +41,7 @@ Map3d::Map3d() {
   _building_lod = 1;
   _use_vertical_walls = false;
   _building_heightref_roof = 0.9f;
-  _building_heightref_floor = 0.1f;
+  _building_heightref_ground = 0.1f;
   _building_triangulate = true;
   _terrain_simplification = 0;
   _forest_simplification = 0;
@@ -68,8 +68,8 @@ void Map3d::set_building_heightref_roof(float h) {
   _building_heightref_roof = h;
 }
 
-void Map3d::set_building_heightref_floor(float h) {
-  _building_heightref_floor = h;
+void Map3d::set_building_heightref_ground(float h) {
+  _building_heightref_ground = h;
 }
 
 void Map3d::set_radius_vertex_elevation(float radius) {
@@ -290,7 +290,7 @@ void Map3d::create_citygml_imgeo_header(std::ostream& of) {
 }
 
 void Map3d::get_csv_buildings(std::ostream& of) {
-  of << "id,roof,floor\n";
+  of << "id,roof,ground\n";
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
@@ -669,7 +669,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
       f->add_elevation_point(p,
         laspt.GetZ(),
         radius,
-        LAS_UNKNOWN, // lasclass TODO: update LAS class
+        LAS_UNKNOWN, //  TODO: update LAS class
         true); // (laspt.GetReturnNumber() == laspt.GetNumberOfReturns()));
     }
   }
@@ -737,6 +737,13 @@ bool Map3d::construct_CDT() {
   std::clog << "=====  CDT/ =====\n";
   return true;
 }
+
+
+bool Map3d::save_building_variables() {
+  Building::set_las_classes_roof(_las_classes_allowed[BUILDING_ROOF]);
+  Building::set_las_classes_ground(_las_classes_allowed[BUILDING_GROUND]);
+}
+
 
 bool Map3d::construct_rtree() {
   std::clog << "Constructing the R-tree...";
@@ -899,7 +906,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
     attributes[boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef())] = std::make_pair(f->GetFieldDefnRef(i)->GetType(), f->GetFieldAsString(i));
   }
   if (layertype == "Building") {
-    Building* p3 = new Building(wkt, layername, attributes, f->GetFieldAsString(idfield), _building_heightref_roof, _building_heightref_floor);
+    Building* p3 = new Building(wkt, layername, attributes, f->GetFieldAsString(idfield), _building_heightref_roof, _building_heightref_ground);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Terrain") {
@@ -1154,8 +1161,8 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     }
 
     //-- Deal with buildings. If there's a building and a soft class incident, then this soft class
-    //-- get allocated the height value of the floor of the building. Any building will do if >1.
-    //-- Also ignore water so it doesn't get snapped to the floor of a building
+    //-- get allocated the height value of the ground of the building. Any building will do if >1.
+    //-- Also ignore water so it doesn't get snapped to the ground of a building
     if (building != -1) {
       int baseheight = dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base();
       for (auto& each : zstar) {

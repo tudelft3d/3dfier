@@ -42,8 +42,17 @@ input_polygons:
 
 lifting_options: 
   Building:
-    height_roof: percentile-90
-    height_floor: percentile-10
+    roof:
+      height: percentile-90
+      use_LAS_classes:
+        - 2
+        - 4
+    ground:
+      height: percentile-10
+      use_LAS_classes:
+        - 3
+        - 6
+    triangulate: true
     lod: 1
   Terrain:
     simplification: 10

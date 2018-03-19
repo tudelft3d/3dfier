@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -30,9 +30,12 @@
 #include "io.h"
 #include <algorithm>    // std::sort
 
-
+//-- static variable
 float Building::_heightref_top = 0.9f;
 float Building::_heightref_base = 0.1f;
+std::set<int> Building::_las_classes_roof;
+std::set<int> Building::_las_classes_ground;
+
 
 Building::Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base)
   : Flat(wkt, layername, attributes, pid)
@@ -40,6 +43,17 @@ Building::Building(char *wkt, std::string layername, AttributeMap attributes, st
   _heightref_top = heightref_top;
   _heightref_base = heightref_base;
 }
+
+void Building::set_las_classes_roof(std::set<int> theset)
+{
+  Building::_las_classes_roof = theset;
+}
+
+void Building::set_las_classes_ground(std::set<int> theset)
+{
+  Building::_las_classes_ground = theset;
+}
+
 
 std::string Building::get_all_z_values() {
   std::vector<int> allz (_zvaluesground.begin(), _zvaluesground.end());
@@ -94,14 +108,26 @@ bool Building::lift() {
 bool Building::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
   if (within_range(p, *(_p2), radius)) {
     int zcm = int(z * 100);
-    //-- TODO: @tom: keep a list of ground points? why? 
-    //-- shouldn't the percentile take care of this?
-    _zvaluesground.push_back(zcm); 
-    //-- 2. assign to polygon since within
-    _zvaluesinside.push_back(zcm);
+    int c = laspt.GetClassification().GetClass();
+    if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count() > 0) ) {
+      _zvaluesinside.push_back(zcm);
+    }
+    if ( (_las_classes_ground.empty() == true) || (_las_classes_ground.count() > 0) ) {
+      _zvaluesground.push_back(zcm);
+    }
   }
   return true;
 }
+//   if (within_range(p, *(_p2), radius)) {
+//     int zcm = int(z * 100);
+//     //-- TODO: @tom: keep a list of ground points? why? 
+//     //-- shouldn't the percentile take care of this?
+//     _zvaluesground.push_back(zcm); 
+//     //-- 2. assign to polygon since within
+//     _zvaluesinside.push_back(zcm);
+//   }
+//   return true;
+// }
 //   if (lastreturn) {
 //     if (within_range(p, *(_p2), radius)) {
 //       int zcm = int(z * 100);

@@ -81,7 +81,7 @@ public:
   bool get_shapefile2d(std::string filename);
 
   void set_building_heightref_roof(float heightref);
-  void set_building_heightref_floor(float heightref);
+  void set_building_heightref_ground(float heightref);
   void set_building_include_floor(bool include);
   void set_building_triangulate(bool triangulate);
   void set_building_lod(int lod);
@@ -103,18 +103,19 @@ public:
   void set_requested_extent(double xmin, double ymin, double xmax, double ymax);
 
   void add_allowed_las_class(TopoClass c, int i);
+  bool save_building_variables();
 
 private:
   float       _building_heightref_roof;
-  float       _building_heightref_floor;
+  float       _building_heightref_ground;
   bool        _building_triangulate;
   int         _building_lod;
   bool        _building_include_floor;
   bool        _use_vertical_walls;
   int         _terrain_simplification;
   int         _forest_simplification;
-  double       _terrain_simplification_tinsimp;
-  double       _forest_simplification_tinsimp;
+  double      _terrain_simplification_tinsimp;
+  double      _forest_simplification_tinsimp;
   float       _terrain_innerbuffer;
   float       _forest_innerbuffer;
   bool        _forest_ground_points_only;
