@@ -645,14 +645,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
     int c = laspt.GetClassification().GetClass();
     bool bInsert = false;
     if (f->get_class() == BUILDING) {
-      if ( (_las_classes_allowed[BUILDING_ROOF].empty() == true) && 
-           (_las_classes_allowed[BUILDING_GROUND].empty() == true) )
-        bInsert = true;
-      else {
-        if ( (_las_classes_allowed[BUILDING_ROOF].count(c) > 0) ||
-             (_las_classes_allowed[BUILDING_GROUND].count(c) > 0) )
-          bInsert = true;
-      }  
+      bInsert = true;
       radius = _building_radius_vertex_elevation;
     }
     if ( (f->get_class() == WATER) && 
