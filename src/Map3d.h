@@ -102,7 +102,7 @@ public:
   void set_use_vertical_walls(bool useverticalwalls);
   void set_requested_extent(double xmin, double ymin, double xmax, double ymax);
 
-  void add_allowed_las_class(TopoClass c, int i);
+  void add_allowed_las_class(AllowedLASTopo c, int i);
   bool save_building_variables();
 
 private:
@@ -130,7 +130,7 @@ private:
   Box2        _requestedExtent;
 
   //-- storing the LAS allowed for each TopoFeature
-  std::array<std::set<int>,NUM_CLASSES> _las_classes_allowed;
+  std::array<std::set<int>,NUM_ALLOWEDLASTOPO> _las_classes_allowed;
 
   NodeColumn                                          _nc;
   std::vector<TopoFeature*>                           _lsFeatures;

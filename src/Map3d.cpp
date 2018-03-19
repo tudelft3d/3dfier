@@ -735,8 +735,8 @@ bool Map3d::construct_CDT() {
 
 
 bool Map3d::save_building_variables() {
-  Building::set_las_classes_roof(_las_classes_allowed[BUILDING_ROOF]);
-  Building::set_las_classes_ground(_las_classes_allowed[BUILDING_GROUND]);
+  Building::set_las_classes_roof(_las_classes_allowed[LAS_BUILDING_ROOF]);
+  Building::set_las_classes_ground(_las_classes_allowed[LAS_BUILDING_GROUND]);
   return true;
 }
 
@@ -1331,7 +1331,7 @@ void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2
 }
 
 
-void Map3d::add_allowed_las_class(TopoClass c, int i) {
+void Map3d::add_allowed_las_class(AllowedLASTopo c, int i) {
   _las_classes_allowed[c].insert(i);
 }
 

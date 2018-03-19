@@ -124,7 +124,7 @@ int main(int argc, const char * argv[]) {
       }
       YAML::Node tmp = n["Building"]["roof"]["use_LAS_classes"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
-        map3d.add_allowed_las_class(BUILDING_ROOF, it2->as<int>());
+        map3d.add_allowed_las_class(LAS_BUILDING_ROOF, it2->as<int>());
     }
     if (n["Building"]["ground"]) {
       if (n["Building"]["ground"]["height"]) {
@@ -133,7 +133,7 @@ int main(int argc, const char * argv[]) {
       }
       YAML::Node tmp = n["Building"]["ground"]["use_LAS_classes"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
-        map3d.add_allowed_las_class(BUILDING_GROUND, it2->as<int>());
+        map3d.add_allowed_las_class(LAS_BUILDING_GROUND, it2->as<int>());
     }    
     if (n["Building"]["lod"]) {
       map3d.set_building_lod(n["Building"]["lod"].as<int>());
@@ -154,7 +154,7 @@ int main(int argc, const char * argv[]) {
       map3d.set_terrain_innerbuffer(n["Terrain"]["innerbuffer"].as<float>());
     YAML::Node tmp = n["Terrain"]["use_LAS_classes"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
-      map3d.add_allowed_las_class(TERRAIN, it2->as<int>());
+      map3d.add_allowed_las_class(LAS_TERRAIN, it2->as<int>());
   }
   if (n["Forest"]) {
     if (n["Forest"]["simplification"])
@@ -167,7 +167,7 @@ int main(int argc, const char * argv[]) {
       map3d.set_forest_ground_points_only(true);
     YAML::Node tmp = n["Forest"]["use_LAS_classes"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
-      map3d.add_allowed_las_class(FOREST, it2->as<int>());
+      map3d.add_allowed_las_class(LAS_FOREST, it2->as<int>());
   }
   if (n["Water"]) {
     if (n["Water"]["height"]) {
@@ -176,7 +176,7 @@ int main(int argc, const char * argv[]) {
     }
     YAML::Node tmp = n["Water"]["use_LAS_classes"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
-      map3d.add_allowed_las_class(WATER, it2->as<int>());
+      map3d.add_allowed_las_class(LAS_WATER, it2->as<int>());
   }
   if (n["Road"]) {
     if (n["Road"]["height"]) {
@@ -185,7 +185,7 @@ int main(int argc, const char * argv[]) {
     }
     YAML::Node tmp = n["Road"]["use_LAS_classes"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
-      map3d.add_allowed_las_class(ROAD, it2->as<int>());
+      map3d.add_allowed_las_class(LAS_ROAD, it2->as<int>());
   }
   if (n["Separation"]) {
     if (n["Separation"]["height"]) {
@@ -194,7 +194,7 @@ int main(int argc, const char * argv[]) {
     }
     YAML::Node tmp = n["Separation"]["use_LAS_classes"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
-      map3d.add_allowed_las_class(SEPARATION, it2->as<int>());
+      map3d.add_allowed_las_class(LAS_SEPARATION, it2->as<int>());
   }
   if (n["Bridge/Overpass"]) {
     if (n["Bridge/Overpass"]["height"]) {
@@ -203,7 +203,7 @@ int main(int argc, const char * argv[]) {
     }
     YAML::Node tmp = n["Bridge/Overpass"]["use_LAS_classes"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
-      map3d.add_allowed_las_class(BRIDGE, it2->as<int>());
+      map3d.add_allowed_las_class(LAS_BRIDGE, it2->as<int>());
   }
 
   n = nodes["options"];

@@ -62,26 +62,26 @@ typedef std::unordered_map< std::string, std::pair<OGRFieldType, std::string> > 
 
 typedef enum {
    BUILDING        = 0,
-   BUILDING_ROOF   = 1,
-   BUILDING_GROUND = 2,
-   WATER           = 3,
-   BRIDGE          = 4,
-   ROAD            = 5,
-   TERRAIN         = 6,
-   FOREST          = 7,
-   SEPARATION      = 8,
-   NUM_CLASSES     = 9
+   WATER           = 1,
+   BRIDGE          = 2,
+   ROAD            = 3,
+   TERRAIN         = 4,
+   FOREST          = 5,
+   SEPARATION      = 6
 } TopoClass;
 
-
-
 typedef enum {
-  LAS_UNKNOWN      =  0,
-  LAS_UNCLASSIFIED =  1,
-  LAS_GROUND       =  2,
-  LAS_BUILDING     =  6,
-  LAS_WATER        =  9,
-  LAS_BRIDGE       =  26
-} LAS14Class;
+   LAS_BUILDING_ROOF      = 0,
+   LAS_BUILDING_GROUND    = 1,
+   LAS_WATER              = 2,
+   LAS_BRIDGE             = 3,
+   LAS_ROAD               = 4,
+   LAS_TERRAIN            = 5,
+   LAS_FOREST             = 6,
+   LAS_SEPARATION         = 7,
+   NUM_ALLOWEDLASTOPO     = 8
+} AllowedLASTopo;
+
+
 
 #endif
