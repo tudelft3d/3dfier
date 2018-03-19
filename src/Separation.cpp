@@ -48,12 +48,12 @@ std::string Separation::get_mtl() {
   return "usemtl Separation";
 }
 
-bool Separation::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  Boundary3D::add_elevation_point(p, z, radius, lasclass, lastreturn);
+bool Separation::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
+  Boundary3D::add_elevation_point(p, z, radius, lasclass);
   return true;
 }
 //   if (lastreturn == true && lasclass != LAS_BUILDING && lasclass != LAS_WATER && lasclass != LAS_BRIDGE) {
-//     Boundary3D::add_elevation_point(p, z, radius, lasclass, lastreturn);
+//     Boundary3D::add_elevation_point(p, z, radius, lasclass);
 //   }
 //   return true;
 // }

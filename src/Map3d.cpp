@@ -644,9 +644,15 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
 
     int c = laspt.GetClassification().GetClass();
     bool bInsert = false;
-    if ( (f->get_class() == BUILDING) && 
-         ( (_las_classes_allowed[BUILDING].empty() == true) || (_las_classes_allowed[BUILDING].count(c) > 0) ) ) {
-      bInsert = true;
+    if (f->get_class() == BUILDING) {
+      if ( (_las_classes_allowed[BUILDING_ROOF].empty() == true) && 
+           (_las_classes_allowed[BUILDING_GROUND].empty() == true) )
+        bInsert = true;
+      else {
+        if ( (_las_classes_allowed[BUILDING_ROOF].count(c) > 0) ||
+             (_las_classes_allowed[BUILDING_GROUND].count(c) > 0) )
+          bInsert = true;
+      }  
       radius = _building_radius_vertex_elevation;
     }
     if ( (f->get_class() == WATER) && 
@@ -666,11 +672,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
           bInsert = true;
  
     if (bInsert == true) { //-- only insert if in the allowed LAS classes
-      f->add_elevation_point(p,
-        laspt.GetZ(),
-        radius,
-        LAS_UNKNOWN, //  TODO: update LAS class
-        true); // (laspt.GetReturnNumber() == laspt.GetNumberOfReturns()));
+      f->add_elevation_point(p, laspt.GetZ(), radius, c); 
     }
   }
 }
@@ -742,6 +744,7 @@ bool Map3d::construct_CDT() {
 bool Map3d::save_building_variables() {
   Building::set_las_classes_roof(_las_classes_allowed[BUILDING_ROOF]);
   Building::set_las_classes_ground(_las_classes_allowed[BUILDING_GROUND]);
+  return true;
 }
 
 

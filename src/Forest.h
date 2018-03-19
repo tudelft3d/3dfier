@@ -35,7 +35,7 @@ class Forest: public TIN {
 public:
   Forest(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer, bool only_ground_points);
   bool          lift();
-  bool          add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass);
   void          get_citygml(std::ostream& of);
   void          get_citygml_imgeo(std::ostream& of);
   void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts);

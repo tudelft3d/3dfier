@@ -48,12 +48,12 @@ std::string Road::get_mtl() {
   return "usemtl Road";
 }
 
-bool Road::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  Boundary3D::add_elevation_point(p, z, radius, lasclass, lastreturn);
+bool Road::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
+  Boundary3D::add_elevation_point(p, z, radius, lasclass);
   return true;
 }
 //   if (lastreturn == true && lasclass == LAS_GROUND) {
-//     Boundary3D::add_elevation_point(p, z, radius, lasclass, lastreturn);
+//     Boundary3D::add_elevation_point(p, z, radius, lasclass);
 //   }
 //   return true;
 // }

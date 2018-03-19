@@ -48,7 +48,7 @@ std::string Bridge::get_mtl() {
   return "usemtl Bridge";
 }
 
-bool Bridge::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
+bool Bridge::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
   if (point_in_polygon(p, *(_p2))) {
     int zcm = int(z * 100);
     //-- 1. assign to polygon since within the threshold value (buffering of polygon)

@@ -50,12 +50,12 @@ std::string Forest::get_mtl() {
   return "usemtl Forest";
 }
 
-bool Forest::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  return TIN::add_elevation_point(p, z, radius, lasclass, lastreturn);
+bool Forest::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
+  return TIN::add_elevation_point(p, z, radius, lasclass);
 }
 //   bool toadd = false;
 //   if (lastreturn && ((_use_ground_points_only && lasclass == LAS_GROUND) || (_use_ground_points_only == false && lasclass != LAS_BUILDING))) {
-//     toadd = TIN::add_elevation_point(p, z, radius, lasclass, lastreturn);
+//     toadd = TIN::add_elevation_point(p, z, radius, lasclass);
 //   }
 //   return toadd;
 // }

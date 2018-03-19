@@ -41,7 +41,7 @@ public:
 
   virtual bool          lift() = 0;
   virtual bool          buildCDT();
-  virtual bool          add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) = 0;
+  virtual bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass) = 0;
   virtual int           get_number_vertices() = 0;
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
@@ -115,7 +115,7 @@ class Flat: public TopoFeature {
 public:
   Flat(char *wkt, std::string layername, AttributeMap attributes, std::string pid);
   int                 get_number_vertices();
-  bool                add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  bool                add_elevation_point(Point2 &p, double z, float radius, int lasclass);
   int                 get_height();
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;
@@ -133,7 +133,7 @@ class Boundary3D: public TopoFeature {
 public:
   Boundary3D(char *wkt, std::string layername, AttributeMap attributes, std::string pid);
   int                  get_number_vertices();
-  bool                 add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  bool                 add_elevation_point(Point2 &p, double z, float radius, int lasclass);
   virtual TopoClass    get_class() = 0;
   virtual bool         is_hard() = 0;
   virtual bool         lift() = 0;
@@ -150,7 +150,7 @@ class TIN: public TopoFeature {
 public:
   TIN(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification = 0, double simplification_tinsimp = 0, float innerbuffer = 0);
   int                 get_number_vertices();
-  bool                add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  bool                add_elevation_point(Point2 &p, double z, float radius, int lasclass);
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;
   virtual bool        lift() = 0;

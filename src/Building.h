@@ -35,7 +35,7 @@ class Building: public Flat {
 public:
   Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base);
   bool          lift();
-  bool          add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass);
   void          get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs);
   void          get_citygml(std::ostream& of);
   void          get_citygml_imgeo(std::ostream& of);
