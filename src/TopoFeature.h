@@ -142,6 +142,7 @@ public:
 protected:
   int                  _simplification;
   void                 smooth_boundary(int passes = 1);
+  void                 detect_outliers(int degrees_incline);
 };
 
 //---------------------------------------------

@@ -1041,6 +1041,30 @@ void Boundary3D::smooth_boundary(int passes) {
   }
 }
 
+void Boundary3D::detect_outliers(int degrees_incline) {
+  std::vector<int> tmp;
+  for (int ringi = 1; ringi < _p2z.size(); ringi++) {
+  //for (auto& r : _p2z) {
+    std::vector<int> r = _p2z[ringi];
+    tmp.resize(r.size());
+    tmp.front() = int((r[1] + r.back()) / 2);
+    auto it = r.end();
+    it -= 2;
+    tmp.back() = int((r.front() + *it) / 2);
+    for (int i = 1; i < (r.size() - 1); i++) {
+      tmp[i] = int((r[i - 1] + r[i + 1]) / 2);
+      //get ring
+      Ring2 ring = _p2[ringi];
+      l1_len= 
+      angle_l1 = length(l1)/abs(l1z2-l1z1);
+      angle_l1 = length(l2) / abs(l2z2 - l2z1);
+      abs(angle_l1 - angle_l2);
+
+      // std::cout << "r: " << r[i] << " tmp: " << tmp[i] << " tmp2: " << tmp2[i] << std::endl;
+    }
+  }
+}
+
 // void Boundary3D::smooth_boundary(int passes) {
 //   for (int p = 0; p < passes; p++) {
 //     int ringi = 0;
