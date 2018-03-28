@@ -1140,10 +1140,14 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     std::vector<int> classcount(7, 0);
     int building = -1;
     int water = -1;
+    int bridge = -1;
     for (int i = 0; i < zstar.size(); i++) {
       if (std::get<1>(zstar[i])->get_class() != BUILDING) {
         if (std::get<1>(zstar[i])->get_class() == WATER) {
           water = i;
+        }
+        if (std::get<1>(zstar[i])->get_class() == BRIDGE) {
+          bridge = i;
         }
         heightperclass[std::get<1>(zstar[i])->get_class()] += std::get<1>(zstar[i])->get_vertex_elevation(std::get<2>(zstar[i]), std::get<3>(zstar[i]));
         classcount[std::get<1>(zstar[i])->get_class()]++;
@@ -1157,8 +1161,8 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     }
 
     //-- Deal with buildings. If there's a building and a soft class incident, then this soft class
-    //-- get allocated the height value of the ground of the building. Any building will do if >1.
-    //-- Also ignore water so it doesn't get snapped to the ground of a building
+    //-- get allocated the height value of the floor of the building. Any building will do if >1.
+    //-- Also ignore water so it doesn't get snapped to the floor of a building
     if (building != -1) {
       int baseheight = dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base();
       for (auto& each : zstar) {
@@ -1177,36 +1181,74 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
         }
       }
     }
+    //else if (bridge != -1) {
+    //  // get 
+    //  for (auto& each : zstar) {
+    //    TopoFeature* feat = std::get<1>(each);
+    //    if (feat->get_class() == bridge) {
+    //      if (feat->get_top_level()) {
+    //      }
+    //      else {
+
+    //      }
+    //    }
+    //  }
+    //}
     else {
-      for (auto& each : zstar) {
-        std::get<0>(each) = heightperclass[std::get<1>(each)->get_class()] / classcount[std::get<1>(each)->get_class()];
-      }
+      //for (auto& each : zstar) {
+      //  //if (std::get<1>(each)->is_hard() == false) {
+      //    std::get<0>(each) = heightperclass[std::get<1>(each)->get_class()] / classcount[std::get<1>(each)->get_class()];
+      //  //}
+      //}
       for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it = zstar.begin(); it != zstar.end(); ++it) {
         std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator fnext = it;
+
+        if (std::get<1>(*it)->get_id() == "114884230" && std::get<3>(*it) == 12) {
+          std::cout << "break" << std::endl;
+        }
+       
         for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it + 1; it2 != zstar.end(); ++it2) {
           int deltaz = std::abs(std::get<0>(*it) - std::get<0>(*it2));
+          // features are within threshold jump edge, handle various cases
           if (deltaz < this->_threshold_jump_edges) {
             fnext = it2;
             if (std::get<1>(*it)->is_hard()) {
+              // it is hard, it2 is hard
+              // keep height when both are hard surfaces, add vw
               if (std::get<1>(*it2)->is_hard()) {
-                std::get<1>(*it2)->add_vertical_wall();
+                //- add a wall to the heighest feature
+                if (std::get<1>(*it) > std::get<1>(*it2)) {
+                  std::get<1>(*it)->add_vertical_wall();
+                }
+                else if (std::get<1>(*it2) > std::get<1>(*it)) {
+                  std::get<1>(*it2)->add_vertical_wall();
+                }
               }
+              // it is hard, it2 is soft
+              // set height of it2 to it
               else {
                 std::get<0>(*it2) = std::get<0>(*it);
               }
             }
-            else {
-              if (std::get<1>(*it2)->is_hard()) {
-                std::get<0>(*it) = std::get<0>(*it2);
-              }
+            // it is soft, it2 is hard
+            // set height of it to it2
+            else if (std::get<1>(*it2)->is_hard()) {
+              std::get<0>(*it) = std::get<0>(*it2);
             }
           }
+          // features are outside threshold jump edges, add vw
           else {
-            // add a vertical wall to the highest feature
-            std::get<1>(*it2)->add_vertical_wall();
+            //- add a wall to the heighest feature
+            if (std::get<1>(*it) > std::get<1>(*it2)) {
+              std::get<1>(*it)->add_vertical_wall();
+            }
+            else if (std::get<1>(*it2) > std::get<1>(*it)) {
+              std::get<1>(*it2)->add_vertical_wall();
+            }
           }
         }
         //-- Average heights of soft features within the jumpedge threshold counted from the lowest feature or skip to the next hard feature
+        // fnext is the last feature within threshold jump edge, average all soft in between
         if (it != fnext) {
           if (std::get<1>(*it)->is_hard() == false && std::get<1>(*fnext)->is_hard() == false) {
             int totalz = 0;
@@ -1321,7 +1363,6 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
   }
 }
 
-
 void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
   int avgz = (f1->get_vertex_elevation(ringi1, pi1) + f2->get_vertex_elevation(ringi2, pi2)) / 2;
   f1->set_vertex_elevation(ringi1, pi1, avgz);
@@ -1330,9 +1371,6 @@ void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2
   _nc[gen_key_bucket(&p)].push_back(avgz);
 }
 
-
 void Map3d::add_allowed_las_class(AllowedLASTopo c, int i) {
   _las_classes_allowed[c].insert(i);
 }
-
-
