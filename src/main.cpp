@@ -39,13 +39,14 @@
 #include "Map3d.h"
 #include "boost/locale.hpp"
 #include "boost/chrono.hpp"
-
+#include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 
 std::string VERSION = "0.9.8";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
-void print_license();
+std::string print_license();
 
 int main(int argc, const char * argv[]) {
   auto startTime = boost::chrono::high_resolution_clock::now();
@@ -55,50 +56,85 @@ int main(int argc, const char * argv[]) {
   std::clog.imbue(loc);
 
   std::string licensewarning =
-    "3dfier Copyright (C) 2015-2017  3D geoinformation research group, TU Delft\n"
+    "3dfier Copyright (C) 2015-2018  3D geoinformation research group, TU Delft\n"
     "This program comes with ABSOLUTELY NO WARRANTY.\n"
     "This is free software, and you are welcome to redistribute it\n"
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
 
   std::string ofname;
 
-  //-- reading the config file
-  if (argc == 2) {
-    std::string s = argv[1];
-    if (s == "--license") {
-      print_license();
+  std::string f_obj, f_obj_noid, f_obj_buildings, f_citygml, fg_csv_buildings, f_shapefile;
+  std::string f_yaml;
+  try {
+    namespace po = boost::program_options;
+    po::options_description pomain("Allowed options");
+    pomain.add_options()
+      ("help",    "View all options")
+      ("version", "View version")
+      ("license", "View license")
+      ("OBJ",       po::value<std::string>(&f_obj), "Output OBJ file")
+      ("OBJ-NoID",  po::value<std::string>(&f_obj_noid), "Output OBJ-NoID file")
+      ("CityGML",   po::value<std::string>(&f_citygml), "Output CityGML file")
+    ;
+    po::options_description pohidden("Hidden options");
+    pohidden.add_options()
+      ("yaml", po::value<std::string>(&f_yaml), "Input config YAML file")
+    ;        
+    po::positional_options_description popos;
+    popos.add("yaml", -1);
+
+    po::options_description poall;
+    poall.add(pomain).add(pohidden);
+    po::variables_map vm;
+    po::store(po::command_line_parser(argc, argv).
+              options(poall).positional(popos).run(), vm);
+    po::notify(vm);
+
+    if (vm.count("help")) {
+      std::cout << "Usage: 3dfier config.yml --OBJ myoutput.obj" << std::endl;
+      std::cout << "       3dfier config.yml --CityGML myoutput.gml" << std::endl;
+      std::cout << pomain << std::endl;
       return 0;
     }
-    if (s == "--version") {
-      std::clog << "3dfier " << VERSION << std::endl;
-      std::clog << liblas::GetFullVersion() << std::endl;
-      std::clog << "GDAL " << GDALVersionInfo("--version") << std::endl;
+    if (vm.count("license")) {
+      std::cout << print_license() << std::endl;
       return 0;
+    }
+    if (vm.count("version")) {
+      std::cout << "3dfier " << VERSION << std::endl;
+      std::cout << liblas::GetFullVersion() << std::endl;
+      std::cout << "GDAL " << GDALVersionInfo("--version") << std::endl;
+      //-- TODO : put here the date and/or the git-commit?
+      return 0;
+    }
+    if (vm.count("yaml") == 0) {
+      std::cerr << "ERROR: one YAML config file must be specified." << std::endl;
+      std::cout << std::endl << pomain << std::endl;
+      return 0;  
     }
     else {
-      std::clog << licensewarning << std::endl;
-      std::cerr << "Usage: 3dfier config.yml -o output.ext\n";
-      return 0;
+      boost::filesystem::path yp(f_yaml);
+      if (boost::filesystem::exists(yp) == false) {
+        std::cerr << "ERROR: YAML file " << f_yaml << " doesn't exist." << std::endl;
+        return 0;
+      }
+      if (yp.extension() != ".yml") {
+        std::cerr << "ERROR: config file " << f_yaml << " if not *.yml" << std::endl;
+        return 0;
+      }
+
     }
-  }
-  else if (argc == 4 && (std::string)argv[2] == "-o" && boost::filesystem::path(argv[1]).extension() == ".yml") {
-    ofname = argv[3];
-  }
-  else {
-    std::clog << licensewarning << std::endl;
-    std::cerr << "Usage: 3dfier config.yml -o output.ext\n";
-    return 0;
-  }
+  } 
+  catch(std::exception& e) {
+    std::cerr << "Error: " << e.what() << "\n";
+    return 1;
+  }  
+
+  std::cout << "STOP here" << std::endl;    
+  return 1;
 
   std::clog << licensewarning << std::endl;
-  // Check if the config file exists
-  std::ifstream f(argv[1]);
-  if (!f.good()) {
-    std::cerr << "Configuration file " + (std::string)argv[1] + " doesn't exist\n";
-    return 0;
-  }
-  f.close();
-  std::clog << "Reading config file: " << argv[1] << std::endl;
+
 
   //-- allowed feature classes
   std::set<std::string> allowedFeatures{"Building", "Water", "Terrain", "Road", "Forest", "Separation", "Bridge/Overpass"};
@@ -504,10 +540,11 @@ int main(int argc, const char * argv[]) {
   return 1;
 }
 
-void print_license() {
+std::string print_license() {
   std::string thelicense =
+    "======================================================================\n"
     "\n3dfier: takes 2D GIS datasets and '3dfies' to create 3D city models.\n\n"
-    "Copyright (C) 2015-2017  3D geoinformation research group, TU Delft\n\n"
+    "Copyright (C) 2015-2018  3D geoinformation research group, TU Delft\n\n"
     "3dfier is free software: you can redistribute it and/or modify\n"
     "it under the terms of the GNU General Public License as published by\n"
     "the Free Software Foundation, either version 3 of the License, or\n"
@@ -519,13 +556,14 @@ void print_license() {
     "A copy of the GNU General Public License is available at\n"
     "<http://www.gnu.org/licenses/> or\n"
     "<https://github.com/tudelft3d/3dfier/blob/master/LICENSE\n\n"
-    "For any information or further details about the use of 3dfier, contact:\n"
+    "For any information or further details about 3dfier, contact:\n"
     "Hugo Ledoux \n"
     "<h.ledoux@tudelft.nl>\n"
     "Faculty of Architecture & the Built Environment\n"
     "Delft University of Technology\n"
-    "Julianalaan 134, Delft 2628BL, the Netherlands\n";
-  std::clog << thelicense << std::endl;
+    "Julianalaan 134, Delft 2628BL, the Netherlands\n"
+    "======================================================================";
+  return thelicense;
 }
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
