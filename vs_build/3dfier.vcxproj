@@ -106,7 +106,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(BOOST_ROOT);$(OSGEO4W_ROOT)\include;$(YAML-CPP_DIR)\include;$(CGAL_DIR)\include;$(CGAL_DIR)\auxiliary\gmp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LIBLAS_ROOT)\include;$(LASZIP_ROOT)\include;$(BOOST_ROOT);$(OSGEO4W_ROOT)\include;$(YAML-CPP_DIR)\include;$(CGAL_DIR)\include;$(CGAL_DIR)\auxiliary\gmp\include;..\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <CompileAs>Default</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>

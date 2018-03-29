@@ -1105,7 +1105,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
   if (star.size() == 1) {
     TopoFeature* fadj = std::get<0>(star[0]);
     //-- if not building and same class or both soft, then average.
-    if (f->get_class() != BUILDING && (f->get_class() == fadj->get_class() || (f->is_hard() == false && fadj->is_hard() == false))) {
+    if (f->get_class() != BUILDING && (f->is_hard() == false && fadj->is_hard() == false)) {
       stitch_average(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
     }
     else {
@@ -1339,6 +1339,14 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
     bool bStitched = false;
     int deltaz = std::abs(f1z - f2z);
     if (deltaz < this->_threshold_jump_edges) {
+      //-- handle same class, average them
+      if (f1->get_class() == f2->get_class()) {
+        int avgz = (f1->get_vertex_elevation(ringi1, pi1) + f2->get_vertex_elevation(ringi2, pi2)) / 2;
+        f1->set_vertex_elevation(ringi1, pi1, avgz);
+        f2->set_vertex_elevation(ringi2, pi2, avgz);
+        Point2 p = f1->get_point2(ringi1, pi1);
+        _nc[gen_key_bucket(&p)].push_back(avgz);
+      }
       if (f1->is_hard() == false) {
         f1->set_vertex_elevation(ringi1, pi1, f2z);
         bStitched = true;
