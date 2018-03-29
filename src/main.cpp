@@ -41,6 +41,7 @@
 #include "boost/chrono.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
+#include <map>
 
 std::string VERSION = "0.9.8";
 
@@ -63,7 +64,10 @@ int main(int argc, const char * argv[]) {
 
   std::string ofname;
 
-  std::string f_obj, f_obj_noid, f_obj_buildings, f_citygml, fg_csv_buildings, f_shapefile;
+  std::map<std::string,std::string> opaths;
+  opaths["OBJ"] = "";
+  opaths["OBJ-NoID"] = "";
+  opaths["CityGML"] = "";
   std::string f_yaml;
   try {
     namespace po = boost::program_options;
@@ -72,9 +76,9 @@ int main(int argc, const char * argv[]) {
       ("help",    "View all options")
       ("version", "View version")
       ("license", "View license")
-      ("OBJ",       po::value<std::string>(&f_obj), "Output OBJ file")
-      ("OBJ-NoID",  po::value<std::string>(&f_obj_noid), "Output OBJ-NoID file")
-      ("CityGML",   po::value<std::string>(&f_citygml), "Output CityGML file")
+      ("OBJ",       po::value<std::string>(&opaths["OBJ"]), "Output OBJ file")
+      ("OBJ-NoID",  po::value<std::string>(&opaths["OBJ-NoID"]), "Output OBJ-NoID file")
+      ("CityGML",   po::value<std::string>(&opaths["CityGML"]), "Output CityGML file")
     ;
     po::options_description pohidden("Hidden options");
     pohidden.add_options()
@@ -122,16 +126,18 @@ int main(int argc, const char * argv[]) {
         std::cerr << "ERROR: config file " << f_yaml << " if not *.yml" << std::endl;
         return 0;
       }
-
     }
+    for (auto& each : opaths)
+      std::cout << "->" << each.first << "|" << each.second << std::endl;
   } 
   catch(std::exception& e) {
     std::cerr << "Error: " << e.what() << "\n";
     return 1;
   }  
 
-  std::cout << "STOP here" << std::endl;    
-  return 1;
+  // std::cout << "STOP here" << std::endl;    
+  // return 1;
+
 
   std::clog << licensewarning << std::endl;
 
@@ -149,7 +155,7 @@ int main(int argc, const char * argv[]) {
   // std::clog << "Config file is valid.\n";
 
   Map3d map3d;
-  YAML::Node nodes = YAML::LoadFile(argv[1]);
+  YAML::Node nodes = YAML::LoadFile(f_yaml);
   //-- store the lifting options in the Map3d
   YAML::Node n = nodes["lifting_options"];
   if (n["Building"]) {
@@ -422,8 +428,9 @@ int main(int argc, const char * argv[]) {
     (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
   );
 
-  n = nodes["output"];
   std::string format = n["format"].as<std::string>();
+
+  n = nodes["output"];
   std::clog << "Lifting all input polygons to 3D...\n";
   if (format == "CSV-BUILDINGS")
     map3d.threeDfy(false);
