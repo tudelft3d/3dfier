@@ -127,8 +127,6 @@ int main(int argc, const char * argv[]) {
         return 0;
       }
     }
-    for (auto& each : opaths)
-      std::cout << "->" << each.first << "|" << each.second << std::endl;
   } 
   catch(std::exception& e) {
     std::cerr << "Error: " << e.what() << "\n";
@@ -428,9 +426,13 @@ int main(int argc, const char * argv[]) {
     (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
   );
 
-  std::string format = n["format"].as<std::string>();
+  // std::string format = n["format"].as<std::string>();
+  std::string format = "OBJ";
 
-  n = nodes["output"];
+  if (opaths.size() == 1) {
+    for (auto& each : opaths)
+      std::cout << "->" << each.first << "|" << each.second << std::endl;
+  }
   std::clog << "Lifting all input polygons to 3D...\n";
   if (format == "CSV-BUILDINGS")
     map3d.threeDfy(false);
@@ -449,6 +451,7 @@ int main(int argc, const char * argv[]) {
   std::clog << "done with calculations.\n";
 
   //-- output
+  n = nodes["output"];
   std::clock_t startFileWriting = std::clock(); 
   if (n["building_floor"].as<std::string>() == "true")
     map3d.set_building_include_floor(true);
