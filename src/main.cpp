@@ -63,9 +63,22 @@ int main(int argc, const char * argv[]) {
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
 
   std::map<std::string,std::string> outputs;
-  outputs["OBJ"] = "";
+  outputs["OBJ"]      = "";
   outputs["OBJ-NoID"] = "";
-  outputs["CityGML"] = "";
+  outputs["CityGML"]  = "";
+  outputs["CityGML-Multifile"]  = "";
+  outputs["CityGML-IMGeo"]  = "";
+  outputs["CityGML-IMGeo-Multifile"]  = "";
+  outputs["CityJSON"] = "";
+  outputs["CSV-BUILDINGS"] = "";
+  outputs["CSV-BUILDINGS-MULTIPLE"] = "";
+  outputs["CSV-BUILDINGS-ALL-Z"] = "";
+  outputs["Shapefile"] = "";
+  outputs["Shapefile-Multi"] = "";
+  outputs["PostGIS"] = "";
+  outputs["PostGIS-Multi"] = "";
+  outputs["PostGIS-PDOK"] = "";
+  outputs["GDAL"] = "";
   std::string f_yaml;
   try {
     namespace po = boost::program_options;
@@ -74,9 +87,22 @@ int main(int argc, const char * argv[]) {
       ("help",    "View all options")
       ("version", "View version")
       ("license", "View license")
-      ("OBJ",       po::value<std::string>(&outputs["OBJ"]), "Output OBJ file")
-      ("OBJ-NoID",  po::value<std::string>(&outputs["OBJ-NoID"]), "Output OBJ-NoID file")
-      ("CityGML",   po::value<std::string>(&outputs["CityGML"]), "Output CityGML file")
+      ("OBJ",       po::value<std::string>(&outputs["OBJ"]), "Output ")
+      ("OBJ-NoID",  po::value<std::string>(&outputs["OBJ-NoID"]), "Output ")
+      ("CityGML",   po::value<std::string>(&outputs["CityGML"]), "Output ")
+      ("CityGML-Multifile", po::value<std::string>(&outputs["CityGML-Multifile"]), "Output ")
+      ("CityGML-IMGeo", po::value<std::string>(&outputs["CityGML-IMGeo"]), "Output ")
+      ("CityGML-IMGeo-Multifile", po::value<std::string>(&outputs["CityGML-IMGeo-Multifile"]), "Output ")
+      ("CityJSON",  po::value<std::string>(&outputs["CityJSON"]), "Output ")
+      ("CSV-BUILDINGS", po::value<std::string>(&outputs["CSV-BUILDINGS"]), "Output ")
+      ("CSV-BUILDINGS-MULTIPLE", po::value<std::string>(&outputs["CSV-BUILDINGS-MULTIPLE"]), "Output ")
+      ("CSV-BUILDINGS-ALL-Z", po::value<std::string>(&outputs["CSV-BUILDINGS-ALL-Z"]), "Output ")
+      ("Shapefile", po::value<std::string>(&outputs["Shapefile"]), "Output ")
+      ("Shapefile-Multi", po::value<std::string>(&outputs["Shapefile-Multi"]), "Output ")
+      ("PostGIS", po::value<std::string>(&outputs["PostGIS"]), "Output ")
+      ("PostGIS-Multi", po::value<std::string>(&outputs["PostGIS-Multi"]), "Output ")
+      ("PostGIS-PDOK", po::value<std::string>(&outputs["PostGIS-PDOK"]), "Output ")
+      ("GDAL", po::value<std::string>(&outputs["GDAL"]), "Output ")
     ;
     po::options_description pohidden("Hidden options");
     pohidden.add_options()
@@ -125,15 +151,22 @@ int main(int argc, const char * argv[]) {
         return 0;
       }
     }
+    for (auto& output : vm) {
+      if ( (output.first != "yaml") && (output.first.find("PostGIS") == std::string::npos) )  {
+        //-- check paths of the output file
+
+        boost::filesystem::path p(outputs[output.first]);
+        if (boost::filesystem::exists(p) == false) {
+          std::cerr << "ERROR: file " << outputs[output.first] << " can't be created. Abort" << std::endl;
+          return 0;
+        }
+      }
+    }
   } 
   catch(std::exception& e) {
     std::cerr << "Error: " << e.what() << "\n";
     return 1;
   }  
-
-  // std::cout << "STOP here" << std::endl;    
-  // return 1;
-
 
   std::clog << licensewarning << std::endl;
 
@@ -527,7 +560,7 @@ int main(int argc, const char * argv[]) {
       std::clog << "PostGIS-PDOK output\n";
       fileWritten = map3d.get_pdok_output(ofname);
     }
-    else if (format == "GDAL") {
+    else if (format == "GDAL") { //-- TODO: what is this? a path? how to use?
       std::string driver = n["gdal_driver"].as<std::string>();
       std::clog << "GDAL output using driver '" + driver + "'\n";
       fileWritten = map3d.get_gdal_output(ofname, driver, false);
@@ -542,7 +575,7 @@ int main(int argc, const char * argv[]) {
       // return 0;
     }
   }
-  
+
   //-- bye-bye
   auto duration = boost::chrono::high_resolution_clock::now() - startTime;
   printf("Successfully terminated in %lld seconds || %02d:%02d:%02d\n",
