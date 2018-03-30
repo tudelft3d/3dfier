@@ -62,12 +62,10 @@ int main(int argc, const char * argv[]) {
     "This is free software, and you are welcome to redistribute it\n"
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
 
-  std::string ofname;
-
-  std::map<std::string,std::string> opaths;
-  opaths["OBJ"] = "";
-  opaths["OBJ-NoID"] = "";
-  opaths["CityGML"] = "";
+  std::map<std::string,std::string> outputs;
+  outputs["OBJ"] = "";
+  outputs["OBJ-NoID"] = "";
+  outputs["CityGML"] = "";
   std::string f_yaml;
   try {
     namespace po = boost::program_options;
@@ -76,9 +74,9 @@ int main(int argc, const char * argv[]) {
       ("help",    "View all options")
       ("version", "View version")
       ("license", "View license")
-      ("OBJ",       po::value<std::string>(&opaths["OBJ"]), "Output OBJ file")
-      ("OBJ-NoID",  po::value<std::string>(&opaths["OBJ-NoID"]), "Output OBJ-NoID file")
-      ("CityGML",   po::value<std::string>(&opaths["CityGML"]), "Output CityGML file")
+      ("OBJ",       po::value<std::string>(&outputs["OBJ"]), "Output OBJ file")
+      ("OBJ-NoID",  po::value<std::string>(&outputs["OBJ-NoID"]), "Output OBJ-NoID file")
+      ("CityGML",   po::value<std::string>(&outputs["CityGML"]), "Output CityGML file")
     ;
     po::options_description pohidden("Hidden options");
     pohidden.add_options()
@@ -426,29 +424,28 @@ int main(int argc, const char * argv[]) {
     (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
   );
 
-  // std::string format = n["format"].as<std::string>();
-  std::string format = "OBJ";
-
-  if (opaths.size() == 1) {
-    for (auto& each : opaths)
-      std::cout << "->" << each.first << "|" << each.second << std::endl;
+  std::clog << "3dfying all input polygons...\n";
+  if (outputs.size() == 1) {
+    if (outputs.count("CSV-BUILDINGS") == 1)
+      map3d.threeDfy(false);
+    else if (outputs.count("OBJ-BUILDINGS") == 1) {
+      map3d.threeDfy(false);
+      map3d.construct_CDT();
+    }
+    else if (outputs.count("CSV-BUILDINGS-MULTIPLE") == 1)
+      std::clog << "CSV-BUILDINGS-MULTIPLE: no 3D reconstruction" << std::endl;
+    else if (outputs.count("CSV-BUILDINGS-ALL-Z") == 1)
+      std::clog << "CSV-BUILDINGS-ALL-Z: no 3D reconstruction" << std::endl;
+    else {
+      map3d.threeDfy(bStitching);
+      map3d.construct_CDT();
+    }
   }
-  std::clog << "Lifting all input polygons to 3D...\n";
-  if (format == "CSV-BUILDINGS")
-    map3d.threeDfy(false);
-  else if (format == "OBJ-BUILDINGS") {
-    map3d.threeDfy(false);
-    map3d.construct_CDT();
-  }
-  else if (format == "CSV-BUILDINGS-MULTIPLE")
-    std::clog << "CSV-BUILDINGS-MULTIPLE: no 3D reconstruction" << std::endl;
-  else if (format == "CSV-BUILDINGS-ALL-Z")
-    std::clog << "CSV-BUILDINGS-ALL-Z: no 3D reconstruction" << std::endl;
   else {
     map3d.threeDfy(bStitching);
     map3d.construct_CDT();
   }
-  std::clog << "done with calculations.\n";
+  std::clog << "...3dfying done.\n";
 
   //-- output
   n = nodes["output"];
@@ -459,86 +456,93 @@ int main(int argc, const char * argv[]) {
   if (n["vertical_exaggeration"])
     z_exaggeration = n["vertical_exaggeration"].as<int>();
 
-  bool fileWritten = true;
-  std::ofstream of;
-  if (format != "CityJSON" && format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "PostGIS")
-    of.open(ofname);
+  //-- iterate over all output
+  for (auto& output : outputs) {
+    std::string format = output.first;
+    if (output.second == "")
+      continue;  
+    
+    bool fileWritten = true;
+    std::ofstream of;
+    std::string ofname = output.second;
+    if (format != "CityJSON" && format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "PostGIS")
+      of.open(ofname);
+    if (format == "CityGML") {
+      std::clog << "CityGML output\n";
+      map3d.get_citygml(of);
+    }
+    else if (format == "CityGML-Multifile") {
+      std::clog << "CityGML-Multifile output\n";
+      map3d.get_citygml_multifile(ofname);
+    }
+    else if (format == "CityGML-IMGeo") {
+      std::clog << "CityGML-IMGeo output\n";
+      map3d.get_citygml_imgeo(of);
+    }
+    else if (format == "CityGML-IMGeo-Multifile") {
+      std::clog << "CityGML-IMGeo-Multifile output\n";
+      map3d.get_citygml_imgeo_multifile(ofname);
+    }
+    else if (format == "CityJSON") {
+      std::clog << "CityJSON output\n";
+      fileWritten = map3d.get_cityjson(ofname);
+    }  
+    else if (format == "OBJ") {
+      std::clog << "OBJ output\n";
+      map3d.get_obj_per_feature(of, z_exaggeration);
+    }
+    else if (format == "OBJ-NoID") {
+      std::clog << "OBJ (without IDs) output\n";
+      map3d.get_obj_per_class(of, z_exaggeration);
+    }
+    else if (format == "CSV-BUILDINGS") {
+      std::clog << "CSV output (only of the buildings)\n";
+      map3d.get_csv_buildings(of);
+    }
+    else if (format == "Shapefile") {
+      std::clog << "Shapefile output\n";
+      fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", false);
+    }
+    else if (format == "CSV-BUILDINGS-MULTIPLE") {
+      std::clog << "CSV output with multiple heights (only of the buildings)" << std::endl;
+      map3d.get_csv_buildings_multiple_heights(of);
+    }
+    else if (format == "Shapefile-Multi") {
+      std::clog << "Shapefile output\n";
+      fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", true);
+    }
+    else if (format == "CSV-BUILDINGS-ALL-Z") {
+      std::clog << "CSV output with all z values (only of the buildings)" << std::endl;
+      map3d.get_csv_buildings_all_elevation_points(of);
+    }
+    else if (format == "PostGIS") {
+      std::clog << "PostGIS output\n";
+      fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", false);
+    }
+    else if (format == "PostGIS-Multi") {
+      std::clog << "PostGIS-Multi output\n";
+      fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", true);
+    }
+    else if (format == "PostGIS-PDOK") {
+      std::clog << "PostGIS-PDOK output\n";
+      fileWritten = map3d.get_pdok_output(ofname);
+    }
+    else if (format == "GDAL") {
+      std::string driver = n["gdal_driver"].as<std::string>();
+      std::clog << "GDAL output using driver '" + driver + "'\n";
+      fileWritten = map3d.get_gdal_output(ofname, driver, false);
+    }
+    of.close();
 
-  if (format == "CityGML") {
-    std::clog << "CityGML output\n";
-    map3d.get_citygml(of);
+    if (fileWritten) {
+      printf("Features written in %ld ms\n", std::clock() - startFileWriting);
+    }
+    else {
+      std::cerr << "ERROR: Writing features failed. Aborting.\n";
+      // return 0;
+    }
   }
-  else if (format == "CityGML-Multifile") {
-    std::clog << "CityGML-Multifile output\n";
-    map3d.get_citygml_multifile(ofname);
-  }
-  else if (format == "CityGML-IMGeo") {
-    std::clog << "CityGML-IMGeo output\n";
-    map3d.get_citygml_imgeo(of);
-  }
-  else if (format == "CityGML-IMGeo-Multifile") {
-    std::clog << "CityGML-IMGeo-Multifile output\n";
-    map3d.get_citygml_imgeo_multifile(ofname);
-  }
-  else if (format == "CityJSON") {
-    std::clog << "CityJSON output\n";
-    fileWritten = map3d.get_cityjson(ofname);
-  }  
-  else if (format == "OBJ") {
-    std::clog << "OBJ output\n";
-    map3d.get_obj_per_feature(of, z_exaggeration);
-  }
-  else if (format == "OBJ-NoID") {
-    std::clog << "OBJ (without IDs) output\n";
-    map3d.get_obj_per_class(of, z_exaggeration);
-  }
-  else if (format == "CSV-BUILDINGS") {
-    std::clog << "CSV output (only of the buildings)\n";
-    map3d.get_csv_buildings(of);
-  }
-  else if (format == "Shapefile") {
-    std::clog << "Shapefile output\n";
-    fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", false);
-  }
-  else if (format == "CSV-BUILDINGS-MULTIPLE") {
-    std::clog << "CSV output with multiple heights (only of the buildings)" << std::endl;
-    map3d.get_csv_buildings_multiple_heights(of);
-  }
-  else if (format == "Shapefile-Multi") {
-    std::clog << "Shapefile output\n";
-    fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", true);
-  }
-  else if (format == "CSV-BUILDINGS-ALL-Z") {
-    std::clog << "CSV output with all z values (only of the buildings)" << std::endl;
-    map3d.get_csv_buildings_all_elevation_points(of);
-  }
-  else if (format == "PostGIS") {
-    std::clog << "PostGIS output\n";
-    fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", false);
-  }
-  else if (format == "PostGIS-Multi") {
-    std::clog << "PostGIS-Multi output\n";
-    fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", true);
-  }
-  else if (format == "PostGIS-PDOK") {
-    std::clog << "PostGIS-PDOK output\n";
-    fileWritten = map3d.get_pdok_output(ofname);
-  }
-  else if (format == "GDAL") {
-    std::string driver = n["gdal_driver"].as<std::string>();
-    std::clog << "GDAL output using driver '" + driver + "'\n";
-    fileWritten = map3d.get_gdal_output(ofname, driver, false);
-  }
-  of.close();
-
-  if (fileWritten) {
-    printf("Features written in %ld ms\n", std::clock() - startFileWriting);
-  }
-  else {
-    std::cerr << "ERROR: Writing features failed. Aborting.\n";
-    return 0;
-  }
-
+  
   //-- bye-bye
   auto duration = boost::chrono::high_resolution_clock::now() - startTime;
   printf("Successfully terminated in %lld seconds || %02d:%02d:%02d\n",
