@@ -154,10 +154,13 @@ int main(int argc, const char * argv[]) {
     for (auto& output : vm) {
       if ( (output.first != "yaml") && (output.first.find("PostGIS") == std::string::npos) )  {
         //-- check paths of the output file
-
         boost::filesystem::path p(outputs[output.first]);
-        if (boost::filesystem::exists(p) == false) {
-          std::cerr << "ERROR: file " << outputs[output.first] << " can't be created. Abort" << std::endl;
+        try {
+          boost::filesystem::path pcan = canonical(p.parent_path(), boost::filesystem::current_path());
+        }
+        catch (boost::filesystem::filesystem_error &e)
+        {
+          std::cerr << "ERROR: " << e.what() << ". Abort." << std::endl;
           return 0;
         }
       }
