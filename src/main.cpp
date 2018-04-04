@@ -485,7 +485,6 @@ int main(int argc, const char * argv[]) {
 
   //-- output
   n = nodes["output"];
-  std::clock_t startFileWriting = std::clock(); 
   if (n["building_floor"].as<std::string>() == "true")
     map3d.set_building_include_floor(true);
   int z_exaggeration = 0;
@@ -494,6 +493,7 @@ int main(int argc, const char * argv[]) {
 
   //-- iterate over all output
   for (auto& output : outputs) {
+    std::clock_t startFileWriting = std::clock(); 
     std::string format = output.first;
     if (output.second == "")
       continue;  
@@ -501,54 +501,57 @@ int main(int argc, const char * argv[]) {
     bool fileWritten = true;
     std::ofstream of;
     std::string ofname = output.second;
-    if (format != "CityJSON" && format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "PostGIS")
+    if (format != "CityJSON" && format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "PostGIS") {
+      // boost::filesystem::path pcan = canonical(p, boost::filesystem::current_path());
+      // boost::filesystem::path p(ofname);
       of.open(ofname);
+    }
     if (format == "CityGML") {
-      std::clog << "CityGML output\n";
+      std::clog << "CityGML output: " << ofname << std::endl;
       map3d.get_citygml(of);
     }
     else if (format == "CityGML-Multifile") {
-      std::clog << "CityGML-Multifile output\n";
+      std::clog << "CityGML-Multifile output: " << ofname << std::endl;
       map3d.get_citygml_multifile(ofname);
     }
     else if (format == "CityGML-IMGeo") {
-      std::clog << "CityGML-IMGeo output\n";
+      std::clog << "CityGML-IMGeo output: " << ofname << std::endl;
       map3d.get_citygml_imgeo(of);
     }
     else if (format == "CityGML-IMGeo-Multifile") {
-      std::clog << "CityGML-IMGeo-Multifile output\n";
+      std::clog << "CityGML-IMGeo-Multifile output: " << ofname << std::endl;
       map3d.get_citygml_imgeo_multifile(ofname);
     }
     else if (format == "CityJSON") {
-      std::clog << "CityJSON output\n";
+      std::clog << "CityJSON output: " << ofname << std::endl;
       fileWritten = map3d.get_cityjson(ofname);
     }  
     else if (format == "OBJ") {
-      std::clog << "OBJ output\n";
+      std::clog << "OBJ output: " << ofname << std::endl;
       map3d.get_obj_per_feature(of, z_exaggeration);
     }
     else if (format == "OBJ-NoID") {
-      std::clog << "OBJ (without IDs) output\n";
+      std::clog << "OBJ (without IDs) output: " << ofname << std::endl;
       map3d.get_obj_per_class(of, z_exaggeration);
     }
     else if (format == "CSV-BUILDINGS") {
-      std::clog << "CSV output (only of the buildings)\n";
+      std::clog << "CSV output (only of the buildings): " << ofname << std::endl;
       map3d.get_csv_buildings(of);
     }
     else if (format == "Shapefile") {
-      std::clog << "Shapefile output\n";
+      std::clog << "Shapefile output: " << ofname << std::endl;
       fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", false);
     }
     else if (format == "CSV-BUILDINGS-MULTIPLE") {
-      std::clog << "CSV output with multiple heights (only of the buildings)" << std::endl;
+      std::clog << "CSV output with multiple heights (only of the buildings): " << ofname << std::endl;
       map3d.get_csv_buildings_multiple_heights(of);
     }
     else if (format == "Shapefile-Multi") {
-      std::clog << "Shapefile output\n";
+      std::clog << "Shapefile output: " << ofname << std::endl;
       fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", true);
     }
     else if (format == "CSV-BUILDINGS-ALL-Z") {
-      std::clog << "CSV output with all z values (only of the buildings)" << std::endl;
+      std::clog << "CSV output with all z values (only of the buildings): " << ofname << std::endl;
       map3d.get_csv_buildings_all_elevation_points(of);
     }
     else if (format == "PostGIS") {
