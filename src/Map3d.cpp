@@ -1135,28 +1135,23 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       return std::get<0>(t1) < std::get<0>(t2);
     });
 
-    //-- Calculate height of every class first, except buildings, also used for identifying buildings and water
-    std::vector<int> heightperclass(7, 0);
-    std::vector<int> classcount(7, 0);
+    //-- Identify buildings and water
     int building = -1;
     int water = -1;
     int bridge = -1;
     for (int i = 0; i < zstar.size(); i++) {
-      if (std::get<1>(zstar[i])->get_class() != BUILDING) {
-        if (std::get<1>(zstar[i])->get_class() == WATER) {
-          water = i;
-        }
-        if (std::get<1>(zstar[i])->get_class() == BRIDGE) {
-          bridge = i;
-        }
-        heightperclass[std::get<1>(zstar[i])->get_class()] += std::get<1>(zstar[i])->get_vertex_elevation(std::get<2>(zstar[i]), std::get<3>(zstar[i]));
-        classcount[std::get<1>(zstar[i])->get_class()]++;
-      }
-      else {
+      TopoClass topoClass = std::get<1>(zstar[i])->get_class();
+      if (topoClass == BUILDING) {
         //-- set building to the one with the lowest base
         if (building == -1 || dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base() > dynamic_cast<Building*>(std::get<1>(zstar[i]))->get_height_base()) {
           building = i;
         }
+      }
+      else if (topoClass == WATER) {
+        water = i;
+      }
+      else if (topoClass == BRIDGE) {
+        bridge = i;
       }
     }
 
@@ -1176,9 +1171,6 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
         else if (std::get<1>(each)->get_class() == BUILDING) {
           std::get<1>(each)->add_vertical_wall();
         }
-        else if (std::get<1>(each)->get_class() == WATER) {
-          std::get<0>(each) = heightperclass[WATER] / classcount[WATER];
-        }
       }
     }
     //else if (bridge != -1) {
@@ -1195,26 +1187,26 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     //  }
     //}
     else {
-      //for (auto& each : zstar) {
-      //  //if (std::get<1>(each)->is_hard() == false) {
-      //    std::get<0>(each) = heightperclass[std::get<1>(each)->get_class()] / classcount[std::get<1>(each)->get_class()];
-      //  //}
-      //}
       for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it = zstar.begin(); it != zstar.end(); ++it) {
         std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator fnext = it;
 
-        if (std::get<1>(*it)->get_id() == "114884230" && std::get<3>(*it) == 12) {
-          std::cout << "break" << std::endl;
-        }
+        //if (std::get<1>(*it)->get_id() == "114878969" && std::get<3>(*it) == 41) {
+        //  std::cout << "break" << std::endl;
+        //}
        
         for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it + 1; it2 != zstar.end(); ++it2) {
           int deltaz = std::abs(std::get<0>(*it) - std::get<0>(*it2));
           // features are within threshold jump edge, handle various cases
           if (deltaz < this->_threshold_jump_edges) {
             fnext = it2;
-            if (std::get<1>(*it)->is_hard()) {
-              // it is hard, it2 is hard
-              // keep height when both are hard surfaces, add vw
+            // it and it2 are same class, set height to first since averaging doesn't work if >2 objects of same class within threshold
+            // this mainly applies for bridges and outlier detection of roads, otherwise it shouldn't be possible
+            if (std::get<1>(*it)->get_class() == std::get<1>(*it2)->get_class()) {
+              std::get<0>(*it2) = std::get<0>(*it);
+            }
+            // it is hard, it2 is hard
+            // keep height when both are hard surfaces, add vw
+            else if (std::get<1>(*it)->is_hard()) {
               if (std::get<1>(*it2)->is_hard()) {
                 //- add a wall to the heighest feature
                 if (std::get<1>(*it) > std::get<1>(*it2)) {
