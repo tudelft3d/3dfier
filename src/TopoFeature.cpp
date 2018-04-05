@@ -1045,39 +1045,36 @@ void Boundary3D::detect_outliers(int degrees_incline) {
   Ring2 ring = bg::exterior_ring(*_p2);
   std::vector<int> ringz = _p2z[0];
   float PI = 3.14159265;
-  if (_id == "114884230") {
-    //vertex == 12) {
-    std::cout << "break" << std::endl;
-  }
+  //if (_id == "114878969") {
+  //  std::cout << "break" << std::endl;
+  //}
   for (int i = 0; i < ring.size(); i++) {
     int i0 = i - 1;
     int i2 = i + 1;
     if (i == 0) {
       i0 = ring.size() - 1;
     }
-    if (i == ring.size() - 1) {
+    if (i2 == ring.size()) {
       i2 = 0;
     }
     float len1 = sqrt(pow(ring[i0].x() - ring[i].x(), 2) + pow(ring[i0].y() - ring[i].y(), 2));
     float len2 = sqrt(pow(ring[i].x() - ring[i2].x(), 2) + pow(ring[i].y() - ring[i2].y(), 2));
     float len1z = (ringz[i] - ringz[i0]) / 100.0;
     float len2z = (ringz[i2] - ringz[i]) / 100.0;
-    float angle1 = atan2(len1z, len1) * 180 / PI;
-    float angle2 = atan2(len2z, len2) * 180 / PI;
     float incline = atan2(len2z, len2) - atan2(len1z, len1);
-    if(incline <= -PI){
+    if (incline <= -PI) {
       incline = 2 * PI + incline;
     }
-    if(incline > PI){
+    if (incline > PI) {
       incline = incline - 2 * PI;
     }
     incline = incline * 180 / PI;
 
     //if (incline > 0) we have a peak down, else we have a peak up
     if (abs(incline) > degrees_incline) {
-      std::cout << "vertex: " << i << "\nlen1: " << len1 << "\tangle1: " << angle1 << "\tlen1z: " << len1z << "\nlen2: " << len2 << "\tangle2: " << angle2 << "\tlen2z: " << len2z << "\tincline: " << incline << std::endl;
-      std::cout << "Outlier detected. Id: " << _id << " vertex: " << i << " angle: " << incline << std::endl;// << std::endl;
-      std::cout << "prev z: " << ringz[i0] << " cur z: " << ringz[i] << " next z: " << ringz[i2] << std::endl;
+      //std::cout << "vertex: " << i << "\nlen1: " << len1 << "\tangle1: " << atan2(len1z, len1) * 180 / PI << "\tlen1z: " << len1z << "\nlen2: " << len2 << "\tangle2: " << atan2(len2z, len2) * 180 / PI << "\tlen2z: " << len2z << "\tincline: " << incline << std::endl;
+      //std::cout << "Outlier detected. Id: " << _id << " vertex: " << i << " angle: " << incline << std::endl;// << std::endl;
+      //std::cout << "prev z: " << ringz[i0] << " cur z: " << ringz[i] << " next z: " << ringz[i2] << std::endl;
 
       //find the outlier by sorting and comparing distance
       std::vector<int> heights = { ringz[i0], ringz[i], ringz[i2] };
@@ -1086,18 +1083,21 @@ void Boundary3D::detect_outliers(int degrees_incline) {
       if (abs(heights[2] - heights[1]) > abs(heights[0] - heights[1])) {
         h = heights[2];
       }
-      std::cout << "index: " << h << std::endl;
+      //std::cout << "outlier height: " << h << std::endl;
 
       if (ringz[i0] == h) {
         //put to height of closest vertex for now
         _p2z[0][i0] = ringz[i];
+        ringz[i0] = ringz[i];
       }
-      if (ringz[i] == h) {
-        _p2z[0][i] == (ringz[i0] + ringz[i2]) / 2;
+      else if (ringz[i] == h) {
+        _p2z[0][i] = (ringz[i0] + ringz[i2]) / 2;
+        ringz[i] = (ringz[i0] + ringz[i2]) / 2;
       }
-      if (ringz[i2] == h) {
+      else if (ringz[i2] == h) {
         //put to height of closest vertex for now
         _p2z[0][i2] = ringz[i];
+        ringz[i2] = ringz[i];
       }
     }
   }

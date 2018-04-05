@@ -60,7 +60,7 @@ bool Road::add_elevation_point(Point2 &p, double z, float radius, int lasclass) 
 bool Road::lift() {
   lift_each_boundary_vertices(_heightref);
   //smooth_boundary(5);
-  detect_outliers(45);
+  detect_outliers(30);
   return true;
 }
 
