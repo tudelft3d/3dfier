@@ -1045,9 +1045,7 @@ void Boundary3D::detect_outliers(int degrees_incline) {
   Ring2 ring = bg::exterior_ring(*_p2);
   std::vector<int> ringz = _p2z[0];
   float PI = 3.14159265;
-  //if (_id == "114878969") {
-  //  std::cout << "break" << std::endl;
-  //}
+
   for (int i = 0; i < ring.size(); i++) {
     int i0 = i - 1;
     int i2 = i + 1;
@@ -1070,7 +1068,7 @@ void Boundary3D::detect_outliers(int degrees_incline) {
     }
     incline = incline * 180 / PI;
 
-    //if (incline > 0) we have a peak down, else we have a peak up
+    //if (incline > 0) we have a peak down, otherwise we have a peak up
     if (abs(incline) > degrees_incline) {
       //std::cout << "vertex: " << i << "\nlen1: " << len1 << "\tangle1: " << atan2(len1z, len1) * 180 / PI << "\tlen1z: " << len1z << "\nlen2: " << len2 << "\tangle2: " << atan2(len2z, len2) * 180 / PI << "\tlen2z: " << len2z << "\tincline: " << incline << std::endl;
       //std::cout << "Outlier detected. Id: " << _id << " vertex: " << i << " angle: " << incline << std::endl;// << std::endl;
