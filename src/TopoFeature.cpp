@@ -469,10 +469,6 @@ void TopoFeature::fix_bowtie() {
 }
 
 void TopoFeature::construct_vertical_walls(NodeColumn& nc, int baseheight) {
-  std::clog << this->get_id() << std::endl;
-   if (this->get_id() == "120146899")
-     std::clog << "break\n";
-
   if (this->has_vertical_walls() == false)
     return;
 
