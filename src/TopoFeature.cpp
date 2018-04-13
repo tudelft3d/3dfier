@@ -469,9 +469,9 @@ void TopoFeature::fix_bowtie() {
 }
 
 void TopoFeature::construct_vertical_walls(NodeColumn& nc, int baseheight) {
-  //std::clog << this->get_id() << std::endl;
-  // if (this->get_id() == "bbdc52a89-00b3-11e6-b420-2bdcc4ab5d7f")
-  //   std::clog << "break\n";
+  std::clog << this->get_id() << std::endl;
+   if (this->get_id() == "120146899")
+     std::clog << "break\n";
 
   if (this->has_vertical_walls() == false)
     return;
@@ -488,8 +488,6 @@ void TopoFeature::construct_vertical_walls(NodeColumn& nc, int baseheight) {
   Point2 a, b;
   TopoFeature* fadj;
   int ringi = -1;
-  //if (this->get_id() == "107720546")
-  //  std::clog << "yo\n";
   for (auto& ring : therings) {
     ringi++;
     for (int ai = 0; ai < ring.size(); ai++) {
@@ -544,11 +542,72 @@ void TopoFeature::construct_vertical_walls(NodeColumn& nc, int baseheight) {
         fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
       }
 
-      //-- check height differences: f > fadj for *both* Points a and b
-      if ((az < fadj_az) || (bz < fadj_bz))
+
+      //-- Make exeption for bridges, they have vw's from bottom up, swap . Also skip if adjacent feature is bridge, vw is then created by bridge
+      if (this->get_class() == BRIDGE) {
+        //-- find the height of the vertex in the node column
+        std::vector<int>::const_iterator sait, eait, sbit, ebit;
+        sait = std::find(anc.begin(), anc.end(), az);
+        eait = std::find(anc.begin(), anc.end(), fadj_az);
+        sbit = std::find(bnc.begin(), bnc.end(), bz);
+        ebit = std::find(bnc.begin(), bnc.end(), fadj_bz);
+
+        //-- iterate to triangulate
+        while ((sbit != ebit) && (sbit != bnc.end()) && ((sbit + 1) != bnc.end())) {
+          Point3 p;
+          if (anc.size() == 0 || sait == anc.end()) {
+            p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(az));
+            _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+          }
+          else {
+            p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
+            _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+          }
+          p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit));
+          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+          sbit++;
+          p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit));
+          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+          Triangle t;
+          int size = int(_vertices_vw.size());
+          t.v0 = size - 1;
+          t.v1 = size - 3;
+          t.v2 = size - 2;
+          _triangles_vw.push_back(t);
+        }
+        while (sait != eait && sait != anc.end() && (sait + 1) != anc.end()) {
+          Point3 p;
+          if (bnc.size() == 0 || ebit == bnc.end()) {
+            p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(bz));
+            _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+          }
+          else {
+            p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*ebit));
+            _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+          }
+          p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
+          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+          sait++;
+          p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
+          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+          Triangle t;
+          int size = int(_vertices_vw.size());
+          t.v0 = size - 1;
+          t.v1 = size - 2;
+          t.v2 = size - 3;
+          _triangles_vw.push_back(t);
+        }
+      }
+      if (fadj != nullptr && fadj->get_class() == BRIDGE) {
         continue;
-      if ((az == fadj_az) && (bz == fadj_bz))
+      }
+      //-- check height differences: f > fadj for *both* Points a and b. 
+      if (az < fadj_az || bz < fadj_bz) {
         continue;
+      }
+      if (az == fadj_az && bz == fadj_bz) {
+        continue;
+      }
 
       //std::clog << "az: " << az << std::endl;
       //std::clog << "bz: " << bz << std::endl;
