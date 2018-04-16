@@ -1027,10 +1027,6 @@ void Map3d::stitch_lifted_features() {
     if (f->get_class() != BRIDGE) {
       //-- 1. store all touching top level (adjacent + incident)
       std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
-      //-- debug
-      if (f->get_id() == "105824217")
-        std::clog << "break\n";
-      //-- debug
       //-- 2. build the node-column for each vertex
       // oring
       Ring2 oring = bg::exterior_ring(*(f->get_Polygon2()));
@@ -1040,7 +1036,7 @@ void Map3d::stitch_lifted_features() {
         for (auto& fadj : *lstouching) {
           ringis.clear();
           pis.clear();
-          if (fadj->get_class() != BRIDGE && fadj->has_point2_(oring[i], ringis, pis) == true) {
+          if (fadj->has_point2_(oring[i], ringis, pis) == true) {
             for (int k = 0; k < ringis.size(); k++) {
               toprocess = true;
               star.push_back(std::make_tuple(fadj, ringis[k], pis[k]));
@@ -1070,7 +1066,7 @@ void Map3d::stitch_lifted_features() {
           for (auto& fadj : *lstouching) {
             ringis.clear();
             pis.clear();
-            if (fadj->get_class() != BRIDGE && fadj->has_point2_(iring[i], ringis, pis) == true) {
+            if (fadj->has_point2_(iring[i], ringis, pis) == true) {
               for (int k = 0; k < ringis.size(); k++) {
                 toprocess = true;
                 star.push_back(std::make_tuple(fadj, ringis[k], pis[k]));
@@ -1097,7 +1093,7 @@ void Map3d::stitch_lifted_features() {
 
 void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star) {
   //-- degree of vertex == 2
-  if (star.size() == 1) {
+  if (star.size() == 1 && std::get<0>(star[0])->get_class() != BRIDGE) {
     TopoFeature* fadj = std::get<0>(star[0]);
     //-- if not building and same class or both soft, then average.
     if (f->get_class() != BUILDING && (f->is_hard() == false && fadj->is_hard() == false)) {
@@ -1117,11 +1113,16 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       ringi,
       pi));
     for (auto& fadj : star) {
-      zstar.push_back(std::make_tuple(
-        std::get<0>(fadj)->get_vertex_elevation(std::get<1>(fadj), std::get<2>(fadj)),
-        std::get<0>(fadj),
-        std::get<1>(fadj),
-        std::get<2>(fadj)));
+      if (std::get<0>(fadj)->get_class() != BRIDGE) {
+        zstar.push_back(std::make_tuple(
+          std::get<0>(fadj)->get_vertex_elevation(std::get<1>(fadj), std::get<2>(fadj)),
+          std::get<0>(fadj),
+          std::get<1>(fadj),
+          std::get<2>(fadj)));
+      }
+      else {
+        f->add_vertical_wall();
+      }
     }
 
     //-- sort low-high based on heights (get<0>)
@@ -1354,6 +1355,8 @@ void Map3d::stitch_bridges() {
 
       //-- debug
       std::cout << "=========================================== " << f->get_id() << std::endl;
+      if (f->get_id() == "120146899")
+        std::clog << "break\n";
       //-- debug
 
       // oring
@@ -1400,7 +1403,7 @@ void Map3d::stitch_bridges() {
       for (int i = 0; i < istart; i++) {
         vertices.push_back(i);
       }
-      bool sameLevel = true;
+      bool connected = true;
       std::vector< std::tuple<int, bool, bool> > corners;
       //for (int i = ilowest + 1; i < oring.size(); i++) {
       for (int i : vertices) {
@@ -1423,10 +1426,10 @@ void Map3d::stitch_bridges() {
               }
             }
             if (!bridgeAdj) {
-              std::cout << "WARNING: Found NC but no adjacent bridge, stitching error of adjacent objects? Marking as corner anyhow." << std::endl;
+              std::cout << "WARNING: Found NC but no adjacent bridge, stitching error of adjacent objects?" << std::endl;
               // TODO: try do identify this case seperately, for now just mark as corner and change sameLevel
-              corners.push_back(std::make_tuple(i, sameLevel, true));
-              sameLevel = !sameLevel;
+              //corners.push_back(std::make_tuple(i, sameLevel, true));
+              //sameLevel = !sameLevel;
             }
           }
           else {
@@ -1448,18 +1451,18 @@ void Map3d::stitch_bridges() {
             else {
               f->set_vertex_elevation(ringi, i, nc.back());
             }
-            //-- debug
-            std::cout << "Set height at " << f->get_vertex_elevation(ringi, i) << std::endl;
-            //-- debug
+            ////-- debug
+            //std::cout << "Set height at " << f->get_vertex_elevation(ringi, i) << std::endl;
+            ////-- debug
             bool vw = false;
             if (unique > 1 && (corners.size() == 0 || (!corners.empty() && std::get<2>(corners.back()) == false))) {
               vw = true;
             }
-            corners.push_back(std::make_tuple(i, sameLevel, vw));
-            sameLevel = !sameLevel;
+            connected = !connected;
+            corners.push_back(std::make_tuple(i, connected, vw));
           }
         }
-        // this is same stretch of bridge without a height jump. Only stitch if sameLevel, otherwise its the wrong (higher) object
+        // this is same stretch of bridge without a height jump. Only stitch if connected, otherwise its the wrong (higher) object
         else {
           // nc is empty, use height of adjacent feature, if adjacent feature is bridge check if height is set before and use.
           std::vector< std::tuple<TopoFeature*, int, int> > star;
@@ -1468,21 +1471,15 @@ void Map3d::stitch_bridges() {
             ringis.clear();
             pis.clear();
             if (fadj->has_point2_(oring[i], ringis, pis) == true) {
-              if (sameLevel && fadj->get_class() != BRIDGE) {
+              if (connected && fadj->get_class() != BRIDGE) {
                 int z = fadj->get_vertex_elevation(ringis[0], pis[0]);
                 f->set_vertex_elevation(ringi, i, z);
-                //-- debug
-                std::cout << "Set height at " << z << std::endl;
-                //-- debug
+                ////-- debug
+                //std::cout << "Set height at " << z << std::endl;
+                ////-- debug
               }
               if (!corners.empty() && std::get<2>(corners.back())) {
-                int z = fadj->get_vertex_elevation(ringis[0], pis[0]);
-                //-- debug
-                std::cout << "Corner VW: Add height to NC? " << z << std::endl;
-                //-- debug
-                //Point2 p = f->get_point2(ringi, i);
-                std::string key_bucket = gen_key_bucket(&p);
-                _nc[key_bucket].push_back(z);
+                _nc[key_bucket].push_back(fadj->get_vertex_elevation(ringis[0], pis[0]));
               }
               for (int k = 0; k < ringis.size(); k++) {
                 star.push_back(std::make_tuple(fadj, ringis[k], pis[k]));
@@ -1508,7 +1505,7 @@ void Map3d::stitch_bridges() {
       for (auto &corner : corners) {
         std::cout << std::get<0>(corner) << " ";
         if (std::get<1>(corner)) {
-          std::cout << "samelevel ";
+          std::cout << "connected ";
         }
         if (std::get<2>(corner)) {
           std::cout << "vw ";
@@ -1528,8 +1525,8 @@ void Map3d::stitch_bridges() {
           secondCorner = corners[c + 1];
         }
 
-        // fill vertices in between sameLevel end corner to next corner
-        if (std::get<1>(corners[c])) { //corner is the start of empty strech
+        // fill vertices in between corner were connected is false and next corner
+        if (std::get<1>(corners[c]) == false) { //corner is the start of empty strech which is not connected topologically
           int endCorner = std::get<0>(secondCorner);
           //the corner passes the end of the ring, handle with extra loop.
           if (secondCorner < corners[c]) {
