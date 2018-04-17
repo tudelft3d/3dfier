@@ -649,19 +649,19 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
       radius = _building_radius_vertex_elevation;
     }
     if ( (f->get_class() == WATER) && 
-         ( (_las_classes_allowed[WATER].empty() == true) || (_las_classes_allowed[WATER].count(c) > 0) ) )
+         ( (_las_classes_allowed[LAS_WATER].empty() == true) || (_las_classes_allowed[LAS_WATER].count(c) > 0) ) )
           bInsert = true;
     if ( (f->get_class() == ROAD) && 
-         ( (_las_classes_allowed[ROAD].empty() == true) || (_las_classes_allowed[ROAD].count(c) > 0) ) )
+         ( (_las_classes_allowed[LAS_ROAD].empty() == true) || (_las_classes_allowed[LAS_ROAD].count(c) > 0) ) )
           bInsert = true;
     if ( (f->get_class() == BRIDGE) && 
-         ( (_las_classes_allowed[BRIDGE].empty() == true) || (_las_classes_allowed[BRIDGE].count(c) > 0) ) )
+         ( (_las_classes_allowed[LAS_BRIDGE].empty() == true) || (_las_classes_allowed[LAS_BRIDGE].count(c) > 0) ) )
           bInsert = true;
     if ( (f->get_class() == SEPARATION) && 
-         ( (_las_classes_allowed[SEPARATION].empty() == true) || (_las_classes_allowed[SEPARATION].count(c) > 0) ) )
+         ( (_las_classes_allowed[LAS_SEPARATION].empty() == true) || (_las_classes_allowed[LAS_SEPARATION].count(c) > 0) ) )
           bInsert = true;
     if ( (f->get_class() == TERRAIN) && 
-         ( (_las_classes_allowed[TERRAIN].empty() == true) || (_las_classes_allowed[TERRAIN].count(c) > 0) ) )
+         ( (_las_classes_allowed[LAS_TERRAIN].empty() == true) || (_las_classes_allowed[LAS_TERRAIN].count(c) > 0) ) )
           bInsert = true;
  
     if (bInsert == true) { //-- only insert if in the allowed LAS classes
