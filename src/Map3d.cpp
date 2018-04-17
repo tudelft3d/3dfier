@@ -1395,7 +1395,7 @@ void Map3d::stitch_bridges() {
         //-- debug
       }
 
-      // Make single for loop starting at ilowest+1, create array of ilowest+1 upto oring.size and 0 to ilowest-1 and loop over array
+      // Make single for loop starting at istart, create array of istart upto oring.size and 0 to istart-1 and loop over array
       std::vector<int> vertices;
       for (int i = istart; i < oring.size(); i++) {
         vertices.push_back(i);
@@ -1403,9 +1403,8 @@ void Map3d::stitch_bridges() {
       for (int i = 0; i < istart; i++) {
         vertices.push_back(i);
       }
-      bool connected = true;
       std::vector< std::tuple<int, bool, bool> > corners;
-      //for (int i = ilowest + 1; i < oring.size(); i++) {
+      bool connected = false;
       for (int i : vertices) {
         Point2 p = f->get_point2(ringi, i);
         std::string key_bucket = gen_key_bucket(&p);
@@ -1417,27 +1416,17 @@ void Map3d::stitch_bridges() {
 
         if (unique > 0) {
           bool bridgeAdj = false;
-          if (unique == 1) { // this can be 2 cases; 1. location where two bridges and other object meet without height jump. 2. location where one bridge meets multiple objects which should be a stitching error
-            for (auto& fadj : *lstouching) {
-              ringis.clear();
-              pis.clear();
-              if (fadj->get_class() == BRIDGE && fadj->has_point2_(oring[i], ringis, pis) == true) {
-                bridgeAdj = true;
-              }
+          /* this can be 3 cases; 
+          1. location where two bridges and other object meet without height jump. 
+          2. location where one bridge meets multiple objects which should be a stitching error
+          3. error in stitching adjacent objects
+          */
+          for (auto& fadj : *lstouching) {
+            ringis.clear();
+            pis.clear();
+            if (fadj->get_class() == BRIDGE && fadj->has_point2_(oring[i], ringis, pis) == true) {
+              bridgeAdj = true;
             }
-            if (!bridgeAdj) {
-              std::cout << "WARNING: Found NC but no adjacent bridge, stitching error of adjacent objects?" << std::endl;
-              // TODO: try do identify this case seperately, for now just mark as corner and change sameLevel
-              //corners.push_back(std::make_tuple(i, sameLevel, true));
-              //sameLevel = !sameLevel;
-            }
-          }
-          else {
-            //-- debug
-            for (int j = 0; j < nc.size(); j++) {
-              std::cout << nc[j] << " " << std::endl;
-            }
-            //-- debug
           }
           /* Two cases which are seen as corners of the bridge object, either a height jump or where two bridge objects meet
           1. if bridge adjacent, use nc. This is the case where a bridge is split into multiple parts touching the adjacent object
@@ -1454,12 +1443,42 @@ void Map3d::stitch_bridges() {
             ////-- debug
             //std::cout << "Set height at " << f->get_vertex_elevation(ringi, i) << std::endl;
             ////-- debug
-            bool vw = false;
+            bool heightjump = false;
             if (unique > 1 && (corners.size() == 0 || (!corners.empty() && std::get<2>(corners.back()) == false))) {
-              vw = true;
+              heightjump = true;
             }
-            connected = !connected;
-            corners.push_back(std::make_tuple(i, connected, vw));
+
+            // fix connected setting for first point if this point has a height jump
+            if (corners.size() == 1 && unique > 1) {
+              std::get<1>(corners.front()) = true;
+            }
+
+            if (bridgeAdj) {
+              if (heightjump) {
+                std::cout << "WARNING: Found corner, bridge adjacent and height jump, stitching error of adjacent objects?" << std::endl;
+                connected = false;
+                heightjump = false;
+              }
+              else {
+                if (!corners.empty() && std::get<2>(corners.back())) {
+                  std::cout << "WARNING: Found corner, bridge adjacent and previous does have height jump, stitching error of adjacent objects?" << std::endl;
+                  connected = false;
+                }
+                else {
+                  connected = true;
+                }
+              }
+            }
+            else {
+              if (heightjump) {
+                connected = false;//ok
+              }
+              else {
+                connected = true;//ok
+              }
+            }
+            
+            corners.push_back(std::make_tuple(i, connected, heightjump));
           }
         }
         // this is same stretch of bridge without a height jump. Only stitch if connected, otherwise its the wrong (higher) object
@@ -1508,7 +1527,7 @@ void Map3d::stitch_bridges() {
           std::cout << "connected ";
         }
         if (std::get<2>(corner)) {
-          std::cout << "vw ";
+          std::cout << "heightjump ";
         }
       }
       std::cout << std::endl;
