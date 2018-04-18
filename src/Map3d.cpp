@@ -666,9 +666,6 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
     else if ( (f->get_class() == BRIDGE) &&
          ( (_las_classes_allowed[LAS_BRIDGE].empty() == true) || (_las_classes_allowed[LAS_BRIDGE].count(c) > 0) ) )
           bInsert = true;
-    else {
-      std::cout << "WARNING: Class " << f->get_class() << " not found, not using any LAS points." << std::endl;
-    }     
  
     if (bInsert == true) { //-- only insert if in the allowed LAS classes
       f->add_elevation_point(p, laspt.GetZ(), radius, c); 
