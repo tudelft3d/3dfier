@@ -655,8 +655,11 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
     if ( (f->get_class() == SEPARATION) && 
          ( (_las_classes_allowed[LAS_SEPARATION].empty() == true) || (_las_classes_allowed[LAS_SEPARATION].count(c) > 0) ) )
           bInsert = true;
-    if ( (f->get_class() == TERRAIN) && 
+    if ( (f->get_class() == TERRAIN) &&
          ( (_las_classes_allowed[LAS_TERRAIN].empty() == true) || (_las_classes_allowed[LAS_TERRAIN].count(c) > 0) ) )
+          bInsert = true;
+    if ( (f->get_class() == FOREST) &&
+         ( (_las_classes_allowed[LAS_FOREST].empty() == true) || (_las_classes_allowed[LAS_FOREST].count(c) > 0) ) )
           bInsert = true;
  
     if (bInsert == true) { //-- only insert if in the allowed LAS classes
