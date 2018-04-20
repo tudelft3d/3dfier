@@ -1108,14 +1108,21 @@ void Map3d::stitch_lifted_features() {
 
 void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star) {
   //-- degree of vertex == 2
-  if (star.size() == 1 && std::get<0>(star[0])->get_class() != BRIDGE) {
-    TopoFeature* fadj = std::get<0>(star[0]);
-    //-- if not building and same class or both soft, then average.
-    if (f->get_class() != BUILDING && (f->is_hard() == false && fadj->is_hard() == false)) {
-      stitch_average(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
+  if (star.size() == 1){
+    if (std::get<0>(star[0])->get_class() != BRIDGE) {
+      TopoFeature* fadj = std::get<0>(star[0]);
+      //-- if not building and same class or both soft, then average.
+      if (f->get_class() != BUILDING && (f->is_hard() == false && fadj->is_hard() == false)) {
+        stitch_average(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
+      }
+      else {
+        stitch_jumpedge(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
+      }
     }
     else {
-      stitch_jumpedge(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
+      // for bridges we need to create VW and therefor add the height to the NC
+      Point2 p = f->get_point2(ringi, pi);
+      _nc[gen_key_bucket(&p)].push_back(f->get_vertex_elevation(ringi, pi));
     }
   }
   //-- degree of vertex >= 3: more complex cases
@@ -1135,6 +1142,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
           std::get<1>(fadj),
           std::get<2>(fadj)));
       }
+      // This it for adjacent objects at the corners of the bridge where the adjacent features need extra VW at the height jump.
       else {
         f->add_vertical_wall();
       }
@@ -1325,8 +1333,7 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
         int avgz = (f1->get_vertex_elevation(ringi1, pi1) + f2->get_vertex_elevation(ringi2, pi2)) / 2;
         f1->set_vertex_elevation(ringi1, pi1, avgz);
         f2->set_vertex_elevation(ringi2, pi2, avgz);
-        Point2 p = f1->get_point2(ringi1, pi1);
-        _nc[gen_key_bucket(&p)].push_back(avgz);
+        _nc[key_bucket].push_back(avgz);
         bStitched = true;
       }
       if (f1->is_hard() == false) {
@@ -1604,14 +1611,15 @@ corners.push_back(std::make_tuple(i, connected, heightjump));
           }
           else if (std::get<2>(startCorner) && std::get<2>(endCorner)) { //startCorner.heightjump && endCorner.heightjump
             //This is empty stretch of points at height jump and need to place VW
-            // TODO: interpolate
+            Point2 p = f->get_point2(ringi, pi);
+            std::string key_bucket = gen_key_bucket(&p);
             // For now set height at height of previous corner
+            // TODO: interpolate
             int z = f->get_vertex_elevation(ringi, std::get<0>(startCorner));
             f->set_vertex_elevation(ringi, pi, z);
             // Add height to NC and add VW
-            Point2 p = f->get_point2(ringi, pi);
-            std::string key_bucket = gen_key_bucket(&p);
             _nc[key_bucket].push_back(z);
+            f->add_vertical_wall();
           }
           else {
             //are these the connected points? Only other case possible?
