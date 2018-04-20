@@ -97,7 +97,6 @@ protected:
 
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(Point2 &p, double z, float radius);
-  double  distance(const Point2 &p1, const Point2 &p2);
   bool    within_range(Point2 &p, Polygon2 &oly, double radius);
   bool    point_in_polygon(const Point2 &p, const Polygon2 &poly);
   void    lift_each_boundary_vertices(float percentile);

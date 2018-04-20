@@ -819,10 +819,6 @@ bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) 
   return true;
 }
 
-double TopoFeature::distance(const Point2 &p1, const Point2 &p2) {
-  return sqrt((p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y()));
-}
-
 bool TopoFeature::within_range(Point2 &p, Polygon2 &poly, double radius) {
   Ring2 oring = bg::exterior_ring(poly);
   //-- point is within range of the polygon rings

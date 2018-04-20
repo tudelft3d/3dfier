@@ -250,6 +250,9 @@ std::string gen_key_bucket(Point3* p, int z) {
   return buf;
 }
 
+double distance(const Point2 &p1, const Point2 &p2) {
+  return sqrt((p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y()));
+}
 
 //--- TIN Simplification
 
