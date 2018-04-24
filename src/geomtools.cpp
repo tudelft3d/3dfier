@@ -172,7 +172,6 @@ bool getCDT(const Polygon2* pgn,
   //-- add the outer ring as a constraint
   for (int i = 0; i < oring.size(); i++) {
     poly.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i]), z_to_float(z[ringi][i])));
-    //points.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i])));
   }
   cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
   poly.clear();
@@ -323,8 +322,6 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
             points_to_update.push_back(h);
         }
         face->info().points_inside->clear();
-//        delete face->info().points_inside;
-//        face->info().points_inside = nullptr;
       }
     }
     heap.pop();

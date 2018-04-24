@@ -804,14 +804,14 @@ bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) 
   Ring2 oring = bg::exterior_ring(*(_p2));
   for (int i = 0; i < oring.size(); i++) {
     if (distance(p, oring[i]) <= radius)
-      (_lidarelevs[ringi][i]).push_back(zcm);
+      _lidarelevs[ringi][i].push_back(zcm);
   }
   ringi++;
   auto irings = bg::interior_rings(*(_p2));
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
       if (distance(p, iring[i]) <= radius) {
-        (_lidarelevs[ringi][i]).push_back(zcm);
+        _lidarelevs[ringi][i].push_back(zcm);
       }
     }
     ringi++;
@@ -963,15 +963,22 @@ std::vector<TopoFeature*>* TopoFeature::get_adjacent_features() {
 
 void TopoFeature::lift_each_boundary_vertices(float percentile) {
   //-- 1. assign value for each vertex based on percentile
+  bool hasEmpty = false;
+  int totalheight = 0;
+  int heightcount = 0;
   int ringi = 0;
   Ring2 oring = bg::exterior_ring(*(_p2));
   for (int i = 0; i < oring.size(); i++) {
     std::vector<int> &l = _lidarelevs[ringi][i];
-    if (l.empty() == true)
+    if (l.empty() == true) {
       _p2z[ringi][i] = -9999;
+      hasEmpty = true;
+    }
     else {
       std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
       _p2z[ringi][i] = l[l.size() * percentile];
+      totalheight += _p2z[ringi][i];
+      heightcount++;
     }
   }
   ringi++;
@@ -979,49 +986,48 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
       std::vector<int> &l = _lidarelevs[ringi][i];
-      if (l.empty() == true)
+      if (l.empty() == true) {
         _p2z[ringi][i] = -9999;
+        hasEmpty = true;
+      }
       else {
         std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
         _p2z[ringi][i] = l[l.size() * percentile];
+        totalheight += _p2z[ringi][i];
+        heightcount++;
       }
     }
     ringi++;
   }
   //-- 2. find average height of the polygon
-  double totalheight = 0.0;
-  int heightcount = 0;
-  oring = bg::exterior_ring(*(_p2));
-  for (int i = 0; i < oring.size(); i++) {
-    if (_p2z[0][i] != -9999) {
-      totalheight += double(_p2z[0][i]);
-      heightcount += 1;
-    }
-  }
   int avgheight;
-  if (heightcount > 0)
-    avgheight = int(totalheight / double(heightcount));
-  else
-    avgheight = 0;
-  // std::clog << "avg height: " << avgheight << std::endl;
-  // std::clog << "height count " << heightcount << std::endl;
+  if (heightcount > 0) {
+    avgheight = int(totalheight / heightcount);
+  }
+  else {
+    avgheight = -9999;
+    hasEmpty = false; // no need since all heights are -9999
+    //std::cout << "WARNING: Object " << _id << " doesn't have any heights." << std::endl;
+  }
 
   //-- 3. some vertices will have no values (no lidar point within tolerance thus)
   //--    assign them the avg
-  ringi = 0;
-  oring = bg::exterior_ring(*(_p2));
-  for (int i = 0; i < oring.size(); i++) {
-    if (_p2z[ringi][i] == -9999)
-      _p2z[ringi][i] = avgheight;
-  }
-  ringi++;
-  irings = bg::interior_rings(*(_p2));
-  for (Ring2& iring : irings) {
-    for (int i = 0; i < iring.size(); i++) {
+  if (hasEmpty) {
+    ringi = 0;
+    oring = bg::exterior_ring(*(_p2));
+    for (int i = 0; i < oring.size(); i++) {
       if (_p2z[ringi][i] == -9999)
         _p2z[ringi][i] = avgheight;
     }
     ringi++;
+    irings = bg::interior_rings(*(_p2));
+    for (Ring2& iring : irings) {
+      for (int i = 0; i < iring.size(); i++) {
+        if (_p2z[ringi][i] == -9999)
+          _p2z[ringi][i] = avgheight;
+      }
+      ringi++;
+    }
   }
 }
 
