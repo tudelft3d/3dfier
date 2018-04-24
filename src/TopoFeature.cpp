@@ -721,29 +721,23 @@ float TopoFeature::get_distance_to_boundaries(Point2& p) {
 
 bool TopoFeature::has_point2_(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis) {
   double threshold = 0.001;
-  Ring2 oring = bg::exterior_ring(*_p2);
-  int ringi = 0;
+  std::vector<Ring2> rings;
+  rings.push_back(bg::exterior_ring(*(_p2)));
+  for (auto& iring : bg::interior_rings(*(_p2)))
+    rings.push_back(iring);
+
   bool re = false;
-  for (int i = 0; i < oring.size(); i++) {
-    if (distance(p, oring[i]) <= threshold) {
-      ringis.push_back(ringi);
-      pis.push_back(i);
-      re = true;
-      break;
-    }
-  }
-  ringi++;
-  auto irings = bg::interior_rings(*_p2);
-  for (Ring2& iring : irings) {
-    for (int i = 0; i < iring.size(); i++) {
-      if (distance(p, iring[i]) <= threshold) {
+  int ringi = -1;
+  for (auto& ring : rings) {
+    ringi++;
+    for (int i = 0; i < ring.size(); i++) {
+      if (distance(p, ring[i]) <= threshold) {
         ringis.push_back(ringi);
         pis.push_back(i);
         re = true;
         break;
       }
     }
-    ringi++;
   }
   return re;
 }

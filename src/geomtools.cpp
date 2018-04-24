@@ -164,29 +164,21 @@ bool getCDT(const Polygon2* pgn,
   double tinsimp_threshold) {
   CDT cdt;
 
-  Ring2 oring = bg::exterior_ring(*pgn);
-  auto irings = bg::interior_rings(*pgn);
+  //-- gather all rings
+  std::vector<Ring2> rings;
+  rings.push_back(bg::exterior_ring(*(pgn)));
+  for (auto& iring : bg::interior_rings(*(pgn)))
+    rings.push_back(iring);
 
   Polygon_2 poly;
-  int ringi = 0;
-  //-- add the outer ring as a constraint
-  for (int i = 0; i < oring.size(); i++) {
-    poly.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i]), z_to_float(z[ringi][i])));
-  }
-  cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
-  poly.clear();
-  ringi++;
-
-  //-- add the inner ring(s) as a constraint
-  if (irings.size() > 0) {
-    for (auto iring : irings) {
-      for (int i = 0; i < iring.size(); i++) {
-        poly.push_back(Point(bg::get<0>(iring[i]), bg::get<1>(iring[i]), z_to_float(z[ringi][i])));
-      }
-      cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
-      poly.clear();
-      ringi++;
+  int ringi = -1;
+  for (auto ring : rings) {
+    ringi++;
+    for (int i = 0; i < ring.size(); i++) {
+      poly.push_back(Point(bg::get<0>(ring[i]), bg::get<1>(ring[i]), z_to_float(z[ringi][i])));
     }
+    cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
+    poly.clear();
   }
 
   //-- add the lidar points to the CDT, if any
