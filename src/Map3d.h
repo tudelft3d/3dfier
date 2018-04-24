@@ -137,6 +137,7 @@ private:
   std::vector<TopoFeature*>                           _lsFeatures;
   std::vector<std::string>                            _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;
+  bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree_buildings;
 
 #if GDAL_VERSION_MAJOR < 2
   bool extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file);

@@ -605,32 +605,19 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
 }
 
 void Map3d::add_elevation_point(liblas::Point const& laspt) {
-  Point2 p(laspt.GetX(), laspt.GetY());
-  // LAS14Class lasclass = LAS_UNKNOWN;
-  // //-- get LAS class
-  // if (laspt.GetClassification() == liblas::Classification(LAS_UNCLASSIFIED))
-  //   lasclass = LAS_UNCLASSIFIED;
-  // else if (laspt.GetClassification() == liblas::Classification(LAS_GROUND))
-  //   lasclass = LAS_GROUND;
-  // else if (laspt.GetClassification() == liblas::Classification(LAS_BUILDING))
-  //   lasclass = LAS_BUILDING;
-  // else if (laspt.GetClassification() == liblas::Classification(LAS_WATER))
-  //   lasclass = LAS_WATER;
-  // else if (laspt.GetClassification() == liblas::Classification(LAS_BRIDGE))
-  //   lasclass = LAS_BRIDGE;
-  // else
-  //   lasclass = LAS_UNKNOWN;
-
   std::vector<PairIndexed> re;
-  float radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
-  Point2 minp(laspt.GetX() - radius, laspt.GetY() - radius);
-  Point2 maxp(laspt.GetX() + radius, laspt.GetY() + radius);
+  Point2 minp(laspt.GetX() - _radius_vertex_elevation, laspt.GetY() - _radius_vertex_elevation);
+  Point2 maxp(laspt.GetX() + _radius_vertex_elevation, laspt.GetY() + _radius_vertex_elevation);
   Box2 querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
+  minp = Point2(laspt.GetX() - _building_radius_vertex_elevation, laspt.GetY() - _building_radius_vertex_elevation);
+  maxp = Point2(laspt.GetX() + _building_radius_vertex_elevation, laspt.GetY() + _building_radius_vertex_elevation);
+  querybox = Box2(minp, maxp);
+  _rtree_buildings.query(bgi::intersects(querybox), std::back_inserter(re));
 
   for (auto& v : re) {
     TopoFeature* f = v.second;
-    radius = _radius_vertex_elevation;
+    float radius = _radius_vertex_elevation;
     //-- only process last returns; 
     //-- although perhaps not smart for vegetation/forest in the future
     //-- TODO: always ignore the non-last-return points?
@@ -675,6 +662,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
     }
  
     if (bInsert == true) { //-- only insert if in the allowed LAS classes
+      Point2 p(laspt.GetX(), laspt.GetY());
       f->add_elevation_point(p, laspt.GetZ(), radius, c); 
     }
   }
@@ -752,13 +740,22 @@ bool Map3d::save_building_variables() {
 
 bool Map3d::construct_rtree() {
   std::clog << "Constructing the R-tree...";
-  for (auto p : _lsFeatures)
-    _rtree.insert(std::make_pair(p->get_bbox2d(), p));
+  for (auto p : _lsFeatures) {
+    if (p->get_class() == BUILDING) {
+      _rtree_buildings.insert(std::make_pair(p->get_bbox2d(), p));
+    }
+    else {
+      _rtree.insert(std::make_pair(p->get_bbox2d(), p));
+    }
+  }
   std::clog << " done.\n";
 
-  //-- update the bounding box from the r-tree
-  _bbox = Box2(Point2(bg::get<bg::min_corner, 0>(_rtree.bounds()), bg::get<bg::min_corner, 1>(_rtree.bounds())),
-    Point2(bg::get<bg::max_corner, 0>(_rtree.bounds()), bg::get<bg::max_corner, 1>(_rtree.bounds())));
+  //-- update the bounding box from _rtree and _rtree_buildings 
+  _bbox = Box2(
+    Point2(std::max(bg::get<bg::min_corner, 0>(_rtree.bounds()), bg::get<bg::min_corner, 0>(_rtree_buildings.bounds())),
+      std::max(bg::get<bg::min_corner, 1>(_rtree.bounds()), bg::get<bg::min_corner, 1>(_rtree_buildings.bounds()))),
+    Point2(std::max(bg::get<bg::max_corner, 0>(_rtree.bounds()), bg::get<bg::max_corner, 0>(_rtree_buildings.bounds())),
+      std::max(bg::get<bg::max_corner, 1>(_rtree.bounds()), bg::get<bg::max_corner, 1>(_rtree_buildings.bounds()))));
   return true;
 }
 
@@ -1028,6 +1025,7 @@ bool Map3d::add_las_file(PointFile pointFile) {
 void Map3d::collect_adjacent_features(TopoFeature* f) {
   std::vector<PairIndexed> re;
   _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+  _rtree_buildings.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
   for (auto& each : re) {
     TopoFeature* fadj = each.second;
     if (f != fadj && (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) || !bg::disjoint(*(f->get_Polygon2()), *(fadj->get_Polygon2())))) {
