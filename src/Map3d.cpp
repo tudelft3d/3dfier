@@ -1263,7 +1263,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     }
 
     //-- assign the adjusted heights and build the nc
-    int tmph = -9999;
+    int tmph = -99999;
     for (auto& each : zstar) {
       std::get<1>(each)->set_vertex_elevation(std::get<2>(each), std::get<3>(each), std::get<0>(each));
       if (std::get<0>(each) != tmph) { //-- not to repeat the same height

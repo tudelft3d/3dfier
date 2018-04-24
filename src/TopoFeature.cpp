@@ -963,28 +963,20 @@ std::vector<TopoFeature*>* TopoFeature::get_adjacent_features() {
 
 void TopoFeature::lift_each_boundary_vertices(float percentile) {
   //-- 1. assign value for each vertex based on percentile
+  //-- collect the rings of the polygon
   bool hasEmpty = false;
   int totalheight = 0;
   int heightcount = 0;
-  int ringi = 0;
-  Ring2 oring = bg::exterior_ring(*(_p2));
-  for (int i = 0; i < oring.size(); i++) {
-    std::vector<int> &l = _lidarelevs[ringi][i];
-    if (l.empty() == true) {
-      _p2z[ringi][i] = -9999;
-      hasEmpty = true;
-    }
-    else {
-      std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
-      _p2z[ringi][i] = l[l.size() * percentile];
-      totalheight += _p2z[ringi][i];
-      heightcount++;
-    }
-  }
-  ringi++;
-  auto irings = bg::interior_rings(*(_p2));
-  for (Ring2& iring : irings) {
-    for (int i = 0; i < iring.size(); i++) {
+  //-- gather all rings
+  std::vector<Ring2> rings;
+  rings.push_back(bg::exterior_ring(*(_p2)));
+  for (auto& iring : bg::interior_rings(*(_p2)))
+    rings.push_back(iring);
+
+  int ringi = -1;
+  for (auto& ring : rings) {
+    ringi++;
+    for (int i = 0; i < ring.size(); i++) {
       std::vector<int> &l = _lidarelevs[ringi][i];
       if (l.empty() == true) {
         _p2z[ringi][i] = -9999;
@@ -997,8 +989,8 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
         heightcount++;
       }
     }
-    ringi++;
   }
+
   //-- 2. find average height of the polygon
   int avgheight;
   if (heightcount > 0) {
@@ -1007,26 +999,19 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
   else {
     avgheight = -9999;
     hasEmpty = false; // no need since all heights are -9999
-    //std::cout << "WARNING: Object " << _id << " doesn't have any heights." << std::endl;
+                      //std::cout << "WARNING: Object " << _id << " doesn't have any heights." << std::endl;
   }
 
-  //-- 3. some vertices will have no values (no lidar point within tolerance thus)
-  //--    assign them the avg
   if (hasEmpty) {
-    ringi = 0;
-    oring = bg::exterior_ring(*(_p2));
-    for (int i = 0; i < oring.size(); i++) {
-      if (_p2z[ringi][i] == -9999)
-        _p2z[ringi][i] = avgheight;
-    }
-    ringi++;
-    irings = bg::interior_rings(*(_p2));
-    for (Ring2& iring : irings) {
-      for (int i = 0; i < iring.size(); i++) {
+    //-- 3. some vertices will have no values (no lidar point within tolerance thus)
+    //--    assign them the avg
+    ringi = -1;
+    for (auto& ring : rings) {
+      ringi++;
+      for (int i = 0; i < ring.size(); i++) {
         if (_p2z[ringi][i] == -9999)
           _p2z[ringi][i] = avgheight;
       }
-      ringi++;
     }
   }
 }
@@ -1056,7 +1041,7 @@ int Flat::get_height() {
 }
 
 bool Flat::lift_percentile(float percentile) {
-  int z = 0;
+  int z = -9999;
   if (_zvaluesinside.empty() == false) {
     std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
     z = _zvaluesinside[_zvaluesinside.size() * percentile];
