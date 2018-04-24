@@ -104,6 +104,7 @@ public:
 
   void add_allowed_las_class(AllowedLASTopo c, int i);
   bool save_building_variables();
+  int interpolate_height(TopoFeature* f, const Point2 &p, int prevringi, int prevpi, int nextringi, int nextpi);
 
 private:
   float       _building_heightref_roof;
