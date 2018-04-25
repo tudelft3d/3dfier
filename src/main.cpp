@@ -460,21 +460,22 @@ int main(int argc, const char * argv[]) {
     (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
   );
 
+
   std::clog << "3dfying all input polygons...\n";
   if (outputs.size() == 1) {
     if (outputs.count("CSV-BUILDINGS") == 1)
       map3d.threeDfy(false);
     else if (outputs.count("OBJ-BUILDINGS") == 1) {
       map3d.threeDfy(false);
-    auto startCDT = boost::chrono::high_resolution_clock::now();
+      auto startCDT = boost::chrono::high_resolution_clock::now();
       map3d.construct_CDT();
-    auto durationCDT = boost::chrono::high_resolution_clock::now() - startCDT;
-    printf("CDT created in %lld seconds || %02d:%02d:%02d\n",
-      boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count(),
-      boost::chrono::duration_cast<boost::chrono::hours>(durationCDT).count(),
-      (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count() % 60
-      boost::chrono::duration_cast<boost::chrono::minutes>(durationCDT).count() % 60,
-    );
+      auto durationCDT = boost::chrono::high_resolution_clock::now() - startCDT;
+      printf("CDT created in %lld seconds || %02d:%02d:%02d\n",
+        boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count(),
+        boost::chrono::duration_cast<boost::chrono::hours>(durationCDT).count(),
+        boost::chrono::duration_cast<boost::chrono::minutes>(durationCDT).count() % 60,
+        (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count() % 60
+      );
     }
     else if (outputs.count("CSV-BUILDINGS-MULTIPLE") == 1)
       std::clog << "CSV-BUILDINGS-MULTIPLE: no 3D reconstruction" << std::endl;
@@ -482,7 +483,15 @@ int main(int argc, const char * argv[]) {
       std::clog << "CSV-BUILDINGS-ALL-Z: no 3D reconstruction" << std::endl;
     else {
       map3d.threeDfy(bStitching);
+      auto startCDT = boost::chrono::high_resolution_clock::now();
       map3d.construct_CDT();
+      auto durationCDT = boost::chrono::high_resolution_clock::now() - startCDT;
+      printf("CDT created in %lld seconds || %02d:%02d:%02d\n",
+        boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count(),
+        boost::chrono::duration_cast<boost::chrono::hours>(durationCDT).count(),
+        boost::chrono::duration_cast<boost::chrono::minutes>(durationCDT).count() % 60,
+        (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count() % 60
+      );
     }
   }
   else {
