@@ -393,7 +393,15 @@ int main(int argc, const char * argv[]) {
     map3d.threeDfy(false);
   else if (format == "OBJ-BUILDINGS") {
     map3d.threeDfy(false);
+    auto startCDT = boost::chrono::high_resolution_clock::now();
     map3d.construct_CDT();
+    auto durationCDT = boost::chrono::high_resolution_clock::now() - startCDT;
+    printf("CDT created in %lld seconds || %02d:%02d:%02d\n",
+      boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count(),
+      boost::chrono::duration_cast<boost::chrono::hours>(durationCDT).count(),
+      boost::chrono::duration_cast<boost::chrono::minutes>(durationCDT).count() % 60,
+      (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count() % 60
+    );
   }
   else if (format == "CSV-BUILDINGS-MULTIPLE")
     std::clog << "CSV-BUILDINGS-MULTIPLE: no 3D reconstruction" << std::endl;
@@ -401,7 +409,15 @@ int main(int argc, const char * argv[]) {
     std::clog << "CSV-BUILDINGS-ALL-Z: no 3D reconstruction" << std::endl;
   else {
     map3d.threeDfy(bStitching);
+    auto startCDT = boost::chrono::high_resolution_clock::now();
     map3d.construct_CDT();
+    auto durationCDT = boost::chrono::high_resolution_clock::now() - startCDT;
+    printf("CDT created in %lld seconds || %02d:%02d:%02d\n",
+      boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count(),
+      boost::chrono::duration_cast<boost::chrono::hours>(durationCDT).count(),
+      boost::chrono::duration_cast<boost::chrono::minutes>(durationCDT).count() % 60,
+      (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count() % 60
+    );
   }
   std::clog << "done with calculations.\n";
 

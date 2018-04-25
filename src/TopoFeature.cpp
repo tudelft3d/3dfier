@@ -1201,6 +1201,12 @@ bool TIN::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
 }
 
 bool TIN::buildCDT() {
-  getCDT(_p2, _p2z, _vertices, _triangles, _lidarpts, _simplification_tinsimp);
+  try {
+    getCDT(_p2, _p2z, _vertices, _triangles, _lidarpts, _simplification_tinsimp);
+  }
+  catch (std::exception e) {
+    std::cerr << std::endl << "CDT failed for " << _id << " (" << get_class() << ") with error: " << e.what() << std::endl;
+    return false;
+  }
   return true;
 }

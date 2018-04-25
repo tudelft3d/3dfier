@@ -42,24 +42,6 @@
 #include <boost/heap/binomial_heap.hpp>
 
 // binomial heap for greedy insertion code
-struct PointXYHash
-{
-  std::size_t operator()(Point3 const& p) const noexcept
-  {
-    std::size_t h1 = std::hash<double>{}(bg::get<0>(p));
-    std::size_t h2 = std::hash<double>{}(bg::get<1>(p));
-    return h1 ^ (h2 << 1);
-  }
-};
-struct PointXYEqual
-{
-  std::size_t operator()(Point3 const& p1, Point3 const& p2) const noexcept
-  {
-    auto ex = bg::get<0>(p1) == bg::get<0>(p2);
-    auto ey = bg::get<1>(p1) == bg::get<1>(p2);
-    return ex && ey;
-  }
-};
 struct point_error {
   point_error(int i, double e) : index(i), error(e){}
   int index;
@@ -94,6 +76,21 @@ typedef CGAL::Exact_predicates_tag									Itag;
 typedef CGAL::Constrained_Delaunay_triangulation_2<Gt, Tds, Itag>	CDT;
 typedef CDT::Point													Point;
 typedef CGAL::Polygon_2<Gt>											Polygon_2;
+
+struct PointXYHash {
+  std::size_t operator()(Point const& p) const noexcept {
+    std::size_t h1 = std::hash<double>{}(p.x());
+    std::size_t h2 = std::hash<double>{}(p.y());
+    return h1 ^ (h2 << 1);
+  }
+};
+struct PointXYEqual {
+  std::size_t operator()(Point const& p1, Point const& p2) const noexcept {
+    auto ex = p1.x() == p2.x();
+    auto ey = p1.y() == p2.y();
+    return ex && ey;
+  }
+};
 
 inline double compute_error(Point &p, CDT::Face_handle &face);
 void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold);
@@ -267,15 +264,21 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   // assumes all lidar points are inside a triangle
   Heap heap;
 
+  // Create all CGAL points once
+  std::vector<Point> cpts;
+  //cpts.resize(pts.size());
+  for (auto& p : pts) {
+    cpts.push_back(Point(bg::get<0>(p), bg::get<1>(p), bg::get<2>(p)));
+  }
+
   // compute initial point errors, build heap, store point indices in triangles
   {
-    std::unordered_set<Point3, PointXYHash, PointXYEqual> set;
-    for(int i=0; i<pts.size(); i++){
-      auto p3 = pts[i];
+    std::unordered_set<Point, PointXYHash, PointXYEqual> set;
+    for(int i=0; i<cpts.size(); i++){
+      auto p = cpts[i];
       // detect and skip duplicate points
-      auto not_duplicate = set.insert(p3).second;
+      auto not_duplicate = set.insert(p).second;
       if(not_duplicate){
-        auto p = Point(bg::get<0>(p3), bg::get<1>(p3), bg::get<2>(p3));
         auto face = T.locate(p);
         auto e = compute_error(p, face);
         auto handle = heap.push(point_error(i,e));
@@ -291,9 +294,9 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     
     auto maxelement = heap.top();
     error = maxelement.error;
+
     auto max_element_index = maxelement.index;
-    auto p3 = pts[maxelement.index];
-    auto max_p = Point(bg::get<0>(p3), bg::get<1>(p3), bg::get<2>(p3));
+    auto max_p = cpts[maxelement.index];
 
     std::vector<CDT::Face_handle> faces;
     T.get_conflicts ( max_p, std::back_inserter(faces) );
@@ -319,8 +322,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     heap.pop();
     
     for (auto curelement : points_to_update){
-      auto p3 = pts[(*curelement).index];
-      auto p = Point(bg::get<0>(p3), bg::get<1>(p3), bg::get<2>(p3));
+      auto p = cpts[(*curelement).index];
       auto containing_face = T.locate(p, face_hint);
       const double e = compute_error(p, containing_face);
       heap.update(curelement, point_error((*curelement).index,e));
