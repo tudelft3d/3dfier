@@ -74,8 +74,7 @@ std::string  TopoFeature::get_layername() {
 }
 
 bool TopoFeature::buildCDT() {
-  getCDT(_p2, _p2z, _vertices, _triangles);
-  return true;
+  return getCDT(_p2, _p2z, _vertices, _triangles);
 }
 
 int TopoFeature::get_counter() {
@@ -1201,12 +1200,6 @@ bool TIN::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
 }
 
 bool TIN::buildCDT() {
-  try {
-    getCDT(_p2, _p2z, _vertices, _triangles, _lidarpts, _simplification_tinsimp);
-  }
-  catch (std::exception e) {
-    std::cerr << std::endl << "CDT failed for " << _id << " (" << get_class() << ") with error: " << e.what() << std::endl;
-    return false;
-  }
-  return true;
+  //std::cout << "id: " << _id << " (" << get_class() << ")\n";
+  return getCDT(_p2, _p2z, _vertices, _triangles, _lidarpts, _simplification_tinsimp);
 }

@@ -725,8 +725,9 @@ bool Map3d::threeDfy(bool stitching) {
 bool Map3d::construct_CDT() {
   std::clog << "=====  /CDT =====\n";
   for (auto& p : _lsFeatures) {
-    // std::clog << p->get_id() << " (" << p->get_class() << ")\n";
-    p->buildCDT();
+    if (!p->buildCDT()) {
+      std::clog << "CDT failed for " << p->get_id() << " (" << p->get_class() << ")\n";
+    }
   }
   std::clog << "=====  CDT/ =====\n";
   return true;
@@ -1389,7 +1390,7 @@ void Map3d::stitch_bridges() {
           std::string key_bucket = gen_key_bucket(&p);
           std::vector<int> nc = _nc[key_bucket];
           std::sort(nc.begin(), nc.end());
-          auto &ncuIt = std::unique(nc.begin(), nc.end());
+          auto ncuIt = std::unique(nc.begin(), nc.end());
           int unique = std::distance(nc.begin(), ncuIt);
 
           if (unique > 0) {
