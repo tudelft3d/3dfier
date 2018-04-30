@@ -85,7 +85,7 @@ struct PointXYHash {
   }
 };
 struct PointXYEqual {
-  std::size_t operator()(Point const& p1, Point const& p2) const noexcept {
+  bool operator()(Point const& p1, Point const& p2) const noexcept {
     auto ex = p1.x() == p2.x();
     auto ey = p1.y() == p2.y();
     return ex && ey;
@@ -180,13 +180,13 @@ bool getCDT(const Polygon2* pgn,
 
   //-- add the lidar points to the CDT, if any
   if (lidarpts.size() > 0) {
-      if (tinsimp_threshold != 0)
-        greedy_insert(cdt, lidarpts, tinsimp_threshold);
-      else {
-        for (auto &pt : lidarpts) {
-          cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
-        }
+    if (tinsimp_threshold != 0)
+      greedy_insert(cdt, lidarpts, tinsimp_threshold);
+    else {
+      for (auto &pt : lidarpts) {
+        cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
       }
+    }
   }
 
   //Mark facets that are inside the domain bounded by the polygon
@@ -216,26 +216,31 @@ bool getCDT(const Polygon2* pgn,
       count++;
     }
   }
-
   return true;
 }
 
 std::string gen_key_bucket(Point2* p) {
-  char* buf = new char[50];
+  char buf[50];
   std::sprintf(buf, "%.3f %.3f", p->get<0>(), p->get<1>());
-  return buf;
+  std::string key_bucket = buf;
+  delete[] buf;
+  return key_bucket;
 }
 
 std::string gen_key_bucket(Point3* p) {
-  char* buf = new char[50];
+  char buf[50];
   std::sprintf(buf, "%.3f %.3f %.3f", p->get<0>(), p->get<1>(), p->get<2>());
-  return buf;
+  std::string key_bucket = buf;
+  delete[] buf;
+  return key_bucket;
 }
 
 std::string gen_key_bucket(Point3* p, int z) {
-  char* buf = new char[50];
-  std::sprintf(buf, "%.3f %.3f %d", p->get<0>(), p->get<1>(), z);
-  return buf;
+  char buf[50];
+  std::sprintf(buf, "%.3f %.3f %.3f", p->get<0>(), p->get<1>(), z);
+  std::string key_bucket = buf;
+  delete[] buf;
+  return key_bucket;
 }
 
 double distance(const Point2 &p1, const Point2 &p2) {
@@ -266,7 +271,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
 
   // Create all CGAL points once
   std::vector<Point> cpts;
-  //cpts.resize(pts.size());
+  cpts.resize(pts.size());
   for (auto& p : pts) {
     cpts.push_back(Point(bg::get<0>(p), bg::get<1>(p), bg::get<2>(p)));
   }

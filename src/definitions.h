@@ -82,6 +82,4 @@ typedef enum {
    NUM_ALLOWEDLASTOPO     = 8
 } AllowedLASTopo;
 
-
-
 #endif
