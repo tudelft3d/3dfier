@@ -272,6 +272,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   }
 
   // compute initial point errors, build heap, store point indices in triangles
+  std::cout << std::fixed << std::setprecision(2)<< "building heap... " << std::endl;
   {
     std::unordered_set<Point, PointXYHash, PointXYEqual> set;
     for(int i=0; i<cpts.size(); i++){
@@ -283,10 +284,14 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         auto e = compute_error(p, face);
         auto handle = heap.push(point_error(i,e));
         face->info().points_inside->push_back(handle);
+        
+        std::cout << " handle: " << &(*handle) << ", point index: "<< i << ", e:" << e << std::endl;
       }
     }
   }
+  
   // insert points, update errors of affected triangles until threshold error is reached
+  std::cout << "starting greedy insertion... " << std::endl;
   double error;
   do{
     if (heap.empty())
@@ -297,6 +302,8 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
 
     auto max_element_index = maxelement.index;
     auto max_p = cpts[maxelement.index];
+    
+    std::cout << std::endl << "top element index: " << max_element_index << " coordinates: " << max_p << " error: " <<error << std::endl;
 
     std::vector<CDT::Face_handle> faces;
     T.get_conflicts ( max_p, std::back_inserter(faces) );
@@ -319,12 +326,20 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         face->info().points_inside->clear();
       }
     }
+    std::cout << "points to update:" << std::endl;
+    for(auto ptu: points_to_update)
+      std::cout << (*ptu).index << "  " << (*ptu).error << std::endl;
+    
     heap.pop();
     
+    std::cout << "updating points..." << std::endl;
     for (auto curelement : points_to_update){
       auto p = cpts[(*curelement).index];
       auto containing_face = T.locate(p, face_hint);
       const double e = compute_error(p, containing_face);
+      
+      std::cout << (*curelement).index << "  " << (*curelement).error << std::endl;
+      
       heap.update(curelement, point_error((*curelement).index,e));
       containing_face->info().points_inside->push_back(curelement);
     }
