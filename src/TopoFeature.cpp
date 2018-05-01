@@ -667,6 +667,7 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight)
 
 bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& bringi, int& bpi) {
   double threshold = 0.001;
+  double sqr_threshold = threshold * threshold;
   std::vector<int> ringis, pis;
   Point2 tmp;
   if (this->has_point2_(a, ringis, pis) == true) {
@@ -674,7 +675,7 @@ bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& 
       // nextpi = pis[k];
       int nextpi;
       tmp = this->get_next_point2_in_ring(ringis[k], pis[k], nextpi);
-      if (distance(b, tmp) <= threshold) {
+      if (sqr_distance(b, tmp) <= sqr_threshold) {
         aringi = ringis[k];
         api = pis[k];
         bringi = ringis[k];
@@ -720,6 +721,7 @@ float TopoFeature::get_distance_to_boundaries(Point2& p) {
 
 bool TopoFeature::has_point2_(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis) {
   double threshold = 0.001;
+  double sqr_threshold = threshold * threshold;
   std::vector<Ring2> rings;
   rings.push_back(bg::exterior_ring(*(_p2)));
   for (auto& iring : bg::interior_rings(*(_p2)))
@@ -730,7 +732,7 @@ bool TopoFeature::has_point2_(const Point2& p, std::vector<int>& ringis, std::ve
   for (auto& ring : rings) {
     ringi++;
     for (int i = 0; i < ring.size(); i++) {
-      if (distance(p, ring[i]) <= threshold) {
+      if (sqr_distance(p, ring[i]) <= sqr_threshold) {
         ringis.push_back(ringi);
         pis.push_back(i);
         re = true;
@@ -792,18 +794,19 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
 //-- used to collect all points linked to the polygon
 //-- later all these values are used to lift the polygon (and put values in _p2z)
 bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) {
+  float sqr_radius = radius * radius;
   int zcm = int(z * 100);
   int ringi = 0;
   Ring2 oring = bg::exterior_ring(*(_p2));
   for (int i = 0; i < oring.size(); i++) {
-    if (distance(p, oring[i]) <= radius)
+    if (sqr_distance(p, oring[i]) <= sqr_radius)
       _lidarelevs[ringi][i].push_back(zcm);
   }
   ringi++;
   auto irings = bg::interior_rings(*(_p2));
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
-      if (distance(p, iring[i]) <= radius) {
+      if (sqr_distance(p, iring[i]) <= sqr_radius) {
         _lidarelevs[ringi][i].push_back(zcm);
       }
     }
@@ -813,17 +816,18 @@ bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) 
 }
 
 bool TopoFeature::within_range(Point2 &p, Polygon2 &poly, double radius) {
+  double sqr_radius = radius * radius;
   Ring2 oring = bg::exterior_ring(poly);
   //-- point is within range of the polygon rings
   for (int i = 0; i < oring.size(); i++) {
-    if (distance(p, oring[i]) <= radius) {
+    if (sqr_distance(p, oring[i]) <= sqr_radius) {
       return true;
     }
   }
   auto irings = bg::interior_rings(*(_p2));
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
-      if (distance(p, iring[i]) <= radius) {
+      if (sqr_distance(p, iring[i]) <= sqr_radius) {
         return true;
       }
     }

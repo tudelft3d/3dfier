@@ -199,7 +199,6 @@ bool getCDT(const Polygon2* pgn,
   }
   for (CDT::Finite_vertices_iterator vit = cdt.finite_vertices_begin();
     vit != cdt.finite_vertices_end(); ++vit) {
-    std::cout << vit->point() << std::endl;
     Point3 p = Point3(vit->point().x(), vit->point().y(), vit->point().z());
     vertices.push_back(std::make_pair(p, gen_key_bucket(&p)));
     vit->id() = index++;
@@ -247,6 +246,10 @@ double distance(const Point2 &p1, const Point2 &p2) {
   return sqrt((p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y()));
 }
 
+double sqr_distance(const Point2 &p1, const Point2 &p2) {
+  return (p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y());
+}
+
 //--- TIN Simplification
 
 // Greedy insertion/incremental refinement algorithm adapted from "Fast polygonal approximation of terrain and height fields" by Garland, Michael and Heckbert, Paul S.
@@ -271,7 +274,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
 
   // Convert all elevation points to CGAL points
   std::vector<Point> cpts;
-  cpts.resize(pts.size());
+  cpts.reserve(pts.size());
   for (auto& p : pts) {
     cpts.push_back(Point(bg::get<0>(p), bg::get<1>(p), bg::get<2>(p)));
   }

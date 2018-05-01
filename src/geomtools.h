@@ -38,6 +38,7 @@ std::string gen_key_bucket(const Point3* p, int z);
 
 
 double distance(const Point2 &p1, const Point2 &p2);
+double sqr_distance(const Point2 &p1, const Point2 &p2);
 bool   triangle_contains_segment(Triangle t, int a, int b);
 bool   getCDT(const Polygon2* pgn,
             const std::vector< std::vector<int> > &z, 
