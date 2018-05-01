@@ -1029,7 +1029,7 @@ void Map3d::collect_adjacent_features(TopoFeature* f) {
   _rtree_buildings.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
   for (auto& each : re) {
     TopoFeature* fadj = each.second;
-    if (f != fadj && (bg::touches(*(f->get_Polygon2()), *(fadj->get_Polygon2())) || !bg::disjoint(*(f->get_Polygon2()), *(fadj->get_Polygon2())))) {
+    if (f != fadj && f->adjacent(*(fadj->get_Polygon2()))){
       f->add_adjacent_feature(fadj);
     }
   }

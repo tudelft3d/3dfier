@@ -743,6 +743,34 @@ bool TopoFeature::has_point2_(const Point2& p, std::vector<int>& ringis, std::ve
   return re;
 }
 
+bool TopoFeature::adjacent(const Polygon2& poly) {
+  double threshold = 0.001;
+  double sqr_threshold = threshold * threshold;
+
+  std::vector<Ring2> rings1;
+  rings1.push_back(bg::exterior_ring(*(_p2)));
+  for (auto& iring : bg::interior_rings(*(_p2)))
+    rings1.push_back(iring);
+  
+  std::vector<Ring2> rings2;
+  rings2.push_back(bg::exterior_ring(poly));
+  for (auto& iring : bg::interior_rings(poly))
+    rings2.push_back(iring);
+
+  for (auto& ring1 : rings1) {
+    for (int pi1 = 0; pi1 < ring1.size(); pi1++) {
+      for (auto& ring2 : rings2) {
+        for (int pi2 = 0; pi2 < ring2.size(); pi2++) {
+          if (sqr_distance(ring1[pi1], ring2[pi2]) <= sqr_threshold) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
 Point2 TopoFeature::get_point2(int ringi, int pi) {
   Ring2 ring;
   if (ringi == 0)

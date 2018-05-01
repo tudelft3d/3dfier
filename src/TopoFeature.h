@@ -63,6 +63,7 @@ public:
   Point2       get_point2(int ringi, int pi);
   bool         has_point2_(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis);
   bool         has_segment(Point2& a, Point2& b, int& aringi, int& api, int& bringi, int& bpi);
+  bool         adjacent(const Polygon2& poly);
   float        get_distance_to_boundaries(Point2& p);
   int          get_vertex_elevation(int ringi, int pi);
   int          get_vertex_elevation(Point2& p);
