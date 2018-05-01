@@ -39,21 +39,20 @@
 #include <unordered_set>
 #include <iterator>
 #include <memory>
-#include <boost/heap/binomial_heap.hpp>
+#include <boost/heap/fibonacci_heap.hpp>
 
 // binomial heap for greedy insertion code
 struct point_error {
   point_error(int i, double e) : index(i), error(e){}
   int index;
   double error;
+  
+  bool operator<(point_error const & rhs) const
+  {
+    return error < rhs.error;
+  }
 };
-struct compare_error {
-  inline bool operator()
-    (const point_error &e1 , const point_error &e2) const {
-      return e1.error < e2.error;
-}
-};
-typedef boost::heap::binomial_heap<point_error, boost::heap::compare<compare_error>> Heap;
+typedef boost::heap::fibonacci_heap<point_error> Heap;
 typedef Heap::handle_type heap_handle;
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel			K;
@@ -200,6 +199,7 @@ bool getCDT(const Polygon2* pgn,
   }
   for (CDT::Finite_vertices_iterator vit = cdt.finite_vertices_begin();
     vit != cdt.finite_vertices_end(); ++vit) {
+    std::cout << vit->point() << std::endl;
     Point3 p = Point3(vit->point().x(), vit->point().y(), vit->point().z());
     vertices.push_back(std::make_pair(p, gen_key_bucket(&p)));
     vit->id() = index++;
@@ -269,7 +269,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   // assumes all lidar points are inside a triangle
   Heap heap;
 
-  // Create all CGAL points once
+  // Convert all elevation points to CGAL points
   std::vector<Point> cpts;
   cpts.resize(pts.size());
   for (auto& p : pts) {
@@ -291,25 +291,23 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
       }
     }
   }
+  
   // insert points, update errors of affected triangles until threshold error is reached
-  double error;
-  do{
-    if (heap.empty())
-      break;
-    
+  while (!heap.empty() && heap.top().error > threshold){
+    // get top element (with largest error) from heap
     auto maxelement = heap.top();
-    error = maxelement.error;
-
-    auto max_element_index = maxelement.index;
     auto max_p = cpts[maxelement.index];
 
+    // get triangles that will change after inserting this max_p
     std::vector<CDT::Face_handle> faces;
     T.get_conflicts ( max_p, std::back_inserter(faces) );
 
+    // insert max_p in triangulation
     auto face_hint = faces[0];
     auto v = T.insert(max_p, face_hint);
     face_hint = v->face();
     
+    // update clear info of triangles that just changed, collect points that were inside these triangles
     std::vector<heap_handle> points_to_update;
     for (auto face : faces) {
       if (face->info().plane){
@@ -318,22 +316,26 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
       }
       if (face->info().points_inside) {
         for (auto h :*face->info().points_inside){
-          if(max_element_index != (*h).index)
+          if( maxelement.index != (*h).index)
             points_to_update.push_back(h);
         }
         face->info().points_inside->clear();
       }
     }
-    heap.pop();
     
+    // remove the point we just inserted in the triangulation from the heap
+    heap.pop();
+
+    // update the errors of affected elevation points
     for (auto curelement : points_to_update){
       auto p = cpts[(*curelement).index];
       auto containing_face = T.locate(p, face_hint);
       const double e = compute_error(p, containing_face);
-      heap.update(curelement, point_error((*curelement).index,e));
+      const point_error new_pe = point_error((*curelement).index, e);
+      heap.update(curelement, new_pe);
       containing_face->info().points_inside->push_back(curelement);
     }
-  }while(error > threshold);
+  }
 
   //cleanup the stuff I put in face info of triangles
   for (CDT::Finite_faces_iterator fit = T.finite_faces_begin();
