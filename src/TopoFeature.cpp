@@ -467,7 +467,7 @@ void TopoFeature::fix_bowtie() {
   }
 }
 
-void TopoFeature::construct_vertical_walls(NodeColumn& nc, int baseheight) {
+void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight) {
   if (this->has_vertical_walls() == false)
     return;
 

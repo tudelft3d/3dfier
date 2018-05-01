@@ -52,7 +52,7 @@ public:
   virtual bool          get_shape(OGRLayer*, bool writeAttributes, AttributeMap extraAttributes = AttributeMap()) = 0;
 
   std::string  get_id();
-  void         construct_vertical_walls(NodeColumn& nc, int baseheight);
+  void         construct_vertical_walls(const NodeColumn& nc, int baseheight);
   void         fix_bowtie();
   void         add_adjacent_feature(TopoFeature* adjFeature);
   std::vector<TopoFeature*>* get_adjacent_features();

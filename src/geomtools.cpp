@@ -219,24 +219,24 @@ bool getCDT(const Polygon2* pgn,
   return true;
 }
 
-std::string gen_key_bucket(Point2* p) {
-  char buf[50];
+std::string gen_key_bucket(const Point2* p) {
+  char* buf = new char[50];
   std::sprintf(buf, "%.3f %.3f", p->get<0>(), p->get<1>());
   std::string key_bucket = buf;
   delete[] buf;
   return key_bucket;
 }
 
-std::string gen_key_bucket(Point3* p) {
-  char buf[50];
+std::string gen_key_bucket(const Point3* p) {
+  char* buf = new char[50];
   std::sprintf(buf, "%.3f %.3f %.3f", p->get<0>(), p->get<1>(), p->get<2>());
   std::string key_bucket = buf;
   delete[] buf;
   return key_bucket;
 }
 
-std::string gen_key_bucket(Point3* p, int z) {
-  char buf[50];
+std::string gen_key_bucket(const Point3* p, int z) {
+  char* buf = new char[50];
   std::sprintf(buf, "%.3f %.3f %.3f", p->get<0>(), p->get<1>(), z);
   std::string key_bucket = buf;
   delete[] buf;
