@@ -43,7 +43,7 @@
 #include <boost/filesystem.hpp>
 #include <map>
 
-std::string VERSION = "0.9.8";
+std::string VERSION = "0.9.9-20180501-bridges-many-outputs";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
