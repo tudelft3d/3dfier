@@ -1059,7 +1059,7 @@ void Map3d::stitch_lifted_features() {
         for (auto& fadj : *lstouching) {
           ringis.clear();
           pis.clear();
-          if (fadj->has_point2_(oring[i], ringis, pis) == true) {
+          if (fadj->has_point2(oring[i], ringis, pis) == true) {
             for (int k = 0; k < ringis.size(); k++) {
               toprocess = true;
               star.push_back(std::make_tuple(fadj, ringis[k], pis[k]));
@@ -1089,7 +1089,7 @@ void Map3d::stitch_lifted_features() {
           for (auto& fadj : *lstouching) {
             ringis.clear();
             pis.clear();
-            if (fadj->has_point2_(iring[i], ringis, pis) == true) {
+            if (fadj->has_point2(iring[i], ringis, pis) == true) {
               for (int k = 0; k < ringis.size(); k++) {
                 toprocess = true;
                 star.push_back(std::make_tuple(fadj, ringis[k], pis[k]));
@@ -1408,7 +1408,7 @@ void Map3d::stitch_bridges() {
               for (auto& fadj : *lstouching) {
                 ringis.clear();
                 pis.clear();
-                if (fadj->get_class() == BRIDGE && fadj->has_point2_(ring[i], ringis, pis) == true) {
+                if (fadj->get_class() == BRIDGE && fadj->has_point2(ring[i], ringis, pis) == true) {
                   bridgeAdj = true;
                 }
               }
@@ -1465,7 +1465,7 @@ void Map3d::stitch_bridges() {
             for (auto& fadj : *lstouching) {
               ringis.clear();
               pis.clear();
-              if (fadj->get_class() != BRIDGE && fadj->has_point2_(ring[pi], ringis, pis) == true) {
+              if (fadj->get_class() != BRIDGE && fadj->has_point2(ring[pi], ringis, pis) == true) {
                 otherAdj = true;
                 stitchz = fadj->get_vertex_elevation(ringis[0], pis[0]);
               }

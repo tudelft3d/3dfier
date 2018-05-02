@@ -670,7 +670,7 @@ bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& 
   double sqr_threshold = threshold * threshold;
   std::vector<int> ringis, pis;
   Point2 tmp;
-  if (this->has_point2_(a, ringis, pis) == true) {
+  if (this->has_point2(a, ringis, pis) == true) {
     for (int k = 0; k < ringis.size(); k++) {
       // nextpi = pis[k];
       int nextpi;
@@ -719,12 +719,12 @@ float TopoFeature::get_distance_to_boundaries(Point2& p) {
   return (float)dmin;
 }
 
-bool TopoFeature::has_point2_(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis) {
+bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis) {
   double threshold = 0.001;
   double sqr_threshold = threshold * threshold;
   std::vector<Ring2> rings;
   rings.push_back(bg::exterior_ring(*(_p2)));
-  for (auto& iring : bg::interior_rings(*(_p2)))
+  for (auto iring : bg::interior_rings(*(_p2)))
     rings.push_back(iring);
 
   bool re = false;
@@ -811,7 +811,7 @@ int TopoFeature::get_vertex_elevation(int ringi, int pi) {
 
 int TopoFeature::get_vertex_elevation(Point2& p) {
   std::vector<int> ringis, pis;
-  has_point2_(p, ringis, pis);
+  has_point2(p, ringis, pis);
   return _p2z[ringis[0]][pis[0]];
 }
 
