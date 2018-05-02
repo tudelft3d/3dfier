@@ -97,7 +97,7 @@ bool Building::lift() {
     _height_base = _zvaluesinside[_zvaluesinside.size() * _heightref_base];
   }
   else {
-    _height_base = 0;
+    _height_base = -9999;
   }
   //-- for the roof
   Flat::lift_percentile(_heightref_top);

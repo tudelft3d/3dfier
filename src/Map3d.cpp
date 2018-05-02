@@ -674,6 +674,7 @@ bool Map3d::threeDfy(bool stitching) {
     2. stitch
     3. process vertical walls
   */
+  try {
   std::clog << "===== /LIFTING =====\n";
   for (auto& f : _lsFeatures) {
     f->lift();
@@ -717,6 +718,11 @@ bool Map3d::threeDfy(bool stitching) {
       }
     }
     std::clog << "=====  VERTICAL WALLS/ =====\n";
+  }
+  }
+  catch (std::exception e) {
+    std::cerr << std::endl << "3dfying failed with error: " << e.what() << std::endl;
+    return false;
   }
   return true;
 }
@@ -1229,13 +1235,8 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
           }
           // features are outside threshold jump edges, add vw
           else {
-            //- add a wall to the heighest feature
-            if (std::get<1>(*it) > std::get<1>(*it2)) {
-              std::get<1>(*it)->add_vertical_wall();
-            }
-            else if (std::get<1>(*it2) > std::get<1>(*it)) {
-              std::get<1>(*it2)->add_vertical_wall();
-            }
+            //-- add a wall to the heighest feature, it2 is allways highest since zstart is sorted by height
+            std::get<1>(*it2)->add_vertical_wall();
           }
         }
         //-- Average heights of soft features within the jumpedge threshold counted from the lowest feature or skip to the next hard feature
