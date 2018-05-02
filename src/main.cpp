@@ -468,7 +468,9 @@ int main(int argc, const char * argv[]) {
     else if (outputs.count("OBJ-BUILDINGS") == 1) {
       map3d.threeDfy(false);
       auto startCDT = boost::chrono::high_resolution_clock::now();
-      map3d.construct_CDT();
+      if (!map3d.construct_CDT()) {
+        return 0;
+      }
       auto durationCDT = boost::chrono::high_resolution_clock::now() - startCDT;
       printf("CDT created in %lld seconds || %02d:%02d:%02d\n",
         boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count(),
@@ -484,7 +486,9 @@ int main(int argc, const char * argv[]) {
     else {
       map3d.threeDfy(bStitching);
       auto startCDT = boost::chrono::high_resolution_clock::now();
-      map3d.construct_CDT();
+      if (!map3d.construct_CDT()) {
+        return 0;
+      }
       auto durationCDT = boost::chrono::high_resolution_clock::now() - startCDT;
       printf("CDT created in %lld seconds || %02d:%02d:%02d\n",
         boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count(),
@@ -497,7 +501,9 @@ int main(int argc, const char * argv[]) {
   else {
     map3d.threeDfy(bStitching);
     auto startCDT = boost::chrono::high_resolution_clock::now();
-    map3d.construct_CDT();
+    if (!map3d.construct_CDT()) {
+      return 0;
+    }
     auto durationCDT = boost::chrono::high_resolution_clock::now() - startCDT;
     printf("CDT created in %lld seconds || %02d:%02d:%02d\n",
       boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count(),

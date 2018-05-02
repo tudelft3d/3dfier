@@ -673,7 +673,6 @@ bool Map3d::threeDfy(bool stitching) {
     1. lift
     2. stitch
     3. process vertical walls
-    4. CDT
   */
   std::clog << "===== /LIFTING =====\n";
   for (auto& f : _lsFeatures) {
@@ -725,8 +724,12 @@ bool Map3d::threeDfy(bool stitching) {
 bool Map3d::construct_CDT() {
   std::clog << "=====  /CDT =====\n";
   for (auto& p : _lsFeatures) {
-    if (!p->buildCDT()) {
-      std::clog << "CDT failed for " << p->get_id() << " (" << p->get_class() << ")\n";
+    try {
+      p->buildCDT();
+    }
+    catch (std::exception e) {
+      std::cerr << std::endl << "CDT failed for " << p->get_id() << " (" << p->get_class() << ") with error: " << e.what() << std::endl;
+      return false;
     }
   }
   std::clog << "=====  CDT/ =====\n";
