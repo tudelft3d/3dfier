@@ -219,26 +219,23 @@ bool getCDT(const Polygon2* pgn,
 }
 
 std::string gen_key_bucket(const Point2* p) {
-  char* buf = new char[50];
-  std::sprintf(buf, "%.3f %.3f", p->get<0>(), p->get<1>());
-  std::string key_bucket = buf;
-  delete[] buf;
+  std::string key_bucket(50, '\0');
+  auto written = std::sprintf(&key_bucket[0], "%.3f %.3f", p->get<0>(), p->get<1>());
+  key_bucket.resize(written);
   return key_bucket;
 }
 
 std::string gen_key_bucket(const Point3* p) {
-  char* buf = new char[50];
-  std::sprintf(buf, "%.3f %.3f %.3f", p->get<0>(), p->get<1>(), p->get<2>());
-  std::string key_bucket = buf;
-  delete[] buf;
+  std::string key_bucket(50, '\0');
+  auto written = std::sprintf(&key_bucket[0], "%.3f %.3f %.3f", p->get<0>(), p->get<1>(), p->get<2>());
+  key_bucket.resize(written);
   return key_bucket;
 }
 
 std::string gen_key_bucket(const Point3* p, int z) {
-  char* buf = new char[50];
-  std::sprintf(buf, "%.3f %.3f %.3f", p->get<0>(), p->get<1>(), z);
-  std::string key_bucket = buf;
-  delete[] buf;
+  std::string key_bucket(50, '\0');
+  auto written = std::sprintf(&key_bucket[0], "%.3f %.3f %.3f", p->get<0>(), p->get<1>(), z);
+  key_bucket.resize(written);
   return key_bucket;
 }
 
