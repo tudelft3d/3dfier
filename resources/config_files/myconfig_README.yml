@@ -27,7 +27,8 @@ lifting_options:                                        # Group for class liftin
     height: percentile-10                               # Percentile of points within radius of water vertices for lifting, radius_vertex_elevation is defined in options
   Road:
     height: percentile-50
-    use_LAS_classes:                                    # The las classes to be used for this class. If empty all classes are used
+    threshold_outliers: 30                              # Maximum angle between 2 edges in a road polygon, if threshold is exceeded the average height between previous and next vertex is used
+    use_LAS_classes:                                    # LAS classes to be used for this class. If empty all classes are used
       - 3
       - 6
   Separation:

@@ -7,6 +7,7 @@ lifting_options:
     height: percentile-10
   Road:
     height: percentile-50
+    threshold_outliers: 30
   Separation:
     height: percentile-80
   Bridge/Overpass:
