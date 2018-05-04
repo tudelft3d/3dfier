@@ -602,8 +602,7 @@ int main(int argc, const char * argv[]) {
         printf("Features written in %ld ms\n", std::clock() - startFileWriting);
       }
       else {
-        std::cerr << "ERROR: Writing features failed. Aborting.\n";
-        // return 0;
+        std::cerr << "ERROR: Writing features failed for " << format << ". Aborting.\n";
       }
     }
   }
