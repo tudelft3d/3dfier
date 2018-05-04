@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -91,14 +91,13 @@ void get_citygml_imgeo_namespaces(std::ostream& of) {
   of << "xsi:schemaLocation=\"http://www.opengis.net/citygml/2.0 http://schemas.opengis.net/citygml/2.0/cityGMLBase.xsd http://www.geostandaarden.nl/imgeo/2.1 http://schemas.geonovum.nl/imgeo/2.1/imgeo-2.1.1.xsd\">\n";
 }
 
-
 void get_polygon_lifted_gml(std::ostream& of, Polygon2* p2, double height, bool reverse) {
   if (reverse)
     bg::reverse(*p2);
   of << "<gml:surfaceMember>";
   of << "<gml:Polygon>";
   //-- oring  
-  auto r = bg::exterior_ring(*p2);
+  auto r = p2->outer();
   of << "<gml:exterior>";
   of << "<gml:LinearRing>";
   for (int i = 0; i < r.size(); i++)
@@ -107,7 +106,7 @@ void get_polygon_lifted_gml(std::ostream& of, Polygon2* p2, double height, bool 
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
   //-- irings
-  auto irings = bg::interior_rings(*p2);
+  auto irings = p2->inners();
   for (Ring2& r : irings) {
     of << "<gml:interior>";
     of << "<gml:LinearRing>";
@@ -145,7 +144,7 @@ void get_extruded_lod1_block_gml(std::ostream& of, Polygon2* p2, double high, do
   //-- get roof
   get_polygon_lifted_gml(of, p2, high, true);
   //-- get the walls
-  auto r = bg::exterior_ring(*p2);
+  auto r = p2->outer();
   for (int i = 0; i < (r.size() - 1); i++)
     get_extruded_line_gml(of, &r[i], &r[i + 1], high, low, false);
 }

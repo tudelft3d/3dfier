@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -40,8 +40,6 @@ void get_citygml_imgeo_namespaces(std::ostream& of);
 void get_polygon_lifted_gml(std::ostream& of, Polygon2* p2, double height, bool reverse = false);
 void get_extruded_line_gml(std::ostream& of, Point2* a, Point2* b, double high, double low, bool reverse = false);
 void get_extruded_lod1_block_gml(std::ostream& of, Polygon2* p2, double high, double low = 0.0);
-
-// void get_polygon_lifted_cityjson(Polygon2* p2, double height, bool reverse, std::vector<std::vector<int>>& outp, std::vector<std::vector<double>>& vertices, int offset);
 
 bool  is_string_integer(std::string s, int min = 0, int max = 1e6);
 float z_to_float(int z);

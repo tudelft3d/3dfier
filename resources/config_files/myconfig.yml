@@ -20,11 +20,21 @@ input_polygons:
   
 lifting_options: 
   Building:
-    height_roof: percentile-95
-    height_floor: percentile-10
-    triangulate: true
+    roof:
+      height: percentile-95
+      use_LAS_classes:
+        - 1
+        - 2
+    ground:
+      height: percentile-10
+      use_LAS_classes:
+        - 3
+        - 6
   Water:
     height: percentile-10
+    use_LAS_classes:
+      - 3
+      - 6
   Road:
     height: percentile-50
   Separation:
@@ -32,9 +42,11 @@ lifting_options:
   Bridge/Overpass:
     height: percentile-50
   Terrain:
-    simplification: 100
+    simplification: 10
+    simplification_tinsimp: 0.1
   Forest:
     simplification: 10
+    simplification_tinsimp: 0.1
 
 input_elevation:
   - datasets:
@@ -49,9 +61,4 @@ input_elevation:
 options:
   building_radius_vertex_elevation: 3.0
   radius_vertex_elevation: 1.0
-  threshold_jump_edges: 0.25
-
-output: 
-  format: OBJ # OBJ-NoID, OBJ-BUILDINGS, CityGML, CSV-BUILDINGS or Shapefile
-  building_floor: false
-  vertical_exaggeration: 3
+  threshold_jump_edges: 0.5

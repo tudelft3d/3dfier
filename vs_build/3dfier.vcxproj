@@ -58,7 +58,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(LIBLAS_ROOT)\include;$(LASZIP_ROOT)\include;$(BOOST_ROOT);$(OSGEO4W_ROOT)\include;$(YAML-CPP_DIR)\include;$(CGAL_DIR)\include;$(CGAL_DIR)\auxiliary\gmp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LIBLAS_ROOT)\include;$(LASZIP_ROOT)\include;$(BOOST_ROOT);$(OSGEO4W_ROOT)\include;$(YAML-CPP_DIR)\include;$(CGAL_DIR)\include;$(CGAL_DIR)\auxiliary\gmp\include;..\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <CompileAs>Default</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -106,12 +106,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(BOOST_ROOT);$(OSGEO4W_ROOT)\include;$(YAML-CPP_DIR)\include;$(CGAL_DIR)\include;$(CGAL_DIR)\auxiliary\gmp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LIBLAS_ROOT)\include;$(LASZIP_ROOT)\include;$(BOOST_ROOT);$(OSGEO4W_ROOT)\include;$(YAML-CPP_DIR)\include;$(CGAL_DIR)\include;$(CGAL_DIR)\auxiliary\gmp\include;..\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <CompileAs>Default</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>
@@ -153,32 +153,32 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\main.cpp" />
-    <ClCompile Include="..\io.cpp" />
-    <ClCompile Include="..\Map3d.cpp" />
-    <ClCompile Include="..\Building.cpp" />
-    <ClCompile Include="..\Road.cpp" />
-    <ClCompile Include="..\Terrain.cpp" />
-    <ClCompile Include="..\TopoFeature.cpp" />
-    <ClCompile Include="..\Forest.cpp" />
-    <ClCompile Include="..\Water.cpp" />
-    <ClCompile Include="..\geomtools.cpp" />
-    <ClCompile Include="..\Bridge.cpp" />
-    <ClCompile Include="..\Separation.cpp" />
+    <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\io.cpp" />
+    <ClCompile Include="..\src\Map3d.cpp" />
+    <ClCompile Include="..\src\Building.cpp" />
+    <ClCompile Include="..\src\Road.cpp" />
+    <ClCompile Include="..\src\Terrain.cpp" />
+    <ClCompile Include="..\src\TopoFeature.cpp" />
+    <ClCompile Include="..\src\Forest.cpp" />
+    <ClCompile Include="..\src\Water.cpp" />
+    <ClCompile Include="..\src\geomtools.cpp" />
+    <ClCompile Include="..\src\Bridge.cpp" />
+    <ClCompile Include="..\src\Separation.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Bridge.h" />
-    <ClInclude Include="..\Building.h" />
-    <ClInclude Include="..\definitions.h" />
-    <ClInclude Include="..\Forest.h" />
-    <ClInclude Include="..\geomtools.h" />
-    <ClInclude Include="..\io.h" />
-    <ClInclude Include="..\Map3d.h" />
-    <ClInclude Include="..\Road.h" />
-    <ClInclude Include="..\Separation.h" />
-    <ClInclude Include="..\Terrain.h" />
-    <ClInclude Include="..\TopoFeature.h" />
-    <ClInclude Include="..\Water.h" />
+    <ClInclude Include="..\src\Bridge.h" />
+    <ClInclude Include="..\src\Building.h" />
+    <ClInclude Include="..\src\definitions.h" />
+    <ClInclude Include="..\src\Forest.h" />
+    <ClInclude Include="..\src\geomtools.h" />
+    <ClInclude Include="..\src\io.h" />
+    <ClInclude Include="..\src\Map3d.h" />
+    <ClInclude Include="..\src\Road.h" />
+    <ClInclude Include="..\src\Separation.h" />
+    <ClInclude Include="..\src\Terrain.h" />
+    <ClInclude Include="..\src\TopoFeature.h" />
+    <ClInclude Include="..\src\Water.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

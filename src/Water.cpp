@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -29,7 +29,7 @@
 #include "Water.h"
 #include "io.h"
 
-float Water::_heightref = 0.1;
+float Water::_heightref;
 
 Water::Water(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref)
   : Flat(wkt, layername, attributes, pid) {
@@ -48,9 +48,9 @@ bool Water::is_hard() {
   return true;
 }
 
-bool Water::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  // Add elevation points with radius 0.0 to be inside the water polygon
-  if (lasclass != LAS_BUILDING && lasclass != LAS_BRIDGE && point_in_polygon(p, *(_p2))) {
+bool Water::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
+  // Add elevation points within the polygon
+  if (point_in_polygon(p, *(_p2))) {
     int zcm = int(z * 100);
     //-- 1. assign to polygon since within the threshold value (buffering of polygon)
     _zvaluesinside.push_back(zcm);
@@ -63,7 +63,6 @@ bool Water::lift() {
   return true;
 }
 
-
 void Water::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
   nlohmann::json f;
   f["type"] = "WaterBody";
@@ -74,8 +73,6 @@ void Water::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsig
   f["geometry"].push_back(g);
   j["CityObjects"][this->get_id()] = f;
 }
-
-
 
 void Water::get_citygml(std::ostream& of) {
   of << "<cityObjectMember>";

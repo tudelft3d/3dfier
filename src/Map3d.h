@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -40,6 +40,9 @@
 #include "Separation.h"
 #include "Bridge.h"
 
+#include <set>
+#include <array>
+
 typedef std::pair<Box2, TopoFeature*> PairIndexed;
 
 class Map3d {
@@ -73,12 +76,12 @@ public:
   void get_csv_buildings(std::ostream &outputfile);
   void get_csv_buildings_multiple_heights(std::ostream &outputfile);
   void get_csv_buildings_all_elevation_points(std::ostream &outputfile);
-  void get_obj_per_feature(std::ostream &outputfile, int z_exaggeration = 0);
-  void get_obj_per_class(std::ostream &outputfile, int z_exaggeration = 0);
+  void get_obj_per_feature(std::ostream &outputfile);
+  void get_obj_per_class(std::ostream &outputfile);
   bool get_shapefile2d(std::string filename);
 
   void set_building_heightref_roof(float heightref);
-  void set_building_heightref_floor(float heightref);
+  void set_building_heightref_ground(float heightref);
   void set_building_include_floor(bool include);
   void set_building_triangulate(bool triangulate);
   void set_building_lod(int lod);
@@ -88,32 +91,35 @@ public:
   void set_forest_simplification_tinsimp(double tinsimp_threshold);
   void set_terrain_innerbuffer(float innerbuffer);
   void set_forest_innerbuffer(float innerbuffer);
-  void set_forest_ground_points_only(bool only_ground_points);
   void set_water_heightref(float heightref);
   void set_road_heightref(float heightref);
+  void set_road_threshold_outliers(int t);
   void set_separation_heightref(float heightref);
   void set_bridge_heightref(float heightref);
   void set_radius_vertex_elevation(float radius);
   void set_building_radius_vertex_elevation(float radius);
   void set_threshold_jump_edges(float threshold);
-  void set_use_vertical_walls(bool useverticalwalls);
   void set_requested_extent(double xmin, double ymin, double xmax, double ymax);
+
+  void add_allowed_las_class(AllowedLASTopo c, int i);
+  bool save_building_variables();
+  int interpolate_height(TopoFeature* f, const Point2 &p, int prevringi, int prevpi, int nextringi, int nextpi);
+
 private:
   float       _building_heightref_roof;
-  float       _building_heightref_floor;
-  bool        _building_triangulate;
+  float       _building_heightref_ground;
+  bool        _building_triangulate; // TODO: Not used anymore, remove? 
   int         _building_lod;
-  bool        _building_include_floor;
-  bool        _use_vertical_walls;
+  bool        _building_include_floor; // TODO: Not used anymore, remove? 
   int         _terrain_simplification;
   int         _forest_simplification;
-  double       _terrain_simplification_tinsimp;
-  double       _forest_simplification_tinsimp;
+  double      _terrain_simplification_tinsimp;
+  double      _forest_simplification_tinsimp;
   float       _terrain_innerbuffer;
   float       _forest_innerbuffer;
-  bool        _forest_ground_points_only;
   float       _water_heightref;
   float       _road_heightref;
+  int         _road_threshold_outliers;
   float       _separation_heightref;
   float       _bridge_heightref;
   float       _radius_vertex_elevation;
@@ -122,10 +128,14 @@ private:
   Box2        _bbox;
   Box2        _requestedExtent;
 
+  //-- storing the LAS allowed for each TopoFeature
+  std::array<std::set<int>,NUM_ALLOWEDLASTOPO> _las_classes_allowed;
+
   NodeColumn                                          _nc;
   std::vector<TopoFeature*>                           _lsFeatures;
   std::vector<std::string>                            _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;
+  bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree_buildings;
 
 #if GDAL_VERSION_MAJOR < 2
   bool extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file);
@@ -137,6 +147,7 @@ private:
   void stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star);
   void stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);
   void stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2);
+  void stitch_bridges();
   void collect_adjacent_features(TopoFeature* f);
 };
 

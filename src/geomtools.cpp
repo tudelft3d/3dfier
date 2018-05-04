@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -39,39 +39,20 @@
 #include <unordered_set>
 #include <iterator>
 #include <memory>
-#include <boost/heap/binomial_heap.hpp>
+#include <boost/heap/fibonacci_heap.hpp>
 
-// binomial heap for greedy insertion code
-struct PointXYHash
-{
-  std::size_t operator()(Point3 const& p) const noexcept
-  {
-    std::size_t h1 = std::hash<double>{}(bg::get<0>(p));
-    std::size_t h2 = std::hash<double>{}(bg::get<1>(p));
-    return h1 ^ (h2 << 1);
-  }
-};
-struct PointXYEqual
-{
-  std::size_t operator()(Point3 const& p1, Point3 const& p2) const noexcept
-  {
-    auto ex = bg::get<0>(p1) == bg::get<0>(p2);
-    auto ey = bg::get<1>(p1) == bg::get<1>(p2);
-    return ex && ey;
-  }
-};
+// fibonacci heap for greedy insertion code
 struct point_error {
   point_error(int i, double e) : index(i), error(e){}
   int index;
   double error;
+  
+  bool operator<(point_error const & rhs) const
+  {
+    return error < rhs.error;
+  }
 };
-struct compare_error {
-  inline bool operator()
-    (const point_error &e1 , const point_error &e2) const {
-      return e1.error < e2.error;
-}
-};
-typedef boost::heap::binomial_heap<point_error, boost::heap::compare<compare_error>> Heap;
+typedef boost::heap::fibonacci_heap<point_error> Heap;
 typedef Heap::handle_type heap_handle;
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel			K;
@@ -95,18 +76,23 @@ typedef CGAL::Constrained_Delaunay_triangulation_2<Gt, Tds, Itag>	CDT;
 typedef CDT::Point													Point;
 typedef CGAL::Polygon_2<Gt>											Polygon_2;
 
+struct PointXYHash {
+  std::size_t operator()(Point const& p) const noexcept {
+    std::size_t h1 = std::hash<double>{}(p.x());
+    std::size_t h2 = std::hash<double>{}(p.y());
+    return h1 ^ (h2 << 1);
+  }
+};
+struct PointXYEqual {
+  bool operator()(Point const& p1, Point const& p2) const noexcept {
+    auto ex = p1.x() == p2.x();
+    auto ey = p1.y() == p2.y();
+    return ex && ey;
+  }
+};
+
 inline double compute_error(Point &p, CDT::Face_handle &face);
 void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold);
-
-bool triangle_contains_segment(Triangle t, int a, int b) {
-  if ((t.v0 == a) && (t.v1 == b))
-    return true;
-  if ((t.v1 == a) && (t.v2 == b))
-    return true;
-  if ((t.v2 == a) && (t.v0 == b))
-    return true;
-  return false;
-}
 
 void mark_domains(CDT& ct,
   CDT::Face_handle start,
@@ -164,41 +150,32 @@ bool getCDT(const Polygon2* pgn,
   double tinsimp_threshold) {
   CDT cdt;
 
-  Ring2 oring = bg::exterior_ring(*pgn);
-  auto irings = bg::interior_rings(*pgn);
+  //-- gather all rings
+  std::vector<Ring2> rings;
+  rings.push_back(pgn->outer());
+  for (Ring2 iring : pgn->inners())
+    rings.push_back(iring);
 
   Polygon_2 poly;
-  int ringi = 0;
-  //-- add the outer ring as a constraint
-  for (int i = 0; i < oring.size(); i++) {
-    poly.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i]), z_to_float(z[ringi][i])));
-    //points.push_back(Point(bg::get<0>(oring[i]), bg::get<1>(oring[i])));
-  }
-  cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
-  poly.clear();
-  ringi++;
-
-  //-- add the inner ring(s) as a constraint
-  if (irings.size() > 0) {
-    for (auto iring : irings) {
-      for (int i = 0; i < iring.size(); i++) {
-        poly.push_back(Point(bg::get<0>(iring[i]), bg::get<1>(iring[i]), z_to_float(z[ringi][i])));
-      }
-      cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
-      poly.clear();
-      ringi++;
+  int ringi = -1;
+  for (auto ring : rings) {
+    ringi++;
+    for (int i = 0; i < ring.size(); i++) {
+      poly.push_back(Point(bg::get<0>(ring[i]), bg::get<1>(ring[i]), z_to_float(z[ringi][i])));
     }
+    cdt.insert_constraint(poly.vertices_begin(), poly.vertices_end(), true);
+    poly.clear();
   }
 
   //-- add the lidar points to the CDT, if any
   if (lidarpts.size() > 0) {
-      if (tinsimp_threshold != 0)
-        greedy_insert(cdt, lidarpts, tinsimp_threshold);
-      else {
-        for (auto &pt : lidarpts) {
-          cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
-        }
+    if (tinsimp_threshold != 0)
+      greedy_insert(cdt, lidarpts, tinsimp_threshold);
+    else {
+      for (auto &pt : lidarpts) {
+        cdt.insert(Point(bg::get<0>(pt), bg::get<1>(pt), bg::get<2>(pt)));
       }
+    }
   }
 
   //Mark facets that are inside the domain bounded by the polygon
@@ -208,7 +185,7 @@ bool getCDT(const Polygon2* pgn,
   int count = 0;
 
   if (!cdt.is_valid()) {
-    std::clog << "CDT is invalid.\n";
+    throw std::exception("CDT is invalid.");
   }
   for (CDT::Finite_vertices_iterator vit = cdt.finite_vertices_begin();
     vit != cdt.finite_vertices_end(); ++vit) {
@@ -228,31 +205,36 @@ bool getCDT(const Polygon2* pgn,
       count++;
     }
   }
-
   return true;
 }
 
-std::string gen_key_bucket(Point2* p) {
-  char* buf = new char[50];
-  std::sprintf(buf, "%.3f %.3f", p->get<0>(), p->get<1>());
-  return buf;
+std::string gen_key_bucket(const Point2* p) {
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>();
+  return ss.str();
 }
 
-std::string gen_key_bucket(Point3* p) {
-  char* buf = new char[50];
-  std::sprintf(buf, "%.3f %.3f %.3f", p->get<0>(), p->get<1>(), p->get<2>());
-  return buf;
+std::string gen_key_bucket(const Point3* p) {
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>() << " " << p->get<2>();
+  return ss.str();
 }
 
-std::string gen_key_bucket(Point3* p, int z) {
-  char* buf = new char[50];
-  std::sprintf(buf, "%.3f %.3f %d", p->get<0>(), p->get<1>(), z);
-  return buf;
+std::string gen_key_bucket(const Point3* p, int z) {
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>() << " " << z;
+  return ss.str();
 }
 
+double distance(const Point2 &p1, const Point2 &p2) {
+  return sqrt((p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y()));
+}
+
+double sqr_distance(const Point2 &p1, const Point2 &p2) {
+  return (p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y());
+}
 
 //--- TIN Simplification
-
 // Greedy insertion/incremental refinement algorithm adapted from "Fast polygonal approximation of terrain and height fields" by Garland, Michael and Heckbert, Paul S.
 inline double compute_error(Point &p, CDT::Face_handle &face) {
   if(!face->info().plane)
@@ -273,15 +255,21 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   // assumes all lidar points are inside a triangle
   Heap heap;
 
+  // Convert all elevation points to CGAL points
+  std::vector<Point> cpts;
+  cpts.reserve(pts.size());
+  for (auto& p : pts) {
+    cpts.push_back(Point(bg::get<0>(p), bg::get<1>(p), bg::get<2>(p)));
+  }
+
   // compute initial point errors, build heap, store point indices in triangles
   {
-    std::unordered_set<Point3, PointXYHash, PointXYEqual> set;
-    for(int i=0; i<pts.size(); i++){
-      auto p3 = pts[i];
+    std::unordered_set<Point, PointXYHash, PointXYEqual> set;
+    for(int i=0; i<cpts.size(); i++){
+      auto p = cpts[i];
       // detect and skip duplicate points
-      auto not_duplicate = set.insert(p3).second;
+      auto not_duplicate = set.insert(p).second;
       if(not_duplicate){
-        auto p = Point(bg::get<0>(p3), bg::get<1>(p3), bg::get<2>(p3));
         auto face = T.locate(p);
         auto e = compute_error(p, face);
         auto handle = heap.push(point_error(i,e));
@@ -289,25 +277,23 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
       }
     }
   }
+  
   // insert points, update errors of affected triangles until threshold error is reached
-  double error;
-  do{
-    if (heap.empty())
-      break;
-    
+  while (!heap.empty() && heap.top().error > threshold){
+    // get top element (with largest error) from heap
     auto maxelement = heap.top();
-    error = maxelement.error;
-    auto max_element_index = maxelement.index;
-    auto p3 = pts[maxelement.index];
-    auto max_p = Point(bg::get<0>(p3), bg::get<1>(p3), bg::get<2>(p3));
+    auto max_p = cpts[maxelement.index];
 
+    // get triangles that will change after inserting this max_p
     std::vector<CDT::Face_handle> faces;
     T.get_conflicts ( max_p, std::back_inserter(faces) );
 
+    // insert max_p in triangulation
     auto face_hint = faces[0];
     auto v = T.insert(max_p, face_hint);
     face_hint = v->face();
     
+    // update clear info of triangles that just changed, collect points that were inside these triangles
     std::vector<heap_handle> points_to_update;
     for (auto face : faces) {
       if (face->info().plane){
@@ -316,25 +302,26 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
       }
       if (face->info().points_inside) {
         for (auto h :*face->info().points_inside){
-          if(max_element_index != (*h).index)
+          if( maxelement.index != (*h).index)
             points_to_update.push_back(h);
         }
         face->info().points_inside->clear();
-//        delete face->info().points_inside;
-//        face->info().points_inside = nullptr;
       }
     }
-    heap.pop();
     
+    // remove the point we just inserted in the triangulation from the heap
+    heap.pop();
+
+    // update the errors of affected elevation points
     for (auto curelement : points_to_update){
-      auto p3 = pts[(*curelement).index];
-      auto p = Point(bg::get<0>(p3), bg::get<1>(p3), bg::get<2>(p3));
+      auto p = cpts[(*curelement).index];
       auto containing_face = T.locate(p, face_hint);
       const double e = compute_error(p, containing_face);
-      heap.update(curelement, point_error((*curelement).index,e));
+      const point_error new_pe = point_error((*curelement).index, e);
+      heap.update(curelement, new_pe);
       containing_face->info().points_inside->push_back(curelement);
     }
-  }while(error > threshold);
+  }
 
   //cleanup the stuff I put in face info of triangles
   for (CDT::Finite_faces_iterator fit = T.finite_faces_begin();
