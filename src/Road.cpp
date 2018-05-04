@@ -29,8 +29,8 @@
 #include "Road.h"
 #include "io.h"
 
-float Road::_heightref = 0.5;
-int Road::_threshold_outliers = 30;
+float Road::_heightref;
+int Road::_threshold_outliers;
 
 Road::Road(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, int threshold_outliers)
   : Boundary3D(wkt, layername, attributes, pid) {

@@ -31,8 +31,8 @@
 #include <algorithm>
 
 //-- static variable
-float Building::_heightref_top = 0.9f;
-float Building::_heightref_base = 0.1f;
+float Building::_heightref_top;
+float Building::_heightref_base;
 std::set<int> Building::_las_classes_roof;
 std::set<int> Building::_las_classes_ground;
 

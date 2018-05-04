@@ -29,7 +29,7 @@
 #include "Separation.h"
 #include "io.h"
 
-float Separation::_heightref = 0.8f;
+float Separation::_heightref;
 
 Separation::Separation(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref)
   : Boundary3D(wkt, layername, attributes, pid) {

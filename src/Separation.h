@@ -44,7 +44,7 @@ public:
   TopoClass   get_class();
   bool        is_hard();
 private:
-  static float  _heightref;
+  static float _heightref;
 };
 
 #endif /* Separation_h */

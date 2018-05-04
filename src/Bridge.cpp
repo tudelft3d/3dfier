@@ -29,7 +29,7 @@
 #include "Bridge.h"
 #include "io.h"
 
-float Bridge::_heightref = 0.5;
+float Bridge::_heightref;
 
 Bridge::Bridge(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref)
   : Boundary3D(wkt, layername, attributes, pid) {

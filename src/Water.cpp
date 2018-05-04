@@ -29,7 +29,7 @@
 #include "Water.h"
 #include "io.h"
 
-float Water::_heightref = 0.1;
+float Water::_heightref;
 
 Water::Water(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref)
   : Flat(wkt, layername, attributes, pid) {

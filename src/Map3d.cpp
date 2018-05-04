@@ -35,18 +35,23 @@
 
 Map3d::Map3d() {
   OGRRegisterAll();
-  _building_include_floor = false;
-  _building_lod = 1;
-  _use_vertical_walls = false;
-  _building_heightref_roof = 0.9f;
-  _building_heightref_ground = 0.1f;
+  _building_heightref_roof = 0.9;
+  _building_heightref_ground = 0.1;
   _building_triangulate = true;
+  _building_lod = 1;
+  _building_include_floor = false;
+  _use_vertical_walls = false;
   _terrain_simplification = 0;
   _forest_simplification = 0;
   _terrain_simplification_tinsimp = 0.0;
   _forest_simplification_tinsimp = 0.0;
   _terrain_innerbuffer = 0.0;
   _forest_innerbuffer = 0.0;
+  _water_heightref = 0.1;
+  _road_heightref = 0.5;
+  _road_threshold_outliers = 30;
+  _separation_heightref = 0.8;
+  _bridge_heightref = 0.5;
   _radius_vertex_elevation = 1.0;
   _building_radius_vertex_elevation = 3.0;
   _threshold_jump_edges = 50;

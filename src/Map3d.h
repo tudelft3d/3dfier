@@ -121,7 +121,7 @@ private:
   float       _forest_innerbuffer;
   float       _water_heightref;
   float       _road_heightref;
-  float       _road_threshold_outliers;
+  int         _road_threshold_outliers;
   float       _separation_heightref;
   float       _bridge_heightref;
   float       _radius_vertex_elevation;
