@@ -162,8 +162,8 @@ bool getCDT(const Polygon2* pgn,
 
   //-- gather all rings
   std::vector<Ring2> rings;
-  rings.push_back(bg::exterior_ring(*(pgn)));
-  for (auto& iring : bg::interior_rings(*(pgn)))
+  rings.push_back(pgn->outer());
+  for (Ring2 iring : pgn->inners())
     rings.push_back(iring);
 
   Polygon_2 poly;
@@ -219,24 +219,21 @@ bool getCDT(const Polygon2* pgn,
 }
 
 std::string gen_key_bucket(const Point2* p) {
-  std::string key_bucket(50, '\0');
-  auto written = std::sprintf(&key_bucket[0], "%.3f %.3f", p->get<0>(), p->get<1>());
-  key_bucket.resize(written);
-  return key_bucket;
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>();
+  return ss.str();
 }
 
 std::string gen_key_bucket(const Point3* p) {
-  std::string key_bucket(50, '\0');
-  auto written = std::sprintf(&key_bucket[0], "%.3f %.3f %.3f", p->get<0>(), p->get<1>(), p->get<2>());
-  key_bucket.resize(written);
-  return key_bucket;
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>() << " " << p->get<2>();
+  return ss.str();
 }
 
 std::string gen_key_bucket(const Point3* p, int z) {
-  std::string key_bucket(50, '\0');
-  auto written = std::sprintf(&key_bucket[0], "%.3f %.3f %.3f", p->get<0>(), p->get<1>(), z);
-  key_bucket.resize(written);
-  return key_bucket;
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>() << " " << z;
+  return ss.str();
 }
 
 double distance(const Point2 &p1, const Point2 &p2) {

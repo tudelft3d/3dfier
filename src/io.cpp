@@ -98,7 +98,7 @@ void get_polygon_lifted_gml(std::ostream& of, Polygon2* p2, double height, bool 
   of << "<gml:surfaceMember>";
   of << "<gml:Polygon>";
   //-- oring  
-  auto r = bg::exterior_ring(*p2);
+  auto r = p2->outer();
   of << "<gml:exterior>";
   of << "<gml:LinearRing>";
   for (int i = 0; i < r.size(); i++)
@@ -107,7 +107,7 @@ void get_polygon_lifted_gml(std::ostream& of, Polygon2* p2, double height, bool 
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
   //-- irings
-  auto irings = bg::interior_rings(*p2);
+  auto irings = p2->inners();
   for (Ring2& r : irings) {
     of << "<gml:interior>";
     of << "<gml:LinearRing>";
@@ -145,7 +145,7 @@ void get_extruded_lod1_block_gml(std::ostream& of, Polygon2* p2, double high, do
   //-- get roof
   get_polygon_lifted_gml(of, p2, high, true);
   //-- get the walls
-  auto r = bg::exterior_ring(*p2);
+  auto r = p2->outer();
   for (int i = 0; i < (r.size() - 1); i++)
     get_extruded_line_gml(of, &r[i], &r[i + 1], high, low, false);
 }

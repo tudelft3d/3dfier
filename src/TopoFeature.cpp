@@ -374,8 +374,8 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
 void TopoFeature::fix_bowtie() {
   //-- gather all rings
   std::vector<Ring2> therings;
-  therings.push_back(bg::exterior_ring(*(_p2)));
-  for (auto& iring : bg::interior_rings(*(_p2)))
+  therings.push_back(_p2->outer());
+  for (Ring2& iring : _p2->inners())
     therings.push_back(iring);
 
   //-- process each vertex of the polygon separately
@@ -383,7 +383,7 @@ void TopoFeature::fix_bowtie() {
   Point2 a, b;
   TopoFeature* fadj;
   int ringi = -1;
-  for (auto& ring : therings) {
+  for (Ring2& ring : therings) {
     ringi++;
     for (int ai = 0; ai < ring.size(); ai++) {
       //-- Point a
@@ -473,8 +473,8 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight)
 
   //-- gather all rings
   std::vector<Ring2> therings;
-  therings.push_back(bg::exterior_ring(*(_p2)));
-  for (auto& iring : bg::interior_rings(*(_p2)))
+  therings.push_back(_p2->outer());
+  for (Ring2& iring : _p2->inners())
     therings.push_back(iring);
 
   //-- process each vertex of the polygon separately
@@ -483,7 +483,7 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight)
   Point2 a, b;
   TopoFeature* fadj;
   int ringi = -1;
-  for (auto& ring : therings) {
+  for (Ring2& ring : therings) {
     ringi++;
     for (int ai = 0; ai < ring.size(); ai++) {
       //-- Point a
@@ -690,15 +690,16 @@ bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& 
 float TopoFeature::get_distance_to_boundaries(Point2& p) {
   //-- collect the rings of the polygon
   std::vector<Ring2> therings;
-  therings.push_back(bg::exterior_ring(*(_p2)));
-  for (auto& iring : bg::interior_rings(*(_p2)))
+  therings.push_back(_p2->outer());
+  for (Ring2& iring : _p2->inners())
     therings.push_back(iring);
+
   //-- process each vertex of the polygon separately
   Point2 a, b;
   Segment2 s;
   int ringi = -1;
   double dmin = 99999;
-  for (auto& ring : therings) {
+  for (Ring2& ring : therings) {
     ringi++;
     for (int ai = 0; ai < ring.size(); ai++) {
       a = ring[ai];
@@ -723,13 +724,13 @@ bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vec
   double threshold = 0.001;
   double sqr_threshold = threshold * threshold;
   std::vector<Ring2> rings;
-  rings.push_back(bg::exterior_ring(*(_p2)));
-  for (auto iring : bg::interior_rings(*(_p2)))
+  rings.push_back(_p2->outer());
+  for (auto iring : _p2->inners())
     rings.push_back(iring);
 
   bool re = false;
   int ringi = -1;
-  for (auto& ring : rings) {
+  for (Ring2& ring : rings) {
     ringi++;
     for (int i = 0; i < ring.size(); i++) {
       if (sqr_distance(p, ring[i]) <= sqr_threshold) {
@@ -748,18 +749,18 @@ bool TopoFeature::adjacent(const Polygon2& poly) {
   double sqr_threshold = threshold * threshold;
 
   std::vector<Ring2> rings1;
-  rings1.push_back(bg::exterior_ring(*(_p2)));
-  for (auto& iring : bg::interior_rings(*(_p2)))
+  rings1.push_back(_p2->outer());
+  for (Ring2& iring : _p2->inners())
     rings1.push_back(iring);
-  
+
   std::vector<Ring2> rings2;
-  rings2.push_back(bg::exterior_ring(poly));
-  for (auto& iring : bg::interior_rings(poly))
+  rings2.push_back(poly.outer());
+  for (Ring2 iring : poly.inners())
     rings2.push_back(iring);
 
-  for (auto& ring1 : rings1) {
+  for (Ring2& ring1 : rings1) {
     for (int pi1 = 0; pi1 < ring1.size(); pi1++) {
-      for (auto& ring2 : rings2) {
+      for (Ring2& ring2 : rings2) {
         for (int pi2 = 0; pi2 < ring2.size(); pi2++) {
           if (sqr_distance(ring1[pi1], ring2[pi2]) <= sqr_threshold) {
             return true;
@@ -825,13 +826,13 @@ bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) 
   float sqr_radius = radius * radius;
   int zcm = int(z * 100);
   int ringi = 0;
-  Ring2 oring = bg::exterior_ring(*(_p2));
+  Ring2 oring = _p2->outer();
   for (int i = 0; i < oring.size(); i++) {
     if (sqr_distance(p, oring[i]) <= sqr_radius)
       _lidarelevs[ringi][i].push_back(zcm);
   }
   ringi++;
-  auto irings = bg::interior_rings(*(_p2));
+  auto irings = _p2->inners();
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
       if (sqr_distance(p, iring[i]) <= sqr_radius) {
@@ -845,14 +846,14 @@ bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) 
 
 bool TopoFeature::within_range(Point2 &p, Polygon2 &poly, double radius) {
   double sqr_radius = radius * radius;
-  Ring2 oring = bg::exterior_ring(poly);
+  Ring2 oring = poly.outer();
   //-- point is within range of the polygon rings
   for (int i = 0; i < oring.size(); i++) {
     if (sqr_distance(p, oring[i]) <= sqr_radius) {
       return true;
     }
   }
-  auto irings = bg::interior_rings(*(_p2));
+  auto irings = _p2->inners();
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
       if (sqr_distance(p, iring[i]) <= sqr_radius) {
@@ -870,7 +871,7 @@ bool TopoFeature::within_range(Point2 &p, Polygon2 &poly, double radius) {
 // based on http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon/2922778#2922778
 bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
   //test outer ring
-  Ring2 oring = bg::exterior_ring(poly);
+  Ring2 oring = poly.outer();
   int nvert = oring.size();
   int i, j = 0;
   bool insideOuter = false;
@@ -882,7 +883,7 @@ bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
   }
   if (insideOuter) {
     //test inner rings
-    auto irings = bg::interior_rings(poly);
+    auto irings = poly.inners();
     for (Ring2& iring : irings) {
       bool insideInner = false;
       int nvert = iring.size();
@@ -966,11 +967,11 @@ bool TopoFeature::get_attribute(std::string attributeName, std::string &attribut
 
 void TopoFeature::lift_all_boundary_vertices_same_height(int height) {
   int ringi = 0;
-  Ring2 oring = bg::exterior_ring(*(_p2));
+  Ring2 oring = _p2->outer();
   for (int i = 0; i < oring.size(); i++)
     _p2z[ringi][i] = height;
   ringi++;
-  auto irings = bg::interior_rings(*(_p2));
+  auto irings = _p2->inners();
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++)
       _p2z[ringi][i] = height;
@@ -994,12 +995,12 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
   int heightcount = 0;
   //-- gather all rings
   std::vector<Ring2> rings;
-  rings.push_back(bg::exterior_ring(*(_p2)));
-  for (auto& iring : bg::interior_rings(*(_p2)))
+  rings.push_back(_p2->outer());
+  for (Ring2& iring : _p2->inners())
     rings.push_back(iring);
 
   int ringi = -1;
-  for (auto& ring : rings) {
+  for (Ring2& ring : rings) {
     ringi++;
     for (int i = 0; i < ring.size(); i++) {
       std::vector<int> &l = _lidarelevs[ringi][i];
@@ -1029,7 +1030,7 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
     //-- 3. some vertices will have no values (no lidar point within tolerance thus)
     //--    assign them the avg
     ringi = -1;
-    for (auto& ring : rings) {
+    for (Ring2& ring : rings) {
       ringi++;
       for (int i = 0; i < ring.size(); i++) {
         if (_p2z[ringi][i] == -9999)
@@ -1107,7 +1108,7 @@ void Boundary3D::smooth_boundary(int passes) {
 }
 
 void Boundary3D::detect_outliers(int degrees_incline) {
-  Ring2 ring = bg::exterior_ring(*_p2);
+  Ring2 ring = _p2->outer();
   std::vector<int> ringz = _p2z[0];
   float PI = 3.14159265;
 
@@ -1169,13 +1170,13 @@ void Boundary3D::detect_outliers(int degrees_incline) {
 // void Boundary3D::smooth_boundary(int passes) {
 //   for (int p = 0; p < passes; p++) {
 //     int ringi = 0;
-//     Ring2 oring = bg::exterior_ring(*(_p2));
+//     Ring2 oring = _p2->outer();
 //     std::vector<int> elevs(bg::num_points(oring));
 //     smooth_ring(_p2z[ringi], elevs);
 //     for (int i = 0; i < oring.size(); i++) 
 //       _p2z[ringi][i] = elevs[i];
 //     ringi++;
-//     auto irings = bg::interior_rings(*_p2);
+//     auto irings = _p2->inners();
 //     for (Ring2& iring: irings) {
 //       elevs.resize(bg::num_points(iring));
 //       smooth_ring(_p2z[ringi], elevs);

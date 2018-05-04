@@ -675,50 +675,50 @@ bool Map3d::threeDfy(bool stitching) {
     3. process vertical walls
   */
   try {
-  std::clog << "===== /LIFTING =====\n";
-  for (auto& f : _lsFeatures) {
-    f->lift();
-  }
-  std::clog << "===== LIFTING/ =====\n";
-  if (stitching == true) {
-    std::clog << "=====  /ADJACENT FEATURES =====\n";
+    std::clog << "===== /LIFTING =====\n";
     for (auto& f : _lsFeatures) {
-      this->collect_adjacent_features(f);
+      f->lift();
     }
-    std::clog << "=====  ADJACENT FEATURES/ =====\n";
-
-    std::clog << "=====  /STITCHING =====\n";
-    this->stitch_lifted_features();
-    //-- handle bridges seperately
-    this->stitch_bridges();
-    std::clog << "=====  STITCHING/ =====\n";
-
-    //-- Sort all node column vectors
-    for (auto& nc : _nc) {
-      std::sort(nc.second.begin(), nc.second.end());
-    }
-
-    std::clog << "=====  /BOWTIES =====\n";
-    // TODO: shouldn't bowties be fixed after the VW? or at same time?
-    for (auto& f : _lsFeatures) {
-      if (f->has_vertical_walls() == true) {
-        f->fix_bowtie();
+    std::clog << "===== LIFTING/ =====\n";
+    if (stitching == true) {
+      std::clog << "=====  /ADJACENT FEATURES =====\n";
+      for (auto& f : _lsFeatures) {
+        this->collect_adjacent_features(f);
       }
-    }
-    std::clog << "=====  BOWTIES/ =====\n";
+      std::clog << "=====  ADJACENT FEATURES/ =====\n";
 
-    std::clog << "=====  /VERTICAL WALLS =====\n";
-    for (auto& f : _lsFeatures) {
-      if (f->has_vertical_walls() == true) {
-        int baseheight = 0;
-        if (f->get_class() == BUILDING) {
-          baseheight = dynamic_cast<Building*>(f)->get_height_base();
+      std::clog << "=====  /STITCHING =====\n";
+      this->stitch_lifted_features();
+      //-- handle bridges seperately
+      this->stitch_bridges();
+      std::clog << "=====  STITCHING/ =====\n";
+
+      //-- Sort all node column vectors
+      for (auto& nc : _nc) {
+        std::sort(nc.second.begin(), nc.second.end());
+      }
+
+      std::clog << "=====  /BOWTIES =====\n";
+      // TODO: shouldn't bowties be fixed after the VW? or at same time?
+      for (auto& f : _lsFeatures) {
+        if (f->has_vertical_walls() == true) {
+          f->fix_bowtie();
         }
-        f->construct_vertical_walls(_nc, baseheight);
       }
+      std::clog << "=====  BOWTIES/ =====\n";
+
+      std::clog << "=====  /VERTICAL WALLS =====\n";
+      for (auto& f : _lsFeatures) {
+        if (f->has_vertical_walls() == true) {
+          int baseheight = 0;
+          if (f->get_class() == BUILDING) {
+            baseheight = dynamic_cast<Building*>(f)->get_height_base();
+          }
+          f->construct_vertical_walls(_nc, baseheight);
+        }
+      }
+      std::clog << "=====  VERTICAL WALLS/ =====\n";
     }
-    std::clog << "=====  VERTICAL WALLS/ =====\n";
-  }
   }
   catch (std::exception e) {
     std::cerr << std::endl << "3dfying failed with error: " << e.what() << std::endl;
@@ -1052,7 +1052,7 @@ void Map3d::stitch_lifted_features() {
       std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
       //-- 2. build the node-column for each vertex
       // oring
-      Ring2 oring = bg::exterior_ring(*(f->get_Polygon2()));
+      Ring2 oring = f->get_Polygon2()->outer();
       for (int i = 0; i < oring.size(); i++) {
         std::vector< std::tuple<TopoFeature*, int, int> > star;
         bool toprocess = false;
@@ -1081,7 +1081,7 @@ void Map3d::stitch_lifted_features() {
       }
       // irings
       int noiring = 0;
-      for (Ring2& iring : bg::interior_rings(*(f->get_Polygon2()))) {
+      for (Ring2& iring : f->get_Polygon2()->inners()) {
         noiring++;
         for (int i = 0; i < iring.size(); i++) {
           std::vector< std::tuple<TopoFeature*, int, int> > star;
@@ -1380,12 +1380,12 @@ void Map3d::stitch_bridges() {
 
       //-- gather all rings
       std::vector<Ring2> rings;
-      rings.push_back(bg::exterior_ring(*(f->get_Polygon2())));
-      for (auto& iring : bg::interior_rings(*(f->get_Polygon2())))
+      rings.push_back(f->get_Polygon2()->outer());
+      for (Ring2& iring : f->get_Polygon2()->inners())
         rings.push_back(iring);
 
       int ringi = -1;
-      for (auto& ring : rings) {
+      for (Ring2& ring : rings) {
         ringi++;
 
         std::vector< std::pair<int, bool> > corners;

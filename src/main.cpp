@@ -48,6 +48,7 @@ std::string VERSION = "0.9.8";
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
 std::string print_license();
+void print_duration(std::string message, boost::chrono::time_point<boost::chrono::steady_clock> startTime);
 
 int main(int argc, const char * argv[]) {
   auto startTime = boost::chrono::high_resolution_clock::now();
@@ -62,19 +63,19 @@ int main(int argc, const char * argv[]) {
     "This is free software, and you are welcome to redistribute it\n"
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
 
-  std::map<std::string,std::string> outputs;
-  outputs["OBJ"]      = "";
+  std::map<std::string, std::string> outputs;
+  outputs["OBJ"] = "";
   outputs["OBJ-NoID"] = "";
-  outputs["CityGML"]  = "";
-  outputs["CityGML-Multifile"]  = "";
-  outputs["CityGML-IMGeo"]  = "";
-  outputs["CityGML-IMGeo-Multifile"]  = "";
+  outputs["CityGML"] = "";
+  outputs["CityGML-Multifile"] = "";
+  outputs["CityGML-IMGeo"] = "";
+  outputs["CityGML-IMGeo-Multifile"] = "";
   outputs["CityJSON"] = "";
   outputs["CSV-BUILDINGS"] = "";
   outputs["CSV-BUILDINGS-MULTIPLE"] = "";
   outputs["CSV-BUILDINGS-ALL-Z"] = "";
   outputs["Shapefile"] = "";
-  outputs["Shapefile-Multi"] = "";
+  outputs["Shapefile-Multifile"] = "";
   outputs["PostGIS"] = "";
   outputs["PostGIS-Multi"] = "";
   outputs["PostGIS-PDOK"] = "";
@@ -84,30 +85,30 @@ int main(int argc, const char * argv[]) {
     namespace po = boost::program_options;
     po::options_description pomain("Allowed options");
     pomain.add_options()
-      ("help",    "View all options")
+      ("help", "View all options")
       ("version", "View version")
       ("license", "View license")
-      ("OBJ",       po::value<std::string>(&outputs["OBJ"]), "Output ")
-      ("OBJ-NoID",  po::value<std::string>(&outputs["OBJ-NoID"]), "Output ")
-      ("CityGML",   po::value<std::string>(&outputs["CityGML"]), "Output ")
+      ("OBJ", po::value<std::string>(&outputs["OBJ"]), "Output ")
+      ("OBJ-NoID", po::value<std::string>(&outputs["OBJ-NoID"]), "Output ")
+      ("CityGML", po::value<std::string>(&outputs["CityGML"]), "Output ")
       ("CityGML-Multifile", po::value<std::string>(&outputs["CityGML-Multifile"]), "Output ")
       ("CityGML-IMGeo", po::value<std::string>(&outputs["CityGML-IMGeo"]), "Output ")
       ("CityGML-IMGeo-Multifile", po::value<std::string>(&outputs["CityGML-IMGeo-Multifile"]), "Output ")
-      ("CityJSON",  po::value<std::string>(&outputs["CityJSON"]), "Output ")
+      ("CityJSON", po::value<std::string>(&outputs["CityJSON"]), "Output ")
       ("CSV-BUILDINGS", po::value<std::string>(&outputs["CSV-BUILDINGS"]), "Output ")
       ("CSV-BUILDINGS-MULTIPLE", po::value<std::string>(&outputs["CSV-BUILDINGS-MULTIPLE"]), "Output ")
       ("CSV-BUILDINGS-ALL-Z", po::value<std::string>(&outputs["CSV-BUILDINGS-ALL-Z"]), "Output ")
       ("Shapefile", po::value<std::string>(&outputs["Shapefile"]), "Output ")
-      ("Shapefile-Multi", po::value<std::string>(&outputs["Shapefile-Multi"]), "Output ")
+      ("Shapefile-Multifile", po::value<std::string>(&outputs["Shapefile-Multifile"]), "Output ")
       ("PostGIS", po::value<std::string>(&outputs["PostGIS"]), "Output ")
       ("PostGIS-Multi", po::value<std::string>(&outputs["PostGIS-Multi"]), "Output ")
       ("PostGIS-PDOK", po::value<std::string>(&outputs["PostGIS-PDOK"]), "Output ")
       ("GDAL", po::value<std::string>(&outputs["GDAL"]), "Output ")
-    ;
+      ;
     po::options_description pohidden("Hidden options");
     pohidden.add_options()
       ("yaml", po::value<std::string>(&f_yaml), "Input config YAML file")
-    ;        
+      ;
     po::positional_options_description popos;
     popos.add("yaml", -1);
 
@@ -115,7 +116,7 @@ int main(int argc, const char * argv[]) {
     poall.add(pomain).add(pohidden);
     po::variables_map vm;
     po::store(po::command_line_parser(argc, argv).
-              options(poall).positional(popos).run(), vm);
+      options(poall).positional(popos).run(), vm);
     po::notify(vm);
 
     if (vm.count("help")) {
@@ -138,7 +139,7 @@ int main(int argc, const char * argv[]) {
     if (vm.count("yaml") == 0) {
       std::cerr << "ERROR: one YAML config file must be specified." << std::endl;
       std::cout << std::endl << pomain << std::endl;
-      return 0;  
+      return 0;
     }
     else {
       boost::filesystem::path yp(f_yaml);
@@ -152,30 +153,29 @@ int main(int argc, const char * argv[]) {
       }
     }
     for (auto& output : vm) {
-      if ( (output.first != "yaml") && (output.first.find("PostGIS") == std::string::npos) )  {
+      if ((output.first != "yaml") && (output.first.find("PostGIS") == std::string::npos)) {
         //-- check paths of the output file
         boost::filesystem::path p(outputs[output.first]);
         try {
           boost::filesystem::path pcan = canonical(p.parent_path(), boost::filesystem::current_path());
         }
-        catch (boost::filesystem::filesystem_error &e)
-        {
+        catch (boost::filesystem::filesystem_error &e) {
           std::cerr << "ERROR: " << e.what() << ". Abort." << std::endl;
           return 0;
         }
       }
     }
-  } 
-  catch(std::exception& e) {
+  }
+  catch (std::exception& e) {
     std::cerr << "Error: " << e.what() << "\n";
     return 1;
-  }  
+  }
 
   std::clog << licensewarning << std::endl;
 
 
   //-- allowed feature classes
-  std::set<std::string> allowedFeatures{"Building", "Water", "Terrain", "Road", "Forest", "Separation", "Bridge/Overpass"};
+  std::set<std::string> allowedFeatures{ "Building", "Water", "Terrain", "Road", "Forest", "Separation", "Bridge/Overpass" };
 
   //-- validate the YAML file right now, nicer for the user
   std::clog << "SKIPPING VALIDATION YAML" << std::endl;
@@ -208,7 +208,7 @@ int main(int argc, const char * argv[]) {
       YAML::Node tmp = n["Building"]["ground"]["use_LAS_classes"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
         map3d.add_allowed_las_class(LAS_BUILDING_GROUND, it2->as<int>());
-    }    
+    }
     if (n["Building"]["lod"]) {
       map3d.set_building_lod(n["Building"]["lod"].as<int>());
     }
@@ -312,8 +312,7 @@ int main(int argc, const char * argv[]) {
     if (!wentgood || xmin > xmax || ymin > ymax || boost::geometry::area(Box2(Point2(xmin, ymin), Point2(xmax, ymax))) <= 0.0) {
       std::cerr << "ERROR: The supplied extent is not valid: (" << n["extent"].as<std::string>() << "), using all polygons\n";
     }
-    else
-    {
+    else {
       std::clog << "Using extent for polygons: (" << n["extent"].as<std::string>() << ")\n";
       map3d.set_requested_extent(xmin, ymin, xmax, ymax);
     }
@@ -381,7 +380,7 @@ int main(int argc, const char * argv[]) {
     << bg::get<bg::min_corner, 1>(b) << ") ("
     << bg::get<bg::max_corner, 0>(b) << ", "
     << bg::get<bg::max_corner, 1>(b) << ")\n";
-  
+
   int threadPoolSize = 4;
   std::vector<PointFile> fileList;
 
@@ -451,66 +450,44 @@ int main(int argc, const char * argv[]) {
     std::cerr << "ERROR: Missing elevation data, cannot 3dfy the dataset. Aborting.\n";
     return 0;
   }
-
-  auto durationPoints = boost::chrono::high_resolution_clock::now() - startPoints;
-  printf("All points read in %lld seconds || %02d:%02d:%02d\n",
-    boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count(),
-    boost::chrono::duration_cast<boost::chrono::hours>(durationPoints).count(),
-    boost::chrono::duration_cast<boost::chrono::minutes>(durationPoints).count() % 60,
-    (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationPoints).count() % 60
-  );
-
+  print_duration("All points read in %lld seconds || %02d:%02d:%02d\n", startPoints);
 
   std::clog << "3dfying all input polygons...\n";
+  bool threedfy = true;
+  bool cdt = true;
   if (outputs.size() == 1) {
-    if (outputs.count("CSV-BUILDINGS") == 1)
-      map3d.threeDfy(false);
-    else if (outputs.count("OBJ-BUILDINGS") == 1) {
-      map3d.threeDfy(false);
-      auto startCDT = boost::chrono::high_resolution_clock::now();
-      if (!map3d.construct_CDT()) {
-        return 0;
-      }
-      auto durationCDT = boost::chrono::high_resolution_clock::now() - startCDT;
-      printf("CDT created in %lld seconds || %02d:%02d:%02d\n",
-        boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count(),
-        boost::chrono::duration_cast<boost::chrono::hours>(durationCDT).count(),
-        boost::chrono::duration_cast<boost::chrono::minutes>(durationCDT).count() % 60,
-        (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count() % 60
-      );
-    }
-    else if (outputs.count("CSV-BUILDINGS-MULTIPLE") == 1)
+    if (outputs.count("CSV-BUILDINGS-MULTIPLE") == 1) {
+      threedfy = false;
       std::clog << "CSV-BUILDINGS-MULTIPLE: no 3D reconstruction" << std::endl;
-    else if (outputs.count("CSV-BUILDINGS-ALL-Z") == 1)
+    }
+    else if (outputs.count("CSV-BUILDINGS-ALL-Z") == 1) {
+      threedfy = false;
       std::clog << "CSV-BUILDINGS-ALL-Z: no 3D reconstruction" << std::endl;
+    }
     else {
-      map3d.threeDfy(bStitching);
-      auto startCDT = boost::chrono::high_resolution_clock::now();
-      if (!map3d.construct_CDT()) {
-        return 0;
+      if (outputs.count("OBJ-NoID") == 1) {
+        // for OBJ-NoID only lift objects, skip stitching
+        bStitching = false;
       }
-      auto durationCDT = boost::chrono::high_resolution_clock::now() - startCDT;
-      printf("CDT created in %lld seconds || %02d:%02d:%02d\n",
-        boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count(),
-        boost::chrono::duration_cast<boost::chrono::hours>(durationCDT).count(),
-        boost::chrono::duration_cast<boost::chrono::minutes>(durationCDT).count() % 60,
-        (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count() % 60
-      );
+      if (outputs.count("CSV-BUILDINGS") == 1) {
+        // for CSV-BUILDINGS only lift objects, skip stitching and skip CDT.
+        // TODO: Make CSV-BUILDINGS like CSV-BUILDINGS-MULTIPLE so no lifting is needed at all
+        bStitching = false;
+        cdt = false;
+      }
     }
   }
-  else {
+  if (threedfy) {
+    auto startThreeDfy = boost::chrono::high_resolution_clock::now();
     map3d.threeDfy(bStitching);
+    print_duration("Lifting, stitching and vertical walls done in %lld seconds || %02d:%02d:%02d\n", startThreeDfy);
+  }
+  if (cdt) {
     auto startCDT = boost::chrono::high_resolution_clock::now();
     if (!map3d.construct_CDT()) {
       return 0;
     }
-    auto durationCDT = boost::chrono::high_resolution_clock::now() - startCDT;
-    printf("CDT created in %lld seconds || %02d:%02d:%02d\n",
-      boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count(),
-      boost::chrono::duration_cast<boost::chrono::hours>(durationCDT).count(),
-      boost::chrono::duration_cast<boost::chrono::minutes>(durationCDT).count() % 60,
-      (int)boost::chrono::duration_cast<boost::chrono::seconds>(durationCDT).count() % 60
-    );
+    print_duration("CDT created in %lld seconds || %02d:%02d:%02d\n", startCDT);
   }
   std::clog << "...3dfying done.\n";
 
@@ -524,17 +501,18 @@ int main(int argc, const char * argv[]) {
 
   //-- iterate over all output
   for (auto& output : outputs) {
-    std::clock_t startFileWriting = std::clock(); 
+    std::clock_t startFileWriting = std::clock();
     std::string format = output.first;
     if (output.second == "")
-      continue;  
-    
+      continue;
+
     bool fileWritten = true;
     std::ofstream of;
     std::string ofname = output.second;
-    if (format != "CityJSON" && format != "Shapefile" && format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "PostGIS") {
-      // boost::filesystem::path pcan = canonical(p, boost::filesystem::current_path());
-      // boost::filesystem::path p(ofname);
+    if (format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "CityJSON" &&
+      format != "Shapefile" && format != "Shapefile-Multifile" &&
+      format != "PostGIS" && format != "PostGIS-Multi" && format != "PostGIS-PDOK" &&
+      format != "GDAL") {
       of.open(ofname);
     }
     if (format == "CityGML") {
@@ -542,21 +520,21 @@ int main(int argc, const char * argv[]) {
       map3d.get_citygml(of);
     }
     else if (format == "CityGML-Multifile") {
-      std::clog << "CityGML-Multifile output: " << ofname << std::endl;
+      std::clog << "CityGML multiple file output: " << ofname << std::endl;
       map3d.get_citygml_multifile(ofname);
     }
     else if (format == "CityGML-IMGeo") {
-      std::clog << "CityGML-IMGeo output: " << ofname << std::endl;
+      std::clog << "IMGeo (CityGML ADE) output: " << ofname << std::endl;
       map3d.get_citygml_imgeo(of);
     }
     else if (format == "CityGML-IMGeo-Multifile") {
-      std::clog << "CityGML-IMGeo-Multifile output: " << ofname << std::endl;
+      std::clog << "IMGeo (CityGML ADE) multiple file output: " << ofname << std::endl;
       map3d.get_citygml_imgeo_multifile(ofname);
     }
     else if (format == "CityJSON") {
       std::clog << "CityJSON output: " << ofname << std::endl;
       fileWritten = map3d.get_cityjson(ofname);
-    }  
+    }
     else if (format == "OBJ") {
       std::clog << "OBJ output: " << ofname << std::endl;
       map3d.get_obj_per_feature(of, z_exaggeration);
@@ -569,32 +547,32 @@ int main(int argc, const char * argv[]) {
       std::clog << "CSV output (only of the buildings): " << ofname << std::endl;
       map3d.get_csv_buildings(of);
     }
-    else if (format == "Shapefile") {
-      std::clog << "Shapefile output: " << ofname << std::endl;
-      fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", false);
-    }
     else if (format == "CSV-BUILDINGS-MULTIPLE") {
       std::clog << "CSV output with multiple heights (only of the buildings): " << ofname << std::endl;
       map3d.get_csv_buildings_multiple_heights(of);
     }
-    else if (format == "Shapefile-Multi") {
-      std::clog << "Shapefile output: " << ofname << std::endl;
-      fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", true);
-    }
     else if (format == "CSV-BUILDINGS-ALL-Z") {
       std::clog << "CSV output with all z values (only of the buildings): " << ofname << std::endl;
       map3d.get_csv_buildings_all_elevation_points(of);
+    }
+    else if (format == "Shapefile") {
+      std::clog << "Shapefile output: " << ofname << std::endl;
+      fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", false);
+    }
+    else if (format == "Shapefile-Multifile") {
+      std::clog << "Shapefile multiple file output: " << ofname << std::endl;
+      fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", true);
     }
     else if (format == "PostGIS") {
       std::clog << "PostGIS output\n";
       fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", false);
     }
     else if (format == "PostGIS-Multi") {
-      std::clog << "PostGIS-Multi output\n";
+      std::clog << "PostGIS multiple table output\n";
       fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", true);
     }
     else if (format == "PostGIS-PDOK") {
-      std::clog << "PostGIS-PDOK output\n";
+      std::clog << "PostGIS with IMGeo GML string output\n";
       fileWritten = map3d.get_pdok_output(ofname);
     }
     else if (format == "GDAL") { //-- TODO: what is this? a path? how to use?
@@ -614,13 +592,7 @@ int main(int argc, const char * argv[]) {
   }
 
   //-- bye-bye
-  auto duration = boost::chrono::high_resolution_clock::now() - startTime;
-  printf("Successfully terminated in %lld seconds || %02d:%02d:%02d\n",
-    boost::chrono::duration_cast<boost::chrono::seconds>(duration).count(),
-    boost::chrono::duration_cast<boost::chrono::hours>(duration).count(),
-    boost::chrono::duration_cast<boost::chrono::minutes>(duration).count() % 60,
-    (int)boost::chrono::duration_cast<boost::chrono::seconds>(duration).count() % 60
-  );
+  print_duration("Successfully terminated in %lld seconds || %02d:%02d:%02d\n", startTime);
   return 1;
 }
 
@@ -650,12 +622,22 @@ std::string print_license() {
   return thelicense;
 }
 
+void print_duration(std::string message, boost::chrono::time_point<boost::chrono::steady_clock> startTime) {
+  auto duration = boost::chrono::high_resolution_clock::now() - startTime;
+  printf(message.c_str(),
+    boost::chrono::duration_cast<boost::chrono::seconds>(duration).count(),
+    boost::chrono::duration_cast<boost::chrono::hours>(duration).count(),
+    boost::chrono::duration_cast<boost::chrono::minutes>(duration).count() % 60,
+    (int)boost::chrono::duration_cast<boost::chrono::seconds>(duration).count() % 60
+  );
+}
+
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
   YAML::Node nodes;
   try {
-     nodes = YAML::LoadFile(arg);
+    nodes = YAML::LoadFile(arg);
   }
-  catch(const std::exception&) {
+  catch (const std::exception&) {
     std::cerr << "ERROR: YAML structure of config is invalid.\n";
     return false;
   }
@@ -866,7 +848,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     (format != "OBJ-BUILDINGS") &&
     (format != "CSV-BUILDINGS") &&
     (format != "Shapefile") &&
-    (format != "Shapefile-Multi") &&
+    (format != "Shapefile-Multifile") &&
     (format != "CSV-BUILDINGS-MULTIPLE") &&
     (format != "CSV-BUILDINGS-ALL-Z") &&
     (format != "PostGIS") &&
@@ -874,7 +856,7 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     (format != "PostGIS-PDOK") &&
     (format != "GDAL")) {
     wentgood = false;
-    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-Multifile | CityGML-IMGeo | CityGML-IMGeo-Multifile | CSV-BUILDINGS | Shapefile | Shapefile-Multi | PostGIS | PostGIS-Multi | PostGIS-PDOK)\n";
+    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-Multifile | CityGML-IMGeo | CityGML-IMGeo-Multifile | CSV-BUILDINGS | Shapefile | Shapefile-Multifile | PostGIS | PostGIS-Multi | PostGIS-PDOK)\n";
   }
   if (format == "GDAL" && (!n["gdal_driver"] || n["gdal_driver"].as<std::string>().empty())) {
     wentgood = false;

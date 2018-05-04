@@ -251,13 +251,13 @@ void Building::get_citygml(std::ostream& of) {
   //-- get roof
   get_polygon_lifted_gml(of, this->_p2, h, true);
   //-- get the walls
-  auto r = bg::exterior_ring(*(this->_p2));
+  auto r = _p2->outer();
   int i;
   for (i = 0; i < (r.size() - 1); i++)
     get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
   get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   //-- irings
-  auto irings = bg::interior_rings(*(this->_p2));
+  auto irings = _p2->inners();
   for (Ring2& r : irings) {
     for (i = 0; i < (r.size() - 1); i++)
       get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
@@ -290,13 +290,13 @@ void Building::get_citygml_imgeo(std::ostream& of) {
   //-- get roof
   get_polygon_lifted_gml(of, this->_p2, h, true);
   //-- get the walls
-  auto r = bg::exterior_ring(*(this->_p2));
+  auto r = _p2->outer();
   int i;
   for (i = 0; i < (r.size() - 1); i++)
     get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
   get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   //-- irings
-  auto irings = bg::interior_rings(*(this->_p2));
+  auto irings = _p2->inners();
   for (Ring2& r : irings) {
     for (i = 0; i < (r.size() - 1); i++)
       get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
