@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -26,17 +26,11 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-
 #include "Forest.h"
 #include "io.h"
 
-bool Forest::_use_ground_points_only = false;
-
-Forest::Forest(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, float innerbuffer, bool ground_points_only)
-  : TIN(wkt, layername, attributes, pid, simplification, innerbuffer)
-{
-  _use_ground_points_only = ground_points_only;
-}
+Forest::Forest(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer)
+  : TIN(wkt, layername, attributes, pid, simplification, simplification_tinsimp, innerbuffer) {}
 
 TopoClass Forest::get_class() {
   return FOREST;
@@ -50,17 +44,24 @@ std::string Forest::get_mtl() {
   return "usemtl Forest";
 }
 
-bool Forest::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  bool toadd = false;
-  if (lastreturn && ((_use_ground_points_only && lasclass == LAS_GROUND) || (_use_ground_points_only == false && lasclass != LAS_BUILDING))) {
-    toadd = TIN::add_elevation_point(p, z, radius, lasclass, lastreturn);
-  }
-  return toadd;
+bool Forest::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
+  return TIN::add_elevation_point(p, z, radius, lasclass);
 }
 
 bool Forest::lift() {
   TopoFeature::lift_each_boundary_vertices(0.5);
   return true;
+}
+
+void Forest::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
+  nlohmann::json f;
+  f["type"] = "PlantCover";
+  f["attributes"];
+  get_cityjson_attributes(f, _attributes);
+  nlohmann::json g;
+  this->get_cityjson_geom(g, dPts);
+  f["geometry"].push_back(g);
+  j["CityObjects"][this->get_id()] = f;
 }
 
 void Forest::get_citygml(std::ostream& of) {

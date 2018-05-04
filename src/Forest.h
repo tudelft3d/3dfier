@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -26,24 +26,23 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-#ifndef Separation_h
-#define Separation_h
+#ifndef Forest_h
+#define Forest_h
 
 #include "TopoFeature.h"
 
-class Separation: public Boundary3D {
+class Forest: public TIN {
 public:
-  Separation(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref);
-  bool        lift();
-  bool        add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
-  void        get_citygml(std::ostream& of);
-  void        get_citygml_imgeo(std::ostream& of);
-  std::string get_mtl();
-  bool        get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes = AttributeMap());
-  TopoClass   get_class();
-  bool        is_hard();
-protected:
-  static float  _heightref;
+  Forest(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer);
+  bool          lift();
+  bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass);
+  void          get_citygml(std::ostream& of);
+  void          get_citygml_imgeo(std::ostream& of);
+  void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts);
+  std::string   get_mtl();
+  bool          get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes = AttributeMap());
+  TopoClass     get_class();
+  bool          is_hard();
 };
 
-#endif /* Separation_h */
+#endif /* Forest_h */

@@ -1,18 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\Separation.cpp" />
-    <ClCompile Include="..\Bridge.cpp" />
-    <ClCompile Include="..\main.cpp" />
-    <ClCompile Include="..\io.cpp" />
-    <ClCompile Include="..\Map3d.cpp" />
-    <ClCompile Include="..\Building.cpp" />
-    <ClCompile Include="..\Road.cpp" />
-    <ClCompile Include="..\Terrain.cpp" />
-    <ClCompile Include="..\TopoFeature.cpp" />
-    <ClCompile Include="..\Forest.cpp" />
-    <ClCompile Include="..\Water.cpp" />
-    <ClCompile Include="..\geomtools.cpp" />
+    <ClCompile Include="..\src\Separation.cpp" />
+    <ClCompile Include="..\src\Bridge.cpp" />
+    <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\io.cpp" />
+    <ClCompile Include="..\src\Map3d.cpp" />
+    <ClCompile Include="..\src\Building.cpp" />
+    <ClCompile Include="..\src\Road.cpp" />
+    <ClCompile Include="..\src\Terrain.cpp" />
+    <ClCompile Include="..\src\TopoFeature.cpp" />
+    <ClCompile Include="..\src\Forest.cpp" />
+    <ClCompile Include="..\src\Water.cpp" />
+    <ClCompile Include="..\src\geomtools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -20,40 +20,40 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Map3d.h">
+    <ClInclude Include="..\src\Map3d.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\TopoFeature.h">
+    <ClInclude Include="..\src\TopoFeature.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\io.h">
+    <ClInclude Include="..\src\io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\geomtools.h">
+    <ClInclude Include="..\src\geomtools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\definitions.h">
+    <ClInclude Include="..\src\definitions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Water.h">
+    <ClInclude Include="..\src\Water.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Terrain.h">
+    <ClInclude Include="..\src\Terrain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Road.h">
+    <ClInclude Include="..\src\Road.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Forest.h">
+    <ClInclude Include="..\src\Forest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Building.h">
+    <ClInclude Include="..\src\Building.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Separation.h">
+    <ClInclude Include="..\src\Separation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Bridge.h">
+    <ClInclude Include="..\src\Bridge.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

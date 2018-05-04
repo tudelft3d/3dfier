@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -28,16 +28,29 @@
 
 #include "Building.h"
 #include "io.h"
-#include <algorithm>    // std::sort
+#include <algorithm>
 
-float Building::_heightref_top = 0.9f;
-float Building::_heightref_base = 0.1f;
+//-- static variable
+float Building::_heightref_top;
+float Building::_heightref_base;
+std::set<int> Building::_las_classes_roof;
+std::set<int> Building::_las_classes_ground;
 
 Building::Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base)
   : Flat(wkt, layername, attributes, pid)
 {
   _heightref_top = heightref_top;
   _heightref_base = heightref_base;
+}
+
+void Building::set_las_classes_roof(std::set<int> theset)
+{
+  Building::_las_classes_roof = theset;
+}
+
+void Building::set_las_classes_ground(std::set<int> theset)
+{
+  Building::_las_classes_ground = theset;
 }
 
 std::string Building::get_all_z_values() {
@@ -82,24 +95,21 @@ bool Building::lift() {
     _height_base = _zvaluesinside[_zvaluesinside.size() * _heightref_base];
   }
   else {
-    _height_base = 0;
+    _height_base = -9999;
   }
   //-- for the roof
   Flat::lift_percentile(_heightref_top);
   return true;
 }
 
-
-bool Building::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  if (lastreturn) {
-    if (within_range(p, *(_p2), radius)) {
-      int zcm = int(z * 100);
-      //-- 1. Save the ground points seperate for base height
-      if (lasclass == LAS_GROUND || lasclass == LAS_WATER) {
-        _zvaluesground.push_back(zcm);
-      }
-      //-- 2. assign to polygon since within
+bool Building::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
+  if (within_range(p, *(_p2), radius)) {
+    int zcm = int(z * 100);
+    if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0) ) {
       _zvaluesinside.push_back(zcm);
+    }
+    if ( (_las_classes_ground.empty() == true) || (_las_classes_ground.count(lasclass) > 0) ) {
+      _zvaluesground.push_back(zcm);
     }
   }
   return true;
@@ -168,6 +178,21 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   }
 }
 
+void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) {
+  nlohmann::json b;
+  b["type"] = "Building";
+  b["attributes"];
+  get_cityjson_attributes(b, _attributes);
+  float hbase = z_to_float(this->get_height_base());
+  float h = z_to_float(this->get_height());
+  b["attributes"]["min-height-surface"] = hbase;
+  b["attributes"]["measuredHeight"] = h;
+  nlohmann::json g;
+  this->get_cityjson_geom(g, dPts, "Solid");
+  b["geometry"].push_back(g);
+  j["CityObjects"][this->get_id()] = b;
+}
+
 void Building::get_citygml(std::ostream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
@@ -200,13 +225,13 @@ void Building::get_citygml(std::ostream& of) {
   //-- get roof
   get_polygon_lifted_gml(of, this->_p2, h, true);
   //-- get the walls
-  auto r = bg::exterior_ring(*(this->_p2));
+  auto r = _p2->outer();
   int i;
   for (i = 0; i < (r.size() - 1); i++)
     get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
   get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   //-- irings
-  auto irings = bg::interior_rings(*(this->_p2));
+  auto irings = _p2->inners();
   for (Ring2& r : irings) {
     for (i = 0; i < (r.size() - 1); i++)
       get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
@@ -239,13 +264,13 @@ void Building::get_citygml_imgeo(std::ostream& of) {
   //-- get roof
   get_polygon_lifted_gml(of, this->_p2, h, true);
   //-- get the walls
-  auto r = bg::exterior_ring(*(this->_p2));
+  auto r = _p2->outer();
   int i;
   for (i = 0; i < (r.size() - 1); i++)
     get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
   get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
   //-- irings
-  auto irings = bg::interior_rings(*(this->_p2));
+  auto irings = _p2->inners();
   for (Ring2& r : irings) {
     for (i = 0; i < (r.size() - 1); i++)
       get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);

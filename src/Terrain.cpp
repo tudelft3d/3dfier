@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -30,8 +30,8 @@
 #include "io.h"
 #include <algorithm>
 
-Terrain::Terrain(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, float innerbuffer)
-  : TIN(wkt, layername, attributes, pid, simplification, innerbuffer) {}
+Terrain::Terrain(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer)
+  : TIN(wkt, layername, attributes, pid, simplification, simplification_tinsimp, innerbuffer) {}
 
 TopoClass Terrain::get_class() {
   return TERRAIN;
@@ -45,18 +45,25 @@ std::string Terrain::get_mtl() {
   return "usemtl Terrain";
 }
 
-bool Terrain::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  bool toadd = false;
-  if (lastreturn && lasclass == LAS_GROUND) {
-    toadd = TIN::add_elevation_point(p, z, radius, lasclass, lastreturn);
-  }
-  return toadd;
+bool Terrain::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
+  return TIN::add_elevation_point(p, z, radius, lasclass);
 }
 
 bool Terrain::lift() {
   //-- lift vertices to their median of lidar points
   TopoFeature::lift_each_boundary_vertices(0.5);
   return true;
+}
+
+void Terrain::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
+  nlohmann::json f;
+  f["type"] = "LandUse";
+  f["attributes"];
+  get_cityjson_attributes(f, _attributes);
+  nlohmann::json g;
+  this->get_cityjson_geom(g, dPts);
+  f["geometry"].push_back(g);
+  j["CityObjects"][this->get_id()] = f;
 }
 
 void Terrain::get_citygml(std::ostream& of) {

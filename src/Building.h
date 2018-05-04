@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -26,24 +26,40 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-#ifndef Water_h
-#define Water_h
+#ifndef Building_h
+#define Building_h
 
 #include "TopoFeature.h"
 
-class Water: public Flat {
+class Building: public Flat {
 public:
-  Water(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref);
+  Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base);
   bool          lift();
-  bool          add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
+  bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass);
+  void          get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs);
   void          get_citygml(std::ostream& of);
   void          get_citygml_imgeo(std::ostream& of);
+  void          get_imgeo_nummeraanduiding(std::ostream& of);
+  void          get_csv(std::ostream& of);
+  void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts);
+  std::string   get_all_z_values();
   std::string   get_mtl();
   bool          get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes = AttributeMap());
   TopoClass     get_class();
   bool          is_hard();
-protected:
-  static float  _heightref;
+  int           get_height_base();
+  int           get_height_ground_at_percentile(float percentile);
+  int           get_height_roof_at_percentile(float percentile);
+
+  static void   set_las_classes_roof(std::set<int> theset);
+  static void   set_las_classes_ground(std::set<int> theset);
+private:
+  std::vector<int>     _zvaluesground;
+  int                  _height_base;
+  static float         _heightref_top;
+  static float         _heightref_base;
+  static std::set<int> _las_classes_roof;
+  static std::set<int> _las_classes_ground;
 };
 
-#endif /* Water_h */
+#endif /* Building_h */

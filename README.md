@@ -23,7 +23,7 @@ This surface will then be used as input in simulation software for instance.
 
 <a href="https://vimeo.com/181421237">This video</a> illustrates the process and what 3dfier is about.
 
-The lifting options can be configured in the YAML file (`myconfig.yml`) provided.
+The lifting options can be configured in the YAML file provided, an examples are provided in `/resources/config_files/myconfig.yml`.
 Any 2D input (which should be a planar partition) can be used as input, and each class must be mapped to one of the following:
 
   1. Building
@@ -36,10 +36,10 @@ Any 2D input (which should be a planar partition) can be used as input, and each
 
 It is possible to define new classes, although that would require a bit of programming.
 
-Output is at this moment in either OBJ or CityGML (and CSV for buildings only, i.e. their ID and height (ground+roof) are output in a tabular format).
+Output is in the following formats: OBJ, CityGML, CityJSON, CSV (for buildings only, i.e. their ID and height (ground+roof) are output in a tabular format), and PostGIS.
 The ID of each polygon is preserved, and there is a 1-to-1 mapping between the input and the output. 
 
-Notice that this version is very much a beta version, although it is in our opinion usable. 
+Notice that this version is beta , although it is in our opinion usable. 
 If you use it, feedback is very much appreciated.
 
 ## LAS/LAZ Pointcloud
@@ -68,7 +68,8 @@ The resulting model (in OBJ) can be found in `example_data/output/test_area.obj`
 Further, there is an [open data website](https://3d.bk.tudelft.nl/opendata/3dfier/) that contains 3D models of a few Dutch cities, generated with 3dfier.
 
 ## Validate config file
-The configuration is stored in [YAML format](http://docs.ansible.com/ansible/latest/YAMLSyntax.html) and needs to be valid for the parser to read the file. Config files can be schema validated using [YAML Lint](http://www.yamllint.com)
+The configuration is stored in [YAML format](http://docs.ansible.com/ansible/latest/YAMLSyntax.html) and needs to be valid for the parser to read the file. 
+Config files can be schema validated using [YAML Lint](http://www.yamllint.com)
 
 ## Run 3dfier:
 **Windows** 

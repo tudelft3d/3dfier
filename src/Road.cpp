@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -29,11 +29,13 @@
 #include "Road.h"
 #include "io.h"
 
-float Road::_heightref = 0.5;
+float Road::_heightref;
+int Road::_threshold_outliers;
 
-Road::Road(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref)
+Road::Road(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, int threshold_outliers)
   : Boundary3D(wkt, layername, attributes, pid) {
   _heightref = heightref;
+  _threshold_outliers = threshold_outliers;
 }
 
 TopoClass Road::get_class() {
@@ -48,17 +50,27 @@ std::string Road::get_mtl() {
   return "usemtl Road";
 }
 
-bool Road::add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn) {
-  if (lastreturn == true && lasclass == LAS_GROUND) {
-    Boundary3D::add_elevation_point(p, z, radius, lasclass, lastreturn);
-  }
+bool Road::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
+  Boundary3D::add_elevation_point(p, z, radius, lasclass);
   return true;
 }
 
 bool Road::lift() {
   lift_each_boundary_vertices(_heightref);
-  smooth_boundary(5);
+  //smooth_boundary(5);
+  detect_outliers(_threshold_outliers);
   return true;
+}
+
+void Road::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
+  nlohmann::json f;
+  f["type"] = "Road";
+  f["attributes"];
+  get_cityjson_attributes(f, _attributes);
+  nlohmann::json g;
+  this->get_cityjson_geom(g, dPts);
+  f["geometry"].push_back(g);
+  j["CityObjects"][this->get_id()] = f;
 }
 
 void Road::get_citygml(std::ostream& of) {

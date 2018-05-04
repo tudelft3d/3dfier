@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -26,23 +26,23 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-#ifndef Road_h
-#define Road_h
+#ifndef INPUT_H
+#define INPUT_H
 
+#include "definitions.h"
 #include "TopoFeature.h"
 
-class Road: public Boundary3D {
-public:
-  Road(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref);
-  bool                lift();
-  bool                add_elevation_point(Point2 &p, double z, float radius, LAS14Class lasclass, bool lastreturn);
-  void                get_citygml(std::ostream& of);
-  void                get_citygml_imgeo(std::ostream& of);
-  std::string         get_mtl();
-  bool                get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes = AttributeMap());
-  static float        _heightref;
-  TopoClass           get_class();
-  bool                is_hard();
-};
+void printProgressBar(int percent);
+void get_xml_header(std::ostream& of);
+void get_citygml_namespaces(std::ostream& of);
+void get_citygml_imgeo_namespaces(std::ostream& of);
 
-#endif /* Road_h */
+void get_polygon_lifted_gml(std::ostream& of, Polygon2* p2, double height, bool reverse = false);
+void get_extruded_line_gml(std::ostream& of, Point2* a, Point2* b, double high, double low, bool reverse = false);
+void get_extruded_lod1_block_gml(std::ostream& of, Polygon2* p2, double high, double low = 0.0);
+
+bool  is_string_integer(std::string s, int min = 0, int max = 1e6);
+float z_to_float(int z);
+std::vector<std::string> stringsplit(std::string str, char delimiter);
+
+#endif

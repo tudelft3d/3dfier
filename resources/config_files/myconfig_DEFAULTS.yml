@@ -2,23 +2,24 @@ lifting_options:
   Building:
     height_roof: percentile-90
     height_floor: percentile-10
-    triangulate: true
     lod: 1
   Water:
     height: percentile-10
   Road:
     height: percentile-50
+    threshold_outliers: 30
   Separation:
     height: percentile-80
   Bridge/Overpass:
     height: percentile-50
   Terrain:                      # Terrain is percentile-50
     simplification: 0
+    simplification_tinsimp: 0.0
     inner_buffer: 0.0
   Forest:                       # Forest is percentile-50
     simplification: 0
+    simplification_tinsimp: 0.0
     inner_buffer: 0.0
-    ground_points_only: false
 
 input_elevation:
   - datasets:
@@ -31,9 +32,3 @@ options:
   building_radius_vertex_elevation: 3.0
   radius_vertex_elevation: 1.0
   threshold_jump_edges: 0.5
-  stitching: true
-
-output:
-  format: OBJ
-  building_floor: false
-  vertical_exaggeration: 0

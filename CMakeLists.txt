@@ -23,7 +23,7 @@ if ( COMMAND cmake_policy )
 endif()
 
 # Boost
-find_package( Boost REQUIRED locale chrono system filesystem)
+find_package( Boost REQUIRED locale chrono system filesystem program_options)
 if ( NOT Boost_FOUND )
   message(SEND_ERROR "3dfier requires the Boost library")
   return()  
@@ -45,7 +45,6 @@ find_package(YamlCpp REQUIRED)
 
 # CGAL
 find_package( CGAL QUIET COMPONENTS  )
-
 if ( NOT CGAL_FOUND )
   message(SEND_ERROR "3dfier requires the CGAL library")
   return()  
@@ -54,11 +53,15 @@ endif()
 # include helper file
 include( ${CGAL_USE_FILE} )
 
+include_directories( ${CMAKE_SOURCE_DIR}/thirdparty )
+
 include_directories( ${CGAL_INCLUDE_DIR} ${CGAL_3RD_PARTY_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${LIBLAS_INCLUDE_DIR} ${LASZIP_INCLUDE_DIR} ${YAMLCPP_INCLUDE_DIR} ${GDAL_INCLUDE_DIR})
 link_directories(${YamlCpp_LIBRARY_DIRS})
 
 # Creating entries for target: 3dfier
-add_executable( 3dfier main.cpp io.cpp Map3d.cpp TopoFeature.cpp Bridge.cpp Separation.cpp Building.cpp Road.cpp Terrain.cpp Forest.cpp Water.cpp geomtools.cpp)
-target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY} ${Boost_LIBRARIES})
+FILE(GLOB SRC_FILES src/*.cpp)
+add_executable(3dfier ${SRC_FILES})
+
+target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${BOOST_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY} ${Boost_LIBRARIES} )
 
 install(TARGETS 3dfier DESTINATION bin)
