@@ -512,96 +512,98 @@ int main(int argc, const char * argv[]) {
         map3d.set_building_include_floor(true);
       }
     }
+  }
 
-    //-- iterate over all output
-    for (auto& output : outputs) {
-      std::clock_t startFileWriting = std::clock();
-      std::string format = output.first;
-      if (output.second == "")
-        continue;
+  //-- iterate over all output
+  for (auto& output : outputs) {
+    std::clock_t startFileWriting = std::clock();
+    std::string format = output.first;
+    if (output.second == "")
+      continue;
 
-      bool fileWritten = true;
-      std::ofstream of;
-      std::string ofname = output.second;
-      if (format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "CityJSON" &&
-        format != "Shapefile" && format != "Shapefile-Multifile" &&
-        format != "PostGIS" && format != "PostGIS-Multi" && format != "PostGIS-PDOK" &&
-        format != "GDAL") {
-        of.open(ofname);
-      }
-      if (format == "CityGML") {
-        std::clog << "CityGML output: " << ofname << std::endl;
-        map3d.get_citygml(of);
-      }
-      else if (format == "CityGML-Multifile") {
-        std::clog << "CityGML multiple file output: " << ofname << std::endl;
-        map3d.get_citygml_multifile(ofname);
-      }
-      else if (format == "CityGML-IMGeo") {
-        std::clog << "IMGeo (CityGML ADE) output: " << ofname << std::endl;
-        map3d.get_citygml_imgeo(of);
-      }
-      else if (format == "CityGML-IMGeo-Multifile") {
-        std::clog << "IMGeo (CityGML ADE) multiple file output: " << ofname << std::endl;
-        map3d.get_citygml_imgeo_multifile(ofname);
-      }
-      else if (format == "CityJSON") {
-        std::clog << "CityJSON output: " << ofname << std::endl;
-        fileWritten = map3d.get_cityjson(ofname);
-      }
-      else if (format == "OBJ") {
-        std::clog << "OBJ output: " << ofname << std::endl;
-        map3d.get_obj_per_feature(of);
-      }
-      else if (format == "OBJ-NoID") {
-        std::clog << "OBJ (without IDs) output: " << ofname << std::endl;
-        map3d.get_obj_per_class(of);
-      }
-      else if (format == "CSV-BUILDINGS") {
-        std::clog << "CSV output (only of the buildings): " << ofname << std::endl;
-        map3d.get_csv_buildings(of);
-      }
-      else if (format == "CSV-BUILDINGS-MULTIPLE") {
-        std::clog << "CSV output with multiple heights (only of the buildings): " << ofname << std::endl;
-        map3d.get_csv_buildings_multiple_heights(of);
-      }
-      else if (format == "CSV-BUILDINGS-ALL-Z") {
-        std::clog << "CSV output with all z values (only of the buildings): " << ofname << std::endl;
-        map3d.get_csv_buildings_all_elevation_points(of);
-      }
-      else if (format == "Shapefile") {
-        std::clog << "Shapefile output: " << ofname << std::endl;
-        fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", false);
-      }
-      else if (format == "Shapefile-Multifile") {
-        std::clog << "Shapefile multiple file output: " << ofname << std::endl;
-        fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", true);
-      }
-      else if (format == "PostGIS") {
-        std::clog << "PostGIS output\n";
-        fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", false);
-      }
-      else if (format == "PostGIS-Multi") {
-        std::clog << "PostGIS multiple table output\n";
-        fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", true);
-      }
-      else if (format == "PostGIS-PDOK") {
-        std::clog << "PostGIS with IMGeo GML string output\n";
-        fileWritten = map3d.get_pdok_output(ofname);
-      }
-      else if (format == "GDAL") { //-- TODO: what is this? a path? how to use?
-        std::string driver = n["gdal_driver"].as<std::string>();
+    bool fileWritten = true;
+    std::ofstream of;
+    std::string ofname = output.second;
+    if (format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "CityJSON" &&
+      format != "Shapefile" && format != "Shapefile-Multifile" &&
+      format != "PostGIS" && format != "PostGIS-Multi" && format != "PostGIS-PDOK" &&
+      format != "GDAL") {
+      of.open(ofname);
+    }
+    if (format == "CityGML") {
+      std::clog << "CityGML output: " << ofname << std::endl;
+      map3d.get_citygml(of);
+    }
+    else if (format == "CityGML-Multifile") {
+      std::clog << "CityGML multiple file output: " << ofname << std::endl;
+      map3d.get_citygml_multifile(ofname);
+    }
+    else if (format == "CityGML-IMGeo") {
+      std::clog << "IMGeo (CityGML ADE) output: " << ofname << std::endl;
+      map3d.get_citygml_imgeo(of);
+    }
+    else if (format == "CityGML-IMGeo-Multifile") {
+      std::clog << "IMGeo (CityGML ADE) multiple file output: " << ofname << std::endl;
+      map3d.get_citygml_imgeo_multifile(ofname);
+    }
+    else if (format == "CityJSON") {
+      std::clog << "CityJSON output: " << ofname << std::endl;
+      fileWritten = map3d.get_cityjson(ofname);
+    }
+    else if (format == "OBJ") {
+      std::clog << "OBJ output: " << ofname << std::endl;
+      map3d.get_obj_per_feature(of);
+    }
+    else if (format == "OBJ-NoID") {
+      std::clog << "OBJ (without IDs) output: " << ofname << std::endl;
+      map3d.get_obj_per_class(of);
+    }
+    else if (format == "CSV-BUILDINGS") {
+      std::clog << "CSV output (only of the buildings): " << ofname << std::endl;
+      map3d.get_csv_buildings(of);
+    }
+    else if (format == "CSV-BUILDINGS-MULTIPLE") {
+      std::clog << "CSV output with multiple heights (only of the buildings): " << ofname << std::endl;
+      map3d.get_csv_buildings_multiple_heights(of);
+    }
+    else if (format == "CSV-BUILDINGS-ALL-Z") {
+      std::clog << "CSV output with all z values (only of the buildings): " << ofname << std::endl;
+      map3d.get_csv_buildings_all_elevation_points(of);
+    }
+    else if (format == "Shapefile") {
+      std::clog << "Shapefile output: " << ofname << std::endl;
+      fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", false);
+    }
+    else if (format == "Shapefile-Multifile") {
+      std::clog << "Shapefile multiple file output: " << ofname << std::endl;
+      fileWritten = map3d.get_gdal_output(ofname, "ESRI Shapefile", true);
+    }
+    else if (format == "PostGIS") {
+      std::clog << "PostGIS output\n";
+      fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", false);
+    }
+    else if (format == "PostGIS-Multi") {
+      std::clog << "PostGIS multiple table output\n";
+      fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", true);
+    }
+    else if (format == "PostGIS-PDOK") {
+      std::clog << "PostGIS with IMGeo GML string output\n";
+      fileWritten = map3d.get_pdok_output(ofname);
+    }
+    else if (format == "GDAL") { //-- TODO: what is this? a path? how to use?
+      if (nodes["output"] && nodes["output"]["gdal_driver"]) {
+        std::string driver = nodes["output"]["gdal_driver"].as<std::string>();
         std::clog << "GDAL output using driver '" + driver + "'\n";
         fileWritten = map3d.get_gdal_output(ofname, driver, false);
       }
-      of.close();
+    }
+    of.close();
 
-      if (fileWritten) {
-        printf("Features written in %ld ms\n", std::clock() - startFileWriting);
-      }
-      else {
-        std::cerr << "ERROR: Writing features failed for " << format << ". Aborting.\n";
-      }
+    if (fileWritten) {
+      printf("Features written in %ld ms\n", std::clock() - startFileWriting);
+    }
+    else {
+      std::cerr << "ERROR: Writing features failed for " << format << ". Aborting.\n";
     }
   }
 
