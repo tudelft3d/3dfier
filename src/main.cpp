@@ -37,7 +37,7 @@
 #include <boost/filesystem.hpp>
 #include <map>
 
-std::string VERSION = "1.0 RC1";
+std::string VERSION = "1.0-RC1";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);

@@ -42,47 +42,67 @@ input_polygons:
 
 lifting_options: 
   Building:
-    roof:
-      height: percentile-90
-      use_LAS_classes:
-        - 2
-        - 4
+    lod: 1
     ground:
       height: percentile-10
       use_LAS_classes:
-        - 3
+        - 2
+        - 9
+    roof:
+      height: percentile-90
+      use_LAS_classes:
+        - 0
+        - 1
         - 6
-    triangulate: true
-    lod: 1
   Terrain:
-    simplification: 10
+    simplification: 0
+    simplification_tinsimp: 0.1
+    use_LAS_classes:
+      - 2
+      - 9
   Forest:
-    simplification: 10
+    simplification: 0
+    simplification_tinsimp: 0.1
+    ground_points_only: true
   Water:
     height: percentile-10
+    use_LAS_classes:
+      - 0
+      - 1
+      - 2
+      - 9
   Road:
     height: percentile-50
+    use_LAS_classes:
+     - 2
+     - 9
+     - 11
   Separation:
     height: percentile-80
+    use_LAS_classes:
+      - 0
+      - 1
+      - 2
+      - 9
+      - 11
+      - 17
   Bridge/Overpass:
     height: percentile-50
+    use_LAS_classes:
+      - 0
+      - 1
+      - 2
+      - 17
 
 input_elevation:
   - datasets:
       - ahn3/ahn3_cropped_1.laz
       - ahn3/ahn3_cropped_2.laz
     omit_LAS_classes:
-      - 0 # unclassified
       - 1 # unclassified
-    thinning: 10
+    thinning: 0
 
 options:
   building_radius_vertex_elevation: 3.0
   radius_vertex_elevation: 1.0
   threshold_jump_edges: 0.5
-
-output: 
-  # format: OBJ
-  format: CityJSON
-  building_floor: false
-  vertical_exaggeration: 0

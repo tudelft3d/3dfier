@@ -405,8 +405,6 @@ void TopoFeature::fix_bowtie() {
 
       //-- Fix bow-ties
       if (((az > fadj_az) && (bz < fadj_bz)) || ((az < fadj_az) && (bz > fadj_bz))) {
-        //std::clog << "BOWTIE:" << this->get_id() << " & " << fadj->get_id() << std::endl;
-        //std::clog << this->get_class() << " & " << fadj->get_class() << std::endl;
         if (this->is_hard() && fadj->is_hard() == false) {
           //- this is hard, snap the smallest height of the soft feature to this
           if (abs(az - fadj_az) < abs(bz - fadj_bz)) {
@@ -587,11 +585,6 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight)
       if (az == fadj_az && bz == fadj_bz) {
         continue;
       }
-
-      //std::clog << "az: " << az << std::endl;
-      //std::clog << "bz: " << bz << std::endl;
-      //std::clog << "fadj_az: " << fadj_az << std::endl;
-      //std::clog << "fadj_bz: " << fadj_bz << std::endl;
 
       //-- find the height of the vertex in the node column
       std::vector<int>::const_iterator sait, eait, sbit, ebit;
@@ -972,11 +965,8 @@ std::vector<TopoFeature*>* TopoFeature::get_adjacent_features() {
 }
 
 void TopoFeature::lift_each_boundary_vertices(float percentile) {
-  //-- 1. assign value for each vertex based on percentile
-  //-- collect the rings of the polygon
-  bool hasEmpty = false;
-  int totalheight = 0;
-  int heightcount = 0;
+  //-- assign value for each vertex based on percentile
+  bool hasHeight = false;
   //-- gather all rings
   std::vector<Ring2> rings;
   rings.push_back(_p2->outer());
@@ -990,35 +980,49 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
       std::vector<int> &l = _lidarelevs[ringi][i];
       if (l.empty() == true) {
         _p2z[ringi][i] = -9999;
-        hasEmpty = true;
       }
       else {
         std::nth_element(l.begin(), l.begin() + (l.size() * percentile), l.end());
         _p2z[ringi][i] = l[l.size() * percentile];
-        totalheight += _p2z[ringi][i];
-        heightcount++;
+        hasHeight = true;
       }
     }
   }
 
-  //-- 2. find average height of the polygon
-  int avgheight;
-  if (heightcount > 0) {
-    avgheight = int(totalheight / heightcount);
-  }
-  else {
-    hasEmpty = false; // no need since all heights are -9999
-  }
-
-  if (hasEmpty) {
-    //-- 3. some vertices will have no values (no lidar point within tolerance thus)
-    //--    assign them the avg
+  if (hasHeight) {// Skip setting heights if all heights are -9999
+    //-- some vertices will have no values (no lidar point within tolerance thus)
+    //-- assign them the closest height in its ring
     ringi = -1;
     for (Ring2& ring : rings) {
       ringi++;
       for (int i = 0; i < ring.size(); i++) {
-        if (_p2z[ringi][i] == -9999)
-          _p2z[ringi][i] = avgheight;
+        if (_p2z[ringi][i] == -9999) {
+          // find closest previous or next vertex which does have a height and use it
+          int next = -9999;
+          int nextdistance = ring.size();
+          int prev = -9999;
+          int prevdistance = ring.size();
+          for (int nexti = i; nexti < ring.size(); nexti++) {
+            if (_p2z[ringi][nexti] != -9999) {
+              next = _p2z[ringi][nexti];
+              nextdistance = nexti - i;
+              break;
+            }
+          }
+          for (int previ = i; previ > 0; previ--) {
+            if (_p2z[ringi][previ] != -9999) {
+              prev = _p2z[ringi][previ];
+              prevdistance = i- previ;
+              break;
+            }
+          }
+          if (nextdistance <= prevdistance) {
+            _p2z[ringi][i] = next;
+          }
+          else if (prevdistance < nextdistance) {
+            _p2z[ringi][i] = prev;
+          }
+        }
       }
     }
   }
@@ -1191,6 +1195,5 @@ bool TIN::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
 }
 
 bool TIN::buildCDT() {
-  //std::cout << "id: " << _id << " (" << get_class() << ")\n";
   return getCDT(_p2, _p2z, _vertices, _triangles, _lidarpts, _simplification_tinsimp);
 }

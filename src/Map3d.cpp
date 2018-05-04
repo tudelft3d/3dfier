@@ -1209,13 +1209,8 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
             // keep height when both are hard surfaces, add vw
             else if (std::get<1>(*it)->is_hard()) {
               if (std::get<1>(*it2)->is_hard()) {
-                //- add a wall to the heighest feature
-                if (std::get<1>(*it) > std::get<1>(*it2)) {
-                  std::get<1>(*it)->add_vertical_wall();
-                }
-                else if (std::get<1>(*it2) > std::get<1>(*it)) {
-                  std::get<1>(*it2)->add_vertical_wall();
-                }
+                //-- add a wall to the heighest feature, it2 is allways highest since zstart is sorted by height
+                std::get<1>(*it2)->add_vertical_wall();
               }
               // it is hard, it2 is soft
               // set height of it2 to it
@@ -1231,8 +1226,17 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
           }
           // features are outside threshold jump edges, add vw
           else {
-            //-- add a wall to the heighest feature, it2 is allways highest since zstart is sorted by height
-            std::get<1>(*it2)->add_vertical_wall();
+            // stitch object withouth height to adjacent object which does have a height
+            if (std::get<0>(*it) == -9999 && std::get<0>(*it2) != -9999) {
+              std::get<0>(*it) = std::get<0>(*it2);
+            }
+            else if (std::get<0>(*it2) == -9999 && std::get<0>(*it) != -9999) {
+              std::get<0>(*it2) = std::get<0>(*it);
+            }
+            else {
+              //-- add a wall to the heighest feature, it2 is allways highest since zstart is sorted by height
+              std::get<1>(*it2)->add_vertical_wall();
+            }
           }
         }
         //-- Average heights of soft features within the jumpedge threshold counted from the lowest feature or skip to the next hard feature
@@ -1346,15 +1350,24 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
     }
     //-- then vertical walls must be added: nc to highest
     if (bStitched == false) {
-      //- add a wall to the heighest feature
-      if (f1z > f2z) {
-        f1->add_vertical_wall();
+      // stitch object withouth height to adjacent object which does have a height
+      if (f1z == -9999 && f2z != -9999) {
+        f1->set_vertex_elevation(ringi1, pi1, f2z);
       }
-      else if (f2z > f1z) {
-        f2->add_vertical_wall();
+      else if (f2z == -9999 && f1z != -9999) {
+        f2->set_vertex_elevation(ringi2, pi2, f1z);
       }
-      _nc[key_bucket].push_back(f1z);
-      _nc[key_bucket].push_back(f2z);
+      else {
+        //- add a wall to the heighest feature
+        if (f1z > f2z) {
+          f1->add_vertical_wall();
+        }
+        else if (f2z > f1z) {
+          f2->add_vertical_wall();
+        }
+        _nc[key_bucket].push_back(f1z);
+        _nc[key_bucket].push_back(f2z);
+      }
     }
   }
 }
