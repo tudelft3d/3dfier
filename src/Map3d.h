@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -91,9 +91,9 @@ public:
   void set_forest_simplification_tinsimp(double tinsimp_threshold);
   void set_terrain_innerbuffer(float innerbuffer);
   void set_forest_innerbuffer(float innerbuffer);
-  void set_forest_ground_points_only(bool only_ground_points);
   void set_water_heightref(float heightref);
   void set_road_heightref(float heightref);
+  void set_road_threshold_outliers(int t);
   void set_separation_heightref(float heightref);
   void set_bridge_heightref(float heightref);
   void set_radius_vertex_elevation(float radius);
@@ -109,9 +109,9 @@ public:
 private:
   float       _building_heightref_roof;
   float       _building_heightref_ground;
-  bool        _building_triangulate;
+  bool        _building_triangulate; // TODO: Not used anymore, remove? 
   int         _building_lod;
-  bool        _building_include_floor;
+  bool        _building_include_floor; // TODO: Not used anymore, remove? 
   bool        _use_vertical_walls;
   int         _terrain_simplification;
   int         _forest_simplification;
@@ -119,9 +119,9 @@ private:
   double      _forest_simplification_tinsimp;
   float       _terrain_innerbuffer;
   float       _forest_innerbuffer;
-  bool        _forest_ground_points_only;
   float       _water_heightref;
   float       _road_heightref;
+  float       _road_threshold_outliers;
   float       _separation_heightref;
   float       _bridge_heightref;
   float       _radius_vertex_elevation;

@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -41,7 +41,7 @@
 #include <memory>
 #include <boost/heap/fibonacci_heap.hpp>
 
-// binomial heap for greedy insertion code
+// fibonacci heap for greedy insertion code
 struct point_error {
   point_error(int i, double e) : index(i), error(e){}
   int index;
@@ -93,16 +93,6 @@ struct PointXYEqual {
 
 inline double compute_error(Point &p, CDT::Face_handle &face);
 void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold);
-
-bool triangle_contains_segment(Triangle t, int a, int b) {
-  if ((t.v0 == a) && (t.v1 == b))
-    return true;
-  if ((t.v1 == a) && (t.v2 == b))
-    return true;
-  if ((t.v2 == a) && (t.v0 == b))
-    return true;
-  return false;
-}
 
 void mark_domains(CDT& ct,
   CDT::Face_handle start,
@@ -245,7 +235,6 @@ double sqr_distance(const Point2 &p1, const Point2 &p2) {
 }
 
 //--- TIN Simplification
-
 // Greedy insertion/incremental refinement algorithm adapted from "Fast polygonal approximation of terrain and height fields" by Garland, Michael and Heckbert, Paul S.
 inline double compute_error(Point &p, CDT::Face_handle &face) {
   if(!face->info().plane)

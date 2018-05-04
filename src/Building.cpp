@@ -28,14 +28,13 @@
 
 #include "Building.h"
 #include "io.h"
-#include <algorithm>    // std::sort
+#include <algorithm>
 
 //-- static variable
 float Building::_heightref_top = 0.9f;
 float Building::_heightref_base = 0.1f;
 std::set<int> Building::_las_classes_roof;
 std::set<int> Building::_las_classes_ground;
-
 
 Building::Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base)
   : Flat(wkt, layername, attributes, pid)
@@ -53,7 +52,6 @@ void Building::set_las_classes_ground(std::set<int> theset)
 {
   Building::_las_classes_ground = theset;
 }
-
 
 std::string Building::get_all_z_values() {
   std::vector<int> allz (_zvaluesground.begin(), _zvaluesground.end());
@@ -104,7 +102,6 @@ bool Building::lift() {
   return true;
 }
 
-
 bool Building::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
   if (within_range(p, *(_p2), radius)) {
     int zcm = int(z * 100);
@@ -117,29 +114,6 @@ bool Building::add_elevation_point(Point2 &p, double z, float radius, int lascla
   }
   return true;
 }
-//   if (within_range(p, *(_p2), radius)) {
-//     int zcm = int(z * 100);
-//     //-- TODO: @tom: keep a list of ground points? why? 
-//     //-- shouldn't the percentile take care of this?
-//     _zvaluesground.push_back(zcm); 
-//     //-- 2. assign to polygon since within
-//     _zvaluesinside.push_back(zcm);
-//   }
-//   return true;
-// }
-//   if (lastreturn) {
-//     if (within_range(p, *(_p2), radius)) {
-//       int zcm = int(z * 100);
-//       //-- 1. Save the ground points seperate for base height
-//       if (lasclass == LAS_GROUND || lasclass == LAS_WATER) {
-//         _zvaluesground.push_back(zcm);
-//       }
-//       //-- 2. assign to polygon since within
-//       _zvaluesinside.push_back(zcm);
-//     }
-//   }
-//   return true;
-// }
 
 int Building::get_height_base() {
   return _height_base;

@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -52,17 +52,10 @@ bool Separation::add_elevation_point(Point2 &p, double z, float radius, int lasc
   Boundary3D::add_elevation_point(p, z, radius, lasclass);
   return true;
 }
-//   if (lastreturn == true && lasclass != LAS_BUILDING && lasclass != LAS_WATER && lasclass != LAS_BRIDGE) {
-//     Boundary3D::add_elevation_point(p, z, radius, lasclass);
-//   }
-//   return true;
-// }
 
 bool Separation::lift() {
-  //lift_percentile(_heightref);
-  //return true;
   lift_each_boundary_vertices(_heightref);
-  smooth_boundary(5);
+  //smooth_boundary(5);
   return true;
 }
 
@@ -76,7 +69,6 @@ void Separation::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,
   f["geometry"].push_back(g);
   j["CityObjects"][this->get_id()] = f;
 }
-
 
 void Separation::get_citygml(std::ostream& of) {
   of << "<cityObjectMember>";

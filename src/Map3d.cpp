@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -43,11 +43,10 @@ Map3d::Map3d() {
   _building_triangulate = true;
   _terrain_simplification = 0;
   _forest_simplification = 0;
-  _terrain_simplification_tinsimp = 0;
-  _forest_simplification_tinsimp = 0;
+  _terrain_simplification_tinsimp = 0.0;
+  _forest_simplification_tinsimp = 0.0;
   _terrain_innerbuffer = 0.0;
   _forest_innerbuffer = 0.0;
-  _forest_ground_points_only = false;
   _radius_vertex_elevation = 1.0;
   _building_radius_vertex_elevation = 3.0;
   _threshold_jump_edges = 50;
@@ -58,7 +57,6 @@ Map3d::Map3d() {
 }
 
 Map3d::~Map3d() {
-  // TODO : destructor Map3d
   _lsFeatures.clear();
 }
 
@@ -122,16 +120,16 @@ void Map3d::set_forest_innerbuffer(float innerbuffer) {
   _forest_innerbuffer = innerbuffer;
 }
 
-void Map3d::set_forest_ground_points_only(bool ground_points_only) {
-  _forest_ground_points_only = ground_points_only;
-}
-
 void Map3d::set_water_heightref(float h) {
   _water_heightref = h;
 }
 
 void Map3d::set_road_heightref(float h) {
   _road_heightref = h;
+}
+
+void Map3d::set_road_threshold_outliers(int t) {
+  _road_threshold_outliers = t;
 }
 
 void Map3d::set_separation_heightref(float h) {
@@ -173,8 +171,7 @@ bool Map3d::get_cityjson(std::string filename) {
   j["metadata"]["bbox"] = b;
   std::unordered_map< std::string, unsigned long > dPts;
   for (auto& f : _lsFeatures) {
-    // if (f->get_class() != BRIDGE) // TODO : all classes
-      f->get_cityjson(j, dPts);
+    f->get_cityjson(j, dPts);
   }
   //-- vertices
   std::vector<std::string> thepts;
@@ -699,7 +696,6 @@ bool Map3d::threeDfy(bool stitching) {
       }
 
       std::clog << "=====  /BOWTIES =====\n";
-      // TODO: shouldn't bowties be fixed after the VW? or at same time?
       for (auto& f : _lsFeatures) {
         if (f->has_vertical_walls() == true) {
           f->fix_bowtie();
@@ -926,7 +922,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Forest") {
-    Forest* p3 = new Forest(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_forest_simplification, this->_forest_simplification_tinsimp, this->_forest_innerbuffer, this->_forest_ground_points_only);
+    Forest* p3 = new Forest(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_forest_simplification, this->_forest_simplification_tinsimp, this->_forest_innerbuffer);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Water") {
@@ -934,7 +930,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Road") {
-    Road* p3 = new Road(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_road_heightref);
+    Road* p3 = new Road(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_road_heightref, this->_road_threshold_outliers);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Separation") {
@@ -1418,7 +1414,7 @@ void Map3d::stitch_bridges() {
             2. if 2 or more unique values in NC there is a height jump which should only occur at vw of bridge, skip values upto next occurence
             */
             if (bridgeAdj || unique > 1) {
-              //TODO: use NC closest to height of previous vertex? Then is no choice to make and it will support multiple overlapping bridges.
+              //TODO: use NC closest to height of previous vertex? Then is no choice to make and it might support multiple overlapping bridges?
               if (f->get_top_level() == false) {
                 f->set_vertex_elevation(ringi, i, nc.front());
               }

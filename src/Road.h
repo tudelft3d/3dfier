@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -33,7 +33,7 @@
 
 class Road: public Boundary3D {
 public:
-  Road(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref);
+  Road(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, int outlier_threshold);
   bool                lift();
   bool                add_elevation_point(Point2 &p, double z, float radius, int lasclass);
   void                get_citygml(std::ostream& of);
@@ -41,9 +41,11 @@ public:
   void                get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts);
   std::string         get_mtl();
   bool                get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes = AttributeMap());
-  static float        _heightref;
   TopoClass           get_class();
   bool                is_hard();
+private:
+  static float _heightref;
+  static int   _threshold_outliers;
 };
 
 #endif /* Road_h */

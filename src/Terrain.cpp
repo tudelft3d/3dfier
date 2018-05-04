@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -48,12 +48,7 @@ std::string Terrain::get_mtl() {
 bool Terrain::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
   return TIN::add_elevation_point(p, z, radius, lasclass);
 }
-//   bool toadd = false;
-//   if (lastreturn && lasclass == LAS_GROUND) {
-//     toadd = TIN::add_elevation_point(p, z, radius, lasclass);
-//   }
-//   return toadd;
-// }
+
 bool Terrain::lift() {
   //-- lift vertices to their median of lidar points
   TopoFeature::lift_each_boundary_vertices(0.5);
@@ -70,7 +65,6 @@ void Terrain::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,uns
   f["geometry"].push_back(g);
   j["CityObjects"][this->get_id()] = f;
 }
-
 
 void Terrain::get_citygml(std::ostream& of) {
   of << "<cityObjectMember>";

@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -33,7 +33,7 @@
 
 class Forest: public TIN {
 public:
-  Forest(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer, bool only_ground_points);
+  Forest(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer);
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass);
   void          get_citygml(std::ostream& of);
@@ -43,8 +43,6 @@ public:
   bool          get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes = AttributeMap());
   TopoClass     get_class();
   bool          is_hard();
-private:
-  static bool   _use_ground_points_only;
 };
 
 #endif /* Forest_h */

@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -29,13 +29,8 @@
 #include "TopoFeature.h"
 #include "io.h"
 
-int TopoFeature::_count = 0;
-
-//-----------------------------------------------------------------------------
-
 TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attributes, std::string pid) {
   _id = pid;
-  _counter = _count++;
   _toplevel = true;
   _bVerticalWalls = false;
   _p2 = new Polygon2();
@@ -58,7 +53,6 @@ TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attribut
 
 TopoFeature::~TopoFeature() {
   // TODO: clear memory properly
-  std::clog << "I am dead now.\n";
 }
 
 Box2 TopoFeature::get_bbox2d() {
@@ -77,10 +71,6 @@ bool TopoFeature::buildCDT() {
   return getCDT(_p2, _p2z, _vertices, _triangles);
 }
 
-int TopoFeature::get_counter() {
-  return _counter;
-}
-
 bool TopoFeature::get_top_level() {
   return _toplevel;
 }
@@ -92,7 +82,6 @@ void TopoFeature::set_top_level(bool toplevel) {
 Polygon2* TopoFeature::get_Polygon2() {
   return _p2;
 }
-
 
 void TopoFeature::get_cityjson_geom(nlohmann::json& g, std::unordered_map<std::string,unsigned long> &dPts, std::string primitive) {
   g["type"] = primitive;
@@ -281,7 +270,6 @@ void TopoFeature::get_cityjson_attributes(nlohmann::json& f, AttributeMap attrib
       f["attributes"][std::get<0>(attribute)] = attribute.second.second;
   }
 }
-
 
 void TopoFeature::get_citygml_attributes(std::ostream& of, AttributeMap attributes) {
   for (auto& attribute : attributes) {
@@ -1093,6 +1081,7 @@ bool Boundary3D::add_elevation_point(Point2 &p, double z, float radius, int lasc
 }
 
 void Boundary3D::smooth_boundary(int passes) {
+  //TODO: fix this or remove completely (tmp is not written back to r)
   std::vector<int> tmp;
   for (int p = 0; p < passes; p++) {
     for (auto& r : _p2z) {
@@ -1101,100 +1090,75 @@ void Boundary3D::smooth_boundary(int passes) {
       auto it = r.end();
       it -= 2;
       tmp.back() = int((r.front() + *it) / 2);
-      for (int i = 1; i < (r.size() - 1); i++)
+      for (int i = 1; i < (r.size() - 1); i++) {
         tmp[i] = int((r[i - 1] + r[i + 1]) / 2);
+      }
     }
   }
 }
 
 void Boundary3D::detect_outliers(int degrees_incline) {
-  Ring2 ring = _p2->outer();
-  std::vector<int> ringz = _p2z[0];
-  float PI = 3.14159265;
+  // find spikes in roads (due to misclassified lidar points) and fix by averaging between previous and next vertex.
+  //-- gather all rings
+  std::vector<Ring2> rings;
+  rings.push_back(_p2->outer());
+  for (Ring2& iring : _p2->inners())
+    rings.push_back(iring);
 
-  for (int i = 0; i < ring.size(); i++) {
-    int i0 = i - 1;
-    int i2 = i + 1;
-    if (i == 0) {
-      i0 = ring.size() - 1;
-    }
-    if (i2 == ring.size()) {
-      i2 = 0;
-    }
-    float len1 = sqrt(pow(ring[i0].x() - ring[i].x(), 2) + pow(ring[i0].y() - ring[i].y(), 2));
-    float len2 = sqrt(pow(ring[i].x() - ring[i2].x(), 2) + pow(ring[i].y() - ring[i2].y(), 2));
-    float len1z = (ringz[i] - ringz[i0]) / 100.0;
-    float len2z = (ringz[i2] - ringz[i]) / 100.0;
-    float incline = atan2(len2z, len2) - atan2(len1z, len1);
-    if (incline <= -PI) {
-      incline = 2 * PI + incline;
-    }
-    if (incline > PI) {
-      incline = incline - 2 * PI;
-    }
-    incline = incline * 180 / PI;
+  int ringi = -1;
+  for (Ring2& ring : rings) {
+    ringi++;
+    std::vector<int> ringz = _p2z[ringi];
+    float PI = 3.14159265;
 
-    //if (incline > 0) we have a peak down, otherwise we have a peak up
-    if (abs(incline) > degrees_incline) {
-      //std::cout << "vertex: " << i << "\nlen1: " << len1 << "\tangle1: " << atan2(len1z, len1) * 180 / PI << "\tlen1z: " << len1z << "\nlen2: " << len2 << "\tangle2: " << atan2(len2z, len2) * 180 / PI << "\tlen2z: " << len2z << "\tincline: " << incline << std::endl;
-      //std::cout << "Outlier detected. Id: " << _id << " vertex: " << i << " angle: " << incline << std::endl;// << std::endl;
-      //std::cout << "prev z: " << ringz[i0] << " cur z: " << ringz[i] << " next z: " << ringz[i2] << std::endl;
-
-      //find the outlier by sorting and comparing distance
-      std::vector<int> heights = { ringz[i0], ringz[i], ringz[i2] };
-      std::sort(heights.begin(), heights.end());
-      int h = heights[0];
-      if (abs(heights[2] - heights[1]) > abs(heights[0] - heights[1])) {
-        h = heights[2];
+    for (int i = 0; i < ring.size(); i++) {
+      int i0 = i - 1;
+      int i2 = i + 1;
+      if (i == 0) {
+        i0 = ring.size() - 1;
       }
-      //std::cout << "outlier height: " << h << std::endl;
+      if (i2 == ring.size()) {
+        i2 = 0;
+      }
+      float len1z = (ringz[i] - ringz[i0]) / 100.0;
+      float len2z = (ringz[i2] - ringz[i]) / 100.0;
+      float incline = atan2(len2z, distance(ring[i], ring[i2])) - atan2(len1z, distance(ring[i0], ring[i]));
+      if (incline <= -PI) {
+        incline = 2 * PI + incline;
+      }
+      if (incline > PI) {
+        incline = incline - 2 * PI;
+      }
+      incline = incline * 180 / PI;
 
-      if (ringz[i0] == h) {
-        //put to height of closest vertex for now
-        _p2z[0][i0] = ringz[i];
-        ringz[i0] = ringz[i];
-      }
-      else if (ringz[i] == h) {
-        _p2z[0][i] = (ringz[i0] + ringz[i2]) / 2;
-        ringz[i] = (ringz[i0] + ringz[i2]) / 2;
-      }
-      else if (ringz[i2] == h) {
-        //put to height of closest vertex for now
-        _p2z[0][i2] = ringz[i];
-        ringz[i2] = ringz[i];
+      //if (incline > 0) we have a peak down, otherwise we have a peak up
+      if (abs(incline) > degrees_incline) {
+        //find the outlier by sorting and comparing distance
+        std::vector<int> heights = { ringz[i0], ringz[i], ringz[i2] };
+        std::sort(heights.begin(), heights.end());
+        int h = heights[0];
+        if (abs(heights[2] - heights[1]) > abs(heights[0] - heights[1])) {
+          h = heights[2];
+        }
+
+        if (ringz[i0] == h) {
+          //put to height of closest vertex for now
+          _p2z[ringi][i0] = ringz[i];
+          ringz[i0] = ringz[i];
+        }
+        else if (ringz[i] == h) {
+          _p2z[ringi][i] = (ringz[i0] + ringz[i2]) / 2;
+          ringz[i] = (ringz[i0] + ringz[i2]) / 2;
+        }
+        else if (ringz[i2] == h) {
+          //put to height of closest vertex for now
+          _p2z[ringi][i2] = ringz[i];
+          ringz[i2] = ringz[i];
+        }
       }
     }
   }
 }
-
-// void Boundary3D::smooth_boundary(int passes) {
-//   for (int p = 0; p < passes; p++) {
-//     int ringi = 0;
-//     Ring2 oring = _p2->outer();
-//     std::vector<int> elevs(bg::num_points(oring));
-//     smooth_ring(_p2z[ringi], elevs);
-//     for (int i = 0; i < oring.size(); i++) 
-//       _p2z[ringi][i] = elevs[i];
-//     ringi++;
-//     auto irings = _p2->inners();
-//     for (Ring2& iring: irings) {
-//       elevs.resize(bg::num_points(iring));
-//       smooth_ring(_p2z[ringi], elevs);
-//       for (int i = 0; i < iring.size(); i++) 
-//         _p2z[ringi][i] = elevs[i];
-//       ringi++;
-//     }
-//   }
-// }
-
-// void Boundary3D::smooth_ring(const std::vector<int> &r, std::vector<int> &elevs) {
-//   elevs.front() = (bg::get<2>(r[1]) + bg::get<2>(r.back())) / 2;
-//   auto it = r.end();
-//   it -= 2;
-//   elevs.back() = (bg::get<2>(r.front()) + bg::get<2>(*it)) / 2;
-//   for (int i = 1; i < (r.size() - 1); i++) 
-//     elevs[i] = (bg::get<2>(r[i - 1]) + bg::get<2>(r[i + 1])) / 2;
-// }
 
 //-------------------------------
 //-------------------------------

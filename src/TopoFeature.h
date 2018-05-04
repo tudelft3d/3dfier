@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -56,7 +56,6 @@ public:
   void         fix_bowtie();
   void         add_adjacent_feature(TopoFeature* adjFeature);
   std::vector<TopoFeature*>* get_adjacent_features();
-  int          get_counter();
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
   std::string  get_layername();
@@ -83,18 +82,16 @@ protected:
   std::vector< std::vector<int> >   _p2z;
   std::vector<TopoFeature*>*        _adjFeatures;
   std::string                       _id;
-  int                               _counter;
-  static int                        _count;
   bool                              _bVerticalWalls;
   bool                              _toplevel;
   std::string                       _layername;
   AttributeMap                      _attributes;
 
-  std::vector< std::vector< std::vector<int> > > _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
+  std::vector< std::vector< std::vector<int> > >  _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
   std::vector< std::pair<Point3, std::string> >   _vertices;
-  std::vector<Triangle> _triangles;
+  std::vector<Triangle>                           _triangles;
   std::vector< std::pair<Point3, std::string> >   _vertices_vw;
-  std::vector<Triangle> _triangles_vw;
+  std::vector<Triangle>                           _triangles_vw;
 
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(Point2 &p, double z, float radius);

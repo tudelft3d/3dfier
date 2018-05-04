@@ -32,11 +32,7 @@ typedef bg::model::box<Point2> Box2;
 typedef bg::model::point<double, 3, bg::cs::cartesian> Point3;
 
 typedef std::unordered_map< std::string, std::vector<int> > NodeColumn;
-
-typedef struct Segment {
-  int v0;
-  int v1;
-} Segment;
+typedef std::unordered_map< std::string, std::pair<OGRFieldType, std::string> > AttributeMap;
 
 typedef struct Triangle {
   int v0;
@@ -57,8 +53,6 @@ typedef struct PointFile {
   std::vector<int> lasomits;
   int thinning = 1;
 } PointFile;
-
-typedef std::unordered_map< std::string, std::pair<OGRFieldType, std::string> > AttributeMap;
 
 typedef enum {
    BUILDING        = 0,

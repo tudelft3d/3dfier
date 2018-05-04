@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
   
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -36,10 +36,8 @@ std::string gen_key_bucket(const Point2* p);
 std::string gen_key_bucket(const Point3* p);
 std::string gen_key_bucket(const Point3* p, int z);
 
-
 double distance(const Point2 &p1, const Point2 &p2);
 double sqr_distance(const Point2 &p1, const Point2 &p2);
-bool   triangle_contains_segment(Triangle t, int a, int b);
 bool   getCDT(const Polygon2* pgn,
             const std::vector< std::vector<int> > &z, 
             std::vector< std::pair<Point3, std::string> > &vertices, 

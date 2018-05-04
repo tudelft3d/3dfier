@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -54,27 +54,10 @@ bool Bridge::add_elevation_point(Point2 &p, double z, float radius, int lasclass
   }
   return true;
 }
-//  if (point_in_polygon(p, *(_p2))) { 
-//    int zcm = int(z * 100); 
-//    -- 1. assign to polygon since within the threshold value (buffering of polygon) 
-//    _zvaluesinside.push_back(zcm); 
-//  } 
-//  return true; 
-//  } 
-//   if (lastreturn == true && lasclass != LAS_BUILDING && lasclass != LAS_WATER) {
-//     if (point_in_polygon(p, *(_p2))) {
-//       int zcm = int(z * 100);
-//       //-- 1. assign to polygon since within the threshold value (buffering of polygon)
-//       _zvaluesinside.push_back(zcm);
-//     }
-//   }
-//   return true;
-// }
 
 bool Bridge::lift() {
   lift_each_boundary_vertices(_heightref);
   //smooth_boundary(5);
-  //lift_percentile(_heightref);
   return true;
 }
 

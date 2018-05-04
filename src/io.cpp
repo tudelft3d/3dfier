@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2016  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -90,7 +90,6 @@ void get_citygml_imgeo_namespaces(std::ostream& of) {
   of << "xmlns:imgeo=\"http://www.geostandaarden.nl/imgeo/2.1\"\n";
   of << "xsi:schemaLocation=\"http://www.opengis.net/citygml/2.0 http://schemas.opengis.net/citygml/2.0/cityGMLBase.xsd http://www.geostandaarden.nl/imgeo/2.1 http://schemas.geonovum.nl/imgeo/2.1/imgeo-2.1.1.xsd\">\n";
 }
-
 
 void get_polygon_lifted_gml(std::ostream& of, Polygon2* p2, double height, bool reverse) {
   if (reverse)

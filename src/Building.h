@@ -56,13 +56,10 @@ public:
 private:
   std::vector<int>     _zvaluesground;
   int                  _height_base;
-  
   static float         _heightref_top;
   static float         _heightref_base;
-
   static std::set<int> _las_classes_roof;
   static std::set<int> _las_classes_ground;
-
 };
 
 #endif /* Building_h */

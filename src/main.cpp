@@ -26,12 +26,6 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-//-- TODO: create the topo DS locally? to prevent cases where nodes on only in one polygon. Or pprepair before?
-//-- TODO: write output all polygons once the tile completely containing is closed?
-//-- TODO : how to make roads horizontal "in the width"? 
-
-//-----------------------------------------------------------------------------
-
 #include "yaml-cpp/yaml.h"
 #include "definitions.h"
 #include "io.h"
@@ -43,7 +37,7 @@
 #include <boost/filesystem.hpp>
 #include <map>
 
-std::string VERSION = "0.9.8";
+std::string VERSION = "1.0 RC1";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
@@ -237,8 +231,6 @@ int main(int argc, const char * argv[]) {
       map3d.set_forest_simplification_tinsimp(n["Forest"]["simplification_tinsimp"].as<double>());
     if (n["Forest"]["innerbuffer"])
       map3d.set_forest_innerbuffer(n["Forest"]["innerbuffer"].as<float>());
-    if (n["Forest"]["ground_points_only"] && n["Forest"]["ground_points_only"].as<std::string>() == "true")
-      map3d.set_forest_ground_points_only(true);
     YAML::Node tmp = n["Forest"]["use_LAS_classes"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
       map3d.add_allowed_las_class(LAS_FOREST, it2->as<int>());
@@ -256,6 +248,9 @@ int main(int argc, const char * argv[]) {
     if (n["Road"]["height"]) {
       std::string height = n["Road"]["height"].as<std::string>();
       map3d.set_road_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
+    }
+    if (n["Road"]["threshold_outliers"]) {
+      map3d.set_road_threshold_outliers(n["Road"]["threshold_outliers"].as<int>());
     }
     YAML::Node tmp = n["Road"]["use_LAS_classes"];
     for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
