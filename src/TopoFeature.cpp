@@ -176,8 +176,6 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
     if ((a != b) && (a != c) && (b != c)) {
       fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
     }
-    // else
-    //   std::clog << "COLLAPSED TRIANGLE REMOVED\n";
   }
 
   //-- vertical triangles
@@ -212,8 +210,6 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
     if ((a != b) && (a != c) && (b != c)) {
       fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
     }
-    // else
-    //   std::clog << "COLLAPSED TRIANGLE REMOVED\n";
   }
 }
 

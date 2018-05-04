@@ -76,8 +76,8 @@ public:
   void get_csv_buildings(std::ostream &outputfile);
   void get_csv_buildings_multiple_heights(std::ostream &outputfile);
   void get_csv_buildings_all_elevation_points(std::ostream &outputfile);
-  void get_obj_per_feature(std::ostream &outputfile, int z_exaggeration = 0);
-  void get_obj_per_class(std::ostream &outputfile, int z_exaggeration = 0);
+  void get_obj_per_feature(std::ostream &outputfile);
+  void get_obj_per_class(std::ostream &outputfile);
   bool get_shapefile2d(std::string filename);
 
   void set_building_heightref_roof(float heightref);
@@ -99,7 +99,6 @@ public:
   void set_radius_vertex_elevation(float radius);
   void set_building_radius_vertex_elevation(float radius);
   void set_threshold_jump_edges(float threshold);
-  void set_use_vertical_walls(bool useverticalwalls);
   void set_requested_extent(double xmin, double ymin, double xmax, double ymax);
 
   void add_allowed_las_class(AllowedLASTopo c, int i);
@@ -112,7 +111,6 @@ private:
   bool        _building_triangulate; // TODO: Not used anymore, remove? 
   int         _building_lod;
   bool        _building_include_floor; // TODO: Not used anymore, remove? 
-  bool        _use_vertical_walls;
   int         _terrain_simplification;
   int         _forest_simplification;
   double      _terrain_simplification_tinsimp;

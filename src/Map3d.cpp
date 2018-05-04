@@ -40,7 +40,6 @@ Map3d::Map3d() {
   _building_triangulate = true;
   _building_lod = 1;
   _building_include_floor = false;
-  _use_vertical_walls = false;
   _terrain_simplification = 0;
   _forest_simplification = 0;
   _terrain_simplification_tinsimp = 0.0;
@@ -83,10 +82,6 @@ void Map3d::set_building_radius_vertex_elevation(float radius) {
 
 void Map3d::set_threshold_jump_edges(float threshold) {
   _threshold_jump_edges = int(threshold * 100);
-}
-
-void Map3d::set_use_vertical_walls(bool useverticalwalls) {
-  _use_vertical_walls = useverticalwalls;
 }
 
 void Map3d::set_building_include_floor(bool include) {
@@ -337,7 +332,7 @@ void Map3d::get_csv_buildings_multiple_heights(std::ostream &outputfile) {
   }
 }
 
-void Map3d::get_obj_per_feature(std::ostream& of, int z_exaggeration) {
+void Map3d::get_obj_per_feature(std::ostream& of) {
   std::unordered_map< std::string, unsigned long > dPts;
   std::string fs;
   
@@ -366,7 +361,7 @@ void Map3d::get_obj_per_feature(std::ostream& of, int z_exaggeration) {
   of << fs << std::endl;
 }
 
-void Map3d::get_obj_per_class(std::ostream& of, int z_exaggeration) {
+void Map3d::get_obj_per_class(std::ostream& of) {
   std::unordered_map< std::string, unsigned long > dPts;
   std::string fs;
   for (int c = 0; c < 6; c++) {
