@@ -987,6 +987,13 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       wentgood = false;
       std::cerr << "\tOutput format GDAL needs gdal_driver setting\n";
     }
+    if (n["building_floor"]) {
+      std::string s = n["building_floor"].as<std::string>();
+      if ((s != "true") && (s != "false")) {
+        wentgood = false;
+        std::cerr << "\tOption 'output.building_floor' invalid; must be 'true' or 'false'.\n";
+      }
+    }
   }
 
   return wentgood;

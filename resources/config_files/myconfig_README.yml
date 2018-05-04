@@ -22,12 +22,14 @@ lifting_options:                                        # Group for class liftin
   Building:                                             # Class definition for Building
     height_roof: percentile-90                          # Percentile of points within radius of building vertices for roof height lifting, building_radius_vertex_elevation is defined in options
     height_floor: percentile-10                         # Percentile of points within radius of building vertices for floor height lifting
-    triangulate: true                                   # Triangulate building faces | false; create polygons | true; triangulate polygons
     lod: 1                                              # Define the Level Of Detail for Buildings (0 and 1 possible)
   Water:                                                # Class definition for Water
     height: percentile-10                               # Percentile of points within radius of water vertices for lifting, radius_vertex_elevation is defined in options
   Road:
     height: percentile-50
+    use_LAS_classes:                                    # The las classes to be used for this class. If empty all classes are used
+      - 3
+      - 6
   Separation:
     height: percentile-80
   Bridge/Overpass:
@@ -40,7 +42,6 @@ lifting_options:                                        # Group for class liftin
     simplification: 10                                  # Simplification factor for points added within forest polygons, points are added random
     simplification_tinsimp: 0.1                         # Simplification threshold for points added within forest polygons, points are removed after triangulation until specified error threshold value is reached
     inner_buffer: 1.0                                   # Inner buffer in meters where no additional points will be added within the forest polygon
-    ground_points_only: true                            # Use only lidar points classified as ground points for lifting the forest polygons if set to true, use all but points classified as building if set to false
 
 input_elevation:                                        # Group for point clouds
   - datasets:                                           # List of data set with specific settings
@@ -58,8 +59,3 @@ options:                                                # Global options
   threshold_jump_edges: 0.25                            # Threshold in meters for stitching adjacent objects, when the height difference is larger then the threshold a vertical wall is created 
   stitching: true                                       # Adjust heights of polygons after stiching and add vertical walls
   extent: xmin, ymin, xmax, ymax                        # Filter the input polygons to this extent
-
-output:                                                 # Group for writing options
-  format: OBJ                                           # Output file format, OBJ, OBJ-NoID, CityGML, CityGML-Multifile, CityGML-IMGeo, CityGML-IMGeo-Multifile, CSV-BUILDINGS, Shapefile, PostGIS or PostGIS-Multi
-  building_floor: false                                 # Write the floor of a building to create solids
-  vertical_exaggeration: 0                              # Multiplication factor for the height values, sometimes wanted for visualisation purposes
