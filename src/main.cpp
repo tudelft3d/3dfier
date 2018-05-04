@@ -172,13 +172,11 @@ int main(int argc, const char * argv[]) {
   std::set<std::string> allowedFeatures{ "Building", "Water", "Terrain", "Road", "Forest", "Separation", "Bridge/Overpass" };
 
   //-- validate the YAML file right now, nicer for the user
-  std::clog << "SKIPPING VALIDATION YAML" << std::endl;
-  // TODO : write the validation of yaml updated
-  // if (validate_yaml(argv[1], allowedFeatures) == false) {
-  //   std::cerr << "ERROR: config file (*.yml) is not valid. Aborting.\n";
-  //   return 0;
-  // }
-  // std::clog << "Config file is valid.\n";
+   if (validate_yaml(argv[1], allowedFeatures) == false) {
+     std::cerr << "ERROR: config file (*.yml) is not valid. Aborting.\n";
+     return 0;
+   }
+   std::clog << "Config file is valid.\n";
 
   Map3d map3d;
   YAML::Node nodes = YAML::LoadFile(f_yaml);
@@ -659,224 +657,336 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
   }
   bool wentgood = true;
   //-- 1. input polygons classes
-  YAML::Node n = nodes["input_polygons"];
-  for (auto it = n.begin(); it != n.end(); ++it) {
-    if ((*it)["lifting_per_layer"]) {
-      YAML::Node tmp = (*it)["lifting_per_layer"];
-      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-        if (allowedFeatures.count((it2->second).as<std::string>()) == 0) {
-          std::cerr << "\tLifting class '" << (it2->second).as<std::string>() << "' unknown.\n";
+  if (nodes["input_polygons"]) {
+    YAML::Node n = nodes["input_polygons"];
+    for (auto it = n.begin(); it != n.end(); ++it) {
+      if ((*it)["lifting_per_layer"]) {
+        YAML::Node tmp = (*it)["lifting_per_layer"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+          if (allowedFeatures.count((it2->second).as<std::string>()) == 0) {
+            std::cerr << "\tLifting class '" << (it2->second).as<std::string>() << "' unknown.\n";
+            wentgood = false;
+          }
+        }
+      }
+      else if ((*it)["lifting"]) {
+        if ((*it)["lifting"].IsNull()) {
+          std::cerr << "Option 'lifting' invalid; supplied empty attribute. \n";
+          wentgood = false;
+        }
+        else if (allowedFeatures.count((*it)["lifting"].as<std::string>()) == 0) {
+          std::cerr << "\tLifting class '" << (*it)["lifting"].as<std::string>() << "' unknown.\n";
+          wentgood = false;
+        }
+        if ((*it)["uniqueid"].IsNull()) {
+          std::cerr << "Option 'uniqueid' invalid; supplied empty attribute. \n";
+          wentgood = false;
+        }
+        if ((*it)["height_field"].IsNull()) {
+          std::cerr << "Option 'height_field' invalid; supplied empty attribute. \n";
           wentgood = false;
         }
       }
     }
-    else if ((*it)["lifting"]) {
-      if ((*it)["lifting"].IsNull()) {
-        std::cerr << "Option 'lifting' invalid; supplied empty attribute. \n";
-        wentgood = false;
+  }
+  else {
+    std::cerr << "Group 'input_polygons' not defined. \n";
+    wentgood = false;
+  }
+
+  //-- 2. lifting_options
+  if (nodes["lifting_options"]) {
+    YAML::Node n = nodes["lifting_options"];
+    if (n["Building"]) {
+      if (n["Building"]["roof"]) {
+        if (n["Building"]["roof"]["height"]) {
+          std::string s = n["Building"]["roof"]["height"].as<std::string>();
+          if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
+            (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
+            wentgood = false;
+            std::cerr << "\tOption 'Building.roof.height' invalid; must be 'percentile-XX'.\n";
+          }
+        }
+        if (n["Building"]["roof"]["use_LAS_classes"]) {
+          YAML::Node tmp = n["Building"]["roof"]["use_LAS_classes"];
+          for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+            if (is_string_integer(it2->as<std::string>()) == false) {
+              wentgood = false;
+              std::cerr << "\tOption 'Building.roof.use_LAS_classes' invalid; must be an integer.\n";
+            }
+          }
+        }
       }
-      else if (allowedFeatures.count((*it)["lifting"].as<std::string>()) == 0) {
-        std::cerr << "\tLifting class '" << (*it)["lifting"].as<std::string>() << "' unknown.\n";
-        wentgood = false;
+      if (n["Building"]["ground"]) {
+        if (n["Building"]["ground"]["height"]) {
+          std::string s = n["Building"]["ground"]["height"].as<std::string>();
+          if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
+            (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
+            wentgood = false;
+            std::cerr << "\tOption 'Building.ground.height' invalid; must be 'percentile-XX'.\n";
+          }
+        }
+        if (n["Building"]["ground"]["use_LAS_classes"]) {
+          YAML::Node tmp = n["Building"]["ground"]["use_LAS_classes"];
+          for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+            if (is_string_integer(it2->as<std::string>()) == false) {
+              wentgood = false;
+              std::cerr << "\tOption 'Building.ground.use_LAS_classes' invalid; must be an integer.\n";
+            }
+          }
+        }
       }
-      if ((*it)["uniqueid"].IsNull()) {
-        std::cerr << "Option 'uniqueid' invalid; supplied empty attribute. \n";
-        wentgood = false;
+      if (n["Building"]["lod"]) {
+        if (is_string_integer(n["Building"]["lod"].as<std::string>(), 0, 1) == false) {
+          wentgood = false;
+          std::cerr << "\tOption 'Building.lod' invalid; must be an integer between 0 and 1.\n";
+        }
       }
-      if ((*it)["height_field"].IsNull()) {
-        std::cerr << "Option 'height_field' invalid; supplied empty attribute. \n";
-        wentgood = false;
+      if (n["Building"]["triangulate"]) {
+        std::string s = n["Building"]["triangulate"].as<std::string>();
+        if ((s != "true") && (s != "false")) {
+          wentgood = false;
+          std::cerr << "\tOption 'Building.triangulate' invalid; must be 'true' or 'false'.\n";
+        }
+      }
+    }
+    if (n["Terrain"]) {
+      if (n["Terrain"]["simplification"]) {
+        if (is_string_integer(n["Terrain"]["simplification"].as<std::string>()) == false) {
+          wentgood = false;
+          std::cerr << "\tOption 'Terrain.simplification' invalid; must be an integer.\n";
+        }
+      }
+      if (n["Terrain"]["simplification_tinsimp"]) {
+        try {
+          boost::lexical_cast<float>(n["Terrain"]["simplification_tinsimp"].as<std::string>());
+        }
+        catch (boost::bad_lexical_cast& e) {
+          wentgood = false;
+          std::cerr << "\tOption 'Terrain.simplification_tinsimp' invalid; must be a double.\n";
+        }
+      }
+      if (n["Terrain"]["innerbuffer"]) {
+        try {
+          boost::lexical_cast<float>(n["Terrain"]["innerbuffer"].as<std::string>());
+        }
+        catch (boost::bad_lexical_cast& e) {
+          wentgood = false;
+          std::cerr << "\tOption 'Terrain.innerbuffer' invalid; must be a float.\n";
+        }
+      }        
+      if (n["Terrain"]["use_LAS_classes"]) {
+        YAML::Node tmp = n["Terrain"]["use_LAS_classes"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+          if (is_string_integer(it2->as<std::string>()) == false) {
+            wentgood = false;
+            std::cerr << "\tOption 'Terrain.use_LAS_classes' invalid; must be an integer.\n";
+          }
+        }
+      }
+    }
+    if (n["Forest"]) {
+      if (n["Forest"]["simplification"]) {
+        if (is_string_integer(n["Forest"]["simplification"].as<std::string>()) == false) {
+          wentgood = false;
+          std::cerr << "\tOption 'Forest.simplification' invalid; must be an integer.\n";
+        }
+      }
+      if (n["Forest"]["simplification_tinsimp"]) {
+        try {
+          boost::lexical_cast<float>(n["Forest"]["simplification_tinsimp"].as<std::string>());
+        }
+        catch (boost::bad_lexical_cast& e) {
+          wentgood = false;
+          std::cerr << "\tOption 'Forest.simplification_tinsimp' invalid; must be a double.\n";
+        }
+      }
+      if (n["Forest"]["innerbuffer"]) {
+        try {
+          boost::lexical_cast<float>(n["Forest"]["innerbuffer"].as<std::string>());
+        }
+        catch (boost::bad_lexical_cast& e) {
+          wentgood = false;
+          std::cerr << "\tOption 'Forest.innerbuffer' invalid; must be a float.\n";
+        }
+      }      
+      if (n["Forest"]["use_LAS_classes"]) {
+        YAML::Node tmp = n["Forest"]["use_LAS_classes"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+          if (is_string_integer(it2->as<std::string>()) == false) {
+            wentgood = false;
+            std::cerr << "\tOption 'Forest.use_LAS_classes' invalid; must be an integer.\n";
+          }
+        }
+      }
+    }
+    if (n["Water"]) {
+      if (n["Water"]["height"]) {
+        std::string s = n["Water"]["height"].as<std::string>();
+        if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
+          (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
+          wentgood = false;
+          std::cerr << "\tOption 'Water.height' invalid; must be 'percentile-XX'.\n";
+        }
+      }      
+      if (n["Water"]["use_LAS_classes"]) {
+        YAML::Node tmp = n["Water"]["use_LAS_classes"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+          if (is_string_integer(it2->as<std::string>()) == false) {
+            wentgood = false;
+            std::cerr << "\tOption 'Water.use_LAS_classes' invalid; must be an integer.\n";
+          }
+        }
+      }
+    }
+    if (n["Road"]) {
+      if (n["Road"]["height"]) {
+        std::string s = n["Road"]["height"].as<std::string>();
+        if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
+          (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
+          wentgood = false;
+          std::cerr << "\tOption 'Road.height' invalid; must be 'percentile-XX'.\n";
+        }
+      }
+      if (n["Road"]["use_LAS_classes"]) {
+        YAML::Node tmp = n["Road"]["use_LAS_classes"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+          if (is_string_integer(it2->as<std::string>()) == false) {
+            wentgood = false;
+            std::cerr << "\tOption 'Road.use_LAS_classes' invalid; must be an integer.\n";
+          }
+        }
+      }
+    }
+    if (n["Separation"]) {
+      if (n["Separation"]["height"]) {
+        std::string s = n["Separation"]["height"].as<std::string>();
+        if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
+          (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
+          wentgood = false;
+          std::cerr << "\tOption 'Separation.height' invalid; must be 'percentile-XX'.\n";
+        }
+      }
+      if (n["Separation"]["use_LAS_classes"]) {
+        YAML::Node tmp = n["Separation"]["use_LAS_classes"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+          if (is_string_integer(it2->as<std::string>()) == false) {
+            wentgood = false;
+            std::cerr << "\tOption 'Separation.use_LAS_classes' invalid; must be an integer.\n";
+          }
+        }
+      }
+    }
+    if (n["Bridge/Overpass"]) {
+      if (n["Bridge/Overpass"]["height"]) {
+        std::string s = n["Bridge/Overpass"]["height"].as<std::string>();
+        if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
+          (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
+          wentgood = false;
+          std::cerr << "\tOption 'Bridge/Overpass.height' invalid; must be 'percentile-XX'.\n";
+        }
+      }
+      if (n["Bridge/Overpass"]["use_LAS_classes"]) {
+        YAML::Node tmp = n["Bridge/Overpass"]["use_LAS_classes"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+          if (is_string_integer(it2->as<std::string>()) == false) {
+            wentgood = false;
+            std::cerr << "\tOption 'Bridge/Overpass.use_LAS_classes' invalid; must be an integer.\n";
+          }
+        }
       }
     }
   }
-  //-- 2. lifting_options
-  n = nodes["lifting_options"];
-  if (n["Building"]) {
-    if (n["Building"]["height_roof"]) {
-      std::string s = n["Building"]["height_roof"].as<std::string>();
-      if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
-        (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
-        wentgood = false;
-        std::cerr << "\tOption 'Building.height_roof' invalid; must be 'percentile-XX'.\n";
+
+  //-- 3. input_elevation
+  if (nodes["input_elevation"]) {
+    YAML::Node n = nodes["input_elevation"];
+    for (auto it = n.begin(); it != n.end(); ++it) {
+      YAML::Node tmp = (*it)["omit_LAS_classes"];
+      for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+        if (is_string_integer(it2->as<std::string>()) == false) {
+          wentgood = false;
+          std::cerr << "\tOption 'input_elevation.omit_LAS_class' invalid; must be an integer.\n";
+        }
+      }
+      if ((*it)["thinning"]) {
+        if (is_string_integer((*it)["thinning"].as<std::string>()) == false) {
+          wentgood = false;
+          std::cerr << "\tOption 'input_elevation.thinning' invalid; must be an integer.\n";
+        }
       }
     }
-    if (n["Building"]["height_ground"]) {
-      std::string s = n["Building"]["height_ground"].as<std::string>();
-      if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
-        (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
+  }
+  else {
+    std::cerr << "Group 'input_elevation' not defined. \n";
+    wentgood = false;
+  }
+
+  //-- 4. options  
+  if (nodes["options"]) {
+    YAML::Node n = nodes["options"];
+    if (n["radius_vertex_elevation"]) {
+      try {
+        boost::lexical_cast<float>(n["radius_vertex_elevation"].as<std::string>());
+      }
+      catch (boost::bad_lexical_cast& e) {
         wentgood = false;
-        std::cerr << "\tOption 'Building.height_ground' invalid; must be 'percentile-XX'.\n";
+        std::cerr << "\tOption 'options.radius_vertex_elevation' invalid.\n";
+      }
+    }   
+    if (n["building_radius_vertex_elevation"]) {
+      try {
+        boost::lexical_cast<float>(n["building_radius_vertex_elevation"].as<std::string>());
+      }
+      catch (boost::bad_lexical_cast& e) {
+        wentgood = false;
+        std::cerr << "\tOption 'options.building_radius_vertex_elevation' invalid.\n";
       }
     }
-    if (n["Building"]["lod"]) {
-      if (is_string_integer(n["Building"]["lod"].as<std::string>(), 0, 1) == false) {
+    if (n["threshold_jump_edges"]) {
+      try {
+        boost::lexical_cast<float>(n["threshold_jump_edges"].as<std::string>());
+      }
+      catch (boost::bad_lexical_cast& e) {
         wentgood = false;
-        std::cerr << "\tOption 'Building.lod' invalid; must be an integer between 0 and 1.\n";
+        std::cerr << "\tOption 'options.threshold_jump_edges' invalid.\n";
       }
     }
-    if (n["Building"]["triangulate"]) {
-      std::string s = n["Building"]["triangulate"].as<std::string>();
+    if (n["stitching"]) {
+      std::string s = n["stitching"].as<std::string>();
       if ((s != "true") && (s != "false")) {
         wentgood = false;
-        std::cerr << "\tOption 'Building.triangulate' invalid; must be 'true' or 'false'.\n";
+        std::cerr << "\tOption 'options.stitching' invalid; must be 'true' or 'false'.\n";
       }
     }
-  }
-  if (n["Water"]) {
-    if (n["Water"]["height"]) {
-      std::string s = n["Water"]["height"].as<std::string>();
-      if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
-        (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
-        wentgood = false;
-        std::cerr << "\tOption 'Water.height' invalid; must be 'percentile-XX'.\n";
-      }
-    }
-  }
-  if (n["Road"]) {
-    if (n["Road"]["height"]) {
-      std::string s = n["Road"]["height"].as<std::string>();
-      if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
-        (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
-        wentgood = false;
-        std::cerr << "\tOption 'Road.height' invalid; must be 'percentile-XX'.\n";
-      }
-    }
-  }
-  if (n["Terrain"]) {
-    if (n["Terrain"]["simplification"]) {
-      if (is_string_integer(n["Terrain"]["simplification"].as<std::string>()) == false) {
-        wentgood = false;
-        std::cerr << "\tOption 'Terrain.simplification' invalid; must be an integer.\n";
-      }
-    }
-    if (n["Terrain"]["simplification_tinsimp"]) {
+    if (n["extent"]) {
+      std::vector<std::string> extent_split = stringsplit(n["extent"].as<std::string>(), ',');
+      double xmin, xmax, ymin, ymax;
+      bool correct = true;
       try {
-        boost::lexical_cast<float>(n["Terrain"]["simplification_tinsimp"].as<std::string>());
+        (n["radius_vertex_elevation"].as<std::string>());
+        xmin = boost::lexical_cast<double>(extent_split[0]);
+        ymin = boost::lexical_cast<double>(extent_split[1]);
+        xmax = boost::lexical_cast<double>(extent_split[2]);
+        ymax = boost::lexical_cast<double>(extent_split[3]);
       }
       catch (boost::bad_lexical_cast& e) {
+        correct = false;
         wentgood = false;
-        std::cerr << "\tOption 'Terrain.simplification_tinsimp' invalid; must be a double.\n";
       }
-    }
-    if (n["Terrain"]["innerbuffer"]) {
-      try {
-        boost::lexical_cast<float>(n["Terrain"]["innerbuffer"].as<std::string>());
-      }
-      catch (boost::bad_lexical_cast& e) {
-        wentgood = false;
-        std::cerr << "\tOption 'Terrain.innerbuffer' invalid; must be a float.\n";
+      if (!correct || xmin > xmax || ymin > ymax || boost::geometry::area(Box2(Point2(xmin, ymin), Point2(xmax, ymax))) <= 0.0) {
+        std::cerr << "ERROR: The supplied extent is not valid: (" << n["extent"].as<std::string>() << ")\n";
       }
     }
   }
-  if (n["Forest"]) {
-    if (n["Forest"]["simplification"]) {
-      if (is_string_integer(n["Forest"]["simplification"].as<std::string>()) == false) {
-        wentgood = false;
-        std::cerr << "\tOption 'Forest.simplification' invalid; must be an integer.\n";
-      }
-    }
-    if (n["Forest"]["simplification_tinsimp"]) {
-      try {
-        boost::lexical_cast<float>(n["Forest"]["simplification_tinsimp"].as<std::string>());
-      }
-      catch (boost::bad_lexical_cast& e) {
-        wentgood = false;
-        std::cerr << "\tOption 'Forest.simplification_tinsimp' invalid; must be a double.\n";
-      }
-    }
-    if (n["Forest"]["innerbuffer"]) {
-      try {
-        boost::lexical_cast<float>(n["Forest"]["innerbuffer"].as<std::string>());
-      }
-      catch (boost::bad_lexical_cast& e) {
-        wentgood = false;
-        std::cerr << "\tOption 'Forest.innerbuffer' invalid; must be a float.\n";
-      }
-    }
-  }
-  if (n["Separation"]) {
-    if (n["Separation"]["height"]) {
-      std::string s = n["Separation"]["height"].as<std::string>();
-      if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
-        (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
-        wentgood = false;
-        std::cerr << "\tOption 'Separation.height' invalid; must be 'percentile-XX'.\n";
-      }
-    }
-  }
-  if (n["Bridge/Overpass"]) {
-    if (n["Bridge/Overpass"]["height"]) {
-      std::string s = n["Bridge/Overpass"]["height"].as<std::string>();
-      if ((s.substr(0, s.find_first_of("-")) != "percentile") ||
-        (is_string_integer(s.substr(s.find_first_of("-") + 1), 0, 100) == false)) {
-        wentgood = false;
-        std::cerr << "\tOption 'Bridge/Overpass.height' invalid; must be 'percentile-XX'.\n";
-      }
-    }
-  }
-  //-- 3. input_elevation
-  n = nodes["input_elevation"];
-  for (auto it = n.begin(); it != n.end(); ++it) {
-    YAML::Node tmp = (*it)["omit_LAS_classes"];
-    for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
-      if (is_string_integer(it2->as<std::string>()) == false) {
-        wentgood = false;
-        std::cerr << "\tOption 'input_elevation.omit_LAS_class' invalid; must be an integer.\n";
-      }
-    }
-    if ((*it)["thinning"]) {
-      if (is_string_integer((*it)["thinning"].as<std::string>()) == false) {
-        wentgood = false;
-        std::cerr << "\tOption 'input_elevation.thinning' invalid; must be an integer.\n";
-      }
-    }
-  }
-  //-- 4. options
-  n = nodes["options"];
-  if (n["radius_vertex_elevation"]) {
-    try {
-      boost::lexical_cast<float>(n["radius_vertex_elevation"].as<std::string>());
-    }
-    catch (boost::bad_lexical_cast& e) {
-      wentgood = false;
-      std::cerr << "\tOption 'options.radius_vertex_elevation' invalid.\n";
-    }
-  }
-  if (n["threshold_jump_edges"]) {
-    try {
-      boost::lexical_cast<float>(n["threshold_jump_edges"].as<std::string>());
-    }
-    catch (boost::bad_lexical_cast& e) {
-      wentgood = false;
-      std::cerr << "\tOption 'options.threshold_jump_edges' invalid.\n";
-    }
-  }
+
   //-- 5. output
-  n = nodes["output"];
-  std::string format = n["format"].as<std::string>();
-  if ((format != "OBJ") &&
-    (format != "OBJ-NoID") &&
-    (format != "CityJSON") &&
-    (format != "CityGML") &&
-    (format != "CityGML-Multifile") &&
-    (format != "CityGML-IMGeo") &&
-    (format != "CityGML-IMGeo-Multifile") &&
-    (format != "OBJ-BUILDINGS") &&
-    (format != "CSV-BUILDINGS") &&
-    (format != "Shapefile") &&
-    (format != "Shapefile-Multifile") &&
-    (format != "CSV-BUILDINGS-MULTIPLE") &&
-    (format != "CSV-BUILDINGS-ALL-Z") &&
-    (format != "PostGIS") &&
-    (format != "PostGIS-Multi") &&
-    (format != "PostGIS-PDOK") &&
-    (format != "GDAL")) {
-    wentgood = false;
-    std::cerr << "\tOption 'output.format' invalid (OBJ | OBJ-NoID | CityGML | CityGML-Multifile | CityGML-IMGeo | CityGML-IMGeo-Multifile | CSV-BUILDINGS | Shapefile | Shapefile-Multifile | PostGIS | PostGIS-Multi | PostGIS-PDOK)\n";
-  }
-  if (format == "GDAL" && (!n["gdal_driver"] || n["gdal_driver"].as<std::string>().empty())) {
-    wentgood = false;
-    std::cerr << "\tOption 'output.format' GDAL needs gdal_driver setting\n";
+  if (nodes["output"]) {
+    YAML::Node n = nodes["output"];
+    if (n["gdal_driver"] && n["gdal_driver"].as<std::string>().empty()) {
+      wentgood = false;
+      std::cerr << "\tOutput format GDAL needs gdal_driver setting\n";
+    }
   }
 
   return wentgood;
