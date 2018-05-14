@@ -36,8 +36,9 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <map>
+#include "codecvt" 
 
-std::string VERSION = "1.0-RC1";
+std::string VERSION = "1.0-RC2";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
@@ -522,13 +523,16 @@ int main(int argc, const char * argv[]) {
       continue;
 
     bool fileWritten = true;
-    std::ofstream of;
+    std::wofstream of;
     std::string ofname = output.second;
     if (format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "CityJSON" &&
       format != "Shapefile" && format != "Shapefile-Multifile" &&
       format != "PostGIS" && format != "PostGIS-Multi" && format != "PostGIS-PDOK" &&
       format != "GDAL") {
       of.open(ofname);
+      // Create proper UTF-8 character conversion
+      std::locale utf8_locale = std::locale(std::locale(), new std::codecvt_utf8<wchar_t>);
+      of.imbue(utf8_locale);
     }
     if (format == "CityGML") {
       std::clog << "CityGML output: " << ofname << std::endl;

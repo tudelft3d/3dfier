@@ -217,7 +217,7 @@ AttributeMap TopoFeature::get_attributes() {
   return _attributes;
 }
 
-void TopoFeature::get_imgeo_object_info(std::ostream& of, std::string id) {
+void TopoFeature::get_imgeo_object_info(std::wostream& of, std::string id) {
   std::string attribute;
   if (get_attribute("creationDate", attribute)) {
     of << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>";
@@ -267,7 +267,7 @@ void TopoFeature::get_cityjson_attributes(nlohmann::json& f, AttributeMap attrib
   }
 }
 
-void TopoFeature::get_citygml_attributes(std::ostream& of, AttributeMap attributes) {
+void TopoFeature::get_citygml_attributes(std::wostream& of, AttributeMap attributes) {
   for (auto& attribute : attributes) {
     // add attributes except gml_id
     if (attribute.first.compare("gml_id") != 0) {
@@ -879,7 +879,7 @@ bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
   return insideOuter;
 }
 
-void TopoFeature::get_triangle_as_gml_surfacemember(std::ostream& of, Triangle& t, bool verticalwall) {
+void TopoFeature::get_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, bool verticalwall) {
   of << "<gml:surfaceMember>";
   of << "<gml:Polygon>";
   of << "<gml:exterior>";
@@ -902,7 +902,7 @@ void TopoFeature::get_triangle_as_gml_surfacemember(std::ostream& of, Triangle& 
   of << "</gml:surfaceMember>";
 }
 
-void TopoFeature::get_triangle_as_gml_triangle(std::ostream& of, Triangle& t, bool verticalwall) {
+void TopoFeature::get_triangle_as_gml_triangle(std::wostream& of, Triangle& t, bool verticalwall) {
   of << "<gml:Triangle>";
   of << "<gml:exterior>";
   of << "<gml:LinearRing>";

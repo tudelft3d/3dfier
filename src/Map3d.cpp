@@ -32,6 +32,7 @@
 #include "boost/tokenizer.hpp"
 #include "boost/algorithm/string.hpp"
 #include "nlohmann-json/json.hpp"
+#include "codecvt"
 
 Map3d::Map3d() {
   OGRRegisterAll();
@@ -190,7 +191,7 @@ bool Map3d::get_cityjson(std::string filename) {
   return true;
 }
 
-void Map3d::get_citygml(std::ostream& of) {
+void Map3d::get_citygml(std::wostream& of) {
   create_citygml_header(of);
   for (auto& f : _lsFeatures) {
     f->get_citygml(of);
@@ -200,25 +201,30 @@ void Map3d::get_citygml(std::ostream& of) {
 }
 
 void Map3d::get_citygml_multifile(std::string ofname) {
-  std::unordered_map<std::string, std::ofstream> ofs;
+  std::unordered_map<std::string, std::wofstream*> ofs;
+  // Create proper UTF-8 character conversion
+  std::locale utf8_locale = std::locale(std::locale(), new std::codecvt_utf8<wchar_t>);
 
   for (auto& f : _lsFeatures) {
     std::string filename = ofname + f->get_layername() + ".gml";
     if (ofs.find(filename) == ofs.end()) {
-      ofs.emplace(filename, std::ofstream(filename));
-      create_citygml_header(ofs[filename]);
+      std::wofstream* of = new std::wofstream();
+      of->open(filename);
+      of->imbue(utf8_locale);
+      ofs.emplace(filename, of);
+      create_citygml_header(*ofs[filename]);
     }
-    f->get_citygml(ofs[filename]);
-    ofs[filename] << "\n";
+    f->get_citygml(*ofs[filename]);
+    *ofs[filename] << "\n";
   }
-  for (auto i = ofs.begin(); i != ofs.end(); i++) {
-    std::ofstream& of = ofs[(*i).first];
+  for (auto it = ofs.begin(); it != ofs.end(); it++) {
+    std::wofstream& of = *(it->second);
     of << "</CityModel>\n";
     of.close();
   }
 }
 
-void Map3d::get_citygml_imgeo(std::ostream& of) {
+void Map3d::get_citygml_imgeo(std::wostream& of) {
   create_citygml_imgeo_header(of);
   for (auto& f : _lsFeatures) {
     f->get_citygml_imgeo(of);
@@ -228,25 +234,30 @@ void Map3d::get_citygml_imgeo(std::ostream& of) {
 }
 
 void Map3d::get_citygml_imgeo_multifile(std::string ofname) {
-  std::unordered_map<std::string, std::ofstream> ofs;
+  std::unordered_map<std::string, std::wofstream*> ofs;
+  // Create proper UTF-8 character conversion
+  std::locale utf8_locale = std::locale(std::locale(), new std::codecvt_utf8<wchar_t>);
 
   for (auto& f : _lsFeatures) {
     std::string filename = ofname + f->get_layername() + ".gml";
     if (ofs.find(filename) == ofs.end()) {
-      ofs.emplace(filename, std::ofstream(filename));
-      create_citygml_imgeo_header(ofs[filename]);
+      std::wofstream* of = new std::wofstream();
+      of->open(filename);
+      of->imbue(utf8_locale);
+      ofs.emplace(filename, of);
+      create_citygml_imgeo_header(*ofs[filename]);
     }
-    f->get_citygml_imgeo(ofs[filename]);
-    ofs[filename] << "\n";
+    f->get_citygml_imgeo(*ofs[filename]);
+    *ofs[filename] << "\n";
   }
   for (auto it = ofs.begin(); it != ofs.end(); it++) {
-    std::ofstream& of = ofs[(*it).first];
+    std::wofstream& of = *(it->second);
     of << "</CityModel>\n";
     of.close();
   }
 }
 
-void Map3d::create_citygml_header(std::ostream& of) {
+void Map3d::create_citygml_header(std::wostream& of) {
     of << std::setprecision(3) << std::fixed;
     get_xml_header(of);
     get_citygml_namespaces(of);
@@ -264,7 +275,7 @@ void Map3d::create_citygml_header(std::ostream& of) {
     of << "</gml:boundedBy>\n";
 }
 
-void Map3d::create_citygml_imgeo_header(std::ostream& of) {
+void Map3d::create_citygml_imgeo_header(std::wostream& of) {
     of << std::setprecision(3) << std::fixed;
     get_xml_header(of);
     get_citygml_imgeo_namespaces(of);
@@ -282,7 +293,7 @@ void Map3d::create_citygml_imgeo_header(std::ostream& of) {
     of << "</gml:boundedBy>\n";
 }
 
-void Map3d::get_csv_buildings(std::ostream& of) {
+void Map3d::get_csv_buildings(std::wostream& of) {
   of << "id,roof,ground\n";
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
@@ -292,47 +303,47 @@ void Map3d::get_csv_buildings(std::ostream& of) {
   }
 }
 
-void Map3d::get_csv_buildings_all_elevation_points(std::ostream &outputfile) {
-  outputfile << "id,allzvalues" << std::endl;
+void Map3d::get_csv_buildings_all_elevation_points(std::wostream& of) {
+  of << "id,allzvalues" << std::endl;
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
-      outputfile << b->get_id() << ",";
-      outputfile << b->get_all_z_values();
-      outputfile << "," << std::endl;
+      of << b->get_id() << ",";
+      of << b->get_all_z_values();
+      of << "," << std::endl;
     }
   }
 }
 
-void Map3d::get_csv_buildings_multiple_heights(std::ostream &outputfile) {
+void Map3d::get_csv_buildings_multiple_heights(std::wostream& of) {
   //-- ground heights
   std::vector<float> gpercentiles = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
   std::vector<float> rpercentiles = {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
-  outputfile << std::setprecision(2) << std::fixed;
-  outputfile << "id,";
+  of << std::setprecision(2) << std::fixed;
+  of << "id,";
   for (auto& each : gpercentiles)
-    outputfile << "ground-" << each << ",";
+    of << "ground-" << each << ",";
   for (auto& each : rpercentiles)
-    outputfile << "roof-" << each << ",";
-  outputfile << std::endl;
+    of << "roof-" << each << ",";
+  of << std::endl;
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
-      outputfile << b->get_id() << ",";
+      of << b->get_id() << ",";
       for (auto& each : gpercentiles) {
         int h = b->get_height_ground_at_percentile(each);
-        outputfile << float(h)/100 << ",";
+        of << float(h)/100 << ",";
       }
       for (auto& each : rpercentiles) {
         int h = b->get_height_roof_at_percentile(each);
-        outputfile << float(h)/100 << ",";
+        of << float(h)/100 << ",";
       }
-      outputfile << std::endl;
+      of << std::endl;
     }
   }
 }
 
-void Map3d::get_obj_per_feature(std::ostream& of) {
+void Map3d::get_obj_per_feature(std::wostream& of) {
   std::unordered_map< std::string, unsigned long > dPts;
   std::string fs;
   
@@ -361,7 +372,7 @@ void Map3d::get_obj_per_feature(std::ostream& of) {
   of << fs << std::endl;
 }
 
-void Map3d::get_obj_per_class(std::ostream& of) {
+void Map3d::get_obj_per_class(std::wostream& of) {
   std::unordered_map< std::string, unsigned long > dPts;
   std::string fs;
   for (int c = 0; c < 6; c++) {
@@ -423,9 +434,10 @@ bool Map3d::get_pdok_output(std::string filename) {
     }
 
     //Add additional attribute describing CityGML of feature
-    std::stringstream ss;
+    std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>>converter;
+    std::wstringstream ss;
     f->get_citygml_imgeo(ss);
-    std::string gmlAttribute = ss.str();
+    std::string gmlAttribute = converter.to_bytes(ss.str());
     ss.clear();
     AttributeMap extraAttribute = AttributeMap();
     extraAttribute["xml"] = std::make_pair(OFTString, gmlAttribute);

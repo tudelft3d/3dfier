@@ -74,7 +74,7 @@ void Water::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsig
   j["CityObjects"][this->get_id()] = f;
 }
 
-void Water::get_citygml(std::ostream& of) {
+void Water::get_citygml(std::wostream& of) {
   of << "<cityObjectMember>";
   of << "<wtr:WaterBody gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
@@ -90,7 +90,7 @@ void Water::get_citygml(std::ostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Water::get_citygml_imgeo(std::ostream& of) {
+void Water::get_citygml_imgeo(std::wostream& of) {
   bool ondersteunend = _layername == "ondersteunendwaterdeel";
   of << "<cityObjectMember>";
   if (ondersteunend) {

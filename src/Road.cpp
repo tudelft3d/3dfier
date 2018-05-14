@@ -73,7 +73,7 @@ void Road::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsign
   j["CityObjects"][this->get_id()] = f;
 }
 
-void Road::get_citygml(std::ostream& of) {
+void Road::get_citygml(std::wostream& of) {
   of << "<cityObjectMember>";
   of << "<tran:Road gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
@@ -89,7 +89,7 @@ void Road::get_citygml(std::ostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Road::get_citygml_imgeo(std::ostream& of) {
+void Road::get_citygml_imgeo(std::wostream& of) {
   bool auxiliary = _layername == "auxiliarytrafficarea";
   bool spoor = _layername == "spoor";
   of << "<cityObjectMember>";
