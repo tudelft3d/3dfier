@@ -117,33 +117,33 @@ int main(int argc, const char * argv[]) {
       std::cout << "Usage: 3dfier config.yml --OBJ myoutput.obj" << std::endl;
       std::cout << "       3dfier config.yml --CityGML myoutput.gml" << std::endl;
       std::cout << pomain << std::endl;
-      return 0;
+      return EXIT_FAILURE;
     }
     if (vm.count("license")) {
       std::cout << print_license() << std::endl;
-      return 0;
+      return EXIT_FAILURE;
     }
     if (vm.count("version")) {
       std::cout << "3dfier " << VERSION << std::endl;
       std::cout << liblas::GetFullVersion() << std::endl;
       std::cout << "GDAL " << GDALVersionInfo("--version") << std::endl;
       //-- TODO : put here the date and/or the git-commit?
-      return 0;
+      return EXIT_FAILURE;
     }
     if (vm.count("yaml") == 0) {
       std::cerr << "ERROR: one YAML config file must be specified." << std::endl;
       std::cout << std::endl << pomain << std::endl;
-      return 0;
+      return EXIT_FAILURE;
     }
     else {
       boost::filesystem::path yp(f_yaml);
       if (boost::filesystem::exists(yp) == false) {
         std::cerr << "ERROR: YAML file " << f_yaml << " doesn't exist." << std::endl;
-        return 0;
+        return EXIT_FAILURE;
       }
       if (yp.extension() != ".yml") {
         std::cerr << "ERROR: config file " << f_yaml << " if not *.yml" << std::endl;
-        return 0;
+        return EXIT_FAILURE;
       }
     }
     for (auto& output : vm) {
@@ -155,14 +155,14 @@ int main(int argc, const char * argv[]) {
         }
         catch (boost::filesystem::filesystem_error &e) {
           std::cerr << "ERROR: " << e.what() << ". Abort." << std::endl;
-          return 0;
+          return EXIT_FAILURE;
         }
       }
     }
   }
   catch (std::exception& e) {
     std::cerr << "Error: " << e.what() << "\n";
-    return 1;
+    return EXIT_FAILURE;
   }
 
   std::clog << licensewarning << std::endl;
@@ -174,7 +174,7 @@ int main(int argc, const char * argv[]) {
   //-- validate the YAML file right now, nicer for the user
    if (validate_yaml(argv[1], allowedFeatures) == false) {
      std::cerr << "ERROR: config file (*.yml) is not valid. Aborting.\n";
-     return 0;
+     return EXIT_FAILURE;
    }
    std::clog << "Config file is valid.\n";
 
@@ -367,7 +367,7 @@ int main(int argc, const char * argv[]) {
     else {
       bPolyData = false;
       std::cerr << "ERROR: Missing polygon data, cannot open file " << file.filename << std::endl;
-      return 0;
+      return EXIT_FAILURE;
     }
   }
 
@@ -397,7 +397,7 @@ int main(int argc, const char * argv[]) {
         if (path.stem() == "*") {
           if (!boost::filesystem::exists(rootPath) || !boost::filesystem::is_directory(rootPath)) {
             std::cerr << "ERROR: " << rootPath << "is not a directory.\n";
-            return 0;
+            return EXIT_FAILURE;
           }
           else {
             boost::filesystem::recursive_directory_iterator it_end;
@@ -427,7 +427,7 @@ int main(int argc, const char * argv[]) {
     std::ifstream f(file.filename);
     if (!f.good()) {
       std::cerr << "ERROR: cannot open file " << file.filename << std::endl;
-      return 0;
+      return EXIT_FAILURE;
     }
   }
 
@@ -437,7 +437,7 @@ int main(int argc, const char * argv[]) {
   }
   if (!bPolyData) {
     std::cerr << "ERROR: Missing polygon data, cannot 3dfy the dataset. Aborting.\n";
-    return 0;
+    return EXIT_FAILURE;
   }
   std::clog << "\nTotal # of polygons: " << boost::locale::as::number << map3d.get_num_polygons() << std::endl;
 
@@ -460,7 +460,7 @@ int main(int argc, const char * argv[]) {
     bool added = map3d.add_las_file(file);
     if (!added) {
       std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
-      return 0;
+      return EXIT_FAILURE;
     }
   }
   print_duration("All points read in %lld seconds || %02d:%02d:%02d\n", startPoints);
@@ -498,7 +498,7 @@ int main(int argc, const char * argv[]) {
   if (cdt) {
     auto startCDT = boost::chrono::high_resolution_clock::now();
     if (!map3d.construct_CDT()) {
-      return 0;
+      return EXIT_FAILURE;
     }
     print_duration("CDT created in %lld seconds || %02d:%02d:%02d\n", startCDT);
   }
@@ -609,7 +609,7 @@ int main(int argc, const char * argv[]) {
 
   //-- bye-bye
   print_duration("Successfully terminated in %lld seconds || %02d:%02d:%02d\n", startTime);
-  return 1;
+  return EXIT_SUCCESS;
 }
 
 std::string print_license() {
