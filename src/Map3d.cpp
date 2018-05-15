@@ -521,25 +521,25 @@ OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std
     sr->importFromEPSG(7415);
     layer = dataSource->CreateLayer(layername.c_str(), sr, OGR_GT_SetZ(wkbMultiPolygon), NULL);
 
-    OGRFieldDefn oField("3dfier_Id", OFTString);
+    OGRFieldDefn oField("3df_id", OFTString);
     if (layer->CreateField(&oField) != OGRERR_NONE) {
-      std::cerr << "Creating 3dfier_Id field failed.\n";
+      std::cerr << "Creating 3df_id field failed.\n";
       return NULL;
     }
-    OGRFieldDefn oField2("3dfier_Class", OFTString);
+    OGRFieldDefn oField2("3df_class", OFTString);
     if (layer->CreateField(&oField2) != OGRERR_NONE) {
-      std::cerr << "Creating 3dfier_Class field failed.\n";
+      std::cerr << "Creating 3df_class field failed.\n";
       return NULL;
     }
     if (addHeightAttributes) {
-      OGRFieldDefn oField3("BaseHeight", OFTReal);
+      OGRFieldDefn oField3("baseheight", OFTReal);
       if (layer->CreateField(&oField3) != OGRERR_NONE) {
-        std::cerr << "Creating BaseHeight field failed.\n";
+        std::cerr << "Creating floorheight field failed.\n";
         return NULL;
       }
       OGRFieldDefn oField4("RoofHeight", OFTReal);
       if (layer->CreateField(&oField4) != OGRERR_NONE) {
-        std::cerr << "Creating RoofHeight field failed.\n";
+        std::cerr << "Creating roofheight field failed.\n";
         return NULL;
       }
     }
@@ -574,24 +574,24 @@ bool Map3d::get_shapefile2d(std::string filename) {
   }
   OGRLayer *layer = dataSource->CreateLayer("my3dmap", NULL, wkbMultiPolygon, NULL);
 
-  OGRFieldDefn oField("3dfier_Id", OFTString);
+  OGRFieldDefn oField("3df_id", OFTString);
   if (layer->CreateField(&oField) != OGRERR_NONE) {
-    std::cerr << "Creating 3dfier_Id field failed.\n";
+    std::cerr << "Creating 3df_id field failed.\n";
     return false;
   }
-  OGRFieldDefn oField2("3dfier_Class", OFTString);
+  OGRFieldDefn oField2("3df_class", OFTString);
   if (layer->CreateField(&oField2) != OGRERR_NONE) {
-    std::cerr << "Creating 3dfier_Class field failed.\n";
+    std::cerr << "Creating 3df_class field failed.\n";
     return false;
   }
-  OGRFieldDefn oField3("BaseHeight", OFTReal);
+  OGRFieldDefn oField3("baseheight", OFTReal);
   if (layer->CreateField(&oField3) != OGRERR_NONE) {
-    std::cerr << "Creating FloorHeight field failed.\n";
+    std::cerr << "Creating floorheight field failed.\n";
     return false;
   }
-  OGRFieldDefn oField4("RoofHeight", OFTReal);
+  OGRFieldDefn oField4("roofheight", OFTReal);
   if (layer->CreateField(&oField4) != OGRERR_NONE) {
-    std::cerr << "Creating RoofHeight field failed.\n";
+    std::cerr << "Creating roofheight field failed.\n";
     return false;
   }
   for (auto& f : _lsFeatures) {

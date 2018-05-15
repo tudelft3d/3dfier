@@ -330,11 +330,11 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
   }
 
   feature->SetGeometry(&multipolygon);
-  feature->SetField("3dfier_Id", this->get_id().c_str());
-  feature->SetField("3dfier_Class", className.c_str());
+  feature->SetField("3df_id", this->get_id().c_str());
+  feature->SetField("3df_class", className.c_str());
   if (writeHeights) {
-    feature->SetField("BaseHeight", z_to_float(height_base));
-    feature->SetField("RoofHeight", z_to_float(height));
+    feature->SetField("baseheight", z_to_float(height_base));
+    feature->SetField("roofheight", z_to_float(height));
   }
   if (writeAttributes) {
     for (auto attr : _attributes) {
@@ -342,7 +342,6 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
         feature->SetField(attr.first.c_str(), attr.second.second.c_str());
       }
     }
-    
     for (auto attr : extraAttributes) {
       feature->SetField(attr.first.c_str(), attr.second.second.c_str());
     }
