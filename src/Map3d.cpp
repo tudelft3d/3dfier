@@ -917,36 +917,37 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
   geom->exportToWkt(&wkt);
   AttributeMap attributes;
   int attributeCount = f->GetFieldCount();
+  const char* id = CPLRecode(f->GetFieldAsString(idfield), "", CPL_ENC_UTF8);
   for (int i = 0; i < attributeCount; i++) {
     const char* cplstr = CPLRecode(f->GetFieldAsString(i), "", CPL_ENC_UTF8);
     attributes[boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef())] = std::make_pair(f->GetFieldDefnRef(i)->GetType(), cplstr);
   }
   if (layertype == "Building") {
-    Building* p3 = new Building(wkt, layername, attributes, f->GetFieldAsString(idfield), _building_heightref_roof, _building_heightref_ground);
+    Building* p3 = new Building(wkt, layername, attributes, id, _building_heightref_roof, _building_heightref_ground);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Terrain") {
-    Terrain* p3 = new Terrain(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_terrain_simplification, this->_terrain_simplification_tinsimp, this->_terrain_innerbuffer);
+    Terrain* p3 = new Terrain(wkt, layername, attributes, id, this->_terrain_simplification, this->_terrain_simplification_tinsimp, this->_terrain_innerbuffer);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Forest") {
-    Forest* p3 = new Forest(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_forest_simplification, this->_forest_simplification_tinsimp, this->_forest_innerbuffer);
+    Forest* p3 = new Forest(wkt, layername, attributes, id, this->_forest_simplification, this->_forest_simplification_tinsimp, this->_forest_innerbuffer);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Water") {
-    Water* p3 = new Water(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_water_heightref);
+    Water* p3 = new Water(wkt, layername, attributes, id, this->_water_heightref);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Road") {
-    Road* p3 = new Road(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_road_heightref, this->_road_threshold_outliers);
+    Road* p3 = new Road(wkt, layername, attributes, id, this->_road_heightref, this->_road_threshold_outliers);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Separation") {
-    Separation* p3 = new Separation(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_separation_heightref);
+    Separation* p3 = new Separation(wkt, layername, attributes, id, this->_separation_heightref);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Bridge/Overpass") {
-    Bridge* p3 = new Bridge(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_bridge_heightref);
+    Bridge* p3 = new Bridge(wkt, layername, attributes, id, this->_bridge_heightref);
     _lsFeatures.push_back(p3);
   }
   //-- flag all polygons at (niveau != 0) or remove if not handling multiple height levels
