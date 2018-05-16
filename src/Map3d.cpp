@@ -413,7 +413,6 @@ bool Map3d::get_pdok_output(std::string filename) {
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("PostgreSQL");
 
   std::unordered_map<std::string, OGRLayer*> layers;
-
   for (auto& f : _lsFeatures) {
     std::string layername = f->get_layername();
     if (layers.find(layername) == layers.end()) {
@@ -424,10 +423,7 @@ bool Map3d::get_pdok_output(std::string filename) {
       OGRLayer *layer = create_gdal_layer(driver, tmpFilename, layername, attributes, f->get_class() == BUILDING);
       if (layer == NULL) {
         std::cerr << "ERROR: Cannot open database '" + filename + "' for writing" << std::endl;
-        for (auto& layer : layers) {
-          GDALClose(layer.second);
-        }
-        GDALClose(driver);
+        close_gdal_resources(driver, layers);
         return false;
       }
       layers.emplace(layername, layer);
@@ -444,10 +440,7 @@ bool Map3d::get_pdok_output(std::string filename) {
 
     f->get_shape(layers[layername], true, extraAttribute);
   }
-  for (auto& layer : layers) {
-    GDALClose(layer.second);
-  }
-  GDALClose(driver);
+  close_gdal_resources(driver, layers);
   return true;
 #endif
 }
@@ -477,7 +470,6 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
   }
   else {
     std::unordered_map<std::string, OGRLayer*> layers;
-
     for (auto& f : _lsFeatures) {
       std::string layername = f->get_layername();
       if (layers.find(layername) == layers.end()) {
@@ -488,24 +480,27 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
         OGRLayer *layer = create_gdal_layer(driver, tmpFilename, layername, f->get_attributes(), f->get_class() == BUILDING);
         if (layer == NULL) {
           std::cerr << "ERROR: Cannot open file '" + filename + "' for writing" << std::endl;
-          for (auto& layer : layers) {
-            GDALClose(layer.second);
-          }
-          GDALClose(driver);
+          close_gdal_resources(driver, layers);
           return false;
         }
         layers.emplace(layername, layer);
       }
       f->get_shape(layers[layername], true);
     }
-    for (auto& layer : layers) {
-      GDALClose(layer.second);
-    }
-    GDALClose(driver);
+    close_gdal_resources(driver, layers);
   }
   return true;
 #endif
 }
+
+#if GDAL_VERSION_MAJOR >= 2
+bool Map3d::close_gdal_resources(GDALDriver* driver, std::unordered_map<std::string, OGRLayer*> layers) {
+  for (auto& layer : layers) {
+    GDALClose(layer.second);
+  }
+  GDALClose(driver);
+}
+#endif
 
 #if GDAL_VERSION_MAJOR >= 2
 OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, AttributeMap attributes, bool addHeightAttributes) {
