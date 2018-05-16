@@ -51,6 +51,7 @@ int main(int argc, const char * argv[]) {
   std::locale loc = gen("en_US.UTF-8");
   std::locale::global(loc);
   std::clog.imbue(loc);
+  std::cout.imbue(loc);
 
   std::string licensewarning =
     "3dfier Copyright (C) 2015-2018  3D geoinformation research group, TU Delft\n"
@@ -517,7 +518,7 @@ int main(int argc, const char * argv[]) {
 
   //-- iterate over all output
   for (auto& output : outputs) {
-    std::clock_t startFileWriting = std::clock();
+    auto startFileWriting = boost::chrono::high_resolution_clock::now();
     std::string format = output.first;
     if (output.second == "")
       continue;
@@ -529,10 +530,10 @@ int main(int argc, const char * argv[]) {
       format != "Shapefile" && format != "Shapefile-Multifile" &&
       format != "PostGIS" && format != "PostGIS-Multi" && format != "PostGIS-PDOK" &&
       format != "GDAL") {
-      of.open(ofname);
-      // Create proper UTF-8 character conversion
+      // Create UTF-8 character conversion
       std::locale utf8_locale = std::locale(std::locale(), new std::codecvt_utf8<wchar_t>);
       of.imbue(utf8_locale);
+      of.open(ofname);
     }
     if (format == "CityGML") {
       std::clog << "CityGML output: " << ofname << std::endl;
@@ -604,7 +605,7 @@ int main(int argc, const char * argv[]) {
     of.close();
 
     if (fileWritten) {
-      printf("Features written in %ld ms\n", std::clock() - startFileWriting);
+      print_duration("Features written in %d seconds || %02d:%02d:%02d\n", startFileWriting);
     }
     else {
       std::cerr << "ERROR: Writing features failed for " << format << ". Aborting.\n";
@@ -612,7 +613,7 @@ int main(int argc, const char * argv[]) {
   }
 
   //-- bye-bye
-  print_duration("Successfully terminated in %lld seconds || %02d:%02d:%02d\n", startTime);
+  print_duration("Successfully terminated in %d seconds || %02d:%02d:%02d\n", startTime);
   return EXIT_SUCCESS;
 }
 
