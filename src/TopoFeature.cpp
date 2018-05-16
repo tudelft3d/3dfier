@@ -347,7 +347,7 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
     }
   }
   if (layer->CreateFeature(feature) != OGRERR_NONE) {
-    std::cerr << "Failed to create feature " << this->get_id() << " in shapefile.\n";
+    std::cerr << "Failed to create feature " << this->get_id() << ".\n";
     return false;
   }
   OGRFeature::DestroyFeature(feature);
