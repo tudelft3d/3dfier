@@ -202,15 +202,12 @@ void Map3d::get_citygml(std::wostream& of) {
 
 void Map3d::get_citygml_multifile(std::string ofname) {
   std::unordered_map<std::string, std::wofstream*> ofs;
-  // Create proper UTF-8 character conversion
-  std::locale utf8_locale = std::locale(std::locale(), new std::codecvt_utf8<wchar_t>);
 
   for (auto& f : _lsFeatures) {
     std::string filename = ofname + f->get_layername() + ".gml";
     if (ofs.find(filename) == ofs.end()) {
       std::wofstream* of = new std::wofstream();
       of->open(filename);
-      of->imbue(utf8_locale);
       ofs.emplace(filename, of);
       create_citygml_header(*ofs[filename]);
     }
@@ -235,15 +232,12 @@ void Map3d::get_citygml_imgeo(std::wostream& of) {
 
 void Map3d::get_citygml_imgeo_multifile(std::string ofname) {
   std::unordered_map<std::string, std::wofstream*> ofs;
-  // Create proper UTF-8 character conversion
-  std::locale utf8_locale = std::locale(std::locale(), new std::codecvt_utf8<wchar_t>);
 
   for (auto& f : _lsFeatures) {
     std::string filename = ofname + f->get_layername() + ".gml";
     if (ofs.find(filename) == ofs.end()) {
       std::wofstream* of = new std::wofstream();
       of->open(filename);
-      of->imbue(utf8_locale);
       ofs.emplace(filename, of);
       create_citygml_imgeo_header(*ofs[filename]);
     }

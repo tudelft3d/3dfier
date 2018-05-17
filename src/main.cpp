@@ -36,7 +36,6 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <map>
-#include "codecvt" 
 
 std::string VERSION = "1.0-RC2";
 
@@ -530,9 +529,6 @@ int main(int argc, const char * argv[]) {
       format != "Shapefile" && format != "Shapefile-Multifile" &&
       format != "PostGIS" && format != "PostGIS-Multi" && format != "PostGIS-PDOK" &&
       format != "GDAL") {
-      // Create UTF-8 character conversion
-      std::locale utf8_locale = std::locale(std::locale(), new std::codecvt_utf8<wchar_t>);
-      of.imbue(utf8_locale);
       of.open(ofname);
     }
     if (format == "CityGML") {
