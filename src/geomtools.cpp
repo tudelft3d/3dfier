@@ -185,7 +185,7 @@ bool getCDT(const Polygon2* pgn,
   int count = 0;
 
   if (!cdt.is_valid()) {
-    throw std::exception("CDT is invalid.");
+    throw std::runtime_error("CDT is invalid.");
   }
   for (CDT::Finite_vertices_iterator vit = cdt.finite_vertices_begin();
     vit != cdt.finite_vertices_end(); ++vit) {
