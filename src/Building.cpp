@@ -33,14 +33,17 @@
 //-- static variable
 float Building::_heightref_top;
 float Building::_heightref_base;
+bool Building::_building_triangulate;
+bool Building::_building_include_floor;
 std::set<int> Building::_las_classes_roof;
 std::set<int> Building::_las_classes_ground;
-
-Building::Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base)
+Building::Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base, bool building_triangulate, bool building_include_floor)
   : Flat(wkt, layername, attributes, pid)
 {
   _heightref_top = heightref_top;
   _heightref_base = heightref_base;
+  _building_triangulate = building_triangulate;
+  _building_include_floor = building_include_floor;
 }
 
 void Building::set_las_classes_roof(std::set<int> theset)
@@ -193,7 +196,7 @@ void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, u
   j["CityObjects"][this->get_id()] = b;
 }
 
-void Building::get_citygml(std::wostream& of, bool building_triangulate, bool building_include_floor) {
+void Building::get_citygml(std::wostream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
   of << "<cityObjectMember>";
@@ -220,22 +223,19 @@ void Building::get_citygml(std::wostream& of, bool building_triangulate, bool bu
   of << "<gml:Solid>";
   of << "<gml:exterior>";
   of << "<gml:CompositeSurface>";
-  //-- get floor
-  get_polygon_lifted_gml(of, this->_p2, hbase, false);
-  //-- get roof
-  get_polygon_lifted_gml(of, this->_p2, h, true);
-  //-- get the walls
-  auto r = _p2->outer();
-  int i;
-  for (i = 0; i < (r.size() - 1); i++)
-    get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
-  get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
-  //-- irings
-  auto irings = _p2->inners();
-  for (Ring2& r : irings) {
-    for (i = 0; i < (r.size() - 1); i++)
-      get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
-    get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
+  if (_building_triangulate) {
+    for (auto& t : _triangles)
+      get_triangle_as_gml_surfacemember(of, t);
+    for (auto& t : _triangles_vw)
+      get_triangle_as_gml_surfacemember(of, t, true);
+    if (_building_include_floor) {
+      for (auto& t : _triangles) {
+        get_floor_triangle_as_gml_surfacemember(of, t, _height_base);
+      }
+    }
+  }
+  else {
+    get_extruded_lod1_block_gml(of, this->_p2, h, hbase, _building_include_floor);
   }
   of << "</gml:CompositeSurface>";
   of << "</gml:exterior>";
@@ -259,22 +259,37 @@ void Building::get_citygml_imgeo(std::wostream& of) {
   of << "<gml:Solid>";
   of << "<gml:exterior>";
   of << "<gml:CompositeSurface>";
-  //-- get floor
-  get_polygon_lifted_gml(of, this->_p2, hbase, false);
-  //-- get roof
-  get_polygon_lifted_gml(of, this->_p2, h, true);
-  //-- get the walls
-  auto r = _p2->outer();
-  int i;
-  for (i = 0; i < (r.size() - 1); i++)
-    get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
-  get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
-  //-- irings
-  auto irings = _p2->inners();
-  for (Ring2& r : irings) {
+  if (_building_triangulate) {
+    for (auto& t : _triangles)
+      get_triangle_as_gml_surfacemember(of, t);
+    for (auto& t : _triangles_vw)
+      get_triangle_as_gml_surfacemember(of, t, true);
+    if (_building_include_floor) {
+      for (auto& t : _triangles) {
+        get_floor_triangle_as_gml_surfacemember(of, t, _height_base);
+      }
+    }
+  }
+  else {
+    if (_building_include_floor) {
+      //-- get floor
+      get_polygon_lifted_gml(of, this->_p2, hbase, false);
+    }
+    //-- get roof
+    get_polygon_lifted_gml(of, this->_p2, h, true);
+    //-- get the walls
+    auto r = _p2->outer();
+    int i;
     for (i = 0; i < (r.size() - 1); i++)
       get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
     get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
+    //-- irings
+    auto irings = _p2->inners();
+    for (Ring2& r : irings) {
+      for (i = 0; i < (r.size() - 1); i++)
+        get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
+      get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
+    }
   }
   of << "</gml:CompositeSurface>";
   of << "</gml:exterior>";

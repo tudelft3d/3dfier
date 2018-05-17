@@ -194,13 +194,7 @@ bool Map3d::get_cityjson(std::string filename) {
 void Map3d::get_citygml(std::wostream& of) {
   create_citygml_header(of);
   for (auto& f : _lsFeatures) {
-    if (f->get_class() == BUILDING) {
-      Building* f = dynamic_cast<Building*>(f);
-      f->get_citygml(of, _building_triangulate, _building_include_floor);
-    }
-    else {
-      f->get_citygml(of);
-    }
+    f->get_citygml(of);
     of << "\n";
   }
   of << "</CityModel>\n";
@@ -922,7 +916,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
     attributes[boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef())] = std::make_pair(f->GetFieldDefnRef(i)->GetType(), f->GetFieldAsString(i));
   }
   if (layertype == "Building") {
-    Building* p3 = new Building(wkt, layername, attributes, id, _building_heightref_roof, _building_heightref_ground);
+    Building* p3 = new Building(wkt, layername, attributes, id, _building_heightref_roof, _building_heightref_ground, _building_triangulate, _building_include_floor);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Terrain") {

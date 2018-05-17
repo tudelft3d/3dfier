@@ -212,6 +212,12 @@ int main(int argc, const char * argv[]) {
         else
           map3d.set_building_triangulate(false);
       }
+      if (n["Building"]["floor"]) {
+        if (n["Building"]["floor"].as<std::string>() == "true")
+          map3d.set_building_include_floor(true);
+        else
+          map3d.set_building_include_floor(false);
+      }
     }
     if (n["Terrain"]) {
       if (n["Terrain"]["simplification"])
@@ -505,16 +511,6 @@ int main(int argc, const char * argv[]) {
   }
   std::clog << "...3dfying done.\n";
 
-  //-- output
-  if (nodes["output"]) {
-    YAML::Node n = nodes["output"];
-    if (n["building_floor"]) {
-      if (n["building_floor"].as<std::string>() == "true") {
-        map3d.set_building_include_floor(true);
-      }
-    }
-  }
-
   //-- iterate over all output
   for (auto& output : outputs) {
     auto startFileWriting = boost::chrono::high_resolution_clock::now();
@@ -750,6 +746,13 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
         if ((s != "true") && (s != "false")) {
           wentgood = false;
           std::cerr << "\tOption 'Building.triangulate' invalid; must be 'true' or 'false'.\n";
+        }
+      }
+      if (n["Building"]["floor"]) {
+        std::string s = n["Building"]["floor"].as<std::string>();
+        if ((s != "true") && (s != "false")) {
+          wentgood = false;
+          std::cerr << "\tOption 'Building.floor' invalid; must be 'true' or 'false'.\n";
         }
       }
     }
@@ -989,13 +992,6 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     if (n["gdal_driver"] && n["gdal_driver"].as<std::string>().empty()) {
       wentgood = false;
       std::cerr << "\tOutput format GDAL needs gdal_driver setting\n";
-    }
-    if (n["building_floor"]) {
-      std::string s = n["building_floor"].as<std::string>();
-      if ((s != "true") && (s != "false")) {
-        wentgood = false;
-        std::cerr << "\tOption 'output.building_floor' invalid; must be 'true' or 'false'.\n";
-      }
     }
   }
 

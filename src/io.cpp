@@ -138,15 +138,26 @@ void get_extruded_line_gml(std::wostream& of, Point2* a, Point2* b, double high,
   of << "</gml:surfaceMember>";
 }
 
-void get_extruded_lod1_block_gml(std::wostream& of, Polygon2* p2, double high, double low) {
-  //-- get floor
-  get_polygon_lifted_gml(of, p2, low, false);
+void get_extruded_lod1_block_gml(std::wostream& of, Polygon2* p2, double high, double low, bool building_include_floor) {
+  if (building_include_floor) {
+    //-- get floor
+    get_polygon_lifted_gml(of, p2, low, false);
+  }
   //-- get roof
   get_polygon_lifted_gml(of, p2, high, true);
   //-- get the walls
   auto r = p2->outer();
-  for (int i = 0; i < (r.size() - 1); i++)
+  int i;
+  for (i = 0; i < (r.size() - 1); i++)
     get_extruded_line_gml(of, &r[i], &r[i + 1], high, low, false);
+  get_extruded_line_gml(of, &r[i], &r[0], high, low, false);
+  //-- irings
+  auto irings = p2->inners();
+  for (Ring2& r : irings) {
+    for (i = 0; i < (r.size() - 1); i++)
+      get_extruded_line_gml(of, &r[i], &r[i + 1], high, low, false);
+    get_extruded_line_gml(of, &r[i], &r[0], high, low, false);
+  }
 }
 
 bool is_string_integer(std::string s, int min, int max) {

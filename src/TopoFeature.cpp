@@ -892,17 +892,53 @@ void TopoFeature::get_triangle_as_gml_surfacemember(std::wostream& of, Triangle&
   of << "<gml:exterior>";
   of << "<gml:LinearRing>";
   if (verticalwall == false) {
-    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
+    of << "<gml:posList>"
+      << _vertices[t.v0].second << " "
+      << _vertices[t.v1].second << " "
+      << _vertices[t.v2].second << " "
+      << _vertices[t.v0].second << "</gml:posList>";
+    //of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
+    //of << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>";
+    //of << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>";
+    //of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
   }
   else {
-    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
+    of << "<gml:posList>"
+      << _vertices_vw[t.v0].second << " "
+      << _vertices_vw[t.v1].second << " "
+      << _vertices_vw[t.v2].second << " "
+      << _vertices_vw[t.v0].second << "</gml:posList>";
+    //of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
+    //of << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>";
+    //of << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>";
+    //of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
   }
+  of << "</gml:LinearRing>";
+  of << "</gml:exterior>";
+  of << "</gml:Polygon>";
+  of << "</gml:surfaceMember>";
+}
+
+void TopoFeature::get_floor_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, int baseheight) {
+  of << "<gml:surfaceMember>";
+  of << "<gml:Polygon>";
+  of << "<gml:exterior>";
+  of << "<gml:LinearRing>";
+
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(3);
+  // replace z of the vertices with baseheight
+  ss << "<gml:posList>"
+    << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
+    << _vertices[t.v2].second.substr(0, _vertices[t.v2].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
+    << _vertices[t.v1].second.substr(0, _vertices[t.v1].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
+    << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << z_to_float(baseheight) << "</gml:posList>";
+  //ss << "<gml:pos>" << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << z_to_float(baseheight) << "</gml:pos>";
+  //ss << "<gml:pos>" << _vertices[t.v2].second.substr(0, _vertices[t.v2].second.find_last_of(" ") + 1) << z_to_float(baseheight) << "</gml:pos>";
+  //ss << "<gml:pos>" << _vertices[t.v1].second.substr(0, _vertices[t.v1].second.find_last_of(" ") + 1) << z_to_float(baseheight) << "</gml:pos>";
+  //ss << "<gml:pos>" << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << z_to_float(baseheight) << "</gml:pos>";
+
+  of << ss.str();
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
   of << "</gml:Polygon>";

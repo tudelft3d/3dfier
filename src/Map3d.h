@@ -108,9 +108,9 @@ public:
 private:
   float       _building_heightref_roof;
   float       _building_heightref_ground;
-  bool        _building_triangulate; // TODO: Not used anymore, remove?
+  bool        _building_triangulate;
   int         _building_lod;
-  bool        _building_include_floor; // TODO: Not used anymore, remove?
+  bool        _building_include_floor;
   int         _terrain_simplification;
   int         _forest_simplification;
   double      _terrain_simplification_tinsimp;

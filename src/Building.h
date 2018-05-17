@@ -33,11 +33,11 @@
 
 class Building: public Flat {
 public:
-  Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base);
+  Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base, bool building_triangulate, bool building_include_floor);
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass);
   void          get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs);
-  void          get_citygml(std::wostream& of, bool building_triangulate, bool building_include_floor);
+  void          get_citygml(std::wostream& of);
   void          get_citygml_imgeo(std::wostream& of);
   void          get_imgeo_nummeraanduiding(std::wostream& of);
   void          get_csv(std::wostream& of);
@@ -57,7 +57,9 @@ private:
   std::vector<int>     _zvaluesground;
   int                  _height_base;
   static float         _heightref_top;
-  static float         _heightref_base;
+  static float         _heightref_base; 
+  static bool          _building_triangulate;
+  static bool          _building_include_floor;
   static std::set<int> _las_classes_roof;
   static std::set<int> _las_classes_ground;
 };
