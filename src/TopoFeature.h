@@ -46,9 +46,9 @@ public:
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
   virtual std::string   get_mtl() = 0;
-  virtual void          get_citygml(std::ostream& of) = 0;
+  virtual void          get_citygml(std::wostream& of) = 0;
   virtual void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) = 0;
-  virtual void          get_citygml_imgeo(std::ostream& of) = 0;
+  virtual void          get_citygml_imgeo(std::wostream& of) = 0;
   virtual bool          get_shape(OGRLayer*, bool writeAttributes, AttributeMap extraAttributes = AttributeMap()) = 0;
 
   std::string  get_id();
@@ -74,8 +74,8 @@ public:
   bool         get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, AttributeMap extraAttributes = AttributeMap(), bool writeHeights = false, int height_base = 0, int height = 0);
   void         get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs);
   AttributeMap get_attributes();
-  void         get_imgeo_object_info(std::ostream& of, std::string id);
-  void         get_citygml_attributes(std::ostream& of, AttributeMap attributes);
+  void         get_imgeo_object_info(std::wostream& of, std::string id);
+  void         get_citygml_attributes(std::wostream& of, AttributeMap attributes);
   void         get_cityjson_attributes(nlohmann::json& f, AttributeMap attributes);
 protected:
   Polygon2*                         _p2;
@@ -101,8 +101,8 @@ protected:
   void    lift_all_boundary_vertices_same_height(int height);
 
   void get_cityjson_geom(nlohmann::json& g, std::unordered_map<std::string, unsigned long> &dPts, std::string primitive = "MultiSurface");
-  void get_triangle_as_gml_surfacemember(std::ostream& of, Triangle& t, bool verticalwall = false);
-  void get_triangle_as_gml_triangle(std::ostream& of, Triangle& t, bool verticalwall = false);
+  void get_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, bool verticalwall = false);
+  void get_triangle_as_gml_triangle(std::wostream& of, Triangle& t, bool verticalwall = false);
   bool get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue = "");
 };
 
@@ -117,7 +117,7 @@ public:
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;
   virtual bool        lift() = 0;
-  virtual void        get_citygml(std::ostream& of) = 0;
+  virtual void        get_citygml(std::wostream& of) = 0;
   virtual void        get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) = 0;
 protected:
   std::vector<int>    _zvaluesinside;
@@ -134,7 +134,7 @@ public:
   virtual TopoClass    get_class() = 0;
   virtual bool         is_hard() = 0;
   virtual bool         lift() = 0;
-  virtual void         get_citygml(std::ostream& of) = 0;
+  virtual void         get_citygml(std::wostream& of) = 0;
   virtual void         get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) = 0;
 protected:
   int                  _simplification;
@@ -152,7 +152,7 @@ public:
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;
   virtual bool        lift() = 0;
-  virtual void        get_citygml(std::ostream& of) = 0;
+  virtual void        get_citygml(std::wostream& of) = 0;
   virtual void        get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) = 0;
   bool                buildCDT();
 protected:

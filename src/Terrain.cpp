@@ -66,7 +66,7 @@ void Terrain::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,uns
   j["CityObjects"][this->get_id()] = f;
 }
 
-void Terrain::get_citygml(std::ostream& of) {
+void Terrain::get_citygml(std::wostream& of) {
   of << "<cityObjectMember>";
   of << "<luse:LandUse gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
@@ -82,7 +82,7 @@ void Terrain::get_citygml(std::ostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Terrain::get_citygml_imgeo(std::ostream& of) {
+void Terrain::get_citygml_imgeo(std::wostream& of) {
   of << "<cityObjectMember>";
   of << "<imgeo:OnbegroeidTerreindeel gml:id=\"" << this->get_id() << "\">";
   get_imgeo_object_info(of, this->get_id());

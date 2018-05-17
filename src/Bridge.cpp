@@ -72,7 +72,7 @@ void Bridge::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsi
   j["CityObjects"][this->get_id()] = f;
 }
 
-void Bridge::get_citygml(std::ostream& of) {
+void Bridge::get_citygml(std::wostream& of) {
   of << "<cityObjectMember>";
   of << "<brg:Bridge gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
@@ -88,7 +88,7 @@ void Bridge::get_citygml(std::ostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Bridge::get_citygml_imgeo(std::ostream& of) {
+void Bridge::get_citygml_imgeo(std::wostream& of) {
   of << "<cityObjectMember>";
   of << "<bri:BridgeConstructionElement gml:id=\"" << this->get_id() << "\">";
   get_imgeo_object_info(of, this->get_id());

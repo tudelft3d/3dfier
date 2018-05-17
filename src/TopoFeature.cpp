@@ -217,7 +217,7 @@ AttributeMap TopoFeature::get_attributes() {
   return _attributes;
 }
 
-void TopoFeature::get_imgeo_object_info(std::ostream& of, std::string id) {
+void TopoFeature::get_imgeo_object_info(std::wostream& of, std::string id) {
   std::string attribute;
   if (get_attribute("creationDate", attribute)) {
     of << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>";
@@ -267,7 +267,7 @@ void TopoFeature::get_cityjson_attributes(nlohmann::json& f, AttributeMap attrib
   }
 }
 
-void TopoFeature::get_citygml_attributes(std::ostream& of, AttributeMap attributes) {
+void TopoFeature::get_citygml_attributes(std::wostream& of, AttributeMap attributes) {
   for (auto& attribute : attributes) {
     // add attributes except gml_id
     if (attribute.first.compare("gml_id") != 0) {
@@ -330,25 +330,32 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
   }
 
   feature->SetGeometry(&multipolygon);
-  feature->SetField("3dfier_Id", this->get_id().c_str());
-  feature->SetField("3dfier_Class", className.c_str());
+  // perform extra character encoding for gdal.
+  const char* idcpl = CPLRecode(this->get_id().c_str(), "", CPL_ENC_UTF8);
+  feature->SetField("3df_id", idcpl);
+  // perform extra character encoding for gdal.
+  const char* classcpl = CPLRecode(className.c_str(), "", CPL_ENC_UTF8);
+  feature->SetField("3df_class", classcpl);
   if (writeHeights) {
-    feature->SetField("BaseHeight", z_to_float(height_base));
-    feature->SetField("RoofHeight", z_to_float(height));
+    feature->SetField("baseheight", z_to_float(height_base));
+    feature->SetField("roofheight", z_to_float(height));
   }
   if (writeAttributes) {
     for (auto attr : _attributes) {
       if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
-        feature->SetField(attr.first.c_str(), attr.second.second.c_str());
+        // perform extra character encoding for gdal.
+        const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
+        feature->SetField(attr.first.c_str(), attrcpl);
       }
     }
-    
     for (auto attr : extraAttributes) {
-      feature->SetField(attr.first.c_str(), attr.second.second.c_str());
+      // perform extra character encoding for gdal.
+      const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
+      feature->SetField(attr.first.c_str(), attrcpl);
     }
   }
   if (layer->CreateFeature(feature) != OGRERR_NONE) {
-    std::cerr << "Failed to create feature " << this->get_id() << " in shapefile.\n";
+    std::cerr << "Failed to create feature " << this->get_id() << ".\n";
     return false;
   }
   OGRFeature::DestroyFeature(feature);
@@ -879,7 +886,7 @@ bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
   return insideOuter;
 }
 
-void TopoFeature::get_triangle_as_gml_surfacemember(std::ostream& of, Triangle& t, bool verticalwall) {
+void TopoFeature::get_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, bool verticalwall) {
   of << "<gml:surfaceMember>";
   of << "<gml:Polygon>";
   of << "<gml:exterior>";
@@ -902,7 +909,7 @@ void TopoFeature::get_triangle_as_gml_surfacemember(std::ostream& of, Triangle& 
   of << "</gml:surfaceMember>";
 }
 
-void TopoFeature::get_triangle_as_gml_triangle(std::ostream& of, Triangle& t, bool verticalwall) {
+void TopoFeature::get_triangle_as_gml_triangle(std::wostream& of, Triangle& t, bool verticalwall) {
   of << "<gml:Triangle>";
   of << "<gml:exterior>";
   of << "<gml:LinearRing>";

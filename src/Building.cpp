@@ -127,7 +127,7 @@ bool Building::is_hard() {
   return true;
 }
 
-void Building::get_csv(std::ostream& of) {
+void Building::get_csv(std::wostream& of) {
   of << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << "\n";
 }
 
@@ -193,7 +193,7 @@ void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, u
   j["CityObjects"][this->get_id()] = b;
 }
 
-void Building::get_citygml(std::ostream& of) {
+void Building::get_citygml(std::wostream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
   of << "<cityObjectMember>";
@@ -245,7 +245,7 @@ void Building::get_citygml(std::ostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Building::get_citygml_imgeo(std::ostream& of) {
+void Building::get_citygml_imgeo(std::wostream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
   of << "<cityObjectMember>";
@@ -291,7 +291,7 @@ void Building::get_citygml_imgeo(std::ostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Building::get_imgeo_nummeraanduiding(std::ostream& of) {
+void Building::get_imgeo_nummeraanduiding(std::wostream& of) {
   std::string attribute;
   bool btekst, bplaatsingspunt, bhoek, blaagnr, bhoognr;
   std::string tekst, plaatsingspunt, hoek, laagnr, hoognr;

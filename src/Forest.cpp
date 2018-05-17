@@ -64,7 +64,7 @@ void Forest::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsi
   j["CityObjects"][this->get_id()] = f;
 }
 
-void Forest::get_citygml(std::ostream& of) {
+void Forest::get_citygml(std::wostream& of) {
   of << "<cityObjectMember>";
   of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
@@ -80,7 +80,7 @@ void Forest::get_citygml(std::ostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Forest::get_citygml_imgeo(std::ostream& of) {
+void Forest::get_citygml_imgeo(std::wostream& of) {
   of << "<cityObjectMember>";
   of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">";
   get_imgeo_object_info(of, this->get_id());
