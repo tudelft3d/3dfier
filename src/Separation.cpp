@@ -70,7 +70,7 @@ void Separation::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,
   j["CityObjects"][this->get_id()] = f;
 }
 
-void Separation::get_citygml(std::ostream& of) {
+void Separation::get_citygml(std::wostream& of) {
   of << "<cityObjectMember>";
   of << "<gen:GenericCityObject gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
@@ -86,7 +86,7 @@ void Separation::get_citygml(std::ostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Separation::get_citygml_imgeo(std::ostream& of) {
+void Separation::get_citygml_imgeo(std::wostream& of) {
   bool kunstwerkdeel = _layername == "kunstwerkdeel";
   bool overigbouwwerk = _layername == "overigbouwwerk";
   of << "<cityObjectMember>";

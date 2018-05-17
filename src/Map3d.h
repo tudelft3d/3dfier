@@ -64,20 +64,20 @@ public:
   Box2 get_bbox();
   liblas::Bounds<double> get_bounds();
 
-  void get_citygml(std::ostream& of);
+  void get_citygml(std::wostream& of);
   void get_citygml_multifile(std::string);
-  void create_citygml_header(std::ostream& of);
-  void get_citygml_imgeo(std::ostream& of);
+  void create_citygml_header(std::wostream& of);
+  void get_citygml_imgeo(std::wostream& of);
   bool get_cityjson(std::string filename);
   void get_citygml_imgeo_multifile(std::string ofname);
-  void create_citygml_imgeo_header(std::ostream& of);
+  void create_citygml_imgeo_header(std::wostream& of);
   bool get_pdok_output(std::string filename);
   bool get_gdal_output(std::string filename, std::string drivername, bool multi);
-  void get_csv_buildings(std::ostream &outputfile);
-  void get_csv_buildings_multiple_heights(std::ostream &outputfile);
-  void get_csv_buildings_all_elevation_points(std::ostream &outputfile);
-  void get_obj_per_feature(std::ostream &outputfile);
-  void get_obj_per_class(std::ostream &outputfile);
+  void get_csv_buildings(std::wostream& of);
+  void get_csv_buildings_multiple_heights(std::wostream& of);
+  void get_csv_buildings_all_elevation_points(std::wostream& of);
+  void get_obj_per_feature(std::wostream& of);
+  void get_obj_per_class(std::wostream& of);
   bool get_shapefile2d(std::string filename);
 
   void set_building_heightref_roof(float heightref);
@@ -142,6 +142,7 @@ private:
 #else
   bool extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file);
   OGRLayer* create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, AttributeMap attributes, bool addHeightAttributes);
+  bool close_gdal_resources(GDALDriver* driver, std::unordered_map<std::string, OGRLayer*> layers);
 #endif
   void extract_feature(OGRFeature * f, std::string layerName, const char * idfield, const char * heightfield, std::string layertype, bool multiple_heights);
   void stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star);

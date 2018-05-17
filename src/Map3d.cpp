@@ -32,6 +32,7 @@
 #include "boost/tokenizer.hpp"
 #include "boost/algorithm/string.hpp"
 #include "nlohmann-json/json.hpp"
+#include "codecvt"
 
 Map3d::Map3d() {
   OGRRegisterAll();
@@ -190,7 +191,7 @@ bool Map3d::get_cityjson(std::string filename) {
   return true;
 }
 
-void Map3d::get_citygml(std::ostream& of) {
+void Map3d::get_citygml(std::wostream& of) {
   create_citygml_header(of);
   for (auto& f : _lsFeatures) {
     f->get_citygml(of);
@@ -200,25 +201,27 @@ void Map3d::get_citygml(std::ostream& of) {
 }
 
 void Map3d::get_citygml_multifile(std::string ofname) {
-  std::unordered_map<std::string, std::ofstream> ofs;
+  std::unordered_map<std::string, std::wofstream*> ofs;
 
   for (auto& f : _lsFeatures) {
     std::string filename = ofname + f->get_layername() + ".gml";
     if (ofs.find(filename) == ofs.end()) {
-      ofs.emplace(filename, std::ofstream(filename));
-      create_citygml_header(ofs[filename]);
+      std::wofstream* of = new std::wofstream();
+      of->open(filename);
+      ofs.emplace(filename, of);
+      create_citygml_header(*ofs[filename]);
     }
-    f->get_citygml(ofs[filename]);
-    ofs[filename] << "\n";
+    f->get_citygml(*ofs[filename]);
+    *ofs[filename] << "\n";
   }
-  for (auto i = ofs.begin(); i != ofs.end(); i++) {
-    std::ofstream& of = ofs[(*i).first];
+  for (auto it = ofs.begin(); it != ofs.end(); it++) {
+    std::wofstream& of = *(it->second);
     of << "</CityModel>\n";
     of.close();
   }
 }
 
-void Map3d::get_citygml_imgeo(std::ostream& of) {
+void Map3d::get_citygml_imgeo(std::wostream& of) {
   create_citygml_imgeo_header(of);
   for (auto& f : _lsFeatures) {
     f->get_citygml_imgeo(of);
@@ -228,25 +231,27 @@ void Map3d::get_citygml_imgeo(std::ostream& of) {
 }
 
 void Map3d::get_citygml_imgeo_multifile(std::string ofname) {
-  std::unordered_map<std::string, std::ofstream> ofs;
+  std::unordered_map<std::string, std::wofstream*> ofs;
 
   for (auto& f : _lsFeatures) {
     std::string filename = ofname + f->get_layername() + ".gml";
     if (ofs.find(filename) == ofs.end()) {
-      ofs.emplace(filename, std::ofstream(filename));
-      create_citygml_imgeo_header(ofs[filename]);
+      std::wofstream* of = new std::wofstream();
+      of->open(filename);
+      ofs.emplace(filename, of);
+      create_citygml_imgeo_header(*ofs[filename]);
     }
-    f->get_citygml_imgeo(ofs[filename]);
-    ofs[filename] << "\n";
+    f->get_citygml_imgeo(*ofs[filename]);
+    *ofs[filename] << "\n";
   }
   for (auto it = ofs.begin(); it != ofs.end(); it++) {
-    std::ofstream& of = ofs[(*it).first];
+    std::wofstream& of = *(it->second);
     of << "</CityModel>\n";
     of.close();
   }
 }
 
-void Map3d::create_citygml_header(std::ostream& of) {
+void Map3d::create_citygml_header(std::wostream& of) {
     of << std::setprecision(3) << std::fixed;
     get_xml_header(of);
     get_citygml_namespaces(of);
@@ -264,7 +269,7 @@ void Map3d::create_citygml_header(std::ostream& of) {
     of << "</gml:boundedBy>\n";
 }
 
-void Map3d::create_citygml_imgeo_header(std::ostream& of) {
+void Map3d::create_citygml_imgeo_header(std::wostream& of) {
     of << std::setprecision(3) << std::fixed;
     get_xml_header(of);
     get_citygml_imgeo_namespaces(of);
@@ -282,7 +287,7 @@ void Map3d::create_citygml_imgeo_header(std::ostream& of) {
     of << "</gml:boundedBy>\n";
 }
 
-void Map3d::get_csv_buildings(std::ostream& of) {
+void Map3d::get_csv_buildings(std::wostream& of) {
   of << "id,roof,ground\n";
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
@@ -292,47 +297,47 @@ void Map3d::get_csv_buildings(std::ostream& of) {
   }
 }
 
-void Map3d::get_csv_buildings_all_elevation_points(std::ostream &outputfile) {
-  outputfile << "id,allzvalues" << std::endl;
+void Map3d::get_csv_buildings_all_elevation_points(std::wostream& of) {
+  of << "id,allzvalues" << std::endl;
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
-      outputfile << b->get_id() << ",";
-      outputfile << b->get_all_z_values();
-      outputfile << "," << std::endl;
+      of << b->get_id() << ",";
+      of << b->get_all_z_values();
+      of << "," << std::endl;
     }
   }
 }
 
-void Map3d::get_csv_buildings_multiple_heights(std::ostream &outputfile) {
+void Map3d::get_csv_buildings_multiple_heights(std::wostream& of) {
   //-- ground heights
   std::vector<float> gpercentiles = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
   std::vector<float> rpercentiles = {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
-  outputfile << std::setprecision(2) << std::fixed;
-  outputfile << "id,";
+  of << std::setprecision(2) << std::fixed;
+  of << "id,";
   for (auto& each : gpercentiles)
-    outputfile << "ground-" << each << ",";
+    of << "ground-" << each << ",";
   for (auto& each : rpercentiles)
-    outputfile << "roof-" << each << ",";
-  outputfile << std::endl;
+    of << "roof-" << each << ",";
+  of << std::endl;
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
-      outputfile << b->get_id() << ",";
+      of << b->get_id() << ",";
       for (auto& each : gpercentiles) {
         int h = b->get_height_ground_at_percentile(each);
-        outputfile << float(h)/100 << ",";
+        of << float(h)/100 << ",";
       }
       for (auto& each : rpercentiles) {
         int h = b->get_height_roof_at_percentile(each);
-        outputfile << float(h)/100 << ",";
+        of << float(h)/100 << ",";
       }
-      outputfile << std::endl;
+      of << std::endl;
     }
   }
 }
 
-void Map3d::get_obj_per_feature(std::ostream& of) {
+void Map3d::get_obj_per_feature(std::wostream& of) {
   std::unordered_map< std::string, unsigned long > dPts;
   std::string fs;
   
@@ -361,7 +366,7 @@ void Map3d::get_obj_per_feature(std::ostream& of) {
   of << fs << std::endl;
 }
 
-void Map3d::get_obj_per_class(std::ostream& of) {
+void Map3d::get_obj_per_class(std::wostream& of) {
   std::unordered_map< std::string, unsigned long > dPts;
   std::string fs;
   for (int c = 0; c < 6; c++) {
@@ -402,7 +407,6 @@ bool Map3d::get_pdok_output(std::string filename) {
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("PostgreSQL");
 
   std::unordered_map<std::string, OGRLayer*> layers;
-
   for (auto& f : _lsFeatures) {
     std::string layername = f->get_layername();
     if (layers.find(layername) == layers.end()) {
@@ -413,29 +417,24 @@ bool Map3d::get_pdok_output(std::string filename) {
       OGRLayer *layer = create_gdal_layer(driver, tmpFilename, layername, attributes, f->get_class() == BUILDING);
       if (layer == NULL) {
         std::cerr << "ERROR: Cannot open database '" + filename + "' for writing" << std::endl;
-        for (auto& layer : layers) {
-          GDALClose(layer.second);
-        }
-        GDALClose(driver);
+        close_gdal_resources(driver, layers);
         return false;
       }
       layers.emplace(layername, layer);
     }
 
     //Add additional attribute describing CityGML of feature
-    std::stringstream ss;
+    std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>>converter;
+    std::wstringstream ss;
     f->get_citygml_imgeo(ss);
-    std::string gmlAttribute = ss.str();
+    std::string gmlAttribute = converter.to_bytes(ss.str());
     ss.clear();
     AttributeMap extraAttribute = AttributeMap();
     extraAttribute["xml"] = std::make_pair(OFTString, gmlAttribute);
 
     f->get_shape(layers[layername], true, extraAttribute);
   }
-  for (auto& layer : layers) {
-    GDALClose(layer.second);
-  }
-  GDALClose(driver);
+  close_gdal_resources(driver, layers);
   return true;
 #endif
 }
@@ -465,7 +464,6 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
   }
   else {
     std::unordered_map<std::string, OGRLayer*> layers;
-
     for (auto& f : _lsFeatures) {
       std::string layername = f->get_layername();
       if (layers.find(layername) == layers.end()) {
@@ -476,24 +474,27 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
         OGRLayer *layer = create_gdal_layer(driver, tmpFilename, layername, f->get_attributes(), f->get_class() == BUILDING);
         if (layer == NULL) {
           std::cerr << "ERROR: Cannot open file '" + filename + "' for writing" << std::endl;
-          for (auto& layer : layers) {
-            GDALClose(layer.second);
-          }
-          GDALClose(driver);
+          close_gdal_resources(driver, layers);
           return false;
         }
         layers.emplace(layername, layer);
       }
       f->get_shape(layers[layername], true);
     }
-    for (auto& layer : layers) {
-      GDALClose(layer.second);
-    }
-    GDALClose(driver);
+    close_gdal_resources(driver, layers);
   }
   return true;
 #endif
 }
+
+#if GDAL_VERSION_MAJOR >= 2
+bool Map3d::close_gdal_resources(GDALDriver* driver, std::unordered_map<std::string, OGRLayer*> layers) {
+  for (auto& layer : layers) {
+    GDALClose(layer.second);
+  }
+  GDALClose(driver);
+}
+#endif
 
 #if GDAL_VERSION_MAJOR >= 2
 OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, AttributeMap attributes, bool addHeightAttributes) {
@@ -509,25 +510,25 @@ OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std
     sr->importFromEPSG(7415);
     layer = dataSource->CreateLayer(layername.c_str(), sr, OGR_GT_SetZ(wkbMultiPolygon), NULL);
 
-    OGRFieldDefn oField("3dfier_Id", OFTString);
+    OGRFieldDefn oField("3df_id", OFTString);
     if (layer->CreateField(&oField) != OGRERR_NONE) {
-      std::cerr << "Creating 3dfier_Id field failed.\n";
+      std::cerr << "Creating 3df_id field failed.\n";
       return NULL;
     }
-    OGRFieldDefn oField2("3dfier_Class", OFTString);
+    OGRFieldDefn oField2("3df_class", OFTString);
     if (layer->CreateField(&oField2) != OGRERR_NONE) {
-      std::cerr << "Creating 3dfier_Class field failed.\n";
+      std::cerr << "Creating 3df_class field failed.\n";
       return NULL;
     }
     if (addHeightAttributes) {
-      OGRFieldDefn oField3("BaseHeight", OFTReal);
+      OGRFieldDefn oField3("baseheight", OFTReal);
       if (layer->CreateField(&oField3) != OGRERR_NONE) {
-        std::cerr << "Creating BaseHeight field failed.\n";
+        std::cerr << "Creating floorheight field failed.\n";
         return NULL;
       }
       OGRFieldDefn oField4("RoofHeight", OFTReal);
       if (layer->CreateField(&oField4) != OGRERR_NONE) {
-        std::cerr << "Creating RoofHeight field failed.\n";
+        std::cerr << "Creating roofheight field failed.\n";
         return NULL;
       }
     }
@@ -562,24 +563,24 @@ bool Map3d::get_shapefile2d(std::string filename) {
   }
   OGRLayer *layer = dataSource->CreateLayer("my3dmap", NULL, wkbMultiPolygon, NULL);
 
-  OGRFieldDefn oField("3dfier_Id", OFTString);
+  OGRFieldDefn oField("3df_id", OFTString);
   if (layer->CreateField(&oField) != OGRERR_NONE) {
-    std::cerr << "Creating 3dfier_Id field failed.\n";
+    std::cerr << "Creating 3df_id field failed.\n";
     return false;
   }
-  OGRFieldDefn oField2("3dfier_Class", OFTString);
+  OGRFieldDefn oField2("3df_class", OFTString);
   if (layer->CreateField(&oField2) != OGRERR_NONE) {
-    std::cerr << "Creating 3dfier_Class field failed.\n";
+    std::cerr << "Creating 3df_class field failed.\n";
     return false;
   }
-  OGRFieldDefn oField3("BaseHeight", OFTReal);
+  OGRFieldDefn oField3("baseheight", OFTReal);
   if (layer->CreateField(&oField3) != OGRERR_NONE) {
-    std::cerr << "Creating FloorHeight field failed.\n";
+    std::cerr << "Creating floorheight field failed.\n";
     return false;
   }
-  OGRFieldDefn oField4("RoofHeight", OFTReal);
+  OGRFieldDefn oField4("roofheight", OFTReal);
   if (layer->CreateField(&oField4) != OGRERR_NONE) {
-    std::cerr << "Creating RoofHeight field failed.\n";
+    std::cerr << "Creating roofheight field failed.\n";
     return false;
   }
   for (auto& f : _lsFeatures) {
@@ -910,35 +911,36 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
   geom->exportToWkt(&wkt);
   AttributeMap attributes;
   int attributeCount = f->GetFieldCount();
+  std::string id = f->GetFieldAsString(idfield);
   for (int i = 0; i < attributeCount; i++) {
     attributes[boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef())] = std::make_pair(f->GetFieldDefnRef(i)->GetType(), f->GetFieldAsString(i));
   }
   if (layertype == "Building") {
-    Building* p3 = new Building(wkt, layername, attributes, f->GetFieldAsString(idfield), _building_heightref_roof, _building_heightref_ground);
+    Building* p3 = new Building(wkt, layername, attributes, id, _building_heightref_roof, _building_heightref_ground);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Terrain") {
-    Terrain* p3 = new Terrain(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_terrain_simplification, this->_terrain_simplification_tinsimp, this->_terrain_innerbuffer);
+    Terrain* p3 = new Terrain(wkt, layername, attributes, id, this->_terrain_simplification, this->_terrain_simplification_tinsimp, this->_terrain_innerbuffer);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Forest") {
-    Forest* p3 = new Forest(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_forest_simplification, this->_forest_simplification_tinsimp, this->_forest_innerbuffer);
+    Forest* p3 = new Forest(wkt, layername, attributes, id, this->_forest_simplification, this->_forest_simplification_tinsimp, this->_forest_innerbuffer);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Water") {
-    Water* p3 = new Water(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_water_heightref);
+    Water* p3 = new Water(wkt, layername, attributes, id, this->_water_heightref);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Road") {
-    Road* p3 = new Road(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_road_heightref, this->_road_threshold_outliers);
+    Road* p3 = new Road(wkt, layername, attributes, id, this->_road_heightref, this->_road_threshold_outliers);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Separation") {
-    Separation* p3 = new Separation(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_separation_heightref);
+    Separation* p3 = new Separation(wkt, layername, attributes, id, this->_separation_heightref);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Bridge/Overpass") {
-    Bridge* p3 = new Bridge(wkt, layername, attributes, f->GetFieldAsString(idfield), this->_bridge_heightref);
+    Bridge* p3 = new Bridge(wkt, layername, attributes, id, this->_bridge_heightref);
     _lsFeatures.push_back(p3);
   }
   //-- flag all polygons at (niveau != 0) or remove if not handling multiple height levels
