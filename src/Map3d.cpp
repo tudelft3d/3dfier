@@ -488,7 +488,7 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
 }
 
 #if GDAL_VERSION_MAJOR >= 2
-bool Map3d::close_gdal_resources(GDALDriver* driver, std::unordered_map<std::string, OGRLayer*> layers) {
+void Map3d::close_gdal_resources(GDALDriver* driver, std::unordered_map<std::string, OGRLayer*> layers) {
   for (auto& layer : layers) {
     GDALClose(layer.second);
   }
