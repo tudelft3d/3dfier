@@ -46,4 +46,11 @@ float z_to_float(int z);
 std::vector<std::string> stringsplit(std::string str, char delimiter);
 std::wostream& operator<< (std::wostream& of, const std::string& str);
 
+template<class I, class E, class S>
+struct codecvt : std::codecvt<I, E, S>
+{
+    ~codecvt()
+    { }
+};
+
 #endif
