@@ -330,8 +330,12 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
   }
 
   feature->SetGeometry(&multipolygon);
-  feature->SetField("3df_id", this->get_id().c_str());
-  feature->SetField("3df_class", className.c_str());
+  // perform extra character encoding for gdal.
+  const char* idcpl = CPLRecode(this->get_id().c_str(), "", CPL_ENC_UTF8);
+  feature->SetField("3df_id", idcpl);
+  // perform extra character encoding for gdal.
+  const char* classcpl = CPLRecode(className.c_str(), "", CPL_ENC_UTF8);
+  feature->SetField("3df_class", classcpl);
   if (writeHeights) {
     feature->SetField("baseheight", z_to_float(height_base));
     feature->SetField("roofheight", z_to_float(height));
@@ -339,11 +343,15 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
   if (writeAttributes) {
     for (auto attr : _attributes) {
       if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
-        feature->SetField(attr.first.c_str(), attr.second.second.c_str());
+        // perform extra character encoding for gdal.
+        const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
+        feature->SetField(attr.first.c_str(), attrcpl);
       }
     }
     for (auto attr : extraAttributes) {
-      feature->SetField(attr.first.c_str(), attr.second.second.c_str());
+      // perform extra character encoding for gdal.
+      const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
+      feature->SetField(attr.first.c_str(), attrcpl);
     }
   }
   if (layer->CreateFeature(feature) != OGRERR_NONE) {

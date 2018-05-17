@@ -917,10 +917,9 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
   geom->exportToWkt(&wkt);
   AttributeMap attributes;
   int attributeCount = f->GetFieldCount();
-  const char* id = CPLRecode(f->GetFieldAsString(idfield), "", CPL_ENC_UTF8);
+  std::string id = f->GetFieldAsString(idfield);
   for (int i = 0; i < attributeCount; i++) {
-    const char* cplstr = CPLRecode(f->GetFieldAsString(i), "", CPL_ENC_UTF8);
-    attributes[boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef())] = std::make_pair(f->GetFieldDefnRef(i)->GetType(), cplstr);
+    attributes[boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef())] = std::make_pair(f->GetFieldDefnRef(i)->GetType(), f->GetFieldAsString(i));
   }
   if (layertype == "Building") {
     Building* p3 = new Building(wkt, layername, attributes, id, _building_heightref_roof, _building_heightref_ground);
