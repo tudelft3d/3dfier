@@ -193,7 +193,7 @@ void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, u
   j["CityObjects"][this->get_id()] = b;
 }
 
-void Building::get_citygml(std::wostream& of) {
+void Building::get_citygml(std::wostream& of, bool building_triangulate, bool building_include_floor) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
   of << "<cityObjectMember>";

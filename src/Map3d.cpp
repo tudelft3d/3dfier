@@ -194,7 +194,13 @@ bool Map3d::get_cityjson(std::string filename) {
 void Map3d::get_citygml(std::wostream& of) {
   create_citygml_header(of);
   for (auto& f : _lsFeatures) {
-    f->get_citygml(of);
+    if (f->get_class() == BUILDING) {
+      Building* f = dynamic_cast<Building*>(f);
+      f->get_citygml(of, _building_triangulate, _building_include_floor);
+    }
+    else {
+      f->get_citygml(of);
+    }
     of << "\n";
   }
   of << "</CityModel>\n";
