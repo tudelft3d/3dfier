@@ -489,11 +489,17 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight)
       }
       //-- check if there's a nc for either
       ncit = nc.find(gen_key_bucket(&a));
-      if (ncit != nc.end())
+      if (ncit != nc.end()) {
         anc = ncit->second;
+        // make values in anc unique
+        anc.erase(unique(anc.begin(), anc.end()), anc.end());
+      }
       ncit = nc.find(gen_key_bucket(&b));
-      if (ncit != nc.end())
+      if (ncit != nc.end()) {
         bnc = ncit->second;
+        // make values in bnc unique
+        bnc.erase(unique(bnc.begin(), bnc.end()), bnc.end());
+      }
 
       if ((anc.empty() == true) && (bnc.empty() == true))
         continue;
