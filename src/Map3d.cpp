@@ -1117,8 +1117,8 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
   if (star.size() == 1){
     if (std::get<0>(star[0])->get_class() != BRIDGE) {
       TopoFeature* fadj = std::get<0>(star[0]);
-      //-- if not building and same class or both soft, then average.
-      if (f->get_class() != BUILDING && (f->is_hard() == false && fadj->is_hard() == false)) {
+      //-- if not building or both soft, then average.
+      if (f->get_class() != BUILDING && fadj->get_class() != BUILDING && (f->is_hard() == false && fadj->is_hard() == false)) {
         stitch_average(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
       }
       else {
@@ -1167,7 +1167,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       TopoClass topoClass = std::get<1>(zstar[i])->get_class();
       if (topoClass == BUILDING) {
         //-- set building to the one with the lowest base
-        if (building == -1 || dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base() > dynamic_cast<Building*>(std::get<1>(zstar[i]))->get_height_base()) {
+        if (building == -1 || dynamic_cast<Building*>(std::get<1>(zstar[i]))->get_height_base() > dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base()) {
           building = i;
         }
       }
@@ -1176,7 +1176,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       }
     }
 
-    //-- Deal with buildings. If there's a building and a soft class incident, then this soft class
+    //-- Deal with buildings. If there's a building and adjacent is not water, then this class
     //-- get allocated the height value of the floor of the building. Any building will do if >1.
     //-- Also ignore water so it doesn't get snapped to the floor of a building
     if (building != -1) {
