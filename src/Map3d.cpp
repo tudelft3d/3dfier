@@ -424,7 +424,7 @@ bool Map3d::get_pdok_output(std::string filename) {
     }
 
     //Add additional attribute describing CityGML of feature
-    std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>>converter;
+    std::wstring_convert<codecvt<wchar_t, char, std::mbstate_t>>converter;
     std::wstringstream ss;
     f->get_citygml_imgeo(ss);
     std::string gmlAttribute = converter.to_bytes(ss.str());
