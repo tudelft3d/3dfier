@@ -114,6 +114,8 @@ int main(int argc, const char * argv[]) {
       options(poall).positional(popos).run(), vm);
     po::notify(vm);
 
+    std::clog << licensewarning << std::endl;
+
     if (vm.count("help")) {
       std::cout << "Usage: 3dfier config.yml --OBJ myoutput.obj" << std::endl;
       std::cout << "       3dfier config.yml --CityGML myoutput.gml" << std::endl;
@@ -165,9 +167,6 @@ int main(int argc, const char * argv[]) {
     std::cerr << "Error: " << e.what() << "\n";
     return EXIT_FAILURE;
   }
-
-  std::clog << licensewarning << std::endl;
-
 
   //-- allowed feature classes
   std::set<std::string> allowedFeatures{ "Building", "Water", "Terrain", "Road", "Forest", "Separation", "Bridge/Overpass" };
