@@ -111,6 +111,7 @@ private:
   bool        _building_triangulate;
   int         _building_lod;
   bool        _building_include_floor;
+  bool        _building_inner_walls;
   int         _terrain_simplification;
   int         _forest_simplification;
   double      _terrain_simplification_tinsimp;
@@ -132,6 +133,7 @@ private:
   std::array<std::set<int>,NUM_ALLOWEDLASTOPO> _las_classes_allowed;
 
   NodeColumn                                          _nc;
+  NodeColumn                                          _nc_inner_walls;
   std::vector<TopoFeature*>                           _lsFeatures;
   std::vector<std::string>                            _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;

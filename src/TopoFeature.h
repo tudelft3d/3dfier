@@ -53,6 +53,7 @@ public:
 
   std::string  get_id();
   void         construct_vertical_walls(const NodeColumn& nc, int baseheight);
+  void         construct_inner_walls(const NodeColumn& nc, int baseheight);
   void         fix_bowtie();
   void         add_adjacent_feature(TopoFeature* adjFeature);
   std::vector<TopoFeature*>* get_adjacent_features();

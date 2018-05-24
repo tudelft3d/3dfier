@@ -143,11 +143,11 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
     TopoFeature::get_obj(dPts, mtl, fs);
   }
   else if (lod == 0) {
-    fs += mtl; 
+    fs += mtl;
     fs += "\n";
     for (auto& t : _triangles) {
       unsigned long a, b, c;
-      int z = this->get_height_base();
+      float z = z_to_float(this->get_height_base());
       auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
       if (it == dPts.end()) {
         a = dPts.size() + 1;
@@ -175,8 +175,41 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
       if ((a != b) && (a != c) && (b != c)) {
         fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
       }
-      // else
-      //   std::clog << "COLLAPSED TRIANGLE REMOVED\n";
+    }
+  }
+  if (_building_include_floor) {
+    fs += "usemtl BuildingFloor\n";
+    for (auto& t : _triangles) {
+      unsigned long a, b, c;
+      float z = z_to_float(this->get_height_base());
+      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
+      if (it == dPts.end()) {
+        a = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
+      }
+      else {
+        a = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
+      if (it == dPts.end()) {
+        b = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
+      }
+      else {
+        b = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
+      if (it == dPts.end()) {
+        c = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
+      }
+      else {
+        c = it->second;
+      }
+      //reverse orientation for floor polygon, a-c-b instead of a-b-c.
+      if ((a != b) && (a != c) && (b != c)) {
+        fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(c); fs += " "; fs += std::to_string(b); fs += "\n";
+      }
     }
   }
 }
