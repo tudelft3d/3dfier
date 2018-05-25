@@ -9,6 +9,9 @@
 [3]: https://api.travis-ci.org/tudelft3d/3dfier.svg?branch=master
 [4]: https://travis-ci.org/tudelft3d/3dfier
 
+# Wiki
+
+The [3dfier wiki](https://github.com/tudelft3d/3dfier/wiki) has extensive information on the installation, data preparation, usage and output of 3dfier.
 
 # 3dfier
 <img src="https://dl.dropboxusercontent.com/s/05eo2r5yc2kke5g/3dfierNoBridge.png" width="300">
