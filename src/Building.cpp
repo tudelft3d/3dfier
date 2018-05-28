@@ -229,57 +229,6 @@ void Building::construct_building_walls(const NodeColumn& nc, int baseheight, bo
         bwallend = awallend;
       }
 
-        
-      //  if (building_floor) {
-      //    // anc.front() -> baseheight
-      //    // bnc.front() -> baseheight
-      //    if (anc.front() != baseheight) {
-      //      awall.push_back(anc.front());
-      //      awallend.push_back(baseheight);
-      //    }
-      //    if (bnc.front() != baseheight) {
-      //      bwall.push_back(bnc.front());
-      //      bwallend.push_back(baseheight);
-      //    }
-      //  }
-      //  bool fadjlower = false;
-      //  int fadjz = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
-      //  if (roofheight > fadjz) {
-      //    fadjlower = true;
-      //  }
-
-      //  // fadj == BUILDING is known here
-      //  if (building_inner_walls) {
-      //    //baseheight -> roofheight
-      //    //baseheight -> roofheight
-      //    //or if fadj < roofheight
-      //    //baseheight -> fadjheight
-      //    //baseheight -> fadjheight
-      //    //fadjheight -> roofheight
-      //    //fadjheight -> roofheight
-
-      //    awall.push_back(baseheight);
-      //    if (fadjlower) {
-      //      awallend.push_back(fadjz);
-      //      awall.push_back(fadjz);
-      //    }
-
-      //    bwall.push_back(baseheight);
-      //    if (fadjlower) {
-      //      bwallend.push_back(fadjz);
-      //      bwall.push_back(fadjz);
-      //    }
-      //  }
-      //  if (fadjlower) {
-      //    //fadjheight -> roofheight
-      //    //fadjheight -> roofheight
-      //    awall.push_back(fadjz);
-      //    bwall.push_back(fadjz);
-      //  }
-      //  awallend.push_back(roofheight);
-      //  bwallend.push_back(roofheight);
-      //}
-
       for (int i = 0; i < awall.size(); i++) {
         sait = std::find(anc.begin(), anc.end(), awall[i]);
         sbit = std::find(bnc.begin(), bnc.end(), bwall[i]);
@@ -319,42 +268,6 @@ void Building::construct_building_walls(const NodeColumn& nc, int baseheight, bo
           t.v2 = size - 1;
           _triangles_vw.push_back(t);
         }
-
-        ////-- iterate to triangulate
-        //while (sbit != ebit && sbit != bnc.end() && (sbit + 1) != bnc.end() &&
-        //  sait != eait && sait != anc.end() && (sait + 1) != anc.end()) {
-        //  Point3 p;
-        //  Triangle t;
-        //  int size;
-        //  if (sbit + 1 != bnc.end()) {
-        //    p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
-        //    _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-        //    p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit));
-        //    _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-        //    sbit++;
-        //    p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit));
-        //    _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-        //    size = int(_vertices_vw.size());
-        //    t.v0 = size - 2;
-        //    t.v1 = size - 3;
-        //    t.v2 = size - 1;
-        //    _triangles_vw.push_back(t);
-        //  }
-        //  if (sait + 1 != anc.end()) {
-        //    p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit));
-        //    _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-        //    p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
-        //    _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-        //    sait++;
-        //    p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
-        //    _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-        //    size = int(_vertices_vw.size());
-        //    t.v0 = size - 3;
-        //    t.v1 = size - 2;
-        //    t.v2 = size - 1;
-        //    _triangles_vw.push_back(t);
-        //  }
-        //}
       }
     }
   }
