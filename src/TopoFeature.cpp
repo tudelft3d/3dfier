@@ -179,36 +179,35 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
   }
 
   //-- vertical triangles
-  if (_bVerticalWalls == true && _triangles_vw.size() > 0) {
+  if (_triangles_vw.size() > 0) {
     fs += mtl; fs += "Wall"; fs += "\n";
-  }
+    for (auto& t : _triangles_vw) {
+      unsigned long a, b, c;
+      auto it = dPts.find(_vertices_vw[t.v0].second);
+      if (it == dPts.end()) {
+        a = dPts.size() + 1;
+        dPts[_vertices_vw[t.v0].second] = a;
+      }
+      else
+        a = it->second;
+      it = dPts.find(_vertices_vw[t.v1].second);
+      if (it == dPts.end()) {
+        b = dPts.size() + 1;
+        dPts[_vertices_vw[t.v1].second] = b;
+      }
+      else
+        b = it->second;
+      it = dPts.find(_vertices_vw[t.v2].second);
+      if (it == dPts.end()) {
+        c = dPts.size() + 1;
+        dPts[_vertices_vw[t.v2].second] = c;
+      }
+      else
+        c = it->second;
 
-  for (auto& t : _triangles_vw) {
-    unsigned long a, b, c;
-    auto it = dPts.find(_vertices_vw[t.v0].second);
-    if (it == dPts.end()) {
-      a = dPts.size() + 1;
-      dPts[_vertices_vw[t.v0].second] = a;
-    }
-    else
-      a = it->second;
-    it = dPts.find(_vertices_vw[t.v1].second);
-    if (it == dPts.end()) {
-      b = dPts.size() + 1;
-      dPts[_vertices_vw[t.v1].second] = b;
-    }
-    else
-      b = it->second;
-    it = dPts.find(_vertices_vw[t.v2].second);
-    if (it == dPts.end()) {
-      c = dPts.size() + 1;
-      dPts[_vertices_vw[t.v2].second] = c;
-    }
-    else
-      c = it->second;
-
-    if ((a != b) && (a != c) && (b != c)) {
-      fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
+      if ((a != b) && (a != c) && (b != c)) {
+        fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
+      }
     }
   }
 }
@@ -456,10 +455,7 @@ void TopoFeature::fix_bowtie() {
   }
 }
 
-void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight) {
-  if (this->has_vertical_walls() == false)
-    return;
-
+void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
   //-- gather all rings
   std::vector<Ring2> therings;
   therings.push_back(_p2->outer());
@@ -500,21 +496,14 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight)
           break;
         }
       }
-      if (fadj == nullptr && this->get_class() != BUILDING) {
+      if (fadj == nullptr) {
         continue;
       }
 
       int az = this->get_vertex_elevation(ringi, ai);
       int bz = this->get_vertex_elevation(ringi, bi);
-      int fadj_az, fadj_bz;
-      if(fadj == nullptr) {
-        fadj_az = baseheight;
-        fadj_bz = baseheight;
-      }
-      else {
-        fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
-        fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
-      }
+      int fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
+      int fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
 
       //-- check if there's a nc for either
       ncit = nc.find(gen_key_bucket(&a));
@@ -650,399 +639,6 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight)
     }
   }
 }
-
-void TopoFeature::construct_inner_walls(const NodeColumn& nc, int baseheight) {
-  //-- gather all rings
-  std::vector<Ring2> therings;
-  therings.push_back(_p2->outer());
-  for (Ring2& iring : _p2->inners())
-    therings.push_back(iring);
-
-  //-- process each vertex of the polygon separately
-  Point2 a, b;
-  TopoFeature* fadj;
-  int ringi = -1;
-  for (Ring2& ring : therings) {
-    ringi++;
-    for (int ai = 0; ai < ring.size(); ai++) {
-      //-- Point a
-      a = ring[ai];
-      //-- find Point b
-      if (ai == (ring.size() - 1)) {
-        b = ring.front();
-      }
-      else {
-        b = ring[ai + 1];
-      }
-
-      //-- find the adjacent polygon to segment ab (fadj)
-      fadj = nullptr;
-      int adj_a_ringi = 0;
-      int adj_a_pi = 0;
-      int adj_b_ringi = 0;
-      int adj_b_pi = 0;
-      for (auto& adj : *(_adjFeatures)) {
-        if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi)) {
-          fadj = adj;
-          break;
-        }
-      }
-      if (fadj == nullptr) {
-        continue;
-      }
-
-      std::unordered_map<std::string, std::vector<int>>::const_iterator ncit;
-      std::vector<int> anc, bnc;
-      //-- check if there's a nc for either
-      ncit = nc.find(gen_key_bucket(&a));
-      if (ncit != nc.end()) {
-        anc = ncit->second;
-      }
-      ncit = nc.find(gen_key_bucket(&b));
-      if (ncit != nc.end()) {
-        bnc = ncit->second;
-      }
-
-      if (anc.empty() && bnc.empty())
-        continue;
-      // if one of the nc is empty something is wrong
-      if (anc.empty() || bnc.empty()) {
-        std::cerr << "ERROR: the inner wall node column is empty for building:  " << _id << std::endl;
-        break;
-      }
-
-      if (_id == "b31bc9c3c-00ba-11e6-b420-2bdcc4ab5d7f") {
-        std::cout << "stop";
-      }
-
-      std::vector<int> awall, bwall, enda, endb;
-      std::vector<int>;
-
-      //if (building_floor || fadj->get_class() != BUILDING) {
-      if (true || fadj->get_class() != BUILDING) {
-        awall.push_back(anc.front());
-        bwall.push_back(bnc.front());
-      }
-      //if (inner_walls) {
-      if (true) {
-        if (anc.front() != baseheight) {
-          awall.push_back(baseheight);
-        }
-        if (bnc.front() != baseheight) {
-          bwall.push_back(baseheight);
-        }
-      }
-      if (fadj->get_class() == BUILDING) {
-        int fadjroofheight = fadj->get_vertex_elevation(ringi, ai);
-        if (anc.back() != fadjroofheight) {
-          awall.push_back(fadjroofheight);
-        }
-        if (bnc.back() != fadjroofheight) {
-          bwall.push_back(fadjroofheight);
-        }
-      }
-      ////////TODO: fix array, maybe add all and make unique??
-
-
-      awall.push_back(anc.back());
-      bwall.push_back(bnc.back());
-
-      int fadj_az = baseheight;
-      int fadj_bz = baseheight;
-
-      //-- find the height of the vertex in the node column
-      std::vector<int>::const_iterator sait, eait, sbit, ebit;
-      for (int i = 0; i < awall.size() - 1; i++) {
-        sait = std::find(anc.begin(), anc.end(), awall[i]);
-        sbit = std::find(bnc.begin(), bnc.end(), bwall[i]);
-        eait = std::find(anc.begin(), anc.end(), awall[i + 1]);
-        ebit = std::find(bnc.begin(), bnc.end(), bwall[i + 1]);
-
-        //      sait = std::find(anc.begin(), anc.end(), fadj_az);
-        //      sbit = std::find(bnc.begin(), bnc.end(), fadj_bz);
-        //      eait = anc.end();
-        //      ebit = bnc.end();
-        //
-        ////if building_floors
-        //      // for walls from floor upto building wall stitch to adjacent object
-        //      if (fadj->get_class() != BUILDING) {
-        //        //eait=eait-2;
-        //        //ebit=ebit-2;
-        //        eait = std::find(anc.begin(), anc.end(), baseheight);
-        //        ebit = std::find(bnc.begin(), bnc.end(), baseheight);
-        //      }
-        ////if building_floors
-
-
-        //-- iterate to triangulate
-        while (sbit != ebit && sbit != bnc.end() && (sbit + 1) != bnc.end() &&
-          sait != eait && sait != anc.end() && (sait + 1) != anc.end()) {
-          Point3 p;
-          Triangle t;
-          int size;
-          if (sbit + 1 != bnc.end()) {
-            p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
-            _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-            p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit));
-            _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-            sbit++;
-            p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit));
-            _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-            size = int(_vertices_vw.size());
-            t.v0 = size - 2;
-            t.v1 = size - 3;
-            t.v2 = size - 1;
-            _triangles_vw.push_back(t);
-          }
-          if (sait + 1 != anc.end()) {
-            p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit));
-            _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-            p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
-            _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-            sait++;
-            p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
-            _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-            size = int(_vertices_vw.size());
-            t.v0 = size - 3;
-            t.v1 = size - 2;
-            t.v2 = size - 1;
-            _triangles_vw.push_back(t);
-          }
-        }
-      }
-    }
-  }
-}
-
-//void TopoFeature::construct_inner_walls(const NodeColumn& nc, const NodeColumn& ncbuilding, int baseheight) {
-//  //-- gather all rings
-//  std::vector<Ring2> therings;
-//  therings.push_back(_p2->outer());
-//  for (Ring2& iring : _p2->inners())
-//    therings.push_back(iring);
-//
-//  //-- process each vertex of the polygon separately
-//  std::vector<int> anc, bnc;
-//  std::unordered_map<std::string, std::vector<int>>::const_iterator ncit;
-//  Point2 a, b;
-//  TopoFeature* fadj;
-//  int ringi = -1;
-//  for (Ring2& ring : therings) {
-//    ringi++;
-//    for (int ai = 0; ai < ring.size(); ai++) {
-//      //-- Point a
-//      a = ring[ai];
-//      //-- find Point b
-//      int bi;
-//      if (ai == (ring.size() - 1)) {
-//        b = ring.front();
-//        bi = 0;
-//      }
-//      else {
-//        b = ring[ai + 1];
-//        bi = ai + 1;
-//      }
-//      //-- check if there's a nc for either
-//      ncit = nc.find(gen_key_bucket(&a));
-//      if (ncit != nc.end()) {
-//        anc = ncit->second;
-//        // make values in anc unique
-//        //anc.erase(unique(anc.begin(), anc.end()), anc.end());
-//      }
-//      ncit = nc.find(gen_key_bucket(&b));
-//      if (ncit != nc.end()) {
-//        bnc = ncit->second;
-//        // make values in bnc unique
-//       // bnc.erase(unique(bnc.begin(), bnc.end()), bnc.end());
-//      }
-//
-//      if ((anc.empty() == true) && (bnc.empty() == true))
-//        continue;
-//
-//      //-- find the adjacent polygon to segment ab (fadj)
-//      fadj = nullptr;
-//      int adj_a_ringi = 0;
-//      int adj_a_pi = 0;
-//      int adj_b_ringi = 0;
-//      int adj_b_pi = 0;
-//      for (auto& adj : *(_adjFeatures)) {
-//        if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi) == true) {
-//          fadj = adj;
-//          break;
-//        }
-//      }
-//      if (fadj == nullptr && this->get_class() != BUILDING) {
-//        continue;
-//      }
-//
-//      int az = this->get_vertex_elevation(ringi, ai);
-//      int bz = this->get_vertex_elevation(ringi, bi);
-//      int fadj_az, fadj_bz;
-//      if (fadj == nullptr) {
-//        fadj_az = baseheight;
-//        fadj_bz = baseheight;
-//      }
-//      else {
-//        fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
-//        fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
-//      }
-//
-//      //-- add extra vw for the inner walls of buildings
-//        //-- create walls from lowest roof to ground, height jumps are created later
-//      int tmp_az = az;
-//      int tmp_bz = bz;
-//      int tmp_fadj_az = baseheight;
-//      int tmp_fadj_bz = baseheight;
-//      bool adifferent = false;
-//      bool bdifferent = false;
-//
-//      if (_id == "b31bd5f7b-00ba-11e6-b420-2bdcc4ab5d7f" && ringi == 0 && ai == 1) {
-//        std::cout << 'stop';
-//      }
-//
-//      //-- solve for the case two buildings are adjacent but their baseheights are different
-//      // in case they are different start at the lowest height (which is always the baseheight of the adjacent building)
-//      if (std::find(anc.begin(), anc.end(), tmp_fadj_az) == anc.end()) {
-//        tmp_fadj_az = anc.front();
-//        adifferent = true;
-//      }
-//
-//      if (std::find(bnc.begin(), bnc.end(), tmp_fadj_bz) == bnc.end()) {
-//        tmp_fadj_bz = bnc.front();
-//        bdifferent = true;
-//      }
-//      // Add extra triangle in case we have multiple buildings connected with different base heights
-//      if (adifferent && bdifferent) {
-//        if (tmp_fadj_bz > tmp_fadj_az) {
-//          Point3 p;
-//          p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(tmp_fadj_az));
-//          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//          p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(tmp_fadj_az));
-//          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//          p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(tmp_fadj_bz));
-//          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//          Triangle t;
-//          int size = int(_vertices_vw.size());
-//          t.v0 = size - 2;
-//          t.v1 = size - 3;
-//          t.v2 = size - 1;
-//          _triangles_vw.push_back(t);
-//
-//          //set tmp_fadj_bz to new height
-//          tmp_fadj_bz = tmp_fadj_az;
-//        }
-//        if (tmp_fadj_az > tmp_fadj_bz) {
-//          Point3 p;
-//          p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(tmp_fadj_bz));
-//          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//          p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(tmp_fadj_bz));
-//          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//          p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(tmp_fadj_az));
-//          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//          Triangle t;
-//          int size = int(_vertices_vw.size());
-//          t.v0 = size - 2;
-//          t.v1 = size - 3;
-//          t.v2 = size - 1;
-//          _triangles_vw.push_back(t);
-//          //set tmp_fadj_az to new height
-//          tmp_fadj_az = tmp_fadj_bz;
-//        }
-//      }
-//      if (adifferent) {
-//        Point3 p;
-//        p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(baseheight));
-//        _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//        p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(baseheight));
-//        _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//        p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(tmp_fadj_az));
-//        _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//        Triangle t;
-//        int size = int(_vertices_vw.size());
-//        t.v0 = size - 2;
-//        t.v1 = size - 3;
-//        t.v2 = size - 1;
-//        _triangles_vw.push_back(t);
-//      }
-//      if (bdifferent) {
-//        Point3 p;
-//        p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(tmp_fadj_az));
-//        _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//        p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(baseheight));
-//        _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//        p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(tmp_fadj_bz));
-//        _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//        Triangle t;
-//        int size = int(_vertices_vw.size());
-//        t.v0 = size - 2;
-//        t.v1 = size - 3;
-//        t.v2 = size - 1;
-//        _triangles_vw.push_back(t);
-//      }
-//
-//      if (fadj->get_class() == BUILDING) {
-//        if (az > fadj_az && bz > fadj_bz) {
-//          tmp_az = fadj_az;
-//          tmp_bz = fadj_bz;
-//        }
-//        if ((tmp_az >= tmp_fadj_az || tmp_bz >= tmp_fadj_bz) && (tmp_az != tmp_fadj_az && tmp_bz != tmp_fadj_bz)) {
-//          //-- find the height of the vertex in the node column
-//          std::vector<int>::const_iterator sait, eait, sbit, ebit;
-//          sait = std::find(anc.begin(), anc.end(), tmp_fadj_az);
-//          eait = std::find(anc.begin(), anc.end(), tmp_az);
-//          sbit = std::find(bnc.begin(), bnc.end(), tmp_fadj_bz);
-//          ebit = std::find(bnc.begin(), bnc.end(), tmp_bz);
-//
-//          //-- iterate to triangulate
-//          while ((sbit != ebit) && (sbit != bnc.end()) && ((sbit + 1) != bnc.end())) {
-//            Point3 p;
-//            if (anc.size() == 0 || sait == anc.end()) {
-//              p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(tmp_az));
-//              _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//            }
-//            else {
-//              p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
-//              _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//            }
-//            p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit));
-//            _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//            sbit++;
-//            p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit));
-//            _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//            Triangle t;
-//            int size = int(_vertices_vw.size());
-//            t.v0 = size - 2;
-//            t.v1 = size - 3;
-//            t.v2 = size - 1;
-//            _triangles_vw.push_back(t);
-//          }
-//          while (sait != eait && sait != anc.end() && (sait + 1) != anc.end()) {
-//            Point3 p;
-//            if (bnc.size() == 0 || ebit == bnc.end()) {
-//              p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(tmp_bz));
-//              _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//            }
-//            else {
-//              p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*ebit));
-//              _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//            }
-//            p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
-//            _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//            sait++;
-//            p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
-//            _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
-//            Triangle t;
-//            int size = int(_vertices_vw.size());
-//            t.v0 = size - 3;
-//            t.v1 = size - 2;
-//            t.v2 = size - 1;
-//            _triangles_vw.push_back(t);
-//          }
-//        }
-//      }
-//    }
-//  }
-//}
 
 bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& bringi, int& bpi) {
   double threshold = 0.001;

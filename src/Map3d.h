@@ -133,7 +133,7 @@ private:
   std::array<std::set<int>,NUM_ALLOWEDLASTOPO> _las_classes_allowed;
 
   NodeColumn                                          _nc;
-  NodeColumn                                          _nc_inner_walls;
+  NodeColumn                                          _nc_building_walls;
   std::vector<TopoFeature*>                           _lsFeatures;
   std::vector<std::string>                            _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;
