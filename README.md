@@ -9,9 +9,12 @@
 [3]: https://api.travis-ci.org/tudelft3d/3dfier.svg?branch=master
 [4]: https://travis-ci.org/tudelft3d/3dfier
 
+# Wiki
+
+The [3dfier wiki](https://github.com/tudelft3d/3dfier/wiki) has extensive information on the installation, data preparation, usage and output of 3dfier.
 
 # 3dfier
-![](https://dl.dropboxusercontent.com/s/tojiay8cmomu2v5/Delft_3dfier-3.png)
+<img src="https://dl.dropboxusercontent.com/s/05eo2r5yc2kke5g/3dfierNoBridge.png" width="300">
 
 
 Takes 2D GIS datasets (e.g. topographical datasets) and "3dfies" them (as in "making them three-dimensional") by lifting every polygon to 3D.
@@ -20,6 +23,8 @@ That is, water polygons are extruded to horizontal polygons, buildings to LOD1 b
 Every polygon is triangulated (constrained Delaunay triangulation) and the lifted polygons are "stitched" together so that one digital surface model (DSM) is constructed.
 Our aim is to obtain one DSM that is error-free, i.e. no intersecting triangles, no holes (the surface is watertight), where buildings are integrated in the surface, etc.
 This surface will then be used as input in simulation software for instance.
+
+![](https://dl.dropboxusercontent.com/s/tojiay8cmomu2v5/Delft_3dfier-3.png)
 
 <a href="https://vimeo.com/181421237">This video</a> illustrates the process and what 3dfier is about.
 
