@@ -35,15 +35,17 @@ float Building::_heightref_top;
 float Building::_heightref_base;
 bool Building::_building_triangulate;
 bool Building::_building_include_floor;
+bool Building::_building_inner_walls;
 std::set<int> Building::_las_classes_roof;
 std::set<int> Building::_las_classes_ground;
-Building::Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base, bool building_triangulate, bool building_include_floor)
+Building::Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base, bool building_triangulate, bool building_include_floor, bool building_inner_walls)
   : Flat(wkt, layername, attributes, pid)
 {
   _heightref_top = heightref_top;
   _heightref_base = heightref_base;
   _building_triangulate = building_triangulate;
   _building_include_floor = building_include_floor;
+  _building_inner_walls = building_inner_walls;
 }
 
 void Building::set_las_classes_roof(std::set<int> theset)
@@ -118,7 +120,7 @@ bool Building::add_elevation_point(Point2 &p, double z, float radius, int lascla
   return true;
 }
 
-void Building::construct_building_walls(const NodeColumn& nc, int baseheight, bool building_inner_walls, bool building_floor) {
+void Building::construct_building_walls(const NodeColumn& nc) {
   //-- gather all rings
   std::vector<Ring2> therings;
   therings.push_back(_p2->outer());
@@ -188,7 +190,7 @@ void Building::construct_building_walls(const NodeColumn& nc, int baseheight, bo
       int baseheight = this->get_height_base();
       if (fadj->get_class() != BUILDING) {
         // start at adjacent height for correct stitching if no floor
-        if (building_floor) {
+        if (_building_include_floor) {
           awall.push_back(baseheight);
           bwall.push_back(baseheight);
         }
@@ -204,14 +206,14 @@ void Building::construct_building_walls(const NodeColumn& nc, int baseheight, bo
         int adjbaseheight = dynamic_cast<Building*>(fadj)->get_height_base();
         int adjroofheight = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
         int base = baseheight;
-        if (building_floor && baseheight < adjbaseheight) {
+        if (_building_include_floor && baseheight < adjbaseheight) {
           awall.push_back(baseheight);
           awallend.push_back(adjbaseheight);
           //store base for inner walls check
           base = adjbaseheight;
         }
 
-        if (building_inner_walls) {
+        if (_building_inner_walls) {
           awall.push_back(base);
           if (roofheight > adjroofheight) {
             awallend.push_back(adjroofheight);

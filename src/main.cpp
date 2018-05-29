@@ -217,6 +217,12 @@ int main(int argc, const char * argv[]) {
         else
           map3d.set_building_include_floor(false);
       }
+      if (n["Building"]["inner_walls"]) {
+        if (n["Building"]["inner_walls"].as<std::string>() == "true")
+          map3d.set_building_inner_walls(true);
+        else
+          map3d.set_building_inner_walls(false);
+      }
     }
     if (n["Terrain"]) {
       if (n["Terrain"]["simplification"])
@@ -752,6 +758,13 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
         if ((s != "true") && (s != "false")) {
           wentgood = false;
           std::cerr << "\tOption 'Building.floor' invalid; must be 'true' or 'false'.\n";
+        }
+      }
+      if (n["Building"]["inner_walls"]) {
+        std::string s = n["Building"]["inner_walls"].as<std::string>();
+        if ((s != "true") && (s != "false")) {
+          wentgood = false;
+          std::cerr << "\tOption 'Building.inner_walls' invalid; must be 'true' or 'false'.\n";
         }
       }
     }

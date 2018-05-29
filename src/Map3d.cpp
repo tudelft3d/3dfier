@@ -41,7 +41,7 @@ Map3d::Map3d() {
   _building_triangulate = true;
   _building_lod = 1;
   _building_include_floor = false;
-  _building_inner_walls = true;
+  _building_inner_walls = false;
   _terrain_simplification = 0;
   _forest_simplification = 0;
   _terrain_simplification_tinsimp = 0.0;
@@ -92,6 +92,10 @@ void Map3d::set_building_include_floor(bool include) {
 
 void Map3d::set_building_triangulate(bool triangulate) {
   _building_triangulate = triangulate;
+}
+
+void Map3d::set_building_inner_walls(bool inner_walls) {
+  _building_inner_walls = inner_walls;
 }
 
 void Map3d::set_building_lod(int lod) {
@@ -716,8 +720,7 @@ bool Map3d::threeDfy(bool stitching) {
       for (auto& f : _lsFeatures) {
         if (f->get_class() == BUILDING) {
           Building* b = dynamic_cast<Building*>(f);
-          int baseheight = b->get_height_base();
-          b->construct_building_walls(_nc_building_walls, baseheight, _building_inner_walls, _building_include_floor);
+          b->construct_building_walls(_nc_building_walls);
         }
         else if (f->has_vertical_walls()) {
           f->construct_vertical_walls(_nc);
@@ -925,7 +928,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
     attributes[boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef())] = std::make_pair(f->GetFieldDefnRef(i)->GetType(), f->GetFieldAsString(i));
   }
   if (layertype == "Building") {
-    Building* p3 = new Building(wkt, layername, attributes, id, _building_heightref_roof, _building_heightref_ground, _building_triangulate, _building_include_floor);
+    Building* p3 = new Building(wkt, layername, attributes, id, _building_heightref_roof, _building_heightref_ground, _building_triangulate, _building_include_floor, _building_inner_walls);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Terrain") {
