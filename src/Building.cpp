@@ -159,9 +159,6 @@ void Building::construct_building_walls(const NodeColumn& nc) {
           break;
         }
       }
-      if (fadj == nullptr) {
-        continue;
-      }
 
       std::unordered_map<std::string, std::vector<int>>::const_iterator ncit;
       std::vector<int> anc, bnc;
@@ -188,9 +185,9 @@ void Building::construct_building_walls(const NodeColumn& nc) {
       std::vector<int>::const_iterator sait, eait, sbit, ebit;
       int roofheight = this->get_vertex_elevation(ringi, ai);
       int baseheight = this->get_height_base();
-      if (fadj->get_class() != BUILDING) {
+      if (fadj == nullptr || fadj->get_class() != BUILDING) {
         // start at adjacent height for correct stitching if no floor
-        if (_building_include_floor) {
+        if (fadj == nullptr ||_building_include_floor) {
           awall.push_back(baseheight);
           bwall.push_back(baseheight);
         }
