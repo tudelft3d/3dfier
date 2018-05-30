@@ -74,17 +74,17 @@ void Bridge::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsi
 
 void Bridge::get_citygml(std::wostream& of) {
   of << "<cityObjectMember>";
-  of << "<brg:Bridge gml:id=\"" << this->get_id() << "\">";
+  of << "<bri:Bridge gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
-  of << "<brg:lod1MultiSurface>";
+  of << "<bri:lod1MultiSurface>";
   of << "<gml:MultiSurface>";
   for (auto& t : _triangles)
     get_triangle_as_gml_surfacemember(of, t);
   for (auto& t : _triangles_vw)
     get_triangle_as_gml_surfacemember(of, t, true);
   of << "</gml:MultiSurface>";
-  of << "</brg:lod1MultiSurface>";
-  of << "</brg:Bridge>";
+  of << "</bri:lod1MultiSurface>";
+  of << "</bri:Bridge>";
   of << "</cityObjectMember>";
 }
 

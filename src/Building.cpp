@@ -390,26 +390,26 @@ void Building::get_citygml(std::wostream& of) {
   float h = z_to_float(this->get_height());
   float hbase = z_to_float(this->get_height_base());
   of << "<cityObjectMember>";
-  of << "<bldg:Building gml:id=\"" << this->get_id() << "\">";
+  of << "<bui:Building gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
   of << "<gen:measureAttribute name=\"min height surface\">";
   of << "<gen:value uom=\"#m\">" << hbase << "</gen:value>";
   of << "</gen:measureAttribute>";
-  of << "<bldg:measuredHeight uom=\"#m\">" << h << "</bldg:measuredHeight>";
+  of << "<bui:measuredHeight uom=\"#m\">" << h << "</bui:measuredHeight>";
   //-- LOD0 footprint
-  of << "<bldg:lod0FootPrint>";
+  of << "<bui:lod0FootPrint>";
   of << "<gml:MultiSurface>";
   get_polygon_lifted_gml(of, this->_p2, hbase, true);
-  of << "</gml:MultiSurface>";
-  of << "</bldg:lod0FootPrint>";
+  of << "</bui:MultiSurface>";
+  of << "</bui:lod0FootPrint>";
   //-- LOD0 roofedge
-  of << "<bldg:lod0RoofEdge>";
+  of << "<bui:lod0RoofEdge>";
   of << "<gml:MultiSurface>";
   get_polygon_lifted_gml(of, this->_p2, h, true);
   of << "</gml:MultiSurface>";
-  of << "</bldg:lod0RoofEdge>";
+  of << "</bui:lod0RoofEdge>";
   //-- LOD1 Solid
-  of << "<bldg:lod1Solid>";
+  of << "<bui:lod1Solid>";
   of << "<gml:Solid>";
   of << "<gml:exterior>";
   of << "<gml:CompositeSurface>";
@@ -430,8 +430,8 @@ void Building::get_citygml(std::wostream& of) {
   of << "</gml:CompositeSurface>";
   of << "</gml:exterior>";
   of << "</gml:Solid>";
-  of << "</bldg:lod1Solid>";
-  of << "</bldg:Building>";
+  of << "</bui:lod1Solid>";
+  of << "</bui:Building>";
   of << "</cityObjectMember>";
 }
 

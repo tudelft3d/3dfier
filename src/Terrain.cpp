@@ -68,17 +68,17 @@ void Terrain::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,uns
 
 void Terrain::get_citygml(std::wostream& of) {
   of << "<cityObjectMember>";
-  of << "<luse:LandUse gml:id=\"" << this->get_id() << "\">";
+  of << "<lu:LandUse gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
-  of << "<luse:lod1MultiSurface>";
+  of << "<lu:lod1MultiSurface>";
   of << "<gml:MultiSurface>";
   for (auto& t : _triangles)
     get_triangle_as_gml_surfacemember(of, t);
   for (auto& t : _triangles_vw)
     get_triangle_as_gml_surfacemember(of, t, true);
   of << "</gml:MultiSurface>";
-  of << "</luse:lod1MultiSurface>";
-  of << "</luse:LandUse>";
+  of << "</lu:lod1MultiSurface>";
+  of << "</lu:LandUse>";
   of << "</cityObjectMember>";
 }
 

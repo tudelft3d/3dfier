@@ -928,16 +928,17 @@ void TopoFeature::get_triangle_as_gml_triangle(std::wostream& of, Triangle& t, b
   of << "<gml:exterior>";
   of << "<gml:LinearRing>";
   if (verticalwall == false) {
-    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
+    of << "<gml:posList>"
+      << _vertices[t.v0].second << " "
+      << _vertices[t.v1].second << " "
+      << _vertices[t.v2].second << " "
+      << _vertices[t.v0].second << "</gml:posList>";
   }
   else {
-    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
+    of << _vertices_vw[t.v0].second << " "
+      << _vertices_vw[t.v1].second << " "
+      << _vertices_vw[t.v2].second << " "
+      << _vertices_vw[t.v0].second << "</gml:posList>";
   }
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";

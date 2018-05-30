@@ -75,17 +75,17 @@ void Road::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsign
 
 void Road::get_citygml(std::wostream& of) {
   of << "<cityObjectMember>";
-  of << "<tran:Road gml:id=\"" << this->get_id() << "\">";
+  of << "<tra:Road gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
-  of << "<tran:lod1MultiSurface>";
+  of << "<tra:lod1MultiSurface>";
   of << "<gml:MultiSurface>";
   for (auto& t : _triangles)
     get_triangle_as_gml_surfacemember(of, t);
   for (auto& t : _triangles_vw)
     get_triangle_as_gml_surfacemember(of, t, true);
   of << "</gml:MultiSurface>";
-  of << "</tran:lod1MultiSurface>";
-  of << "</tran:Road>";
+  of << "</tra:lod1MultiSurface>";
+  of << "</tra:Road>";
   of << "</cityObjectMember>";
 }
 
