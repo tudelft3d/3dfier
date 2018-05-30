@@ -400,7 +400,7 @@ void Building::get_citygml(std::wostream& of) {
   of << "<bui:lod0FootPrint>";
   of << "<gml:MultiSurface>";
   get_polygon_lifted_gml(of, this->_p2, hbase, true);
-  of << "</bui:MultiSurface>";
+  of << "</gml:MultiSurface>";
   of << "</bui:lod0FootPrint>";
   //-- LOD0 roofedge
   of << "<bui:lod0RoofEdge>";
