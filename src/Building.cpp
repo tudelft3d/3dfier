@@ -33,14 +33,19 @@
 //-- static variable
 float Building::_heightref_top;
 float Building::_heightref_base;
+bool Building::_building_triangulate;
+bool Building::_building_include_floor;
+bool Building::_building_inner_walls;
 std::set<int> Building::_las_classes_roof;
 std::set<int> Building::_las_classes_ground;
-
-Building::Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base)
+Building::Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base, bool building_triangulate, bool building_include_floor, bool building_inner_walls)
   : Flat(wkt, layername, attributes, pid)
 {
   _heightref_top = heightref_top;
   _heightref_base = heightref_base;
+  _building_triangulate = building_triangulate;
+  _building_include_floor = building_include_floor;
+  _building_inner_walls = building_inner_walls;
 }
 
 void Building::set_las_classes_roof(std::set<int> theset)
@@ -115,6 +120,161 @@ bool Building::add_elevation_point(Point2 &p, double z, float radius, int lascla
   return true;
 }
 
+void Building::construct_building_walls(const NodeColumn& nc) {
+  //-- gather all rings
+  std::vector<Ring2> therings;
+  therings.push_back(_p2->outer());
+  for (Ring2& iring : _p2->inners())
+    therings.push_back(iring);
+
+  //-- process each vertex of the polygon separately
+  Point2 a, b;
+  TopoFeature* fadj;
+  int ringi = -1;
+  for (Ring2& ring : therings) {
+    ringi++;
+    for (int ai = 0; ai < ring.size(); ai++) {
+      //-- Point a
+      a = ring[ai];
+      //-- find Point b
+      int bi;
+      if (ai == (ring.size() - 1)) {
+        b = ring.front();
+        bi = 0;
+      }
+      else {
+        b = ring[ai + 1];
+        bi = ai + 1;
+      }
+
+      //-- find the adjacent polygon to segment ab (fadj)
+      fadj = nullptr;
+      int adj_a_ringi = 0;
+      int adj_a_pi = 0;
+      int adj_b_ringi = 0;
+      int adj_b_pi = 0;
+      for (auto& adj : *(_adjFeatures)) {
+        if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi)) {
+          fadj = adj;
+          break;
+        }
+      }
+      if (fadj == nullptr) {
+        continue;
+      }
+
+      std::unordered_map<std::string, std::vector<int>>::const_iterator ncit;
+      std::vector<int> anc, bnc;
+      //-- check if there's a nc for either
+      ncit = nc.find(gen_key_bucket(&a));
+      if (ncit != nc.end()) {
+        anc = ncit->second;
+      }
+      ncit = nc.find(gen_key_bucket(&b));
+      if (ncit != nc.end()) {
+        bnc = ncit->second;
+      }
+
+      if (anc.empty() && bnc.empty())
+        continue;
+      // if one of the nc is empty something is wrong
+      if (anc.empty() || bnc.empty()) {
+        std::cerr << "ERROR: the inner wall node column is empty for building:  " << _id << std::endl;
+        break;
+      }
+
+      std::vector<int> awall, bwall, awallend, bwallend;
+      //-- find the height of the vertex in the node column
+      std::vector<int>::const_iterator sait, eait, sbit, ebit;
+      int roofheight = this->get_vertex_elevation(ringi, ai);
+      int baseheight = this->get_height_base();
+      if (fadj->get_class() != BUILDING) {
+        // start at adjacent height for correct stitching if no floor
+        if (_building_include_floor) {
+          awall.push_back(baseheight);
+          bwall.push_back(baseheight);
+        }
+        else {
+          awall.push_back(fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi));
+          bwall.push_back(fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi));
+        }
+        // end at own roof height
+        awallend.push_back(roofheight);
+        bwallend.push_back(roofheight);
+      }
+      else { // case of shared wall between two connected buildings
+        int adjbaseheight = dynamic_cast<Building*>(fadj)->get_height_base();
+        int adjroofheight = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
+        int base = baseheight;
+        if (_building_include_floor && baseheight < adjbaseheight) {
+          awall.push_back(baseheight);
+          awallend.push_back(adjbaseheight);
+          //store base for inner walls check
+          base = adjbaseheight;
+        }
+
+        if (_building_inner_walls) {
+          awall.push_back(base);
+          if (roofheight > adjroofheight) {
+            awallend.push_back(adjroofheight);
+          }
+          else {
+            awallend.push_back(roofheight);
+          }
+
+        }
+        if (roofheight > adjroofheight) {
+          awall.push_back(adjroofheight);
+          awallend.push_back(roofheight);
+        }
+        bwall = awall;
+        bwallend = awallend;
+      }
+
+      for (int i = 0; i < awall.size(); i++) {
+        sait = std::find(anc.begin(), anc.end(), awall[i]);
+        sbit = std::find(bnc.begin(), bnc.end(), bwall[i]);
+        eait = std::find(anc.begin(), anc.end(), awallend[i]);
+        ebit = std::find(bnc.begin(), bnc.end(), bwallend[i]);
+
+        //-- iterate to triangulate
+        while (sbit != ebit && sbit != bnc.end() && sbit + 1 != bnc.end()) {
+          Point3 p;
+          p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
+          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+          p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit));
+          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+          sbit++;
+          p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*sbit));
+          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+          Triangle t;
+          int size = int(_vertices_vw.size());
+          t.v0 = size - 2;
+          t.v1 = size - 3;
+          t.v2 = size - 1;
+          _triangles_vw.push_back(t);
+        }
+        while (sait != eait && sait != anc.end() && sait + 1 != anc.end()) {
+          Point3 p;
+          p = Point3(bg::get<0>(b), bg::get<1>(b), z_to_float(*ebit));
+          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+          p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
+          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+          sait++;
+          p = Point3(bg::get<0>(a), bg::get<1>(a), z_to_float(*sait));
+          _vertices_vw.push_back(std::make_pair(p, gen_key_bucket(&p)));
+          Triangle t;
+          int size = int(_vertices_vw.size());
+          t.v0 = size - 3;
+          t.v1 = size - 2;
+          t.v2 = size - 1;
+          _triangles_vw.push_back(t);
+        }
+      }
+    }
+  }
+}
+
 int Building::get_height_base() {
   return _height_base;
 }
@@ -140,11 +300,11 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
     TopoFeature::get_obj(dPts, mtl, fs);
   }
   else if (lod == 0) {
-    fs += mtl; 
+    fs += mtl;
     fs += "\n";
     for (auto& t : _triangles) {
       unsigned long a, b, c;
-      int z = this->get_height_base();
+      float z = z_to_float(this->get_height_base());
       auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
       if (it == dPts.end()) {
         a = dPts.size() + 1;
@@ -172,8 +332,41 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
       if ((a != b) && (a != c) && (b != c)) {
         fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
       }
-      // else
-      //   std::clog << "COLLAPSED TRIANGLE REMOVED\n";
+    }
+  }
+  if (_building_include_floor) {
+    fs += "usemtl BuildingFloor\n";
+    for (auto& t : _triangles) {
+      unsigned long a, b, c;
+      float z = z_to_float(this->get_height_base());
+      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
+      if (it == dPts.end()) {
+        a = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
+      }
+      else {
+        a = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
+      if (it == dPts.end()) {
+        b = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
+      }
+      else {
+        b = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
+      if (it == dPts.end()) {
+        c = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
+      }
+      else {
+        c = it->second;
+      }
+      //reverse orientation for floor polygon, a-c-b instead of a-b-c.
+      if ((a != b) && (a != c) && (b != c)) {
+        fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(c); fs += " "; fs += std::to_string(b); fs += "\n";
+      }
     }
   }
 }
@@ -220,22 +413,19 @@ void Building::get_citygml(std::wostream& of) {
   of << "<gml:Solid>";
   of << "<gml:exterior>";
   of << "<gml:CompositeSurface>";
-  //-- get floor
-  get_polygon_lifted_gml(of, this->_p2, hbase, false);
-  //-- get roof
-  get_polygon_lifted_gml(of, this->_p2, h, true);
-  //-- get the walls
-  auto r = _p2->outer();
-  int i;
-  for (i = 0; i < (r.size() - 1); i++)
-    get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
-  get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
-  //-- irings
-  auto irings = _p2->inners();
-  for (Ring2& r : irings) {
-    for (i = 0; i < (r.size() - 1); i++)
-      get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
-    get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
+  if (_building_triangulate) {
+    for (auto& t : _triangles)
+      get_triangle_as_gml_surfacemember(of, t);
+    for (auto& t : _triangles_vw)
+      get_triangle_as_gml_surfacemember(of, t, true);
+    if (_building_include_floor) {
+      for (auto& t : _triangles) {
+        get_floor_triangle_as_gml_surfacemember(of, t, _height_base);
+      }
+    }
+  }
+  else {
+    get_extruded_lod1_block_gml(of, this->_p2, h, hbase, _building_include_floor);
   }
   of << "</gml:CompositeSurface>";
   of << "</gml:exterior>";
@@ -259,22 +449,37 @@ void Building::get_citygml_imgeo(std::wostream& of) {
   of << "<gml:Solid>";
   of << "<gml:exterior>";
   of << "<gml:CompositeSurface>";
-  //-- get floor
-  get_polygon_lifted_gml(of, this->_p2, hbase, false);
-  //-- get roof
-  get_polygon_lifted_gml(of, this->_p2, h, true);
-  //-- get the walls
-  auto r = _p2->outer();
-  int i;
-  for (i = 0; i < (r.size() - 1); i++)
-    get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
-  get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
-  //-- irings
-  auto irings = _p2->inners();
-  for (Ring2& r : irings) {
+  if (_building_triangulate) {
+    for (auto& t : _triangles)
+      get_triangle_as_gml_surfacemember(of, t);
+    for (auto& t : _triangles_vw)
+      get_triangle_as_gml_surfacemember(of, t, true);
+    if (_building_include_floor) {
+      for (auto& t : _triangles) {
+        get_floor_triangle_as_gml_surfacemember(of, t, _height_base);
+      }
+    }
+  }
+  else {
+    if (_building_include_floor) {
+      //-- get floor
+      get_polygon_lifted_gml(of, this->_p2, hbase, false);
+    }
+    //-- get roof
+    get_polygon_lifted_gml(of, this->_p2, h, true);
+    //-- get the walls
+    auto r = _p2->outer();
+    int i;
     for (i = 0; i < (r.size() - 1); i++)
       get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
     get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
+    //-- irings
+    auto irings = _p2->inners();
+    for (Ring2& r : irings) {
+      for (i = 0; i < (r.size() - 1); i++)
+        get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
+      get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
+    }
   }
   of << "</gml:CompositeSurface>";
   of << "</gml:exterior>";

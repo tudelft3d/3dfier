@@ -220,7 +220,7 @@ std::string gen_key_bucket(const Point3* p) {
   return ss.str();
 }
 
-std::string gen_key_bucket(const Point3* p, int z) {
+std::string gen_key_bucket(const Point3* p, float z) {
   std::stringstream ss;
   ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>() << " " << z;
   return ss.str();

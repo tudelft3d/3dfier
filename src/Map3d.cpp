@@ -41,6 +41,7 @@ Map3d::Map3d() {
   _building_triangulate = true;
   _building_lod = 1;
   _building_include_floor = false;
+  _building_inner_walls = false;
   _terrain_simplification = 0;
   _forest_simplification = 0;
   _terrain_simplification_tinsimp = 0.0;
@@ -91,6 +92,10 @@ void Map3d::set_building_include_floor(bool include) {
 
 void Map3d::set_building_triangulate(bool triangulate) {
   _building_triangulate = triangulate;
+}
+
+void Map3d::set_building_inner_walls(bool inner_walls) {
+  _building_inner_walls = inner_walls;
 }
 
 void Map3d::set_building_lod(int lod) {
@@ -694,11 +699,18 @@ bool Map3d::threeDfy(bool stitching) {
       //-- Sort all node column vectors
       for (auto& nc : _nc) {
         std::sort(nc.second.begin(), nc.second.end());
+        // make values in nc unique
+        nc.second.erase(unique(nc.second.begin(), nc.second.end()), nc.second.end());
+      }
+      for (auto& nc : _nc_building_walls) {
+        std::sort(nc.second.begin(), nc.second.end());
+        // make values in nc unique
+        nc.second.erase(unique(nc.second.begin(), nc.second.end()), nc.second.end());
       }
 
       std::clog << "=====  /BOWTIES =====\n";
       for (auto& f : _lsFeatures) {
-        if (f->has_vertical_walls() == true) {
+        if (f->has_vertical_walls()) {
           f->fix_bowtie();
         }
       }
@@ -706,12 +718,12 @@ bool Map3d::threeDfy(bool stitching) {
 
       std::clog << "=====  /VERTICAL WALLS =====\n";
       for (auto& f : _lsFeatures) {
-        if (f->has_vertical_walls() == true) {
-          int baseheight = 0;
-          if (f->get_class() == BUILDING) {
-            baseheight = dynamic_cast<Building*>(f)->get_height_base();
-          }
-          f->construct_vertical_walls(_nc, baseheight);
+        if (f->get_class() == BUILDING) {
+          Building* b = dynamic_cast<Building*>(f);
+          b->construct_building_walls(_nc_building_walls);
+        }
+        else if (f->has_vertical_walls()) {
+          f->construct_vertical_walls(_nc);
         }
       }
       std::clog << "=====  VERTICAL WALLS/ =====\n";
@@ -916,7 +928,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
     attributes[boost::locale::to_lower(f->GetFieldDefnRef(i)->GetNameRef())] = std::make_pair(f->GetFieldDefnRef(i)->GetType(), f->GetFieldAsString(i));
   }
   if (layertype == "Building") {
-    Building* p3 = new Building(wkt, layername, attributes, id, _building_heightref_roof, _building_heightref_ground);
+    Building* p3 = new Building(wkt, layername, attributes, id, _building_heightref_roof, _building_heightref_ground, _building_triangulate, _building_include_floor, _building_inner_walls);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Terrain") {
@@ -1046,48 +1058,26 @@ void Map3d::stitch_lifted_features() {
   std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
     if (f->get_class() != BRIDGE) {
-      //-- 1. store all touching top level (adjacent + incident)
-      std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
-      //-- 2. build the node-column for each vertex
-      // oring
-      Ring2 oring = f->get_Polygon2()->outer();
-      for (int i = 0; i < oring.size(); i++) {
-        std::vector< std::tuple<TopoFeature*, int, int> > star;
-        bool toprocess = false;
-        for (auto& fadj : *lstouching) {
-          ringis.clear();
-          pis.clear();
-          if (fadj->has_point2(oring[i], ringis, pis) == true) {
-            for (int k = 0; k < ringis.size(); k++) {
-              toprocess = true;
-              star.push_back(std::make_tuple(fadj, ringis[k], pis[k]));
-            }
-          }
-        }
-        if (toprocess == true) {
-          this->stitch_one_vertex(f, 0, i, star);
-        }
-        else if (f->get_class() == BUILDING) {
-          f->add_vertical_wall();
-          Point2 tmp = f->get_point2(0, i);
-          std::string key_bucket = gen_key_bucket(&tmp);
-          int z = f->get_vertex_elevation(0, i);
-          _nc[key_bucket].push_back(z);
-          z = dynamic_cast<Building*>(f)->get_height_base();
-          _nc[key_bucket].push_back(z);
-        }
-      }
-      // irings
-      int noiring = 0;
-      for (Ring2& iring : f->get_Polygon2()->inners()) {
-        noiring++;
-        for (int i = 0; i < iring.size(); i++) {
+      //-- gather all rings
+      std::vector<Ring2> therings;
+      Polygon2* poly = f->get_Polygon2();
+      therings.push_back(poly->outer());
+      for (Ring2& iring : poly->inners())
+        therings.push_back(iring);
+
+      int ringi = -1;
+      for (Ring2& ring : therings) {
+        ringi++;
+        //-- 1. store all touching top level (adjacent + incident)
+        std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
+        //-- 2. build the node-column for each vertex
+        for (int i = 0; i < ring.size(); i++) {
           std::vector< std::tuple<TopoFeature*, int, int> > star;
           bool toprocess = false;
           for (auto& fadj : *lstouching) {
             ringis.clear();
             pis.clear();
-            if (fadj->has_point2(iring[i], ringis, pis) == true) {
+            if (fadj->has_point2(ring[i], ringis, pis) == true) {
               for (int k = 0; k < ringis.size(); k++) {
                 toprocess = true;
                 star.push_back(std::make_tuple(fadj, ringis[k], pis[k]));
@@ -1095,16 +1085,15 @@ void Map3d::stitch_lifted_features() {
             }
           }
           if (toprocess == true) {
-            this->stitch_one_vertex(f, noiring, i, star);
+            this->stitch_one_vertex(f, ringi, i, star);
           }
           else if (f->get_class() == BUILDING) {
-            f->add_vertical_wall();
-            Point2 tmp = f->get_point2(0, i);
+            Point2 tmp = f->get_point2(ringi, i);
             std::string key_bucket = gen_key_bucket(&tmp);
-            int z = f->get_vertex_elevation(0, i);
-            _nc[key_bucket].push_back(z);
-            z = dynamic_cast<Building*>(f)->get_height_base();
-            _nc[key_bucket].push_back(z);
+            int z = dynamic_cast<Building*>(f)->get_height_base();
+            _nc_building_walls[key_bucket].push_back(z);
+            z = f->get_vertex_elevation(ringi, i);
+            _nc_building_walls[key_bucket].push_back(z);
           }
         }
       }
@@ -1113,168 +1102,186 @@ void Map3d::stitch_lifted_features() {
 }
 
 void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star) {
-  //-- degree of vertex == 2
-  if (star.size() == 1){
-    if (std::get<0>(star[0])->get_class() != BRIDGE) {
-      TopoFeature* fadj = std::get<0>(star[0]);
-      //-- if not building and same class or both soft, then average.
-      if (f->get_class() != BUILDING && (f->is_hard() == false && fadj->is_hard() == false)) {
-        stitch_average(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
-      }
-      else {
-        stitch_jumpedge(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
-      }
-    }
-    else {
-      // for bridges we need to create VW and therefor add the height to the NC
-      Point2 p = f->get_point2(ringi, pi);
-      _nc[gen_key_bucket(&p)].push_back(f->get_vertex_elevation(ringi, pi));
-    }
-  }
-  //-- degree of vertex >= 3: more complex cases
-  else if (star.size() > 1) {
-    //-- collect all elevations
-    std::vector< std::tuple< int, TopoFeature*, int, int > > zstar;
-    zstar.push_back(std::make_tuple(
-      f->get_vertex_elevation(ringi, pi),
-      f,
-      ringi,
-      pi));
-    for (auto& fadj : star) {
-      if (std::get<0>(fadj)->get_class() != BRIDGE) {
-        zstar.push_back(std::make_tuple(
-          std::get<0>(fadj)->get_vertex_elevation(std::get<1>(fadj), std::get<2>(fadj)),
-          std::get<0>(fadj),
-          std::get<1>(fadj),
-          std::get<2>(fadj)));
-      }
-      // This it for adjacent objects at the corners of the bridge where the adjacent features need extra VW at the height jump.
-      else {
-        f->add_vertical_wall();
-      }
-    }
-
-    //-- sort low-high based on heights (get<0>)
-    std::sort(zstar.begin(), zstar.end(),
-      [](std::tuple<int, TopoFeature*, int, int> const &t1, std::tuple<int, TopoFeature*, int, int> const &t2) {
-      return std::get<0>(t1) < std::get<0>(t2);
-    });
-
-    //-- Identify buildings and water
-    int building = -1;
-    int water = -1;
-    for (int i = 0; i < zstar.size(); i++) {
-      TopoClass topoClass = std::get<1>(zstar[i])->get_class();
-      if (topoClass == BUILDING) {
-        //-- set building to the one with the lowest base
-        if (building == -1 || dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base() > dynamic_cast<Building*>(std::get<1>(zstar[i]))->get_height_base()) {
-          building = i;
+  //-- get p and key_bucket once and check if nc location is empty
+  Point2 p = f->get_point2(ringi, pi);
+  std::string key_bucket = gen_key_bucket(&p);
+  if (_nc[key_bucket].empty() && _nc_building_walls[key_bucket].empty()) {
+    //-- degree of vertex == 2
+    if (star.size() == 1) {
+      if (std::get<0>(star[0])->get_class() != BRIDGE) {
+        TopoFeature* fadj = std::get<0>(star[0]);
+        //-- if not building or both soft, then average.
+        if (f->get_class() != BUILDING && fadj->get_class() != BUILDING && (f->is_hard() == false && fadj->is_hard() == false)) {
+          stitch_average(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
+        }
+        else {
+          stitch_jumpedge(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
         }
       }
-      else if (topoClass == WATER) {
-        water = i;
+      else {
+        // for bridges we need to create VW and therefor add the height to the NC
+        _nc[key_bucket].push_back(f->get_vertex_elevation(ringi, pi));
       }
     }
+    //-- degree of vertex >= 3: more complex cases
+    else if (star.size() > 1) {
+      //-- collect all elevations
+      std::vector< std::tuple< int, TopoFeature*, int, int > > zstar;
+      zstar.push_back(std::make_tuple(
+        f->get_vertex_elevation(ringi, pi),
+        f,
+        ringi,
+        pi));
+      for (auto& fadj : star) {
+        if (std::get<0>(fadj)->get_class() != BRIDGE) {
+          zstar.push_back(std::make_tuple(
+            std::get<0>(fadj)->get_vertex_elevation(std::get<1>(fadj), std::get<2>(fadj)),
+            std::get<0>(fadj),
+            std::get<1>(fadj),
+            std::get<2>(fadj)));
+        }
+        // This it for adjacent objects at the corners of the bridge where the adjacent features need extra VW at the height jump.
+        else {
+          f->add_vertical_wall();
+        }
+      }
 
-    //-- Deal with buildings. If there's a building and a soft class incident, then this soft class
-    //-- get allocated the height value of the floor of the building. Any building will do if >1.
-    //-- Also ignore water so it doesn't get snapped to the floor of a building
-    if (building != -1) {
-      int baseheight = dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base();
-      for (auto& each : zstar) {
-        if (std::get<1>(each)->get_class() != BUILDING && std::get<1>(each)->get_class() != WATER) {
-          std::get<0>(each) = baseheight;
-          if (water != -1) {
-            //- add a vertical wall between the feature and the water
-            std::get<1>(each)->add_vertical_wall();
+      //-- sort low-high based on heights (get<0>)
+      std::sort(zstar.begin(), zstar.end(),
+        [](std::tuple<int, TopoFeature*, int, int> const &t1, std::tuple<int, TopoFeature*, int, int> const &t2) {
+        return std::get<0>(t1) < std::get<0>(t2);
+      });
+
+      //-- Identify buildings and water
+      int building = -1;
+      int water = -1;
+      int lowestbuilding = -1;
+      std::vector<int> buildings;
+      for (int i = 0; i < zstar.size(); i++) {
+        TopoClass topoClass = std::get<1>(zstar[i])->get_class();
+        if (topoClass == BUILDING) {
+          //-- store building indexes
+          buildings.push_back(i);
+          //-- set building to the one with the highest base
+          if (building == -1 || dynamic_cast<Building*>(std::get<1>(zstar[i]))->get_height_base() > dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base()) {
+            building = i;
           }
         }
-        else if (std::get<1>(each)->get_class() == BUILDING) {
-          std::get<1>(each)->add_vertical_wall();
+        else if (topoClass == WATER) {
+          water = i;
         }
       }
-    }
-    else {
-      for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it = zstar.begin(); it != zstar.end(); ++it) {
-        std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator fnext = it;
-        for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it + 1; it2 != zstar.end(); ++it2) {
-          int deltaz = std::abs(std::get<0>(*it) - std::get<0>(*it2));
-          // features are within threshold jump edge, handle various cases
-          if (deltaz < this->_threshold_jump_edges) {
-            fnext = it2;
-            // it and it2 are same class, set height to first since averaging doesn't work if >2 objects of same class within threshold
-            // this mainly applies for bridges and outlier detection of roads, otherwise it shouldn't be possible
-            if (std::get<1>(*it)->get_class() == std::get<1>(*it2)->get_class()) {
-              std::get<0>(*it2) = std::get<0>(*it);
+
+      //-- Deal with buildings. If there's a building and adjacent is not water, then this class
+      //-- get allocated the height value of the floor of the building. Any building will do if >1.
+      //-- Also ignore water so it doesn't get snapped to the floor of a building
+      if (building != -1) {
+        //-- push building heights in the node column, both floor and roof heights
+        int tmph = -99999;
+        for (auto i : buildings) {
+          int hfloor = dynamic_cast<Building*>(std::get<1>(zstar[i]))->get_height_base();
+          if (std::find(_nc_building_walls[key_bucket].begin(), _nc_building_walls[key_bucket].end(), hfloor) == _nc_building_walls[key_bucket].end()) {
+            _nc_building_walls[key_bucket].push_back(hfloor);
+          }
+
+          int hroof = std::get<0>(zstar[i]);
+          if (std::find(_nc_building_walls[key_bucket].begin(), _nc_building_walls[key_bucket].end(), hroof) == _nc_building_walls[key_bucket].end()) {
+            _nc_building_walls[key_bucket].push_back(hroof);
+          }
+        }
+        int baseheight = dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base();
+        for (auto& each : zstar) {
+          if (std::get<1>(each)->get_class() != BUILDING && std::get<1>(each)->get_class() != WATER) {
+            std::get<0>(each) = baseheight;
+            if (water != -1) {
+              //- add a vertical wall between the feature and the water
+              std::get<1>(each)->add_vertical_wall();
             }
-            // it is hard, it2 is hard
-            // keep height when both are hard surfaces, add vw
-            else if (std::get<1>(*it)->is_hard()) {
-              if (std::get<1>(*it2)->is_hard()) {
+          }
+        }
+      }
+      else {
+        for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it = zstar.begin(); it != zstar.end(); ++it) {
+          std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator fnext = it;
+          for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it + 1; it2 != zstar.end(); ++it2) {
+            int deltaz = std::abs(std::get<0>(*it) - std::get<0>(*it2));
+            // features are within threshold jump edge, handle various cases
+            if (deltaz < this->_threshold_jump_edges) {
+              fnext = it2;
+              // it and it2 are same class, set height to first since averaging doesn't work if >2 objects of same class within threshold
+              // this mainly applies for bridges and outlier detection of roads, otherwise it shouldn't be possible
+              if (std::get<1>(*it)->get_class() == std::get<1>(*it2)->get_class()) {
+                std::get<0>(*it2) = std::get<0>(*it);
+              }
+              // it is hard, it2 is hard
+              // keep height when both are hard surfaces, add vw
+              else if (std::get<1>(*it)->is_hard()) {
+                if (std::get<1>(*it2)->is_hard()) {
+                  //-- add a wall to the heighest feature, it2 is allways highest since zstart is sorted by height
+                  std::get<1>(*it2)->add_vertical_wall();
+                }
+                // it is hard, it2 is soft
+                // set height of it2 to it
+                else {
+                  std::get<0>(*it2) = std::get<0>(*it);
+                }
+              }
+              // it is soft, it2 is hard
+              // set height of it to it2
+              else if (std::get<1>(*it2)->is_hard()) {
+                std::get<0>(*it) = std::get<0>(*it2);
+              }
+            }
+            // features are outside threshold jump edges, add vw
+            else {
+              // stitch object withouth height to adjacent object which does have a height
+              if (std::get<0>(*it) == -9999 && std::get<0>(*it2) != -9999) {
+                std::get<0>(*it) = std::get<0>(*it2);
+              }
+              else if (std::get<0>(*it2) == -9999 && std::get<0>(*it) != -9999) {
+                std::get<0>(*it2) = std::get<0>(*it);
+              }
+              else {
                 //-- add a wall to the heighest feature, it2 is allways highest since zstart is sorted by height
                 std::get<1>(*it2)->add_vertical_wall();
               }
-              // it is hard, it2 is soft
-              // set height of it2 to it
-              else {
-                std::get<0>(*it2) = std::get<0>(*it);
+            }
+          }
+          //-- Average heights of soft features within the jumpedge threshold counted from the lowest feature or skip to the next hard feature
+          // fnext is the last feature within threshold jump edge, average all soft in between
+          if (it != fnext) {
+            if (std::get<1>(*it)->is_hard() == false && std::get<1>(*fnext)->is_hard() == false) {
+              int totalz = 0;
+              int count = 0;
+              for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it; it2 != fnext + 1; ++it2) {
+                totalz += std::get<0>(*it2);
+                count++;
+              }
+              totalz = totalz / count;
+              for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it; it2 != fnext + 1; ++it2) {
+                std::get<0>(*it2) = totalz;
               }
             }
-            // it is soft, it2 is hard
-            // set height of it to it2
-            else if (std::get<1>(*it2)->is_hard()) {
-              std::get<0>(*it) = std::get<0>(*it2);
+            else if (std::get<1>(*it)->is_hard() == false) {
+              // Adjust all intermediate soft features
+              for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it; it2 != fnext; ++it2) {
+                std::get<0>(*it2) = std::get<0>(*fnext);
+              }
             }
+            it = fnext;
           }
-          // features are outside threshold jump edges, add vw
-          else {
-            // stitch object withouth height to adjacent object which does have a height
-            if (std::get<0>(*it) == -9999 && std::get<0>(*it2) != -9999) {
-              std::get<0>(*it) = std::get<0>(*it2);
-            }
-            else if (std::get<0>(*it2) == -9999 && std::get<0>(*it) != -9999) {
-              std::get<0>(*it2) = std::get<0>(*it);
-            }
-            else {
-              //-- add a wall to the heighest feature, it2 is allways highest since zstart is sorted by height
-              std::get<1>(*it2)->add_vertical_wall();
-            }
-          }
-        }
-        //-- Average heights of soft features within the jumpedge threshold counted from the lowest feature or skip to the next hard feature
-        // fnext is the last feature within threshold jump edge, average all soft in between
-        if (it != fnext) {
-          if (std::get<1>(*it)->is_hard() == false && std::get<1>(*fnext)->is_hard() == false) {
-            int totalz = 0;
-            int count = 0;
-            for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it; it2 != fnext + 1; ++it2) {
-              totalz += std::get<0>(*it2);
-              count++;
-            }
-            totalz = totalz / count;
-            for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it; it2 != fnext + 1; ++it2) {
-              std::get<0>(*it2) = totalz;
-            }
-          }
-          else if (std::get<1>(*it)->is_hard() == false) {
-            // Adjust all intermediate soft features
-            for (std::vector< std::tuple< int, TopoFeature*, int, int > >::iterator it2 = it; it2 != fnext; ++it2) {
-              std::get<0>(*it2) = std::get<0>(*fnext);
-            }
-          }
-          it = fnext;
         }
       }
-    }
 
-    //-- assign the adjusted heights and build the nc
-    int tmph = -99999;
-    for (auto& each : zstar) {
-      std::get<1>(each)->set_vertex_elevation(std::get<2>(each), std::get<3>(each), std::get<0>(each));
-      if (std::get<0>(each) != tmph) { //-- not to repeat the same height
-        Point2 p = std::get<1>(each)->get_point2(std::get<2>(each), std::get<3>(each));
-        _nc[gen_key_bucket(&p)].push_back(std::get<0>(each));
-        tmph = std::get<0>(each);
+      //-- assign the adjusted heights and build the nc
+      int tmph = -99999;
+      for (auto& each : zstar) {
+        int h = std::get<0>(each);
+        std::get<1>(each)->set_vertex_elevation(std::get<2>(each), std::get<3>(each), h);
+        if (h != tmph) { //-- not to repeat the same height
+          _nc[key_bucket].push_back(h);
+          tmph = h;
+        }
       }
     }
   }
@@ -1287,18 +1294,17 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
   int f2z = f2->get_vertex_elevation(ringi2, pi2);
 
   //-- Buildings involved
-  if ((f1->get_class() == BUILDING) || (f2->get_class() == BUILDING)) {
-    if ((f1->get_class() == BUILDING) && (f2->get_class() == BUILDING)) {
-      // add a wall to both buildings
-      f1->add_vertical_wall();
-      f2->add_vertical_wall();
-      _nc[key_bucket].push_back(f1z);
-      _nc[key_bucket].push_back(f2z);
+  if (f1->get_class() == BUILDING || f2->get_class() == BUILDING) {
+    if (f1->get_class() == BUILDING && f2->get_class() == BUILDING) {
       int f1base = dynamic_cast<Building*>(f1)->get_height_base();
       int f2base = dynamic_cast<Building*>(f2)->get_height_base();
-      _nc[key_bucket].push_back(f1base);
+      _nc_building_walls[key_bucket].push_back(f1base);
       if (f1base != f2base) {
-        _nc[key_bucket].push_back(f2base);
+        _nc_building_walls[key_bucket].push_back(f2base);
+      }
+      _nc_building_walls[key_bucket].push_back(f1z);
+      if (f1z != f2z) {
+        _nc_building_walls[key_bucket].push_back(f2z);
       }
     }
     else if (f1->get_class() == BUILDING) {
@@ -1307,12 +1313,11 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
       }
       else {
         //- keep water flat, add the water height to the nc
-        _nc[key_bucket].push_back(f2z);
+        _nc_building_walls[key_bucket].push_back(f2z);
       }
       //- expect a building to always be heighest adjacent feature
-      f1->add_vertical_wall();
-      _nc[key_bucket].push_back(f1z);
-      _nc[key_bucket].push_back(dynamic_cast<Building*>(f1)->get_height_base());
+      _nc_building_walls[key_bucket].push_back(dynamic_cast<Building*>(f1)->get_height_base());
+      _nc_building_walls[key_bucket].push_back(f1z);
     }
     else { //-- f2 is Building
       if (f1->get_class() != WATER) {
@@ -1320,12 +1325,11 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
       }
       else {
         //- keep water flat, add the water height to the nc
-        _nc[key_bucket].push_back(f1z);
+        _nc_building_walls[key_bucket].push_back(f1z);
       }
       //- expect a building to always be heighest adjacent feature
-      f2->add_vertical_wall();
-      _nc[key_bucket].push_back(f2z);
-      _nc[key_bucket].push_back(dynamic_cast<Building*>(f2)->get_height_base());
+      _nc_building_walls[key_bucket].push_back(dynamic_cast<Building*>(f2)->get_height_base());
+      _nc_building_walls[key_bucket].push_back(f2z);
     }
   }
   //-- no Buildings involved

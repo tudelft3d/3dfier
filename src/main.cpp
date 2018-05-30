@@ -114,6 +114,8 @@ int main(int argc, const char * argv[]) {
       options(poall).positional(popos).run(), vm);
     po::notify(vm);
 
+    std::clog << licensewarning << std::endl;
+
     if (vm.count("help")) {
       std::cout << "Usage: 3dfier config.yml --OBJ myoutput.obj" << std::endl;
       std::cout << "       3dfier config.yml --CityGML myoutput.gml" << std::endl;
@@ -166,9 +168,6 @@ int main(int argc, const char * argv[]) {
     return EXIT_FAILURE;
   }
 
-  std::clog << licensewarning << std::endl;
-
-
   //-- allowed feature classes
   std::set<std::string> allowedFeatures{ "Building", "Water", "Terrain", "Road", "Forest", "Separation", "Bridge/Overpass" };
 
@@ -211,6 +210,18 @@ int main(int argc, const char * argv[]) {
           map3d.set_building_triangulate(true);
         else
           map3d.set_building_triangulate(false);
+      }
+      if (n["Building"]["floor"]) {
+        if (n["Building"]["floor"].as<std::string>() == "true")
+          map3d.set_building_include_floor(true);
+        else
+          map3d.set_building_include_floor(false);
+      }
+      if (n["Building"]["inner_walls"]) {
+        if (n["Building"]["inner_walls"].as<std::string>() == "true")
+          map3d.set_building_inner_walls(true);
+        else
+          map3d.set_building_inner_walls(false);
       }
     }
     if (n["Terrain"]) {
@@ -505,16 +516,6 @@ int main(int argc, const char * argv[]) {
   }
   std::clog << "...3dfying done.\n";
 
-  //-- output
-  if (nodes["output"]) {
-    YAML::Node n = nodes["output"];
-    if (n["building_floor"]) {
-      if (n["building_floor"].as<std::string>() == "true") {
-        map3d.set_building_include_floor(true);
-      }
-    }
-  }
-
   //-- iterate over all output
   for (auto& output : outputs) {
     auto startFileWriting = boost::chrono::high_resolution_clock::now();
@@ -750,6 +751,20 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
         if ((s != "true") && (s != "false")) {
           wentgood = false;
           std::cerr << "\tOption 'Building.triangulate' invalid; must be 'true' or 'false'.\n";
+        }
+      }
+      if (n["Building"]["floor"]) {
+        std::string s = n["Building"]["floor"].as<std::string>();
+        if ((s != "true") && (s != "false")) {
+          wentgood = false;
+          std::cerr << "\tOption 'Building.floor' invalid; must be 'true' or 'false'.\n";
+        }
+      }
+      if (n["Building"]["inner_walls"]) {
+        std::string s = n["Building"]["inner_walls"].as<std::string>();
+        if ((s != "true") && (s != "false")) {
+          wentgood = false;
+          std::cerr << "\tOption 'Building.inner_walls' invalid; must be 'true' or 'false'.\n";
         }
       }
     }
@@ -989,13 +1004,6 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     if (n["gdal_driver"] && n["gdal_driver"].as<std::string>().empty()) {
       wentgood = false;
       std::cerr << "\tOutput format GDAL needs gdal_driver setting\n";
-    }
-    if (n["building_floor"]) {
-      std::string s = n["building_floor"].as<std::string>();
-      if ((s != "true") && (s != "false")) {
-        wentgood = false;
-        std::cerr << "\tOption 'output.building_floor' invalid; must be 'true' or 'false'.\n";
-      }
     }
   }
 

@@ -179,36 +179,35 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
   }
 
   //-- vertical triangles
-  if (_bVerticalWalls == true && _triangles_vw.size() > 0) {
+  if (_triangles_vw.size() > 0) {
     fs += mtl; fs += "Wall"; fs += "\n";
-  }
+    for (auto& t : _triangles_vw) {
+      unsigned long a, b, c;
+      auto it = dPts.find(_vertices_vw[t.v0].second);
+      if (it == dPts.end()) {
+        a = dPts.size() + 1;
+        dPts[_vertices_vw[t.v0].second] = a;
+      }
+      else
+        a = it->second;
+      it = dPts.find(_vertices_vw[t.v1].second);
+      if (it == dPts.end()) {
+        b = dPts.size() + 1;
+        dPts[_vertices_vw[t.v1].second] = b;
+      }
+      else
+        b = it->second;
+      it = dPts.find(_vertices_vw[t.v2].second);
+      if (it == dPts.end()) {
+        c = dPts.size() + 1;
+        dPts[_vertices_vw[t.v2].second] = c;
+      }
+      else
+        c = it->second;
 
-  for (auto& t : _triangles_vw) {
-    unsigned long a, b, c;
-    auto it = dPts.find(_vertices_vw[t.v0].second);
-    if (it == dPts.end()) {
-      a = dPts.size() + 1;
-      dPts[_vertices_vw[t.v0].second] = a;
-    }
-    else
-      a = it->second;
-    it = dPts.find(_vertices_vw[t.v1].second);
-    if (it == dPts.end()) {
-      b = dPts.size() + 1;
-      dPts[_vertices_vw[t.v1].second] = b;
-    }
-    else
-      b = it->second;
-    it = dPts.find(_vertices_vw[t.v2].second);
-    if (it == dPts.end()) {
-      c = dPts.size() + 1;
-      dPts[_vertices_vw[t.v2].second] = c;
-    }
-    else
-      c = it->second;
-
-    if ((a != b) && (a != c) && (b != c)) {
-      fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
+      if ((a != b) && (a != c) && (b != c)) {
+        fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
+      }
     }
   }
 }
@@ -456,10 +455,7 @@ void TopoFeature::fix_bowtie() {
   }
 }
 
-void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight) {
-  if (this->has_vertical_walls() == false)
-    return;
-
+void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
   //-- gather all rings
   std::vector<Ring2> therings;
   therings.push_back(_p2->outer());
@@ -487,16 +483,6 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight)
         b = ring[ai + 1];
         bi = ai + 1;
       }
-      //-- check if there's a nc for either
-      ncit = nc.find(gen_key_bucket(&a));
-      if (ncit != nc.end())
-        anc = ncit->second;
-      ncit = nc.find(gen_key_bucket(&b));
-      if (ncit != nc.end())
-        bnc = ncit->second;
-
-      if ((anc.empty() == true) && (bnc.empty() == true))
-        continue;
 
       //-- find the adjacent polygon to segment ab (fadj)
       fadj = nullptr;
@@ -505,29 +491,33 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight)
       int adj_b_ringi = 0;
       int adj_b_pi = 0;
       for (auto& adj : *(_adjFeatures)) {
-        if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi) == true) {
+        if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi)) {
           fadj = adj;
           break;
         }
       }
-      if (fadj == nullptr && this->get_class() != BUILDING) {
+      if (fadj == nullptr) {
         continue;
       }
 
       int az = this->get_vertex_elevation(ringi, ai);
       int bz = this->get_vertex_elevation(ringi, bi);
-      int fadj_az, fadj_bz;
-      if(fadj == nullptr) {
-        fadj_az = baseheight;
-        fadj_bz = baseheight;
-      }
-      else {
-        fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
-        fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
-      }
+      int fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
+      int fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
 
+      //-- check if there's a nc for either
+      ncit = nc.find(gen_key_bucket(&a));
+      if (ncit != nc.end()) {
+        anc = ncit->second;
+      }
+      ncit = nc.find(gen_key_bucket(&b));
+      if (ncit != nc.end()) {
+        bnc = ncit->second;
+      }
+      if ((anc.empty() == true) && (bnc.empty() == true))
+        continue;
 
-      //-- Make exeption for bridges, they have vw's from bottom up, swap . Also skip if adjacent feature is bridge, vw is then created by bridge
+      //-- Make exeption for bridges, they have vw's from bottom up, swap. Also skip if adjacent feature is bridge, vw is then created by bridge
       if (this->get_class() == BRIDGE) {
         //-- find the height of the vertex in the node column
         std::vector<int>::const_iterator sait, eait, sbit, ebit;
@@ -582,9 +572,10 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight)
           _triangles_vw.push_back(t);
         }
       }
-      if (fadj != nullptr && fadj->get_class() == BRIDGE) {
+      if (fadj->get_class() == BRIDGE) {
         continue;
       }
+
       //-- check height differences: f > fadj for *both* Points a and b. 
       if (az < fadj_az || bz < fadj_bz) {
         continue;
@@ -656,7 +647,6 @@ bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& 
   Point2 tmp;
   if (this->has_point2(a, ringis, pis) == true) {
     for (int k = 0; k < ringis.size(); k++) {
-      // nextpi = pis[k];
       int nextpi;
       tmp = this->get_next_point2_in_ring(ringis[k], pis[k], nextpi);
       if (sqr_distance(b, tmp) <= sqr_threshold) {
@@ -892,17 +882,41 @@ void TopoFeature::get_triangle_as_gml_surfacemember(std::wostream& of, Triangle&
   of << "<gml:exterior>";
   of << "<gml:LinearRing>";
   if (verticalwall == false) {
-    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
+    of << "<gml:posList>"
+      << _vertices[t.v0].second << " "
+      << _vertices[t.v1].second << " "
+      << _vertices[t.v2].second << " "
+      << _vertices[t.v0].second << "</gml:posList>";
   }
   else {
-    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
+    of << "<gml:posList>"
+      << _vertices_vw[t.v0].second << " "
+      << _vertices_vw[t.v1].second << " "
+      << _vertices_vw[t.v2].second << " "
+      << _vertices_vw[t.v0].second << "</gml:posList>";
   }
+  of << "</gml:LinearRing>";
+  of << "</gml:exterior>";
+  of << "</gml:Polygon>";
+  of << "</gml:surfaceMember>";
+}
+
+void TopoFeature::get_floor_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, int baseheight) {
+  of << "<gml:surfaceMember>";
+  of << "<gml:Polygon>";
+  of << "<gml:exterior>";
+  of << "<gml:LinearRing>";
+
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(3);
+  // replace z of the vertices with baseheight
+  ss << "<gml:posList>"
+    << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
+    << _vertices[t.v2].second.substr(0, _vertices[t.v2].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
+    << _vertices[t.v1].second.substr(0, _vertices[t.v1].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
+    << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << z_to_float(baseheight) << "</gml:posList>";
+
+  of << ss.str();
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
   of << "</gml:Polygon>";

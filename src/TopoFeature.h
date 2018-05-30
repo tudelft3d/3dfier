@@ -52,7 +52,7 @@ public:
   virtual bool          get_shape(OGRLayer*, bool writeAttributes, AttributeMap extraAttributes = AttributeMap()) = 0;
 
   std::string  get_id();
-  void         construct_vertical_walls(const NodeColumn& nc, int baseheight);
+  void         construct_vertical_walls(const NodeColumn& nc);
   void         fix_bowtie();
   void         add_adjacent_feature(TopoFeature* adjFeature);
   std::vector<TopoFeature*>* get_adjacent_features();
@@ -102,6 +102,7 @@ protected:
 
   void get_cityjson_geom(nlohmann::json& g, std::unordered_map<std::string, unsigned long> &dPts, std::string primitive = "MultiSurface");
   void get_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, bool verticalwall = false);
+  void get_floor_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, int baseheight);
   void get_triangle_as_gml_triangle(std::wostream& of, Triangle& t, bool verticalwall = false);
   bool get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue = "");
 };

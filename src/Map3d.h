@@ -84,6 +84,7 @@ public:
   void set_building_heightref_ground(float heightref);
   void set_building_include_floor(bool include);
   void set_building_triangulate(bool triangulate);
+  void set_building_inner_walls(bool inner_walls);
   void set_building_lod(int lod);
   void set_terrain_simplification(int simplification);
   void set_forest_simplification(int simplification);
@@ -108,9 +109,10 @@ public:
 private:
   float       _building_heightref_roof;
   float       _building_heightref_ground;
-  bool        _building_triangulate; // TODO: Not used anymore, remove? 
+  bool        _building_triangulate;
   int         _building_lod;
-  bool        _building_include_floor; // TODO: Not used anymore, remove? 
+  bool        _building_include_floor;
+  bool        _building_inner_walls;
   int         _terrain_simplification;
   int         _forest_simplification;
   double      _terrain_simplification_tinsimp;
@@ -132,6 +134,7 @@ private:
   std::array<std::set<int>,NUM_ALLOWEDLASTOPO> _las_classes_allowed;
 
   NodeColumn                                          _nc;
+  NodeColumn                                          _nc_building_walls;
   std::vector<TopoFeature*>                           _lsFeatures;
   std::vector<std::string>                            _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;
