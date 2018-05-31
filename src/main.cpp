@@ -305,7 +305,6 @@ int main(int argc, const char * argv[]) {
       double xmin, xmax, ymin, ymax;
       bool wentgood = true;
       try {
-        (n["radius_vertex_elevation"].as<std::string>());
         xmin = boost::lexical_cast<double>(extent_split[0]);
         ymin = boost::lexical_cast<double>(extent_split[1]);
         xmax = boost::lexical_cast<double>(extent_split[2]);
@@ -982,7 +981,6 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       double xmin, xmax, ymin, ymax;
       bool correct = true;
       try {
-        (n["radius_vertex_elevation"].as<std::string>());
         xmin = boost::lexical_cast<double>(extent_split[0]);
         ymin = boost::lexical_cast<double>(extent_split[1]);
         xmax = boost::lexical_cast<double>(extent_split[2]);
