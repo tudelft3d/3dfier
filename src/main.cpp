@@ -865,6 +865,12 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
           std::cerr << "\tOption 'Road.height' invalid; must be 'percentile-XX'.\n";
         }
       }
+      if (n["Road"]["threshold_outliers"]) {
+        if (is_string_integer(n["Road"]["threshold_outliers"].as<std::string>()) == false) {
+          wentgood = false;
+          std::cerr << "\tOption 'Road.threshold_outliers' invalid; must be an integer.\n";
+        }
+      }
       if (n["Road"]["use_LAS_classes"]) {
         YAML::Node tmp = n["Road"]["use_LAS_classes"];
         for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
