@@ -854,12 +854,12 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
 
     //-- check if extent is given and polygons need filtering
     bool useRequestedExtent = false;
-    OGREnvelope envelope = OGREnvelope();
+    OGREnvelope extent = OGREnvelope();
     if (boost::geometry::area(_requestedExtent) > 0) {
-      envelope.MinX = bg::get<bg::min_corner, 0>(_requestedExtent);
-      envelope.MaxX = bg::get<bg::max_corner, 1>(_requestedExtent);
-      envelope.MinY = bg::get<bg::min_corner, 0>(_requestedExtent);
-      envelope.MaxY = bg::get<bg::max_corner, 1>(_requestedExtent);
+      extent.MinX = bg::get<bg::min_corner, 0>(_requestedExtent);
+      extent.MaxX = bg::get<bg::max_corner, 0>(_requestedExtent);
+      extent.MinY = bg::get<bg::min_corner, 1>(_requestedExtent);
+      extent.MaxY = bg::get<bg::max_corner, 1>(_requestedExtent);
       useRequestedExtent = true;
     }
 
@@ -876,7 +876,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
       }
 
       //-- add the polygon of no extent is used or if the envelope is within the extent
-      if (!useRequestedExtent || envelope.Intersects(env)) {
+      if (!useRequestedExtent || extent.Intersects(env)) {
         switch (geometry->getGeometryType()) {
         case wkbPolygon:
         case wkbPolygon25D: {
