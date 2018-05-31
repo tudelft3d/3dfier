@@ -1131,6 +1131,8 @@ void Boundary3D::detect_outliers(int degrees_incline) {
   for (Ring2& ring : rings) {
     ringi++;
     std::vector<int> ringz = _p2z[ringi];
+    std::vector<float> inclines(_p2z[ringi].size());
+    std::vector<int> changez(_p2z[ringi].size(), 0);
     float PI = 3.14159265;
 
     for (int i = 0; i < ring.size(); i++) {
@@ -1152,7 +1154,52 @@ void Boundary3D::detect_outliers(int degrees_incline) {
         incline = incline - 2 * PI;
       }
       incline = incline * 180 / PI;
+      //if (incline > 0) we have a peak down, otherwise we have a peak up
+      if (abs(incline) > degrees_incline) {
+        if (abs(len2z) > abs(len1z)) {
+          if (incline > 0) {
+            // going from 'flat' surface up
+            changez[i] = 1;
+          }
+          else {
+            // going from 'flat' surface down
+            changez[i] = -1;
+          }
+        }
+      }
+    }
+    // find the index of the first peak up (value == 1)
+    int start_idx = std::find(changez.begin(), changez.end(), 1) - changez.begin();
+    if (start_idx == changez.size()) {
+      // else find the index of the first peak down (value == -1)
+      start_idx = std::find(changez.begin(), changez.end(), -1) - changez.begin();
+      if (start_idx == changez.size()) {
+        start_idx = 0;
+      }
+    }
 
+    // Detect and fix outliers starting from the first peak up detected previously
+    for (int j = 0; j < ring.size(); ++j) {
+      //make round-trip through vector starting at start_idx
+      int i = (j + start_idx + ring.size()) % ring.size();
+      int i0 = i - 1;
+      int i2 = i + 1;
+      if (i == 0) {
+        i0 = ring.size() - 1;
+      }
+      if (i2 == ring.size()) {
+        i2 = 0;
+      }
+      float len1z = (ringz[i] - ringz[i0]) / 100.0;
+      float len2z = (ringz[i2] - ringz[i]) / 100.0;
+      float incline = atan2(len2z, distance(ring[i], ring[i2])) - atan2(len1z, distance(ring[i0], ring[i]));
+      if (incline <= -PI) {
+        incline = 2 * PI + incline;
+      }
+      if (incline > PI) {
+        incline = incline - 2 * PI;
+      }
+      incline = incline * 180 / PI;
       //if (incline > 0) we have a peak down, otherwise we have a peak up
       if (abs(incline) > degrees_incline) {
         //find the outlier by sorting and comparing distance
