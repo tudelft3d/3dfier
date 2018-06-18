@@ -370,14 +370,29 @@ int main(int argc, const char * argv[]) {
 
   //-- check if all polygon files exist
   bool bPolyData = false;
-  for (auto file : polygonFiles) {
-    std::ifstream f(file.filename);
-    if (f.good()) {
-      bPolyData = true;
-    }
-    else {
+#if GDAL_VERSION_MAJOR < 2
+  if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0)
+    OGRRegisterAll();
+#else
+  if (GDALGetDriverCount() == 0)
+    GDALAllRegister();
+#endif
+
+  for (auto file = polygonFiles.begin(); file != polygonFiles.end(); ++file) {
+#if GDAL_VERSION_MAJOR < 2
+    OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(file->filename.c_str(), false);
+#else
+    GDALDataset *dataSource = (GDALDataset*)GDALOpenEx(file->filename.c_str(), GDAL_OF_READONLY, NULL, NULL, NULL);
+#endif
+    if (dataSource == NULL) {
       bPolyData = false;
-      std::cerr << "ERROR: Missing polygon data, cannot open file " << file.filename << std::endl;
+    }
+#if GDAL_VERSION_MAJOR < 2
+    OGRDataSource::DestroyDataSource(dataSource);
+#else
+    GDALClose(dataSource);
+#endif
+    if (bPolyData == false) {
       return EXIT_FAILURE;
     }
   }
