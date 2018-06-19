@@ -384,8 +384,8 @@ int main(int argc, const char * argv[]) {
 #else
     GDALDataset *dataSource = (GDALDataset*)GDALOpenEx(file->filename.c_str(), GDAL_OF_READONLY, NULL, NULL, NULL);
 #endif
-    if (dataSource == NULL) {
-      bPolyData = false;
+    if (dataSource != NULL) {
+      bPolyData = true;
     }
 #if GDAL_VERSION_MAJOR < 2
     OGRDataSource::DestroyDataSource(dataSource);
