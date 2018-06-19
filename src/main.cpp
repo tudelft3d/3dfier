@@ -335,7 +335,7 @@ int main(int argc, const char * argv[]) {
         uniqueid = (*it)["uniqueid"].as<std::string>();
       }
       // Get the correct height attribute
-      std::string heightfield = "heightfield";
+      std::string heightfield = "";
       if ((*it)["height_field"]) {
         heightfield = (*it)["height_field"].as<std::string>();
       }
@@ -370,14 +370,34 @@ int main(int argc, const char * argv[]) {
 
   //-- check if all polygon files exist
   bool bPolyData = false;
-  for (auto file : polygonFiles) {
-    std::ifstream f(file.filename);
-    if (f.good()) {
+#if GDAL_VERSION_MAJOR < 2
+  if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0)
+    OGRRegisterAll();
+#else
+  if (GDALGetDriverCount() == 0)
+    GDALAllRegister();
+#endif
+
+  for (auto file = polygonFiles.begin(); file != polygonFiles.end(); ++file) {
+#if GDAL_VERSION_MAJOR < 2
+    OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(file->filename.c_str(), false);
+#else
+    GDALDataset *dataSource = (GDALDataset*)GDALOpenEx(file->filename.c_str(), GDAL_OF_READONLY | GDAL_OF_VECTOR, NULL, NULL, NULL);
+#endif
+    if (dataSource != NULL) {
       bPolyData = true;
     }
-    else {
-      bPolyData = false;
-      std::cerr << "ERROR: Missing polygon data, cannot open file " << file.filename << std::endl;
+#if GDAL_VERSION_MAJOR < 2
+    OGRDataSource::DestroyDataSource(dataSource);
+#else
+    GDALClose(dataSource);
+#endif
+    if (bPolyData == false) {
+      std::string logstring = "Reading input dataset: " + file->filename;
+      if (strncmp(file->filename.c_str(), "PG:", strlen("PG:")) == 0) {
+        logstring = "Opening PostgreSQL database connection.";
+      }
+      std::cerr << "\tERROR: " << logstring << std::endl;
       return EXIT_FAILURE;
     }
   }

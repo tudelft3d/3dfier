@@ -788,15 +788,20 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
 #endif
 
   for (auto file = files.begin(); file != files.end(); ++file) {
-    std::clog << "Reading input dataset: " << file->filename << std::endl;
+    std::string logstring = "Reading input dataset: " + file->filename;
+    if (strncmp(file->filename.c_str(), "PG:", strlen("PG:")) == 0) {
+      logstring = "Opening PostgreSQL database connection.";
+    }
+    std::clog << logstring << std::endl;
+
 #if GDAL_VERSION_MAJOR < 2
     OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(file->filename.c_str(), false);
 #else
-    GDALDataset *dataSource = (GDALDataset*)GDALOpenEx(file->filename.c_str(), GDAL_OF_READONLY, NULL, NULL, NULL);
+    GDALDataset *dataSource = (GDALDataset*)GDALOpenEx(file->filename.c_str(), GDAL_OF_READONLY | GDAL_OF_VECTOR, NULL, NULL, NULL);
 #endif
 
     if (dataSource == NULL) {
-      std::cerr << "\tERROR: could not open file: " + file->filename << std::endl;
+      std::cerr << "\tERROR: " << logstring << std::endl;
       return false;
     }
 
@@ -842,7 +847,10 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
       std::cerr << "ERROR: field '" << idfield << "' not found in layer '" << l.first << "'.\n";
       return false;
     }
-    if (dataLayer->FindFieldIndex(heightfield, false) == -1) {
+    if (strlen(heightfield) == 0) {
+      std::clog << "Using all polygons in layer '" << l.first << "'.\n";
+    }
+    else if (dataLayer->FindFieldIndex(heightfield, false) == -1) {
       std::clog << "Warning: field '" << heightfield << "' not found in layer '" << l.first << "', using all polygons.\n";
     }
     dataLayer->ResetReading();
