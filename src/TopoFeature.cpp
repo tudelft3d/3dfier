@@ -1081,8 +1081,6 @@ bool Flat::lift_percentile(float percentile) {
     z = _zvaluesinside[_zvaluesinside.size() * percentile];
   }
   this->lift_all_boundary_vertices_same_height(z);
-  _zvaluesinside.clear();
-  _zvaluesinside.shrink_to_fit();
   return true;
 }
 

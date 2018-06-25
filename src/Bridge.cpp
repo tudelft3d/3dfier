@@ -57,7 +57,6 @@ bool Bridge::add_elevation_point(Point2 &p, double z, float radius, int lasclass
 
 bool Bridge::lift() {
   lift_each_boundary_vertices(_heightref);
-  //smooth_boundary(5);
   return true;
 }
 
