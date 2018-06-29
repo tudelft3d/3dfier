@@ -506,22 +506,22 @@ int main(int argc, const char * argv[]) {
     }
   }
   if (outputcount == 1) {
-    if (outputs.count("CSV-BUILDINGS") == 1) {
+    if (outputs["CSV-BUILDINGS"] != "") {
       threedfy = false;
       cdt = false;
       std::clog << "CSV-BUILDINGS: no 3D reconstruction" << std::endl;
     }
-    else if (outputs.count("CSV-BUILDINGS-MULTIPLE") == 1) {
+    else if (outputs["CSV-BUILDINGS-MULTIPLE"] != "") {
       threedfy = false;
       cdt = false;
       std::clog << "CSV-BUILDINGS-MULTIPLE: no 3D reconstruction" << std::endl;
     }
-    else if (outputs.count("CSV-BUILDINGS-ALL-Z") == 1) {
+    else if (outputs["CSV-BUILDINGS-ALL-Z"] != "") {
       threedfy = false;
       cdt = false;
       std::clog << "CSV-BUILDINGS-ALL-Z: no 3D reconstruction" << std::endl;
     }
-    else if (outputs.count("OBJ-NoID") == 1) {
+    else if (outputs["OBJ-NoID"] != "") {
       // for OBJ-NoID only lift objects, skip stitching
       bStitching = false;
     }
