@@ -499,26 +499,31 @@ int main(int argc, const char * argv[]) {
   std::clog << "3dfying all input polygons...\n";
   bool threedfy = true;
   bool cdt = true;
-  if (outputs.size() == 1) {
-    if (outputs.count("CSV-BUILDINGS-MULTIPLE") == 1) {
+  int outputcount = 0;
+  for (auto& each : outputs) {
+    if (each.second != "") {
+      outputcount++;
+    }
+  }
+  if (outputcount == 1) {
+    if (outputs["CSV-BUILDINGS"] != "") {
       threedfy = false;
+      cdt = false;
+      std::clog << "CSV-BUILDINGS: no 3D reconstruction" << std::endl;
+    }
+    else if (outputs["CSV-BUILDINGS-MULTIPLE"] != "") {
+      threedfy = false;
+      cdt = false;
       std::clog << "CSV-BUILDINGS-MULTIPLE: no 3D reconstruction" << std::endl;
     }
-    else if (outputs.count("CSV-BUILDINGS-ALL-Z") == 1) {
+    else if (outputs["CSV-BUILDINGS-ALL-Z"] != "") {
       threedfy = false;
+      cdt = false;
       std::clog << "CSV-BUILDINGS-ALL-Z: no 3D reconstruction" << std::endl;
     }
-    else {
-      if (outputs.count("OBJ-NoID") == 1) {
-        // for OBJ-NoID only lift objects, skip stitching
-        bStitching = false;
-      }
-      if (outputs.count("CSV-BUILDINGS") == 1) {
-        // for CSV-BUILDINGS only lift objects, skip stitching and skip CDT.
-        // TODO: Make CSV-BUILDINGS like CSV-BUILDINGS-MULTIPLE so no lifting is needed at all
-        bStitching = false;
-        cdt = false;
-      }
+    else if (outputs["OBJ-NoID"] != "") {
+      // for OBJ-NoID only lift objects, skip stitching
+      bStitching = false;
     }
   }
   if (threedfy) {

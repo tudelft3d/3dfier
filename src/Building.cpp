@@ -64,7 +64,7 @@ std::string Building::get_all_z_values() {
   std::sort(allz.begin(), allz.end());
   std::stringstream ss;
   for (auto& z : allz)
-    ss << z << "|";
+    ss << z / 100.0 << "|";
   return ss.str();
 }
 
@@ -285,7 +285,10 @@ bool Building::is_hard() {
 }
 
 void Building::get_csv(std::wostream& of) {
-  of << this->get_id() << ";" << std::setprecision(2) << std::fixed << this->get_height() << ";" << this->get_height_base() << "\n";
+  of << this->get_id() << ";" <<
+    std::setprecision(2) << std::fixed <<
+    this->get_height_roof_at_percentile(_heightref_top) / 100.0 << ";" <<
+    this->get_height_ground_at_percentile(_heightref_base) / 100.0 << "\n";
 }
 
 std::string Building::get_mtl() {
