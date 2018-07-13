@@ -135,6 +135,7 @@ private:
 
   NodeColumn                                          _nc;
   NodeColumn                                          _nc_building_walls;
+  std::unordered_map<std::string, bool>               _bridge_stitches;
   std::vector<TopoFeature*>                           _lsFeatures;
   std::vector<std::string>                            _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;

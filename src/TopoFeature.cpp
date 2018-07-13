@@ -518,7 +518,7 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
         continue;
 
       //-- Make exeption for bridges, they have vw's from bottom up, swap. Also skip if adjacent feature is bridge, vw is then created by bridge
-      if (this->get_class() == BRIDGE) {
+      if (this->get_class() == BRIDGE && this->get_top_level()) {
         //-- find the height of the vertex in the node column
         std::vector<int>::const_iterator sait, eait, sbit, ebit;
         sait = std::find(anc.begin(), anc.end(), az);
@@ -572,7 +572,7 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
           _triangles_vw.push_back(t);
         }
       }
-      if (fadj->get_class() == BRIDGE) {
+      if (this->get_class() == BRIDGE || fadj->get_class() == BRIDGE) {
         continue;
       }
 
