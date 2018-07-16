@@ -58,6 +58,7 @@ int main(int argc, const char * argv[]) {
     "This is free software, and you are welcome to redistribute it\n"
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
 
+  int stats = 0;
   std::map<std::string, std::string> outputs;
   outputs["OBJ"] = "";
   outputs["OBJ-NoID"] = "";
@@ -83,6 +84,7 @@ int main(int argc, const char * argv[]) {
       ("help", "View all options")
       ("version", "View version")
       ("license", "View license")
+      ("stat_RMSE", "Compute the Root Mean Square Error from distances between the 3D Building and its point cloud")
       ("OBJ", po::value<std::string>(&outputs["OBJ"]), "Output ")
       ("OBJ-NoID", po::value<std::string>(&outputs["OBJ-NoID"]), "Output ")
       ("CityGML", po::value<std::string>(&outputs["CityGML"]), "Output ")
@@ -137,6 +139,9 @@ int main(int argc, const char * argv[]) {
       std::cerr << "ERROR: one YAML config file must be specified." << std::endl;
       std::cout << std::endl << pomain << std::endl;
       return EXIT_FAILURE;
+    }
+    if (vm.count("stat_RMSE")) {
+      stats = 1;
     }
     else {
       boost::filesystem::path yp(f_yaml);
@@ -526,6 +531,12 @@ int main(int argc, const char * argv[]) {
       bStitching = false;
     }
   }
+  if (stats == 1) {
+      threedfy = true;
+      cdt = true;
+      std::clog << "Performing 3D reconstruction in order to compute quality metrics" << std::endl;
+      return EXIT_SUCCESS;
+  }
   if (threedfy) {
     auto startThreeDfy = boost::chrono::high_resolution_clock::now();
     map3d.threeDfy(bStitching);
@@ -539,6 +550,21 @@ int main(int argc, const char * argv[]) {
     print_duration("CDT created in %lld seconds || %02d:%02d:%02d\n", startCDT);
   }
   std::clog << "...3dfying done.\n";
+
+  //-- B: copy of add_las_file function here
+  //-- add the elevation data to the map3d again for computing the Building-mesh - PC distances
+//  'options' are not created yet
+//  if (options["stats"] != "") {
+//    auto startPoints = boost::chrono::high_resolution_clock::now();
+//    for (auto file : elevationFiles) {
+//      bool added = map3d.add_las_file(file);
+//      if (!added) {
+//        std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
+//        return EXIT_FAILURE;
+//      }
+//    }
+//    print_duration("All points read in %lld seconds || %02d:%02d:%02d\n", startPoints);
+//  }
 
   //-- iterate over all output
   for (auto& output : outputs) {
