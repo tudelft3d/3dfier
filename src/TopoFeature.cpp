@@ -1070,6 +1070,16 @@ bool Flat::add_elevation_point(Point2 &p, double z, float radius, int lasclass) 
   return true;
 }
 
+bool Flat::add_point_distance(liblas::Point const& laspt, float radius) {
+  Point2 p(laspt.GetX(), laspt.GetY());
+  if (within_range(p, *(_p2), radius)) {
+    //-- B: compute_3D_distance() here, and add only the distance as integer [cm]
+    int dist = 1;
+    _distancesinside.push_back(dist);
+  }
+  return true;
+}
+
 int Flat::get_height() {
   return get_vertex_elevation(0, 0);
 }

@@ -48,6 +48,11 @@ bool Forest::add_elevation_point(Point2 &p, double z, float radius, int lasclass
   return TIN::add_elevation_point(p, z, radius, lasclass);
 }
 
+bool Forest::add_point_distance(liblas::Point const& laspt, float radius) {
+  //-- placeholder
+  return false;
+}
+
 bool Forest::lift() {
   TopoFeature::lift_each_boundary_vertices(0.5);
   return true;

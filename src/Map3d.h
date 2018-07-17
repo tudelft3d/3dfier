@@ -51,13 +51,14 @@ public:
   ~Map3d();
 
   bool add_polygons_files(std::vector<PolygonFile> &files);
-  bool add_las_file(PointFile pointFile);
+  bool add_las_file(PointFile pointFile, const std::string &operation);
 
   void stitch_lifted_features();
   bool construct_rtree();
   bool threeDfy(bool stitching = true);
   bool construct_CDT();
   void add_elevation_point(liblas::Point const& laspt);
+  void add_point_distance(liblas::Point const& laspt);
 
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>&  get_polygons3d();
@@ -74,7 +75,7 @@ public:
   bool get_pdok_output(std::string filename);
   bool get_gdal_output(std::string filename, std::string drivername, bool multi);
   void get_csv_buildings(std::wostream& of);
-  void get_csv_buildings_multiple_heights(std::wostream& of);
+  void get_csv_buildings_multiple_heights(std::wostream& of, int stats);
   void get_csv_buildings_all_elevation_points(std::wostream& of);
   void get_obj_per_feature(std::wostream& of);
   void get_obj_per_class(std::wostream& of);

@@ -493,7 +493,7 @@ int main(int argc, const char * argv[]) {
   //-- add the elevation data to the map3d
   auto startPoints = boost::chrono::high_resolution_clock::now();
   for (auto file : elevationFiles) {
-    bool added = map3d.add_las_file(file);
+    bool added = map3d.add_las_file(file, "elevation");
     if (!added) {
       std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
       return EXIT_FAILURE;
@@ -535,7 +535,6 @@ int main(int argc, const char * argv[]) {
       threedfy = true;
       cdt = true;
       std::clog << "Performing 3D reconstruction in order to compute quality metrics" << std::endl;
-      return EXIT_SUCCESS;
   }
   if (threedfy) {
     auto startThreeDfy = boost::chrono::high_resolution_clock::now();
@@ -553,18 +552,17 @@ int main(int argc, const char * argv[]) {
 
   //-- B: copy of add_las_file function here
   //-- add the elevation data to the map3d again for computing the Building-mesh - PC distances
-//  'options' are not created yet
-//  if (options["stats"] != "") {
-//    auto startPoints = boost::chrono::high_resolution_clock::now();
-//    for (auto file : elevationFiles) {
-//      bool added = map3d.add_las_file(file);
-//      if (!added) {
-//        std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
-//        return EXIT_FAILURE;
-//      }
-//    }
-//    print_duration("All points read in %lld seconds || %02d:%02d:%02d\n", startPoints);
-//  }
+  if (stats == 1) {
+    auto startPoints = boost::chrono::high_resolution_clock::now();
+    for (auto file : elevationFiles) {
+      bool added = map3d.add_las_file(file, "distance");
+      if (!added) {
+        std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+    print_duration("All points read in %lld seconds || %02d:%02d:%02d\n", startPoints);
+  }
 
   //-- iterate over all output
   for (auto& output : outputs) {
@@ -616,7 +614,7 @@ int main(int argc, const char * argv[]) {
     }
     else if (format == "CSV-BUILDINGS-MULTIPLE") {
       std::clog << "CSV output with multiple heights (only of the buildings): " << ofname << std::endl;
-      map3d.get_csv_buildings_multiple_heights(of);
+      map3d.get_csv_buildings_multiple_heights(of, stats);
     }
     else if (format == "CSV-BUILDINGS-ALL-Z") {
       std::clog << "CSV output with all z values (only of the buildings): " << ofname << std::endl;

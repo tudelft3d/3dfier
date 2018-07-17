@@ -314,7 +314,7 @@ void Map3d::get_csv_buildings_all_elevation_points(std::wostream& of) {
   }
 }
 
-void Map3d::get_csv_buildings_multiple_heights(std::wostream& of) {
+void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, int stats) {
   //-- ground heights
   std::vector<float> gpercentiles = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
   std::vector<float> rpercentiles = {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
@@ -324,6 +324,9 @@ void Map3d::get_csv_buildings_multiple_heights(std::wostream& of) {
     of << "ground-" << each << ",";
   for (auto& each : rpercentiles)
     of << "roof-" << each << ",";
+  if (stats == 1) {
+    of << "rmse" << ",";
+  }
   of << std::endl;
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
@@ -336,6 +339,9 @@ void Map3d::get_csv_buildings_multiple_heights(std::wostream& of) {
       for (auto& each : rpercentiles) {
         int h = b->get_height_roof_at_percentile(each);
         of << float(h)/100 << ",";
+      }
+      if (stats == 1) {
+        of << b->get_RMSE();
       }
       of << std::endl;
     }
@@ -671,6 +677,75 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
   }
 }
 
+
+void Map3d::add_point_distance(liblas::Point const& laspt) {
+  std::vector<PairIndexed> re;
+  Point2 minp(laspt.GetX() - _radius_vertex_elevation, laspt.GetY() - _radius_vertex_elevation);
+  Point2 maxp(laspt.GetX() + _radius_vertex_elevation, laspt.GetY() + _radius_vertex_elevation);
+  Box2 querybox(minp, maxp);
+  _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
+  minp = Point2(laspt.GetX() - _building_radius_vertex_elevation, laspt.GetY() - _building_radius_vertex_elevation);
+  maxp = Point2(laspt.GetX() + _building_radius_vertex_elevation, laspt.GetY() + _building_radius_vertex_elevation);
+  querybox = Box2(minp, maxp);
+  _rtree_buildings.query(bgi::intersects(querybox), std::back_inserter(re));
+
+  for (auto& v : re) {
+    TopoFeature* f = v.second;
+    float radius = _radius_vertex_elevation;
+    //-- only process last returns;
+    //-- although perhaps not smart for vegetation/forest in the future
+    //-- TODO: always ignore the non-last-return points?
+    if (laspt.GetReturnNumber() != laspt.GetNumberOfReturns())
+      continue;
+
+    int c = laspt.GetClassification().GetClass();
+    bool bInsert = false;
+    if (f->get_class() == BUILDING) {
+      bInsert = true;
+      radius = _building_radius_vertex_elevation;
+    }
+    else if (f->get_class() == TERRAIN) {
+      if (_las_classes_allowed[LAS_TERRAIN].empty() || _las_classes_allowed[LAS_TERRAIN].count(c) > 0) {
+        bInsert = true;
+      }
+    }
+    else if (f->get_class() == FOREST) {
+      if (_las_classes_allowed[LAS_FOREST].empty() || _las_classes_allowed[LAS_FOREST].count(c) > 0) {
+        bInsert = true;
+      }
+    }
+    else if (f->get_class() == ROAD) {
+      if (_las_classes_allowed[LAS_ROAD].empty() || _las_classes_allowed[LAS_ROAD].count(c) > 0) {
+        bInsert = true;
+      }
+    }
+    else if (f->get_class() == WATER) {
+      if (_las_classes_allowed[LAS_WATER].empty() || _las_classes_allowed[LAS_WATER].count(c) > 0) {
+        bInsert = true;
+      }
+    }
+    else if (f->get_class() == SEPARATION) {
+      if (_las_classes_allowed[LAS_SEPARATION].empty() || _las_classes_allowed[LAS_SEPARATION].count(c) > 0) {
+        bInsert = true;
+      }
+    }
+    else if (f->get_class() == BRIDGE) {
+      if (_las_classes_allowed[LAS_BRIDGE].empty() || _las_classes_allowed[LAS_BRIDGE].count(c) > 0) {
+        bInsert = true;
+      }
+    }
+
+    if (bInsert == true) { //-- only insert if in the allowed LAS classes
+      /* B: if the point is within the 2D footprint, compute the 3D distance
+         and add the distance to the footprint/object/TopoFeature
+       */
+      f->add_point_distance(laspt, radius);
+    }
+  }
+}
+
+
+
 bool Map3d::threeDfy(bool stitching) {
   /*
     1. lift
@@ -976,7 +1051,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
 }
 
 //-- http://www.liblas.org/tutorial/cpp.html#applying-filters-to-a-reader-to-extract-specified-classes
-bool Map3d::add_las_file(PointFile pointFile) {
+bool Map3d::add_las_file(PointFile pointFile, const std::string &operation) {
   std::clog << "Reading LAS/LAZ file: " << pointFile.filename << std::endl;
   std::ifstream ifs;
   ifs.open(pointFile.filename.c_str(), std::ios::in | std::ios::binary);
@@ -1018,24 +1093,44 @@ bool Map3d::add_las_file(PointFile pointFile) {
     int i = 0;
     
     try {
-      while (reader.ReadNextPoint()) {
-        liblas::Point const& p = reader.GetPoint();
-        //-- set the thinning filter
-        if (i % pointFile.thinning == 0) {
-          //-- set the classification filter
-          if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end()) {
-            //-- set the bounds filter
-            if (polygonBounds.contains(p)) {
-              this->add_elevation_point(p);
+      if (operation == "elevation") {
+        while (reader.ReadNextPoint()) {
+          liblas::Point const& p = reader.GetPoint();
+          //-- set the thinning filter
+          if (i % pointFile.thinning == 0) {
+            //-- set the classification filter
+            if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end()) {
+              //-- set the bounds filter
+              if (polygonBounds.contains(p)) {
+                this->add_elevation_point(p);
+              }
             }
           }
+          if (i % (pointCount / 100) == 0)
+            printProgressBar(100 * (i / double(pointCount)));
+          i++;
         }
-        if (i % (pointCount / 100) == 0)
-          printProgressBar(100 * (i / double(pointCount)));
-        i++;
+        printProgressBar(100);
+        std::clog << std::endl;
       }
-      printProgressBar(100);
-      std::clog << std::endl;
+      else if (operation == "distance") {
+        while (reader.ReadNextPoint()) {
+          liblas::Point const& p = reader.GetPoint();
+          if (i % pointFile.thinning == 0) {
+            if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end()) {
+              if (polygonBounds.contains(p)) {
+                //-- B:
+                this->add_point_distance(p);
+              }
+            }
+          }
+          if (i % (pointCount / 100) == 0)
+            printProgressBar(100 * (i / double(pointCount)));
+          i++;
+        }
+        printProgressBar(100);
+        std::clog << std::endl;
+      }
     }
     catch (std::exception e) {
       std::cerr << std::endl << e.what() << std::endl;

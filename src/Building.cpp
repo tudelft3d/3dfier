@@ -88,6 +88,16 @@ int Building::get_height_roof_at_percentile(float percentile) {
   }
 }
 
+int Building::get_RMSE() {
+  if (_distancesinside.empty() == false) {
+    //-- B: just return the nr. of points inside for now
+    return _distancesinside.size();
+  }
+  else {
+    return -9999;
+  }
+}
+
 bool Building::lift() {
   //-- for the ground
   if (_zvaluesground.empty() == false) {
@@ -115,6 +125,20 @@ bool Building::add_elevation_point(Point2 &p, double z, float radius, int lascla
     }
     if ( (_las_classes_ground.empty() == true) || (_las_classes_ground.count(lasclass) > 0) ) {
       _zvaluesground.push_back(zcm);
+    }
+  }
+  return true;
+}
+
+//-- B: it seems that I need this, but do I?
+bool Building::add_point_distance(liblas::Point const& laspt, float radius) {
+  int lasclass = laspt.GetClassification().GetClass();
+  Point2 p(laspt.GetX(), laspt.GetY());
+  if (within_range(p, *(_p2), radius)) {
+    //-- B: compute_3D_distance() here, and add only the distance as integer [cm]
+    int dist = 1;
+    if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0) ) {
+      _distancesinside.push_back(dist);
     }
   }
   return true;

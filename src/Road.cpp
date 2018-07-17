@@ -55,6 +55,11 @@ bool Road::add_elevation_point(Point2 &p, double z, float radius, int lasclass) 
   return true;
 }
 
+bool Road::add_point_distance(liblas::Point const& laspt, float radius) {
+  //-- placeholder
+  return false;
+}
+
 bool Road::lift() {
   lift_each_boundary_vertices(_heightref);
   //smooth_boundary(5);

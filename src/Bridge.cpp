@@ -55,6 +55,11 @@ bool Bridge::add_elevation_point(Point2 &p, double z, float radius, int lasclass
   return true;
 }
 
+bool Bridge::add_point_distance(liblas::Point const& laspt, float radius) {
+  //-- placeholder
+  return false;
+}
+
 bool Bridge::lift() {
   lift_each_boundary_vertices(_heightref);
   return true;

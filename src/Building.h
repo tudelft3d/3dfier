@@ -36,6 +36,7 @@ public:
   Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base, bool building_triangulate, bool building_include_floor, bool building_inner_walls);
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass);
+  bool          add_point_distance(liblas::Point const& laspt, float radius);
   void          construct_building_walls(const NodeColumn& nc);
   void          get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs);
   void          get_citygml(std::wostream& of);
@@ -51,6 +52,7 @@ public:
   int           get_height_base();
   int           get_height_ground_at_percentile(float percentile);
   int           get_height_roof_at_percentile(float percentile);
+  int           get_RMSE();
 
   static void   set_las_classes_roof(std::set<int> theset);
   static void   set_las_classes_ground(std::set<int> theset);

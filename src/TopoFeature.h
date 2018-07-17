@@ -42,6 +42,7 @@ public:
   virtual bool          lift() = 0;
   virtual bool          buildCDT();
   virtual bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass) = 0;
+  virtual bool          add_point_distance(liblas::Point const& laspt, float radius) = 0;
   virtual int           get_number_vertices() = 0;
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
@@ -114,6 +115,7 @@ public:
   Flat(char *wkt, std::string layername, AttributeMap attributes, std::string pid);
   int                 get_number_vertices();
   bool                add_elevation_point(Point2 &p, double z, float radius, int lasclass);
+  bool                add_point_distance(liblas::Point const& laspt, float radius);
   int                 get_height();
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;
@@ -122,6 +124,7 @@ public:
   virtual void        get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) = 0;
 protected:
   std::vector<int>    _zvaluesinside;
+  std::vector<int>    _distancesinside;
   bool                lift_percentile(float percentile);
 };
 
