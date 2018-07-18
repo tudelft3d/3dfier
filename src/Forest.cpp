@@ -48,7 +48,7 @@ bool Forest::add_elevation_point(Point2 &p, double z, float radius, int lasclass
   return TIN::add_elevation_point(p, z, radius, lasclass);
 }
 
-bool Forest::add_point_distance(liblas::Point const& laspt, float radius) {
+bool Forest::add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree) {
   //-- placeholder
   return false;
 }

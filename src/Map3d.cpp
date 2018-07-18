@@ -341,7 +341,8 @@ void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, int stats) {
         of << float(h)/100 << ",";
       }
       if (stats == 1) {
-        of << b->get_RMSE();
+        int rmse = b->get_RMSE();
+        of << float(rmse)/100;
       }
       of << std::endl;
     }
@@ -688,6 +689,7 @@ void Map3d::add_point_distance(liblas::Point const& laspt) {
   maxp = Point2(laspt.GetX() + _building_radius_vertex_elevation, laspt.GetY() + _building_radius_vertex_elevation);
   querybox = Box2(minp, maxp);
   _rtree_buildings.query(bgi::intersects(querybox), std::back_inserter(re));
+  AABB_Tree TriTree;
 
   for (auto& v : re) {
     TopoFeature* f = v.second;
@@ -703,6 +705,36 @@ void Map3d::add_point_distance(liblas::Point const& laspt) {
     if (f->get_class() == BUILDING) {
       bInsert = true;
       radius = _building_radius_vertex_elevation;
+
+      //-- B: construct the AABB tree here from f._triangles (all tri in a Building)
+      std::list<Triangle3D> cgal_tris;
+      if (!TriTree.empty()) { TriTree.clear(); }
+      for (auto& t : f->_triangles) {
+        auto v0 = f->_vertices[t.v0].first;
+        auto v1 = f->_vertices[t.v1].first;
+        auto v2 = f->_vertices[t.v2].first;
+        Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
+        Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
+        Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
+        cgal_tris.push_back(Triangle3D(a,b,c));
+      }
+      for (auto& t : f->_triangles_vw) {
+        auto v0 = f->_vertices_vw[t.v0].first;
+        auto v1 = f->_vertices_vw[t.v1].first;
+        auto v2 = f->_vertices_vw[t.v2].first;
+        Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
+        Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
+        Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
+        cgal_tris.push_back(Triangle3D(a,b,c));
+      }
+//      auto tris = f->get_triangles();
+      TriTree.insert(cgal_tris.begin(), cgal_tris.end());
+      if (TriTree.accelerate_distance_queries()) {
+        // do nothing
+      }
+      else {
+        std::cout << "build AABB_tree fail\n";
+      }
     }
     else if (f->get_class() == TERRAIN) {
       if (_las_classes_allowed[LAS_TERRAIN].empty() || _las_classes_allowed[LAS_TERRAIN].count(c) > 0) {
@@ -739,7 +771,8 @@ void Map3d::add_point_distance(liblas::Point const& laspt) {
       /* B: if the point is within the 2D footprint, compute the 3D distance
          and add the distance to the footprint/object/TopoFeature
        */
-      f->add_point_distance(laspt, radius);
+      //-- B: how to pass the AABB tree to the function?
+      f->add_point_distance(laspt, radius, TriTree);
     }
   }
 }

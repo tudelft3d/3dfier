@@ -58,6 +58,7 @@ typedef Heap::handle_type heap_handle;
 typedef CGAL::Exact_predicates_inexact_constructions_kernel			K;
 typedef CGAL::Projection_traits_xy_3<K>								Gt;
 typedef CGAL::Triangulation_vertex_base_with_id_2<Gt>				Vb;
+
 struct FaceInfo2
 {
   FaceInfo2() {}
@@ -75,6 +76,7 @@ typedef CGAL::Exact_predicates_tag									Itag;
 typedef CGAL::Constrained_Delaunay_triangulation_2<Gt, Tds, Itag>	CDT;
 typedef CDT::Point													Point;
 typedef CGAL::Polygon_2<Gt>											Polygon_2;
+
 
 struct PointXYHash {
   std::size_t operator()(Point const& p) const noexcept {
@@ -232,6 +234,33 @@ double distance(const Point2 &p1, const Point2 &p2) {
 
 double sqr_distance(const Point2 &p1, const Point2 &p2) {
   return (p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y());
+}
+
+//-- B: distance_3d(AABB tree, laspoint)
+/* If returns multiple distances (eg. a dist to each triangle in the tree),
+ * then return the min. distance
+ * return double
+ */
+
+// compute the shortest 3D distance between a triangle and a point
+double distance_3d(AABB_Tree const& TriTree, liblas::Point const& laspt){
+  Point3D p(laspt.GetX(), laspt.GetY(), laspt.GetZ());
+  double dist = -99.99;
+  if (!TriTree.empty()) {
+    try {
+      dist = TriTree.squared_distance(p);
+      return dist;
+    }
+    catch (std::exception e){
+      std::cerr << std::endl << e.what() << std::endl;
+      return dist;
+    }
+  }
+  else {
+    std::cout << "AABB_tree empty\n";
+    return dist;
+  }
+
 }
 
 //--- TIN Simplification

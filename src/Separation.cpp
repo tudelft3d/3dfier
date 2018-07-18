@@ -53,7 +53,7 @@ bool Separation::add_elevation_point(Point2 &p, double z, float radius, int lasc
   return true;
 }
 
-bool Separation::add_point_distance(liblas::Point const& laspt, float radius) {
+bool Separation::add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree) {
   //-- placeholder
   return false;
 }

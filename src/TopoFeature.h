@@ -42,7 +42,7 @@ public:
   virtual bool          lift() = 0;
   virtual bool          buildCDT();
   virtual bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass) = 0;
-  virtual bool          add_point_distance(liblas::Point const& laspt, float radius) = 0;
+  virtual bool          add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree) = 0;
   virtual int           get_number_vertices() = 0;
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
@@ -56,7 +56,8 @@ public:
   void         construct_vertical_walls(const NodeColumn& nc);
   void         fix_bowtie();
   void         add_adjacent_feature(TopoFeature* adjFeature);
-  std::vector<TopoFeature*>* get_adjacent_features();
+  std::vector<TopoFeature*>*        get_adjacent_features();
+//  const std::vector<Triangle>&      get_triangles();
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
   std::string  get_layername();
@@ -78,6 +79,13 @@ public:
   void         get_imgeo_object_info(std::wostream& of, std::string id);
   void         get_citygml_attributes(std::wostream& of, AttributeMap attributes);
   void         get_cityjson_attributes(nlohmann::json& f, AttributeMap attributes);
+
+  std::vector< std::vector< std::vector<int> > >  _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
+  std::vector< std::pair<Point3, std::string> >   _vertices;
+  std::vector<Triangle>                           _triangles;
+  std::vector< std::pair<Point3, std::string> >   _vertices_vw;
+  std::vector<Triangle>                           _triangles_vw;
+
 protected:
   Polygon2*                         _p2;
   std::vector< std::vector<int> >   _p2z;
@@ -87,12 +95,6 @@ protected:
   bool                              _toplevel;
   std::string                       _layername;
   AttributeMap                      _attributes;
-
-  std::vector< std::vector< std::vector<int> > >  _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
-  std::vector< std::pair<Point3, std::string> >   _vertices;
-  std::vector<Triangle>                           _triangles;
-  std::vector< std::pair<Point3, std::string> >   _vertices_vw;
-  std::vector<Triangle>                           _triangles_vw;
 
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(Point2 &p, double z, float radius);
@@ -115,7 +117,7 @@ public:
   Flat(char *wkt, std::string layername, AttributeMap attributes, std::string pid);
   int                 get_number_vertices();
   bool                add_elevation_point(Point2 &p, double z, float radius, int lasclass);
-  bool                add_point_distance(liblas::Point const& laspt, float radius);
+  bool                add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree);
   int                 get_height();
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;

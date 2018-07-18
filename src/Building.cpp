@@ -91,10 +91,15 @@ int Building::get_height_roof_at_percentile(float percentile) {
 int Building::get_RMSE() {
   if (_distancesinside.empty() == false) {
     //-- B: just return the nr. of points inside for now
-    return _distancesinside.size();
+    std::vector<int> squared;
+    int sum = 0;
+    for (int& d : _distancesinside) squared.push_back(d*d);
+    for (auto& s : squared) sum += s;
+    int n = _distancesinside.size();
+    return sqrt(sum/n);
   }
   else {
-    return -9999;
+    return -9999.0;
   }
 }
 
@@ -130,15 +135,20 @@ bool Building::add_elevation_point(Point2 &p, double z, float radius, int lascla
   return true;
 }
 
-//-- B: it seems that I need this, but do I?
-bool Building::add_point_distance(liblas::Point const& laspt, float radius) {
+bool Building::add_point_distance(liblas::Point const& laspt, float radius,
+                                  AABB_Tree const& TriTree) {
   int lasclass = laspt.GetClassification().GetClass();
   Point2 p(laspt.GetX(), laspt.GetY());
   if (within_range(p, *(_p2), radius)) {
-    //-- B: compute_3D_distance() here, and add only the distance as integer [cm]
-    int dist = 1;
+    //-- B: distance_3d(AABB tree, laspt) here, and add only the distance as integer [cm]
+    /* distance_3d(AABB tree, laspt) returns a double, multiply that by 100
+     * and store the integer instead of the double. Then when accessing the
+     * values (eg. for RMSE), use the integers for computations, BUT
+     * at the end don't forget to divide and convert to double again
+     */
+    double dist = distance_3d(TriTree, laspt);
     if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0) ) {
-      _distancesinside.push_back(dist);
+      _distancesinside.push_back(dist * 100); //-- to cm
     }
   }
   return true;

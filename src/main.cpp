@@ -534,7 +534,7 @@ int main(int argc, const char * argv[]) {
   if (stats == 1) {
       threedfy = true;
       cdt = true;
-      std::clog << "Performing 3D reconstruction in order to compute quality metrics" << std::endl;
+      std::clog << "\nPerforming 3D reconstruction in order to compute quality metrics" << std::endl;
   }
   if (threedfy) {
     auto startThreeDfy = boost::chrono::high_resolution_clock::now();

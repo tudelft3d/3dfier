@@ -55,7 +55,7 @@ bool Bridge::add_elevation_point(Point2 &p, double z, float radius, int lasclass
   return true;
 }
 
-bool Bridge::add_point_distance(liblas::Point const& laspt, float radius) {
+bool Bridge::add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree) {
   //-- placeholder
   return false;
 }
