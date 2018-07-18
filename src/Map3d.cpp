@@ -1393,9 +1393,6 @@ void Map3d::stitch_bridges() {
   std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
     if (f->get_class() == BRIDGE && f->get_top_level() == false) {
-      if (f->get_id() == "O0000.5cc4c028393642bd8e65738bc8004d0a") {
-        std::cout << "stop" << std::endl;
-      }
       //-- 1. store all touching top level (adjacent + incident)
       std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
 
@@ -1427,14 +1424,16 @@ void Map3d::stitch_bridges() {
           }
         }
       }
+      Bridge* b = dynamic_cast<Bridge*>(f);
+      b->detect_outliers(_road_threshold_outliers);
     }
   }
 
   for (auto& f : _lsFeatures) {
     if (f->get_class() == BRIDGE && f->get_top_level()) {
-      if (f->get_id() == "O0000.50296c5b81dd447594084b91e4461944") {
-        std::cout << "stop" << std::endl;
-      }
+      //if (f->get_id() == "O0000.5cbe3212cc834f47ba6dfbc4dc83f71c") {
+      //  std::cout << "stop" << std::endl;
+      //}
       //-- 1. store all touching top level (adjacent + incident)
       std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
 
@@ -1463,16 +1462,6 @@ void Map3d::stitch_bridges() {
           if (unique > 0) {
             bool bridgeAdj = false;
 
-            //for (auto& fadj : *lstouching) {
-            //  ringis.clear();
-            //  pis.clear();
-            //  if (fadj->get_class() == BRIDGE && fadj->get_top_level() == false && 
-            //    fadj->has_point2(ring[i], ringis, pis) && std::find(nc.begin(), nc.end(), fadj->get_vertex_elevation(ringis[0], pis[0])) != nc.end()) {
-            //    unique = unique - 1;
-            //    std::cout << "Unique new: " << unique << std::endl;
-            //  }
-            //}
-
             /* this can be 3 cases;
             1. location where two bridges and other object meet without height jump.
             2. location where one bridge meets multiple objects which should be a stitching error
@@ -1487,18 +1476,36 @@ void Map3d::stitch_bridges() {
                 }
               }
             }
+
+            int previ = i - 1;
+            if (i == 0) {
+              previ = ring.size() - 1;
+            }
+            Point2 prevp = f->get_point2(ringi, previ);
+            std::string prev_key_bucket = gen_key_bucket(&prevp);
+            int nexti = i + 1;
+            if (i == ring.size() - 1) {
+              nexti = 0;
+            }
+            Point2 nextp = f->get_point2(ringi, nexti);
+            std::string next_key_bucket = gen_key_bucket(&nextp);
+            if ((_bridge_stitches.find(key_bucket) != _bridge_stitches.end() &&
+              _bridge_stitches.find(next_key_bucket) == _bridge_stitches.end()) ||
+              (_bridge_stitches.find(key_bucket) != _bridge_stitches.end() &&
+              _bridge_stitches.find(prev_key_bucket) == _bridge_stitches.end()) ||
+
+
             /* Two cases which are seen as corners of the bridge object, either a height jump or where two bridge objects meet
             1. if bridge adjacent, use nc. This is the case where a bridge is split into multiple parts touching the adjacent object
             2. if 2 or more unique values in NC there is a height jump which should only occur at vw of bridge, skip values upto next occurence
             */
-            if (bridgeAdj || unique > 1) {
-              //TODO: use NC closest to height of previous vertex? Then is no choice to make and it might support multiple overlapping bridges?
+            bridgeAdj || unique > 1) {
               //This only works if previous is updated before checking, that is not the case now
               //auto const it = std::lower_bound(nc.begin(), nc.end(), f->get_vertex_elevation(ringi, i-1));
               f->set_vertex_elevation(ringi, i, nc.front());
               // if there are more then 1 unique height in NC we have a height jump.
               bool heightjump = false;
-              if (unique > 1) {
+              if (_bridge_stitches.find(next_key_bucket) != _bridge_stitches.end()) {
                 heightjump = true;
               }
               corners.push_back(std::make_pair(i, heightjump));
@@ -1533,6 +1540,9 @@ void Map3d::stitch_bridges() {
           }
 
           for (int pi : vertices) {
+            //if (f->get_id() == "O0000.59d49cd362f54875b4a3196c1363606f" && pi == 18) {
+            //  std::cout << "stop" << std::endl;
+            //}
             bool otherAdj = false;
             int stitchz = 0;
             std::vector< std::tuple<TopoFeature*, int, int> > star;
@@ -1551,9 +1561,14 @@ void Map3d::stitch_bridges() {
               int z = 0;
               //Check if height exists in NC thus is created by adjacent bridge
               if (_nc.find(key_bucket) == _nc.end()) {
+                // check height of previous vertex
+                int previ = pi - 1;
+                if (pi == 0) {
+                  previ = ring.size() - 1;
+                }
                 // Add height to NC for adjacent bridge
-                // interpolate height between previous and next corner distance weighted
-                z = interpolate_height(f, p, ringi, startCorner.first, ringi, endCorner.first);
+                // interpolate height between previous vertex and next corner distance weighted
+                z = interpolate_height(f, p, ringi, previ, ringi, endCorner.first);
                 _nc[key_bucket].push_back(z);
               }
               else {
@@ -1561,38 +1576,48 @@ void Map3d::stitch_bridges() {
               }
               f->set_vertex_elevation(ringi, pi, z);
             }
-            //else if (startCorner.second && endCorner.second) { //startCorner.heightjump && endCorner.heightjump
-                                                               //This is empty stretch of points at height jump and need to place VW
+            else {
               Point2 p = f->get_point2(ringi, pi);
               std::string key_bucket = gen_key_bucket(&p);
-              // interpolate height between previous and next corner distance weighted
-              int z = interpolate_height(f, p, ringi, startCorner.first, ringi, endCorner.first);
-              
-              // when there is no value in _bridge_stitches the upper part is floating thus stitch bottem to adjacent object
-              // TODO: This doesnt work for the case we have an high adjacent object, need to check the jump_edges also somehow but this doesnt work in other cases
-              if (_bridge_stitches.find(key_bucket) == _bridge_stitches.end()) {
-                f->set_vertex_elevation(ringi, pi, stitchz);
+
+              // This is where the top part is stitched, interpolate between corners
+              if (startCorner.second && endCorner.second == false) {
+                // interpolate height between start and end corner distance weighted
+                int interz = interpolate_height(f, p, ringi, startCorner.first, ringi, endCorner.first);
+
+                // Allways stitch if there is a lower object, otherwise use interpolated height
+                if (stitchz < interz) {
+                  f->set_vertex_elevation(ringi, pi, stitchz);
+                }
+                else {
+                  f->set_vertex_elevation(ringi, pi, interz);
+                  // Add height to NC and add VW
+                  _nc[key_bucket].push_back(interz);
+                  f->add_vertical_wall();
+                }
               }
-              // when there is a value in _bridge_stitches the upper part is stitched to the adjacent thus place to bottom and make VW
-              // and when the height between the adjacent object and the interpolated height of the corners are larger then threshold jump edges
-              else if (abs(stitchz - z) > _threshold_jump_edges) {
-                f->set_vertex_elevation(ringi, pi, z);
-                // Add height to NC and add VW
-                _nc[key_bucket].push_back(z);
-                f->add_vertical_wall();
+              else { // when there is no value in _bridge_stitches the upper part is floating thus stitch bottem to adjacent object if within threshold of previous vertex or corner
+                // check height of previous vertex
+                int previ = pi - 1;
+                if (pi == 0) {
+                  previ = ring.size() - 1;
+                }
+
+                // interpolate height between previous vertex and next corner distance weighted
+                int interz = interpolate_height(f, p, ringi, previ, ringi, endCorner.first);
+                int prevz = f->get_vertex_elevation(ringi, previ);
+                //Allways stich to lower object or if interpolated between corners within threshold or previous within threshold
+                if (stitchz < interz || abs(stitchz - interz) < _threshold_jump_edges || abs(stitchz - prevz) < _threshold_jump_edges) {
+                  f->set_vertex_elevation(ringi, pi, stitchz);
+                }
+                else {
+                  f->set_vertex_elevation(ringi, pi, interz);
+                  // Add height to NC and add VW
+                  _nc[key_bucket].push_back(interz);
+                  f->add_vertical_wall();
+                }
               }
-              else {
-                f->set_vertex_elevation(ringi, pi, stitchz);
-              }
-            //}
-            //else {
-            //  //are these the connected points? Only other case possible?
-            //  //cases (not exaustive):
-            //  //prevCorner.heightjump && this.otherAdj
-            //  //nextCorner.heightjump && this.otherAdj
-            //  // Stitch to acjacent feature
-            //  f->set_vertex_elevation(ringi, pi, stitchz);
-            //}
+            }
           }
         }
       }

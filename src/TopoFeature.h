@@ -137,10 +137,10 @@ public:
   virtual bool         lift() = 0;
   virtual void         get_citygml(std::wostream& of) = 0;
   virtual void         get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) = 0;
+  void                 detect_outliers(int degrees_incline);
 protected:
   int                  _simplification;
   void                 smooth_boundary(int passes = 1);
-  void                 detect_outliers(int degrees_incline);
 };
 
 //---------------------------------------------
