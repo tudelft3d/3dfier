@@ -42,7 +42,8 @@ public:
   virtual bool          lift() = 0;
   virtual bool          buildCDT();
   virtual bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass) = 0;
-  virtual bool          add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree) = 0;
+//  virtual bool          add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree& TriTree) = 0;
+//  virtual bool          push_distance(double dist, int lasclass) = 0;
   virtual int           get_number_vertices() = 0;
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
@@ -79,6 +80,8 @@ public:
   void         get_imgeo_object_info(std::wostream& of, std::string id);
   void         get_citygml_attributes(std::wostream& of, AttributeMap attributes);
   void         get_cityjson_attributes(nlohmann::json& f, AttributeMap attributes);
+  bool         add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree& TriTree);
+  bool         push_distance(double dist, int lasclass);
 
   std::vector< std::vector< std::vector<int> > >  _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
   std::vector< std::pair<Point3, std::string> >   _vertices;
@@ -95,6 +98,7 @@ protected:
   bool                              _toplevel;
   std::string                       _layername;
   AttributeMap                      _attributes;
+  std::vector<int>                  _distancesinside;
 
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(Point2 &p, double z, float radius);
@@ -117,7 +121,9 @@ public:
   Flat(char *wkt, std::string layername, AttributeMap attributes, std::string pid);
   int                 get_number_vertices();
   bool                add_elevation_point(Point2 &p, double z, float radius, int lasclass);
-  bool                add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree);
+//  bool                add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree);
+//  bool                add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree& TriTree);
+//  bool                push_distance(double dist, int lasclass);
   int                 get_height();
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;
@@ -126,7 +132,6 @@ public:
   virtual void        get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) = 0;
 protected:
   std::vector<int>    _zvaluesinside;
-  std::vector<int>    _distancesinside;
   bool                lift_percentile(float percentile);
 };
 

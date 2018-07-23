@@ -55,10 +55,11 @@ bool Road::add_elevation_point(Point2 &p, double z, float radius, int lasclass) 
   return true;
 }
 
-bool Road::add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree) {
-  //-- placeholder
-  return false;
-}
+//bool Road::push_distance(double dist) {
+//  _distancesinside.push_back(dist * 100); //-- to cm
+//  return true;
+//}
+
 
 bool Road::lift() {
   lift_each_boundary_vertices(_heightref);

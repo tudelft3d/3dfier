@@ -248,6 +248,7 @@ double distance_3d(AABB_Tree const& TriTree, liblas::Point const& laspt){
   double dist = -99.99;
   if (!TriTree.empty()) {
     try {
+      //-- TODO B: check what exactly is the exception
       dist = TriTree.squared_distance(p);
       return dist;
     }

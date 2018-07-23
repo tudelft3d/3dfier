@@ -1054,6 +1054,60 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
   }
 }
 
+bool TopoFeature::add_point_distance(liblas::Point const& laspt, float radius,
+                                     AABB_Tree& TriTree) {
+  int lasclass = laspt.GetClassification().GetClass();
+  Point2 p(laspt.GetX(), laspt.GetY());
+  if (within_range(p, *(_p2), radius)) {
+    //-- B: distance_3d(AABB tree, laspt) here, and add only the distance as integer [cm]
+    /* distance_3d(AABB tree, laspt) returns a double, multiply that by 100<<<
+     * and store the integer instead of the double. Then when accessing the
+     * values (eg. for RMSE), use the integers for computations, BUT
+     * at the end don't forget to divide and convert to double again
+     */
+
+    // TODO B: do the CGAL Triangle casting here, even better, in Flat::add_point_distance
+      //-- TODO B: construct the AABB tree here from f._triangles (all tri in a Building)
+    std::list<Triangle3D> cgal_tris;
+    for (auto& t : _triangles) {
+      auto v0 = _vertices[t.v0].first;
+      auto v1 = _vertices[t.v1].first;
+      auto v2 = _vertices[t.v2].first;
+      Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
+      Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
+      Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
+      cgal_tris.push_back(Triangle3D(a,b,c));
+    }
+    for (auto& t : _triangles_vw) {
+      auto v0 = _vertices_vw[t.v0].first;
+      auto v1 = _vertices_vw[t.v1].first;
+      auto v2 = _vertices_vw[t.v2].first;
+      Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
+      Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
+      Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
+      cgal_tris.push_back(Triangle3D(a,b,c));
+    }
+    TriTree.insert(cgal_tris.begin(), cgal_tris.end());
+    if (!TriTree.accelerate_distance_queries()) {
+        std::cout << "build AABB_tree fail\n";
+        return false;
+    }
+    else {
+      double dist = distance_3d(TriTree, laspt);
+      push_distance(dist, lasclass);
+//      if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0) ) {
+//        _distancesinside.push_back(dist * 100); //-- to cm
+//      }
+      return true;
+    }
+  }
+}
+
+bool TopoFeature::push_distance(double dist, int lasclass) {
+  _distancesinside.push_back(dist * 100);
+  return true;
+}
+
 //-------------------------------
 //-------------------------------
 
@@ -1074,15 +1128,70 @@ bool Flat::add_elevation_point(Point2 &p, double z, float radius, int lasclass) 
   return true;
 }
 
-bool Flat::add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree) {
-  Point2 p(laspt.GetX(), laspt.GetY());
-  if (within_range(p, *(_p2), radius)) {
-    //-- B: compute_3D_distance() here, and add only the distance as integer [cm]
-    int dist = 1;
-    _distancesinside.push_back(dist);
-  }
-  return true;
-}
+//bool Flat::add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree) {
+//  Point2 p(laspt.GetX(), laspt.GetY());
+//  if (within_range(p, *(_p2), radius)) {
+//    //-- B: compute_3D_distance() here, and add only the distance as integer [cm]
+//    int dist = 1;
+//    _distancesinside.push_back(dist);
+//  }
+//  return true;
+//}
+
+
+//bool Flat::add_point_distance(liblas::Point const& laspt, float radius,
+//                                  AABB_Tree& TriTree) {
+//  int lasclass = laspt.GetClassification().GetClass();
+//  Point2 p(laspt.GetX(), laspt.GetY());
+//  if (within_range(p, *(_p2), radius)) {
+//    //-- B: distance_3d(AABB tree, laspt) here, and add only the distance as integer [cm]
+//    /* distance_3d(AABB tree, laspt) returns a double, multiply that by 100<<<
+//     * and store the integer instead of the double. Then when accessing the
+//     * values (eg. for RMSE), use the integers for computations, BUT
+//     * at the end don't forget to divide and convert to double again
+//     */
+//
+//    // TODO B: do the CGAL Triangle casting here, even better, in Flat::add_point_distance
+//      //-- TODO B: construct the AABB tree here from f._triangles (all tri in a Building)
+//    std::list<Triangle3D> cgal_tris;
+//    for (auto& t : _triangles) {
+//      auto v0 = _vertices[t.v0].first;
+//      auto v1 = _vertices[t.v1].first;
+//      auto v2 = _vertices[t.v2].first;
+//      Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
+//      Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
+//      Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
+//      cgal_tris.push_back(Triangle3D(a,b,c));
+//    }
+//    for (auto& t : _triangles_vw) {
+//      auto v0 = _vertices_vw[t.v0].first;
+//      auto v1 = _vertices_vw[t.v1].first;
+//      auto v2 = _vertices_vw[t.v2].first;
+//      Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
+//      Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
+//      Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
+//      cgal_tris.push_back(Triangle3D(a,b,c));
+//    }
+//    TriTree.insert(cgal_tris.begin(), cgal_tris.end());
+//    if (!TriTree.accelerate_distance_queries()) {
+//        std::cout << "build AABB_tree fail\n";
+//        return false;
+//    }
+//    else {
+//      double dist = distance_3d(TriTree, laspt);
+//      push_distance(dist, lasclass);
+////      if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0) ) {
+////        _distancesinside.push_back(dist * 100); //-- to cm
+////      }
+//      return true;
+//    }
+//  }
+//}
+//
+//bool Flat::push_distance(double dist, int lasclass) {
+//  _distancesinside.push_back(dist * 100);
+//  return true;
+//}
 
 int Flat::get_height() {
   return get_vertex_elevation(0, 0);
