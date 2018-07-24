@@ -1172,55 +1172,57 @@ void Boundary3D::detect_outliers(int degrees_incline) {
       // else find the index of the first peak down (value == -1)
       start_idx = std::find(changez.begin(), changez.end(), -1) - changez.begin();
       if (start_idx == changez.size()) {
-        start_idx = 0;
+        start_idx = ring.size();
       }
     }
 
-    // Detect and fix outliers starting from the first peak up detected previously
-    for (int j = 0; j < ring.size(); ++j) {
-      //make round-trip through vector starting at start_idx
-      int i = (j + start_idx + ring.size()) % ring.size();
-      int i0 = i - 1;
-      int i2 = i + 1;
-      if (i == 0) {
-        i0 = ring.size() - 1;
-      }
-      if (i2 == ring.size()) {
-        i2 = 0;
-      }
-      float len1z = (ringz[i] - ringz[i0]) / 100.0;
-      float len2z = (ringz[i2] - ringz[i]) / 100.0;
-      float incline = atan2(len2z, distance(ring[i], ring[i2])) - atan2(len1z, distance(ring[i0], ring[i]));
-      if (incline <= -PI) {
-        incline = 2 * PI + incline;
-      }
-      if (incline > PI) {
-        incline = incline - 2 * PI;
-      }
-      incline = incline * 180 / PI;
-      //if (incline > 0) we have a peak down, otherwise we have a peak up
-      if (abs(incline) > degrees_incline) {
-        //find the outlier by sorting and comparing distance
-        std::vector<int> heights = { ringz[i0], ringz[i], ringz[i2] };
-        std::sort(heights.begin(), heights.end());
-        int h = heights[0];
-        if (abs(heights[2] - heights[1]) > abs(heights[0] - heights[1])) {
-          h = heights[2];
+    if (start_idx != ring.size()) {
+      // Detect and fix outliers starting from the first peak up detected previously
+      for (int j = 0; j < ring.size(); ++j) {
+        //make round-trip through vector starting at start_idx
+        int i = (j + start_idx + ring.size()) % ring.size();
+        int i0 = i - 1;
+        int i2 = i + 1;
+        if (i == 0) {
+          i0 = ring.size() - 1;
         }
+        if (i2 == ring.size()) {
+          i2 = 0;
+        }
+        float len1z = (ringz[i] - ringz[i0]) / 100.0;
+        float len2z = (ringz[i2] - ringz[i]) / 100.0;
+        float incline = atan2(len2z, distance(ring[i], ring[i2])) - atan2(len1z, distance(ring[i0], ring[i]));
+        if (incline <= -PI) {
+          incline = 2 * PI + incline;
+        }
+        if (incline > PI) {
+          incline = incline - 2 * PI;
+        }
+        incline = incline * 180 / PI;
+        //if (incline > 0) we have a peak down, otherwise we have a peak up
+        if (abs(incline) > degrees_incline) {
+          //find the outlier by sorting and comparing distance
+          std::vector<int> heights = { ringz[i0], ringz[i], ringz[i2] };
+          std::sort(heights.begin(), heights.end());
+          int h = heights[0];
+          if (abs(heights[2] - heights[1]) > abs(heights[0] - heights[1])) {
+            h = heights[2];
+          }
 
-        if (ringz[i0] == h) {
-          //put to height of closest vertex for now
-          _p2z[ringi][i0] = ringz[i];
-          ringz[i0] = ringz[i];
-        }
-        else if (ringz[i] == h) {
-          _p2z[ringi][i] = (ringz[i0] + ringz[i2]) / 2;
-          ringz[i] = (ringz[i0] + ringz[i2]) / 2;
-        }
-        else if (ringz[i2] == h) {
-          //put to height of closest vertex for now
-          _p2z[ringi][i2] = ringz[i];
-          ringz[i2] = ringz[i];
+          if (ringz[i0] == h) {
+            //put to height of closest vertex for now
+            _p2z[ringi][i0] = ringz[i];
+            ringz[i0] = ringz[i];
+          }
+          else if (ringz[i] == h) {
+            _p2z[ringi][i] = (ringz[i0] + ringz[i2]) / 2;
+            ringz[i] = (ringz[i0] + ringz[i2]) / 2;
+          }
+          else if (ringz[i2] == h) {
+            //put to height of closest vertex for now
+            _p2z[ringi][i2] = ringz[i];
+            ringz[i2] = ringz[i];
+          }
         }
       }
     }
