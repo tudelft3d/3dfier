@@ -550,7 +550,6 @@ int main(int argc, const char * argv[]) {
   }
   std::clog << "...3dfying done.\n";
 
-  //-- B: copy of add_las_file function here
   //-- add the elevation data to the map3d again for computing the Building-mesh - PC distances
   if (stats == 1) {
     auto startPoints = boost::chrono::high_resolution_clock::now();

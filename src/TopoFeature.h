@@ -42,8 +42,6 @@ public:
   virtual bool          lift() = 0;
   virtual bool          buildCDT();
   virtual bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass) = 0;
-//  virtual bool          add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree& TriTree) = 0;
-//  virtual bool          push_distance(double dist, int lasclass) = 0;
   virtual int           get_number_vertices() = 0;
   virtual TopoClass     get_class() = 0;
   virtual bool          is_hard() = 0;
@@ -58,7 +56,6 @@ public:
   void         fix_bowtie();
   void         add_adjacent_feature(TopoFeature* adjFeature);
   std::vector<TopoFeature*>*        get_adjacent_features();
-//  const std::vector<Triangle>&      get_triangles();
   Polygon2*    get_Polygon2();
   Box2         get_bbox2d();
   std::string  get_layername();
@@ -98,7 +95,7 @@ protected:
   bool                              _toplevel;
   std::string                       _layername;
   AttributeMap                      _attributes;
-  std::vector<int>                  _distancesinside;
+  std::vector<double>               _distancesinside;
 
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(Point2 &p, double z, float radius);
@@ -121,9 +118,6 @@ public:
   Flat(char *wkt, std::string layername, AttributeMap attributes, std::string pid);
   int                 get_number_vertices();
   bool                add_elevation_point(Point2 &p, double z, float radius, int lasclass);
-//  bool                add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree);
-//  bool                add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree& TriTree);
-//  bool                push_distance(double dist, int lasclass);
   int                 get_height();
   virtual TopoClass   get_class() = 0;
   virtual bool        is_hard() = 0;

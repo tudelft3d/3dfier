@@ -68,6 +68,16 @@ std::string Building::get_all_z_values() {
   return ss.str();
 }
 
+std::string Building::get_all_distances() {
+  std::vector<float> alldist (_distancesinside.begin(), _distancesinside.end());
+  alldist.insert(alldist.end(), _distancesinside.begin(), _distancesinside.end());
+  std::sort(alldist.begin(), alldist.end());
+  std::stringstream ss;
+  for (auto& z : alldist)
+    ss << z << "|";
+  return ss.str();
+}
+
 int Building::get_height_ground_at_percentile(float percentile) {
   if (_zvaluesground.empty() == false) {
     std::nth_element(_zvaluesground.begin(), _zvaluesground.begin() + (_zvaluesground.size() * percentile), _zvaluesground.end());
@@ -88,16 +98,11 @@ int Building::get_height_roof_at_percentile(float percentile) {
   }
 }
 
-int Building::get_RMSE() {
+float Building::get_RMSE() {
   if (_distancesinside.empty() == false) {
-    //-- B: just return the nr. of points inside for now
-    std::vector<int> squared;
-    int sum = 0;
-    //-- TODO B: remove squared
-//    for (int& d : _distancesinside) squared.push_back(d*d);
-//    for (auto& s : squared) sum += s;
+    double sum = 0.0;
     for (auto& d : _distancesinside) sum += d;
-    int n = _distancesinside.size();
+    double n = _distancesinside.size();
     return sqrt(sum/n);
   }
   else {
@@ -139,58 +144,10 @@ bool Building::add_elevation_point(Point2 &p, double z, float radius, int lascla
 
 bool Building::push_distance(double dist, int lasclass) {
   if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0) ) {
-    _distancesinside.push_back(dist * 100); //-- to cm
+    _distancesinside.push_back(dist);
   }
   return true;
 }
-
-
-//bool Building::add_point_distance(liblas::Point const& laspt, float radius,
-//                                  AABB_Tree& TriTree) {
-//  int lasclass = laspt.GetClassification().GetClass();
-//  Point2 p(laspt.GetX(), laspt.GetY());
-//  if (within_range(p, *(_p2), radius)) {
-//    //-- B: distance_3d(AABB tree, laspt) here, and add only the distance as integer [cm]
-//    /* distance_3d(AABB tree, laspt) returns a double, multiply that by 100
-//     * and store the integer instead of the double. Then when accessing the
-//     * values (eg. for RMSE), use the integers for computations, BUT
-//     * at the end don't forget to divide and convert to double again
-//     */
-//
-//    // TODO B: do the CGAL Triangle casting here, even better, in Flat::add_point_distance
-//      //-- TODO B: construct the AABB tree here from f._triangles (all tri in a Building)
-//    std::list<Triangle3D> cgal_tris;
-//    for (auto& t : _triangles) {
-//      auto v0 = _vertices[t.v0].first;
-//      auto v1 = _vertices[t.v1].first;
-//      auto v2 = _vertices[t.v2].first;
-//      Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
-//      Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
-//      Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
-//      cgal_tris.push_back(Triangle3D(a,b,c));
-//    }
-//    for (auto& t : _triangles_vw) {
-//      auto v0 = _vertices_vw[t.v0].first;
-//      auto v1 = _vertices_vw[t.v1].first;
-//      auto v2 = _vertices_vw[t.v2].first;
-//      Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
-//      Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
-//      Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
-//      cgal_tris.push_back(Triangle3D(a,b,c));
-//    }
-//    TriTree.insert(cgal_tris.begin(), cgal_tris.end());
-//    if (!TriTree.accelerate_distance_queries()) {
-//        std::cout << "build AABB_tree fail\n";
-//    }
-//    else {
-//      double dist = distance_3d(TriTree, laspt);
-//      if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0) ) {
-//        _distancesinside.push_back(dist * 100); //-- to cm
-//      }
-//    }
-//  }
-//  return true;
-//}
 
 void Building::construct_building_walls(const NodeColumn& nc) {
   //-- gather all rings
