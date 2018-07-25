@@ -42,7 +42,7 @@ public:
   void          get_citygml(std::wostream& of);
   void          get_citygml_imgeo(std::wostream& of);
   void          get_imgeo_nummeraanduiding(std::wostream& of);
-  void          get_csv(std::wostream& of);
+  void          get_csv(std::wostream& of, int stats);
   void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts);
   std::string   get_all_z_values();
   std::string   get_all_distances();

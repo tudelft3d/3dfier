@@ -313,11 +313,17 @@ bool Building::is_hard() {
   return true;
 }
 
-void Building::get_csv(std::wostream& of) {
+void Building::get_csv(std::wostream& of, int stats) {
   of << this->get_id() << ";" <<
     std::setprecision(2) << std::fixed <<
     this->get_height_roof_at_percentile(_heightref_top) / 100.0 << ";" <<
-    this->get_height_ground_at_percentile(_heightref_base) / 100.0 << "\n";
+    this->get_height_ground_at_percentile(_heightref_base) / 100.0;
+  if (stats == 1) {
+    of << ";" << this->get_RMSE() << "\n";
+  }
+  else {
+    of << "\n";
+  }
 }
 
 std::string Building::get_mtl() {

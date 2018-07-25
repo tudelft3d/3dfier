@@ -609,7 +609,7 @@ int main(int argc, const char * argv[]) {
     }
     else if (format == "CSV-BUILDINGS") {
       std::clog << "CSV output (only of the buildings): " << ofname << std::endl;
-      map3d.get_csv_buildings(of);
+      map3d.get_csv_buildings(of, stats);
     }
     else if (format == "CSV-BUILDINGS-MULTIPLE") {
       std::clog << "CSV output with multiple heights (only of the buildings): " << ofname << std::endl;

@@ -292,12 +292,17 @@ void Map3d::create_citygml_imgeo_header(std::wostream& of) {
     of << "</gml:boundedBy>\n";
 }
 
-void Map3d::get_csv_buildings(std::wostream& of) {
-  of << "id,roof,ground\n";
+void Map3d::get_csv_buildings(std::wostream& of, int stats) {
+  if (stats == 1) {
+    of << "id,roof,ground,rmse\n";
+  }
+  else {
+    of << "id,roof,ground\n";
+  }
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
-      b->get_csv(of);
+      b->get_csv(of, stats);
     }
   }
 }
