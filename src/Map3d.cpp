@@ -774,7 +774,7 @@ void Map3d::add_point_distance(liblas::Point const& laspt, bool multi_rmse) {
     if (bInsert == true) {
       if (!TriTree.empty()) { TriTree.clear(); }
       double dist = f->get_point_distance(laspt, radius, TriTree);
-      f->push_distance(dist, c);
+      if (std::isfinite(dist)) { f->push_distance(dist, c); }
     }
   }
 }

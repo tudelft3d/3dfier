@@ -44,8 +44,6 @@ int main(int argc, const char * argv[]);
 std::string print_license();
 void print_duration(std::string message, boost::chrono::time_point<boost::chrono::steady_clock> startTime);
 
-int PCTILE_IDX;
-
 int main(int argc, const char * argv[]) {
   auto startTime = boost::chrono::high_resolution_clock::now();
   boost::locale::generator gen;
@@ -543,7 +541,6 @@ int main(int argc, const char * argv[]) {
   if (stats == 1 && multi_rmse) {
     std::vector<float> rpercentiles = {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
     for (int i = 0; i < rpercentiles.size(); i++) {
-      PCTILE_IDX = i;
       float pctile = rpercentiles[i];
       std::clog << std::setprecision(2) << "\nPerforming 3D reconstruction of Buildings for roof percentile-" << pctile << std::endl;
       map3d.set_building_features_heightref_top(pctile);
@@ -559,6 +556,7 @@ int main(int argc, const char * argv[]) {
       print_duration("CDT created in %lld seconds || %02d:%02d:%02d\n", startCDT);
 
       auto startPoints = boost::chrono::high_resolution_clock::now();
+      //TODO B: construct TriTree for each TopoFeature here
       for (auto file : elevationFiles) {
         bool added = map3d.add_las_file(file, "distance", multi_rmse);
         if (!added) {
@@ -587,6 +585,7 @@ int main(int argc, const char * argv[]) {
     //-- add the elevation data to the map3d again for computing the Building-mesh - PC distances
     if (stats == 1) {
       auto startPoints = boost::chrono::high_resolution_clock::now();
+      //TODO B: construct TriTree for each TopoFeature here
       for (auto file : elevationFiles) {
         bool added = map3d.add_las_file(file, "distance", multi_rmse);
         if (!added) {

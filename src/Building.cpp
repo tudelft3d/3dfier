@@ -117,34 +117,18 @@ int Building::get_height_roof_at_percentile(float percentile) {
 std::vector<double> Building::get_RMSE() {
   std::vector<double> rmse;
   for (int i = 0; i < _distancesinside.size(); i++) {
-//    auto distinside = _distancesinside[i];
-//    std::clog << "_distancesinside[" << i << "]" << " length " << _distancesinside[i].size() << std::endl;
-    if (!_distancesinside[i].empty()) {
-      double sum = 0.0;
-      for (auto& d : _distancesinside[i]) sum += d;
-      double n = _distancesinside[i].size();
-      std::clog << this->get_id() <<
-          "\t_heightref_top: " << _heightref_top <<
-          "\t_distancesinside[" << i << "]" << " length: " <<
-          _distancesinside[i].size() <<
-          "\tsum: " << sum <<
-          "\trmse: " << sqrt(sum/n) << std::endl;
-      rmse.push_back(sqrt(sum/n));
-    }
-    else {
-      std::clog << "get_RMSE _distancesinside[i].empty() == TRUE" << std::endl;
+    auto& distinside = _distancesinside[i];
+    if (distinside.empty()) {
       rmse.push_back(-9999.0);
     }
+    else {
+      double sum = 0.0;
+      for (auto& d : distinside) sum += d;
+      double n = distinside.size();
+      auto rm = sqrt(sum/n);
+      rmse.push_back(rm);
+    }
   }
-//  if (!_distancesinside.empty()) {
-//    float sum = 0.0;
-//    for (auto& d : _distancesinside) sum += d;
-//    float n = _distancesinside.size();
-//    return sqrt(sum/n);
-//  }
-//  else {
-//    return -9999.0;
-//  }
   return rmse;
 }
 
@@ -185,7 +169,6 @@ bool Building::push_distance(double dist, int lasclass) {
   if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0) ) {
     int key = _heightref_top * 100;
     int idx = _rpctile_map[key];
-    std::clog << this->get_id() << "\t" << key << "\t" << dist << std::endl;
     _distancesinside[idx].push_back(dist);
   }
   return true;

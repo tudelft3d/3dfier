@@ -28,6 +28,7 @@
 
 #include "TopoFeature.h"
 #include "io.h"
+#include <limits>
 
 TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attributes, std::string pid) {
   _id = pid;
@@ -1055,6 +1056,7 @@ double TopoFeature::get_point_distance(liblas::Point const& laspt, float radius,
                                      AABB_Tree& TriTree) {
   int lasclass = laspt.GetClassification().GetClass();
   Point2 p(laspt.GetX(), laspt.GetY());
+  double dist = std::numeric_limits<double>::quiet_NaN();
   if (within_range(p, *(_p2), radius)) {
     // TODO B: do not reconstruct the TriTree for each inserted laspoint
     std::list<Triangle3D> cgal_tris;
@@ -1079,20 +1081,14 @@ double TopoFeature::get_point_distance(liblas::Point const& laspt, float radius,
     TriTree.insert(cgal_tris.begin(), cgal_tris.end());
     if (!TriTree.accelerate_distance_queries()) {
         std::clog << "build AABB_tree fail\n";
-        return -9999.99;
+        return dist;
     }
     else {
-      double dist = distance_3d(TriTree, laspt);
-//      push_distance(dist, lasclass);
-      return dist;
+      dist = distance_3d(TriTree, laspt);
     }
   }
+  return dist;
 }
-
-//bool TopoFeature::push_distance(double dist, int lasclass) {
-//  _distancesinside[0].push_back(dist);
-//  return true;
-//}
 
 //-------------------------------
 //-------------------------------

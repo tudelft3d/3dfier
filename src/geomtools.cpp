@@ -40,6 +40,7 @@
 #include <iterator>
 #include <memory>
 #include <boost/heap/fibonacci_heap.hpp>
+#include <limits>
 
 // fibonacci heap for greedy insertion code
 struct point_error {
@@ -236,26 +237,14 @@ double sqr_distance(const Point2 &p1, const Point2 &p2) {
   return (p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y());
 }
 
-//-- B: distance_3d(AABB tree, laspoint)
-/* If returns multiple distances (eg. a dist to each triangle in the tree),
- * then return the min. distance
- * return double
- */
-
 // compute the shortest 3D distance between a triangle and a point
 double distance_3d(AABB_Tree const& TriTree, liblas::Point const& laspt){
   Point3D p(laspt.GetX(), laspt.GetY(), laspt.GetZ());
-  double dist = -9999.00;
+  double dist = std::numeric_limits<double>::quiet_NaN();
   if (!TriTree.empty()) {
     try {
       dist = TriTree.squared_distance(p);
-      return dist / 100.0;
-//      if (std::isfinite(dist)) {
-//        return dist / 100.0;
-//      }
-//      else {
-//        return -99.99;
-//      }
+      return dist;
     }
     catch (std::exception e){
       std::cerr << std::endl << e.what() << std::endl;
