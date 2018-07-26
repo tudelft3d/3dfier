@@ -245,11 +245,17 @@ double sqr_distance(const Point2 &p1, const Point2 &p2) {
 // compute the shortest 3D distance between a triangle and a point
 double distance_3d(AABB_Tree const& TriTree, liblas::Point const& laspt){
   Point3D p(laspt.GetX(), laspt.GetY(), laspt.GetZ());
-  double dist = -99.99;
+  double dist = -9999.00;
   if (!TriTree.empty()) {
     try {
       dist = TriTree.squared_distance(p);
       return dist / 100.0;
+//      if (std::isfinite(dist)) {
+//        return dist / 100.0;
+//      }
+//      else {
+//        return -99.99;
+//      }
     }
     catch (std::exception e){
       std::cerr << std::endl << e.what() << std::endl;
@@ -257,7 +263,7 @@ double distance_3d(AABB_Tree const& TriTree, liblas::Point const& laspt){
     }
   }
   else {
-    std::cout << "AABB_tree empty\n";
+    std::clog << std::endl << "WARNING: AABB_tree empty" << std::endl;
     return dist;
   }
 

@@ -29,6 +29,7 @@
 #include "Building.h"
 #include "io.h"
 #include <algorithm>
+#include <map>
 
 //-- static variable
 float Building::_heightref_top;
@@ -38,6 +39,7 @@ bool Building::_building_include_floor;
 bool Building::_building_inner_walls;
 std::set<int> Building::_las_classes_roof;
 std::set<int> Building::_las_classes_ground;
+
 Building::Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base, bool building_triangulate, bool building_include_floor, bool building_inner_walls)
   : Flat(wkt, layername, attributes, pid)
 {
@@ -46,6 +48,14 @@ Building::Building(char *wkt, std::string layername, AttributeMap attributes, st
   _building_triangulate = building_triangulate;
   _building_include_floor = building_include_floor;
   _building_inner_walls = building_inner_walls;
+  _rpctile_map[0] = 0;
+  _rpctile_map[10] = 1;
+  _rpctile_map[25] = 2;
+  _rpctile_map[50] = 3;
+  _rpctile_map[75] = 4;
+  _rpctile_map[90] = 5;
+  _rpctile_map[95] = 6;
+  _rpctile_map[99] = 7;
 }
 
 void Building::set_las_classes_roof(std::set<int> theset)
@@ -58,6 +68,12 @@ void Building::set_las_classes_ground(std::set<int> theset)
   Building::_las_classes_ground = theset;
 }
 
+void Building::set_heightref_top(float h)
+{
+  Building::_heightref_top = h;
+}
+
+
 std::string Building::get_all_z_values() {
   std::vector<int> allz (_zvaluesground.begin(), _zvaluesground.end());
   allz.insert(allz.end(), _zvaluesinside.begin(), _zvaluesinside.end());
@@ -69,8 +85,8 @@ std::string Building::get_all_z_values() {
 }
 
 std::string Building::get_all_distances() {
-  std::vector<float> alldist (_distancesinside.begin(), _distancesinside.end());
-  alldist.insert(alldist.end(), _distancesinside.begin(), _distancesinside.end());
+  std::vector<float> alldist (_distancesinside[0].begin(), _distancesinside[0].end());
+  alldist.insert(alldist.end(), _distancesinside[0].begin(), _distancesinside[0].end());
   std::sort(alldist.begin(), alldist.end());
   std::stringstream ss;
   for (auto& z : alldist)
@@ -98,16 +114,38 @@ int Building::get_height_roof_at_percentile(float percentile) {
   }
 }
 
-float Building::get_RMSE() {
-  if (_distancesinside.empty() == false) {
-    double sum = 0.0;
-    for (auto& d : _distancesinside) sum += d;
-    double n = _distancesinside.size();
-    return sqrt(sum/n);
+std::vector<double> Building::get_RMSE() {
+  std::vector<double> rmse;
+  for (int i = 0; i < _distancesinside.size(); i++) {
+//    auto distinside = _distancesinside[i];
+//    std::clog << "_distancesinside[" << i << "]" << " length " << _distancesinside[i].size() << std::endl;
+    if (!_distancesinside[i].empty()) {
+      double sum = 0.0;
+      for (auto& d : _distancesinside[i]) sum += d;
+      double n = _distancesinside[i].size();
+      std::clog << this->get_id() <<
+          "\t_heightref_top: " << _heightref_top <<
+          "\t_distancesinside[" << i << "]" << " length: " <<
+          _distancesinside[i].size() <<
+          "\tsum: " << sum <<
+          "\trmse: " << sqrt(sum/n) << std::endl;
+      rmse.push_back(sqrt(sum/n));
+    }
+    else {
+      std::clog << "get_RMSE _distancesinside[i].empty() == TRUE" << std::endl;
+      rmse.push_back(-9999.0);
+    }
   }
-  else {
-    return -9999.0;
-  }
+//  if (!_distancesinside.empty()) {
+//    float sum = 0.0;
+//    for (auto& d : _distancesinside) sum += d;
+//    float n = _distancesinside.size();
+//    return sqrt(sum/n);
+//  }
+//  else {
+//    return -9999.0;
+//  }
+  return rmse;
 }
 
 bool Building::lift() {
@@ -143,8 +181,12 @@ bool Building::add_elevation_point(Point2 &p, double z, float radius, int lascla
 }
 
 bool Building::push_distance(double dist, int lasclass) {
+  if (_distancesinside.size()==0) { _distancesinside.resize(8); }
   if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0) ) {
-    _distancesinside.push_back(dist);
+    int key = _heightref_top * 100;
+    int idx = _rpctile_map[key];
+    std::clog << this->get_id() << "\t" << key << "\t" << dist << std::endl;
+    _distancesinside[idx].push_back(dist);
   }
   return true;
 }
@@ -319,7 +361,10 @@ void Building::get_csv(std::wostream& of, int stats) {
     this->get_height_roof_at_percentile(_heightref_top) / 100.0 << ";" <<
     this->get_height_ground_at_percentile(_heightref_base) / 100.0;
   if (stats == 1) {
-    of << ";" << this->get_RMSE() << "\n";
+    std::vector<double> rmse = this->get_RMSE();
+    int key = _heightref_top * 100;
+    int idx = _rpctile_map[key];
+    of << ";" << rmse[idx] << "\n";
   }
   else {
     of << "\n";

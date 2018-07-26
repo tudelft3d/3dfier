@@ -1051,7 +1051,7 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
   }
 }
 
-bool TopoFeature::add_point_distance(liblas::Point const& laspt, float radius,
+double TopoFeature::get_point_distance(liblas::Point const& laspt, float radius,
                                      AABB_Tree& TriTree) {
   int lasclass = laspt.GetClassification().GetClass();
   Point2 p(laspt.GetX(), laspt.GetY());
@@ -1078,21 +1078,21 @@ bool TopoFeature::add_point_distance(liblas::Point const& laspt, float radius,
     }
     TriTree.insert(cgal_tris.begin(), cgal_tris.end());
     if (!TriTree.accelerate_distance_queries()) {
-        std::cout << "build AABB_tree fail\n";
-        return false;
+        std::clog << "build AABB_tree fail\n";
+        return -9999.99;
     }
     else {
       double dist = distance_3d(TriTree, laspt);
-      push_distance(dist, lasclass);
-      return true;
+//      push_distance(dist, lasclass);
+      return dist;
     }
   }
 }
 
-bool TopoFeature::push_distance(double dist, int lasclass) {
-  _distancesinside.push_back(dist * 100);
-  return true;
-}
+//bool TopoFeature::push_distance(double dist, int lasclass) {
+//  _distancesinside[0].push_back(dist);
+//  return true;
+//}
 
 //-------------------------------
 //-------------------------------

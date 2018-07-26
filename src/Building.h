@@ -53,7 +53,8 @@ public:
   int           get_height_base();
   int           get_height_ground_at_percentile(float percentile);
   int           get_height_roof_at_percentile(float percentile);
-  float           get_RMSE();
+  std::vector<double>           get_RMSE();
+  void          set_heightref_top(float h);
 
   static void   set_las_classes_roof(std::set<int> theset);
   static void   set_las_classes_ground(std::set<int> theset);
@@ -67,6 +68,7 @@ private:
   static bool          _building_inner_walls;
   static std::set<int> _las_classes_roof;
   static std::set<int> _las_classes_ground;
+  std::map<int,int>    _rpctile_map;
 };
 
 #endif /* Building_h */

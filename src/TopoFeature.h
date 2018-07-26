@@ -50,6 +50,8 @@ public:
   virtual void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) = 0;
   virtual void          get_citygml_imgeo(std::wostream& of) = 0;
   virtual bool          get_shape(OGRLayer*, bool writeAttributes, AttributeMap extraAttributes = AttributeMap()) = 0;
+  virtual bool          push_distance(double dist, int lasclass) = 0;
+  virtual void          set_heightref_top(float h) {};
 
   std::string  get_id();
   void         construct_vertical_walls(const NodeColumn& nc);
@@ -77,8 +79,8 @@ public:
   void         get_imgeo_object_info(std::wostream& of, std::string id);
   void         get_citygml_attributes(std::wostream& of, AttributeMap attributes);
   void         get_cityjson_attributes(nlohmann::json& f, AttributeMap attributes);
-  bool         add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree& TriTree);
-  bool         push_distance(double dist, int lasclass);
+  double       get_point_distance(liblas::Point const& laspt, float radius, AABB_Tree& TriTree);
+
 
   std::vector< std::vector< std::vector<int> > >  _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
   std::vector< std::pair<Point3, std::string> >   _vertices;
@@ -95,7 +97,7 @@ protected:
   bool                              _toplevel;
   std::string                       _layername;
   AttributeMap                      _attributes;
-  std::vector<double>               _distancesinside;
+  std::vector< std::vector<double> > _distancesinside;
 
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(Point2 &p, double z, float radius);

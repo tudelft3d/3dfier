@@ -56,7 +56,8 @@ bool Bridge::add_elevation_point(Point2 &p, double z, float radius, int lasclass
 }
 
 bool Bridge::push_distance(double dist, int lasclass) {
-  _distancesinside.push_back(dist * 100); //-- to cm
+  if (_distancesinside.size()==0) { _distancesinside.resize(8); }
+  _distancesinside[0].push_back(dist);
   return true;
 }
 

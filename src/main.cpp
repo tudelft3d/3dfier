@@ -44,6 +44,8 @@ int main(int argc, const char * argv[]);
 std::string print_license();
 void print_duration(std::string message, boost::chrono::time_point<boost::chrono::steady_clock> startTime);
 
+int PCTILE_IDX;
+
 int main(int argc, const char * argv[]) {
   auto startTime = boost::chrono::high_resolution_clock::now();
   boost::locale::generator gen;
@@ -492,8 +494,9 @@ int main(int argc, const char * argv[]) {
 
   //-- add the elevation data to the map3d
   auto startPoints = boost::chrono::high_resolution_clock::now();
+  bool multi_rmse = false;
   for (auto file : elevationFiles) {
-    bool added = map3d.add_las_file(file, "elevation");
+    bool added = map3d.add_las_file(file, "elevation", multi_rmse);
     if (!added) {
       std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
       return EXIT_FAILURE;
@@ -519,6 +522,7 @@ int main(int argc, const char * argv[]) {
     else if (outputs["CSV-BUILDINGS-MULTIPLE"] != "") {
       threedfy = false;
       cdt = false;
+      multi_rmse = true;
       std::clog << "CSV-BUILDINGS-MULTIPLE: no 3D reconstruction" << std::endl;
     }
     else if (outputs["CSV-BUILDINGS-ALL-Z"] != "") {
@@ -536,31 +540,62 @@ int main(int argc, const char * argv[]) {
       cdt = true;
       std::clog << "\nPerforming 3D reconstruction in order to compute quality metrics" << std::endl;
   }
-  if (threedfy) {
-    auto startThreeDfy = boost::chrono::high_resolution_clock::now();
-    map3d.threeDfy(bStitching);
-    print_duration("Lifting, stitching and vertical walls done in %lld seconds || %02d:%02d:%02d\n", startThreeDfy);
-  }
-  if (cdt) {
-    auto startCDT = boost::chrono::high_resolution_clock::now();
-    if (!map3d.construct_CDT()) {
-      return EXIT_FAILURE;
-    }
-    print_duration("CDT created in %lld seconds || %02d:%02d:%02d\n", startCDT);
-  }
-  std::clog << "...3dfying done.\n";
+  if (stats == 1 && multi_rmse) {
+    std::vector<float> rpercentiles = {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
+    for (int i = 0; i < rpercentiles.size(); i++) {
+      PCTILE_IDX = i;
+      float pctile = rpercentiles[i];
+      std::clog << std::setprecision(2) << "\nPerforming 3D reconstruction of Buildings for roof percentile-" << pctile << std::endl;
+      map3d.set_building_features_heightref_top(pctile);
 
-  //-- add the elevation data to the map3d again for computing the Building-mesh - PC distances
-  if (stats == 1) {
-    auto startPoints = boost::chrono::high_resolution_clock::now();
-    for (auto file : elevationFiles) {
-      bool added = map3d.add_las_file(file, "distance");
-      if (!added) {
-        std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
+      auto startThreeDfy = boost::chrono::high_resolution_clock::now();
+      map3d.threeDfy(bStitching);
+      print_duration("Lifting, stitching and vertical walls done in %lld seconds || %02d:%02d:%02d\n", startThreeDfy);
+
+      auto startCDT = boost::chrono::high_resolution_clock::now();
+      if (!map3d.construct_CDT()) {
         return EXIT_FAILURE;
       }
+      print_duration("CDT created in %lld seconds || %02d:%02d:%02d\n", startCDT);
+
+      auto startPoints = boost::chrono::high_resolution_clock::now();
+      for (auto file : elevationFiles) {
+        bool added = map3d.add_las_file(file, "distance", multi_rmse);
+        if (!added) {
+          std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
+          return EXIT_FAILURE;
+        }
+      }
+      print_duration("All points read in %lld seconds || %02d:%02d:%02d\n", startPoints);
     }
-    print_duration("All points read in %lld seconds || %02d:%02d:%02d\n", startPoints);
+  }
+  else {
+    if (threedfy) {
+      auto startThreeDfy = boost::chrono::high_resolution_clock::now();
+      map3d.threeDfy(bStitching);
+      print_duration("Lifting, stitching and vertical walls done in %lld seconds || %02d:%02d:%02d\n", startThreeDfy);
+    }
+    if (cdt) {
+      auto startCDT = boost::chrono::high_resolution_clock::now();
+      if (!map3d.construct_CDT()) {
+        return EXIT_FAILURE;
+      }
+      print_duration("CDT created in %lld seconds || %02d:%02d:%02d\n", startCDT);
+    }
+    std::clog << "...3dfying done.\n";
+
+    //-- add the elevation data to the map3d again for computing the Building-mesh - PC distances
+    if (stats == 1) {
+      auto startPoints = boost::chrono::high_resolution_clock::now();
+      for (auto file : elevationFiles) {
+        bool added = map3d.add_las_file(file, "distance", multi_rmse);
+        if (!added) {
+          std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
+          return EXIT_FAILURE;
+        }
+      }
+      print_duration("All points read in %lld seconds || %02d:%02d:%02d\n", startPoints);
+    }
   }
 
   //-- iterate over all output

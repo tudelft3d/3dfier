@@ -49,10 +49,11 @@ bool Terrain::add_elevation_point(Point2 &p, double z, float radius, int lasclas
   return TIN::add_elevation_point(p, z, radius, lasclass);
 }
 
-//bool Terrain::push_distance(double dist) {
-//  _distancesinside.push_back(dist * 100); //-- to cm
-//  return true;
-//}
+bool Terrain::push_distance(double dist, int lasclass) {
+  if (_distancesinside.size()==0) { _distancesinside.resize(8); }
+  _distancesinside[0].push_back(dist);
+  return true;
+}
 
 //bool Terrain::add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree) {
 //  //-- placeholder

@@ -70,6 +70,14 @@ void Map3d::set_building_heightref_roof(float h) {
   _building_heightref_roof = h;
 }
 
+void Map3d::set_building_features_heightref_top(float h) {
+  for (auto& f : _lsFeatures) {
+    if (f->get_class() == BUILDING) {
+      f->set_heightref_top(h);
+    }
+  }
+}
+
 void Map3d::set_building_heightref_ground(float h) {
   _building_heightref_ground = h;
 }
@@ -294,10 +302,10 @@ void Map3d::create_citygml_imgeo_header(std::wostream& of) {
 
 void Map3d::get_csv_buildings(std::wostream& of, int stats) {
   if (stats == 1) {
-    of << "id,roof,ground,rmse\n";
+    of << "id,roof,ground,rmse" << std::endl;
   }
   else {
-    of << "id,roof,ground\n";
+    of << "id,roof,ground" << std::endl;
   }
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
@@ -327,31 +335,48 @@ void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, int stats) {
   of << "id,";
   for (auto& each : gpercentiles)
     of << "ground-" << each << ",";
-  for (auto& each : rpercentiles)
+  for (auto& each : rpercentiles) {
     of << "roof-" << each << ",";
-  if (stats == 1) {
-      of << "rmse";
+    if (stats == 1) {
+        of << "rmse-" << each << ",";
 //    of << "rmse" << "," << "alldist";
+    }
   }
   of << std::endl;
-  for (auto& p : _lsFeatures) {
-    if (p->get_class() == BUILDING) {
-      Building* b = dynamic_cast<Building*>(p);
-      of << b->get_id() << ",";
-      for (auto& each : gpercentiles) {
-        int h = b->get_height_ground_at_percentile(each);
-        of << float(h)/100 << ",";
+  if (stats == 1) {
+    for (auto& p : _lsFeatures) {
+      if (p->get_class() == BUILDING) {
+        Building* b = dynamic_cast<Building*>(p);
+        std::vector<double> rmse = b->get_RMSE();
+        of << b->get_id() << ",";
+        for (auto& each : gpercentiles) {
+          int h = b->get_height_ground_at_percentile(each);
+          of << float(h)/100 << ",";
+        }
+        for (int i = 0; i < rpercentiles.size(); i++) {
+          int h = b->get_height_roof_at_percentile(rpercentiles[i]);
+          of << float(h)/100 << ",";
+          of << rmse[i] << ",";
+        }
+        of << std::endl;
       }
-      for (auto& each : rpercentiles) {
-        int h = b->get_height_roof_at_percentile(each);
-        of << float(h)/100 << ",";
+    }
+  }
+  else {
+    for (auto& p : _lsFeatures) {
+      if (p->get_class() == BUILDING) {
+        Building* b = dynamic_cast<Building*>(p);
+        of << b->get_id() << ",";
+        for (auto& each : gpercentiles) {
+          int h = b->get_height_ground_at_percentile(each);
+          of << float(h)/100 << ",";
+        }
+        for (auto& each : rpercentiles) {
+          int h = b->get_height_roof_at_percentile(each);
+          of << float(h)/100 << ",";
+        }
+        of << std::endl;
       }
-      if (stats == 1) {
-        double rmse = b->get_RMSE();
-        of << rmse;
-//        of << "," << b->get_all_distances();
-      }
-      of << std::endl;
     }
   }
 }
@@ -686,7 +711,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
 }
 
 
-void Map3d::add_point_distance(liblas::Point const& laspt) {
+void Map3d::add_point_distance(liblas::Point const& laspt, bool multi_rmse) {
   std::vector<PairIndexed> re;
   Point2 minp(laspt.GetX() - _radius_vertex_elevation, laspt.GetY() - _radius_vertex_elevation);
   Point2 maxp(laspt.GetX() + _radius_vertex_elevation, laspt.GetY() + _radius_vertex_elevation);
@@ -743,10 +768,13 @@ void Map3d::add_point_distance(liblas::Point const& laspt) {
         bInsert = true;
       }
     }
-
+    if (multi_rmse) {
+      if (f->get_class() != BUILDING) { bInsert = false; }
+    }
     if (bInsert == true) {
       if (!TriTree.empty()) { TriTree.clear(); }
-      f->add_point_distance(laspt, radius, TriTree);
+      double dist = f->get_point_distance(laspt, radius, TriTree);
+      f->push_distance(dist, c);
     }
   }
 }
@@ -1058,7 +1086,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
 }
 
 //-- http://www.liblas.org/tutorial/cpp.html#applying-filters-to-a-reader-to-extract-specified-classes
-bool Map3d::add_las_file(PointFile pointFile, const std::string &operation) {
+bool Map3d::add_las_file(PointFile pointFile, const std::string &operation, bool multi_rmse) {
   std::clog << "Reading LAS/LAZ file: " << pointFile.filename << std::endl;
   std::ifstream ifs;
   ifs.open(pointFile.filename.c_str(), std::ios::in | std::ios::binary);
@@ -1127,8 +1155,7 @@ bool Map3d::add_las_file(PointFile pointFile, const std::string &operation) {
           if (i % pointFile.thinning == 0) {
             if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end()) {
               if (polygonBounds.contains(p)) {
-                //-- B:
-                this->add_point_distance(p);
+                this->add_point_distance(p, multi_rmse);
               }
             }
           }

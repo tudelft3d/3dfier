@@ -51,14 +51,14 @@ public:
   ~Map3d();
 
   bool add_polygons_files(std::vector<PolygonFile> &files);
-  bool add_las_file(PointFile pointFile, const std::string &operation);
+  bool add_las_file(PointFile pointFile, const std::string &operation, bool multi_rmse);
 
   void stitch_lifted_features();
   bool construct_rtree();
   bool threeDfy(bool stitching = true);
   bool construct_CDT();
   void add_elevation_point(liblas::Point const& laspt);
-  void add_point_distance(liblas::Point const& laspt);
+  void add_point_distance(liblas::Point const& laspt, bool multi_rmse);
 
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>&  get_polygons3d();
@@ -82,6 +82,7 @@ public:
   bool get_shapefile2d(std::string filename);
 
   void set_building_heightref_roof(float heightref);
+  void set_building_features_heightref_top(float h);
   void set_building_heightref_ground(float heightref);
   void set_building_include_floor(bool include);
   void set_building_triangulate(bool triangulate);

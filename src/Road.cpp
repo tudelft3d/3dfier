@@ -55,10 +55,11 @@ bool Road::add_elevation_point(Point2 &p, double z, float radius, int lasclass) 
   return true;
 }
 
-//bool Road::push_distance(double dist) {
-//  _distancesinside.push_back(dist * 100); //-- to cm
-//  return true;
-//}
+bool Road::push_distance(double dist, int lasclass) {
+  if (_distancesinside.size()==0) { _distancesinside.resize(8); }
+  _distancesinside[0].push_back(dist);
+  return true;
+}
 
 
 bool Road::lift() {
