@@ -308,8 +308,10 @@ void Map3d::get_csv_buildings(std::wostream& of, int stats) {
     of << "id,roof,ground" << std::endl;
   }
   for (auto& p : _lsFeatures) {
+//    std::clog << "WTF is going on here?!" << std::endl;
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
+//      std::clog << "WTF is going on in the if-clause?!" << std::endl;
       b->get_csv(of, stats);
     }
   }
@@ -774,7 +776,9 @@ void Map3d::add_point_distance(liblas::Point const& laspt, bool multi_rmse) {
     if (bInsert == true) {
       if (!TriTree.empty()) { TriTree.clear(); }
       double dist = f->get_point_distance(laspt, radius, TriTree);
-      if (std::isfinite(dist)) { f->push_distance(dist, c); }
+      if (std::isfinite(dist)) { f->push_distance(dist, c); } else {
+          //std::clog << "add_point_distance() dist is infinite L779" << std::endl;
+      }
     }
   }
 }
@@ -1150,13 +1154,22 @@ bool Map3d::add_las_file(PointFile pointFile, const std::string &operation, bool
         std::clog << std::endl;
       }
       else if (operation == "distance") {
+//        std::clog << std::endl << "add_las_file() L1155 are we fucking there yet?!" << std::endl;
         while (reader.ReadNextPoint()) {
           liblas::Point const& p = reader.GetPoint();
           if (i % pointFile.thinning == 0) {
             if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end()) {
               if (polygonBounds.contains(p)) {
+//                std::clog << "add_las_file() L1160 are we fucking there yet?!" << std::endl;
                 this->add_point_distance(p, multi_rmse);
+//                std::clog << "add_las_file() L1162 sth happened" << std::endl;
               }
+              else {
+//                std::clog << std::endl << "add_las_file() L1166 NOT polygonBounds.contains(p)" << std::endl;
+              }
+            }
+            else {
+//              std::clog << std::endl << "add_las_file() L1170 NOT std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end()" << std::endl;
             }
           }
           if (i % (pointCount / 100) == 0)

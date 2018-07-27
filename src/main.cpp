@@ -584,6 +584,7 @@ int main(int argc, const char * argv[]) {
 
     //-- add the elevation data to the map3d again for computing the Building-mesh - PC distances
     if (stats == 1) {
+//      std::clog << std::endl << "main.cpp you better fucking be here already L587" << std::endl;
       auto startPoints = boost::chrono::high_resolution_clock::now();
       //TODO B: construct TriTree for each TopoFeature here
       for (auto file : elevationFiles) {
