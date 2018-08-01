@@ -28,6 +28,7 @@
 
 #include "TopoFeature.h"
 #include "io.h"
+#include "polyfit.hpp"
 
 TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attributes, std::string pid) {
   _id = pid;
@@ -1075,20 +1076,21 @@ int Flat::get_height() {
 }
 
 bool Flat::lift_percentile(float percentile) {
-  int z = -9999;
-  if (_zvaluesinside.empty() == false) {
-    std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
-    z = _zvaluesinside[_zvaluesinside.size() * percentile];
-  }
-  this->lift_all_boundary_vertices_same_height(z);
-  return true;
+int z = -9999;
+if (_zvaluesinside.empty() == false) {
+  std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
+  z = _zvaluesinside[_zvaluesinside.size() * percentile];
+}
+this->lift_all_boundary_vertices_same_height(z);
+return true;
 }
 
 //-------------------------------
 //-------------------------------
 
 Boundary3D::Boundary3D(char *wkt, std::string layername, AttributeMap attributes, std::string pid)
-  : TopoFeature(wkt, layername, attributes, pid) {}
+  : TopoFeature(wkt, layername, attributes, pid) {
+}
 
 int Boundary3D::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
@@ -1118,7 +1120,6 @@ void Boundary3D::smooth_boundary(int passes) {
 }
 
 void Boundary3D::detect_outliers(int degrees_incline) {
-  // find spikes in roads (due to misclassified lidar points) and fix by averaging between previous and next vertex.
   //-- gather all rings
   std::vector<Ring2> rings;
   rings.push_back(_p2->outer());
@@ -1128,105 +1129,226 @@ void Boundary3D::detect_outliers(int degrees_incline) {
   int ringi = -1;
   for (Ring2& ring : rings) {
     ringi++;
-    std::vector<int> ringz = _p2z[ringi];
-    std::vector<float> inclines(_p2z[ringi].size());
-    std::vector<int> changez(_p2z[ringi].size(), 0);
-    float PI = 3.14159265;
 
-    for (int i = 0; i < ring.size(); i++) {
-      int i0 = i - 1;
-      int i2 = i + 1;
-      if (i == 0) {
-        i0 = ring.size() - 1;
-      }
-      if (i2 == ring.size()) {
-        i2 = 0;
-      }
-      float len1z = (ringz[i] - ringz[i0]) / 100.0;
-      float len2z = (ringz[i2] - ringz[i]) / 100.0;
-      float incline = atan2(len2z, distance(ring[i], ring[i2])) - atan2(len1z, distance(ring[i0], ring[i]));
-      if (incline <= -PI) {
-        incline = 2 * PI + incline;
-      }
-      if (incline > PI) {
-        incline = incline - 2 * PI;
-      }
-      incline = incline * 180 / PI;
-      //if (incline > 0) we have a peak down, otherwise we have a peak up
-      if (abs(incline) > degrees_incline) {
-        if (abs(len2z) > abs(len1z)) {
-          if (incline > 0) {
-            // going from 'flat' surface up
-            changez[i] = 1;
-          }
-          else {
-            // going from 'flat' surface down
-            changez[i] = -1;
-          }
-        }
-      }
-    }
-    // find the index of the first peak up (value == 1)
-    int start_idx = std::find(changez.begin(), changez.end(), 1) - changez.begin();
-    if (start_idx == changez.size()) {
-      // else find the index of the first peak down (value == -1)
-      start_idx = std::find(changez.begin(), changez.end(), -1) - changez.begin();
-      if (start_idx == changez.size()) {
-        start_idx = ring.size();
-      }
+    // find spikes in roads (due to misclassified lidar points) and fix by averaging between previous and next vertex.
+    std::vector<double> x, y, coeffs, x1, y1, z1;
+    for (int i = 0; i < _p2z[ringi].size(); i++) {
+      x.push_back(i);
+      y.push_back(_p2z[ringi][i]);
     }
 
-    if (start_idx != ring.size()) {
-      // Detect and fix outliers starting from the first peak up detected previously
-      for (int j = 0; j < ring.size(); ++j) {
-        //make round-trip through vector starting at start_idx
-        int i = (j + start_idx + ring.size()) % ring.size();
-        int i0 = i - 1;
-        int i2 = i + 1;
-        if (i == 0) {
-          i0 = ring.size() - 1;
-        }
-        if (i2 == ring.size()) {
-          i2 = 0;
-        }
-        float len1z = (ringz[i] - ringz[i0]) / 100.0;
-        float len2z = (ringz[i2] - ringz[i]) / 100.0;
-        float incline = atan2(len2z, distance(ring[i], ring[i2])) - atan2(len1z, distance(ring[i0], ring[i]));
-        if (incline <= -PI) {
-          incline = 2 * PI + incline;
-        }
-        if (incline > PI) {
-          incline = incline - 2 * PI;
-        }
-        incline = incline * 180 / PI;
-        //if (incline > 0) we have a peak down, otherwise we have a peak up
-        if (abs(incline) > degrees_incline) {
-          //find the outlier by sorting and comparing distance
-          std::vector<int> heights = { ringz[i0], ringz[i], ringz[i2] };
-          std::sort(heights.begin(), heights.end());
-          int h = heights[0];
-          if (abs(heights[2] - heights[1]) > abs(heights[0] - heights[1])) {
-            h = heights[2];
-          }
+    std::vector<double> xtmp = x, ytmp = y;
 
-          if (ringz[i0] == h) {
-            //put to height of closest vertex for now
-            _p2z[ringi][i0] = ringz[i];
-            ringz[i0] = ringz[i];
-          }
-          else if (ringz[i] == h) {
-            _p2z[ringi][i] = (ringz[i0] + ringz[i2]) / 2;
-            ringz[i] = (ringz[i0] + ringz[i2]) / 2;
-          }
-          else if (ringz[i2] == h) {
-            //put to height of closest vertex for now
-            _p2z[ringi][i2] = ringz[i];
-            ringz[i2] = ringz[i];
-          }
+    int niter = _p2z[ringi].size() - 3;
+    std::vector<int> indices;
+    std::vector<double> residualRanges;
+    std::vector<double> gaps;
+    std::vector < std::vector<double> > residualCoeffs;
+    for (int i = 0; i < niter; i++) {
+      // Fit the model
+      std::vector<double> coeffs = polyfitqr<double>(xtmp, ytmp, 2);
+      std::vector<double> correctedvalues = polyvalqr<double>(coeffs, xtmp);
+      std::vector<double> residuals;
+
+      for (int j = 0; j < correctedvalues.size(); j++) {
+        residuals.push_back(ytmp[j] - correctedvalues[j]);
+      }
+
+      if (_id == "L0004.3232f41ea7fb409aa7b64ba27318f4dd") {
+        std::cout << "";
+      //  std::cout << "coeffs:" << std::endl;
+      //  for (int i = 0; i < 3; i++) {
+      //    std::cout << coeffs[i] << std::endl;
+      //  }
+      //  std::cout << std::endl;
+
+        std::cout << "x-y-z values" << std::endl;
+        std::cout << std::fixed << std::setprecision(3);
+        for (int i = 0; i < ring.size(); i++) {
+          //std::cout << ring[i].x() << "\t" << ring[i].y() << "\t" << _p2z[ringi][i] << std::endl;
+          x1.push_back(ring[i].x());
+          y1.push_back(ring[i].y());
+          z1.push_back(_p2z[ringi][i]);
         }
+        std::vector<double> res;
+        std::vector<double> coeffs = polyfit3d<double>(x1, y1, z1, 2, res);
+        std::cout << std::endl;
+
+      //  std::cout << "fitted values" << std::endl;
+      //  for (int i = 0; i < correctedvalues.size(); i++) {
+      //    std::cout << correctedvalues[i] << std::endl;
+      //  }
+      //  std::cout << std::endl;
+
+      //  std::cout << "heights\tvalues\tfitted values\tresiduals" << std::endl;
+      //  for (int i = 0; i < correctedvalues.size(); i++) {
+      //    std::cout << y[i] << "\t" << correctedvalues[i] << "\t\t" << residuals[i] << std::endl;
+      //  }
+      //  std::cout << std::endl;
+      }
+
+      // Calculate the maximum residual
+      auto min = std::min_element(residuals.begin(), residuals.end(), abs_compare);
+      auto max = std::max_element(residuals.begin(), residuals.end(), abs_compare);
+      double res_range = abs(*min) + abs(*max);
+      int imax = max - residuals.begin();
+      double vtx = xtmp[imax];
+      //double height = y[vtx];
+      //double residual = *max;
+
+      // print and remove the maximum residual
+      //std::cout << "vertex: " << vtx << ", abs res: " << res_range << std::endl;
+
+      // store the index of the vertex marked as an outlier
+      indices.push_back(vtx);
+      // store size of the gap with the previous residual, do before storing residual_range
+      if (!residualRanges.empty()) {
+        gaps.push_back(abs(res_range - residualRanges.back()));
+      }
+      // store the residual range of the outlier
+      residualRanges.push_back(res_range);
+      // store the coefficients for later use
+      residualCoeffs.push_back(coeffs);
+
+      // remove the outlier form both x_ite and y_ite
+      xtmp.erase(xtmp.begin() + imax);
+      ytmp.erase(ytmp.begin() + imax);
+
+      // stop if residuals are <1 (mm precision)
+      if (res_range < 1) {
+        break;
+      }
+    }
+
+    // find the largest gap
+    auto maxgap = std::max_element(gaps.begin(), gaps.end());
+    // skip if gaps is empty
+    if (maxgap != gaps.end()) {
+      int maxgapi = maxgap - gaps.begin();
+
+      //std::cout << "max gap i: " << maxgapi << ", max gap: " << *maxgap << std::endl;
+
+      // get the new values based on the coeffs of the equation at max abs residual +1
+      std::vector<double> correctedvalues = polyvalqr<double>(residualCoeffs[maxgapi+1], x);
+
+      // replace the old values with the new values upto the maximum gap (not including since gap is this to next)
+      for (int i = 0; i <= maxgapi; i++) {
+        int idx = indices[i];
+        //std::cout << "old: " << y[idx] << ", new: " << correctedvalues[idx] << std::endl;
+        _p2z[ringi][idx] = correctedvalues[idx];
       }
     }
   }
+
+
+  ////-- gather all rings
+  //std::vector<Ring2> rings;
+  //rings.push_back(_p2->outer());
+  //for (Ring2& iring : _p2->inners())
+  //  rings.push_back(iring);
+
+  //int ringi = -1;
+  //for (Ring2& ring : rings) {
+  //  ringi++;
+  //  std::vector<int> ringz = _p2z[ringi];
+  //  std::vector<float> inclines(_p2z[ringi].size());
+  //  std::vector<int> changez(_p2z[ringi].size(), 0);
+  //  float PI = 3.14159265;
+
+  //  for (int i = 0; i < ring.size(); i++) {
+  //    int i0 = i - 1;
+  //    int i2 = i + 1;
+  //    if (i == 0) {
+  //      i0 = ring.size() - 1;
+  //    }
+  //    if (i2 == ring.size()) {
+  //      i2 = 0;
+  //    }
+  //    float len1z = (ringz[i] - ringz[i0]) / 100.0;
+  //    float len2z = (ringz[i2] - ringz[i]) / 100.0;
+  //    float incline = atan2(len2z, distance(ring[i], ring[i2])) - atan2(len1z, distance(ring[i0], ring[i]));
+  //    if (incline <= -PI) {
+  //      incline = 2 * PI + incline;
+  //    }
+  //    if (incline > PI) {
+  //      incline = incline - 2 * PI;
+  //    }
+  //    incline = incline * 180 / PI;
+  //    //if (incline > 0) we have a peak down, otherwise we have a peak up
+  //    if (abs(incline) > degrees_incline) {
+  //      if (abs(len2z) > abs(len1z)) {
+  //        if (incline > 0) {
+  //          // going from 'flat' surface up
+  //          changez[i] = 1;
+  //        }
+  //        else {
+  //          // going from 'flat' surface down
+  //          changez[i] = -1;
+  //        }
+  //      }
+  //    }
+  //  }
+  //  // find the index of the first peak up (value == 1)
+  //  int start_idx = std::find(changez.begin(), changez.end(), 1) - changez.begin();
+  //  if (start_idx == changez.size()) {
+  //    // else find the index of the first peak down (value == -1)
+  //    start_idx = std::find(changez.begin(), changez.end(), -1) - changez.begin();
+  //    if (start_idx == changez.size()) {
+  //      start_idx = ring.size();
+  //    }
+  //  }
+
+  //  if (start_idx != ring.size()) {
+  //    // Detect and fix outliers starting from the first peak up detected previously
+  //    for (int j = 0; j < ring.size(); ++j) {
+  //      //make round-trip through vector starting at start_idx
+  //      int i = (j + start_idx + ring.size()) % ring.size();
+  //      int i0 = i - 1;
+  //      int i2 = i + 1;
+  //      if (i == 0) {
+  //        i0 = ring.size() - 1;
+  //      }
+  //      if (i2 == ring.size()) {
+  //        i2 = 0;
+  //      }
+  //      float len1z = (ringz[i] - ringz[i0]) / 100.0;
+  //      float len2z = (ringz[i2] - ringz[i]) / 100.0;
+  //      float incline = atan2(len2z, distance(ring[i], ring[i2])) - atan2(len1z, distance(ring[i0], ring[i]));
+  //      if (incline <= -PI) {
+  //        incline = 2 * PI + incline;
+  //      }
+  //      if (incline > PI) {
+  //        incline = incline - 2 * PI;
+  //      }
+  //      incline = incline * 180 / PI;
+  //      //if (incline > 0) we have a peak down, otherwise we have a peak up
+  //      if (abs(incline) > degrees_incline) {
+  //        //find the outlier by sorting and comparing distance
+  //        std::vector<int> heights = { ringz[i0], ringz[i], ringz[i2] };
+  //        std::sort(heights.begin(), heights.end());
+  //        int h = heights[0];
+  //        if (abs(heights[2] - heights[1]) > abs(heights[0] - heights[1])) {
+  //          h = heights[2];
+  //        }
+
+  //        if (ringz[i0] == h) {
+  //          //put to height of closest vertex for now
+  //          _p2z[ringi][i0] = ringz[i];
+  //          ringz[i0] = ringz[i];
+  //        }
+  //        else if (ringz[i] == h) {
+  //          _p2z[ringi][i] = (ringz[i0] + ringz[i2]) / 2;
+  //          ringz[i] = (ringz[i0] + ringz[i2]) / 2;
+  //        }
+  //        else if (ringz[i2] == h) {
+  //          //put to height of closest vertex for now
+  //          _p2z[ringi][i2] = ringz[i];
+  //          ringz[i2] = ringz[i];
+  //        }
+  //      }
+  //    }
+  //  }
+  //}
 }
 
 //-------------------------------
