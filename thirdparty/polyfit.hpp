@@ -212,20 +212,12 @@ std::vector<T> polyvalqr(const std::vector<T>& oCoeff, const std::vector<T>& oX)
   return oY;
 }
 
-// 3D plane fitting
 template<typename T>
-std::vector<T> polyfit3d(std::vector<T>& oX, std::vector<T>& oY, std::vector<T>& oZ, int nDegree, std::vector<T>& residuals) {
-  if (oX.size() != oY.size() || oX.size() != oZ.size())
-    throw std::invalid_argument("X and Y or X and Z vector sizes do not match");
-
-  // more intuative this way
-  nDegree++;
-
+mathalgo::matrix<T> combineXY(std::vector<T>& oX, std::vector<T>& oY) {
   size_t nCount = oX.size();
-  size_t nCols = std::pow(nDegree, 2);
+  size_t nCols = 3 * 2; // 3 unknowns in 2 dimensions
   mathalgo::matrix<T> oXYMatrix(nCount, nCols);
-  mathalgo::matrix<T> oZMatrix(nCount, 1);
-
+  
   // normalize x and y matrix
   for (size_t i = 1; i < nCount; i++) {
     oX[i] = oX[i] - oX[0];
@@ -234,20 +226,39 @@ std::vector<T> polyfit3d(std::vector<T>& oX, std::vector<T>& oY, std::vector<T>&
   oX[0] = 0;
   oY[0] = 0;
 
+  // create the XY matrix
+  for (size_t nRow = 0; nRow < nCount; nRow++) {
+    oXYMatrix(nRow, 0) = 1;
+    oXYMatrix(nRow, 1) = oX[nRow];
+    oXYMatrix(nRow, 2) = oY[nRow];
+    oXYMatrix(nRow, 3) = oX[nRow] * oY[nRow];
+    oXYMatrix(nRow, 4) = std::pow(oX[nRow], 2);
+    oXYMatrix(nRow, 5) = std::pow(oY[nRow], 2);
+
+    //int nCol = 0;
+    //for (size_t i = 0; i < nDegree; i++) {
+    //  for (size_t j = 0; j < nDegree; j++) {
+    //    oXYMatrix(nRow, i*nDegree+j) = std::pow(oX[nRow], i) * std::pow(oY[nRow], j);
+    //    nCol++;
+    //  }
+    //}
+  }
+  return oXYMatrix;
+}
+
+// 3D plane fitting
+template<typename T>
+std::vector<T> polyfit3d(std::vector<T>& oX, std::vector<T>& oY, std::vector<T>& oZ, std::vector<T>& calculated) {
+  if (oX.size() != oY.size() || oX.size() != oZ.size())
+    throw std::invalid_argument("X and Y or X and Z vector sizes do not match");
+
+  size_t nCount = oX.size();
+  mathalgo::matrix<T> oXYMatrix(combineXY(oX, oY));
+  mathalgo::matrix<T> oZMatrix(nCount, 1);
+
   // copy z matrix
   for (size_t i = 0; i < nCount; i++) {
     oZMatrix(i, 0) = oZ[i];
-  }
-
-  // create the XY matrix
-  for (size_t nRow = 0; nRow < nCount; nRow++) {
-    int nCol = 0;
-    for (size_t i = 0; i < nDegree; i++) {
-      for (size_t j = 0; j < nDegree; j++) {
-        oXYMatrix(nRow, i*nDegree+j) = std::pow(oX[nRow], i) * std::pow(oY[nRow], j);
-        nCol++;
-      }
-    }
   }
 
   // transpose X matrix
@@ -261,7 +272,7 @@ std::vector<T> polyfit3d(std::vector<T>& oX, std::vector<T>& oY, std::vector<T>&
   oGivens.Decompose(oXYtXYMatrix);
   mathalgo::matrix<T> oCoeff = oGivens.Solve(oXYtZMatrix);
 
-  residuals = polyval3d(oCoeff.data(), oXYMatrix);
+  calculated = polyval3d(oCoeff.data(), oXYMatrix);
   // copy the result to coeff
   return oCoeff.data();
 }

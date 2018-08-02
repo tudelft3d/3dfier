@@ -1131,60 +1131,59 @@ void Boundary3D::detect_outliers(int degrees_incline) {
     ringi++;
 
     // find spikes in roads (due to misclassified lidar points) and fix by averaging between previous and next vertex.
-    std::vector<double> x, y, coeffs, x1, y1, z1;
-    for (int i = 0; i < _p2z[ringi].size(); i++) {
-      x.push_back(i);
-      y.push_back(_p2z[ringi][i]);
+    std::vector<int> idx;
+    std::vector<double> x, y, z, coeffs;
+    for (int i = 0; i < ring.size(); i++) {
+      idx.push_back(i);
+      x.push_back(ring[i].x());
+      y.push_back(ring[i].y());
+      z.push_back(_p2z[ringi][i]);
     }
 
-    std::vector<double> xtmp = x, ytmp = y;
+    std::vector<double> xtmp = x, ytmp = y, ztmp = z;
 
-    int niter = _p2z[ringi].size() - 3;
+    // itterate only if >6 points in the ring or the LS will not work
+    int niter = _p2z[ringi].size() - 6;
     std::vector<int> indices;
     std::vector<double> residualRanges;
     std::vector<double> gaps;
     std::vector < std::vector<double> > residualCoeffs;
     for (int i = 0; i < niter; i++) {
       // Fit the model
-      std::vector<double> coeffs = polyfitqr<double>(xtmp, ytmp, 2);
-      std::vector<double> correctedvalues = polyvalqr<double>(coeffs, xtmp);
+      //std::vector<double> coeffs = polyfitqr<double>(xtmp, ytmp, 2);
+      //std::vector<double> correctedvalues = polyvalqr<double>(coeffs, xtmp);
+      //std::vector<double> residuals;
+
+      //for (int j = 0; j < correctedvalues.size(); j++) {
+      //  residuals.push_back(ytmp[j] - correctedvalues[j]);
+      //}
+      std::vector<double> correctedvalues;
+      std::vector<double> coeffs = polyfit3d<double>(xtmp, ytmp, ztmp, correctedvalues);
       std::vector<double> residuals;
 
       for (int j = 0; j < correctedvalues.size(); j++) {
-        residuals.push_back(ytmp[j] - correctedvalues[j]);
+        residuals.push_back(ztmp[j] - correctedvalues[j]);
       }
 
-      if (_id == "L0004.3232f41ea7fb409aa7b64ba27318f4dd") {
+      //if (_id == "L0004.3232f41ea7fb409aa7b64ba27318f4dd") { // road outlier detection
+      if (_id == "L0002.e1f202d3ec3345178b79c5c898ea9c0c") { //crossing
         std::cout << "";
-      //  std::cout << "coeffs:" << std::endl;
-      //  for (int i = 0; i < 3; i++) {
-      //    std::cout << coeffs[i] << std::endl;
-      //  }
-      //  std::cout << std::endl;
+        //  std::cout << "coeffs:" << std::endl;
+        //  for (int i = 0; i < 3; i++) {
+        //    std::cout << coeffs[i] << std::endl;
+        //  }
+        //  std::cout << std::endl;
 
-        std::cout << "x-y-z values" << std::endl;
-        std::cout << std::fixed << std::setprecision(3);
-        for (int i = 0; i < ring.size(); i++) {
-          //std::cout << ring[i].x() << "\t" << ring[i].y() << "\t" << _p2z[ringi][i] << std::endl;
-          x1.push_back(ring[i].x());
-          y1.push_back(ring[i].y());
-          z1.push_back(_p2z[ringi][i]);
-        }
-        std::vector<double> res;
-        std::vector<double> coeffs = polyfit3d<double>(x1, y1, z1, 2, res);
-        std::cout << std::endl;
+        //  std::cout << "fitted values" << std::endl;
+        //  for (int i = 0; i < correctedvalues.size(); i++) {
+        //    std::cout << correctedvalues[i] << std::endl;
+        //  }
+        //  std::cout << std::endl;
 
-      //  std::cout << "fitted values" << std::endl;
-      //  for (int i = 0; i < correctedvalues.size(); i++) {
-      //    std::cout << correctedvalues[i] << std::endl;
-      //  }
-      //  std::cout << std::endl;
-
-      //  std::cout << "heights\tvalues\tfitted values\tresiduals" << std::endl;
-      //  for (int i = 0; i < correctedvalues.size(); i++) {
-      //    std::cout << y[i] << "\t" << correctedvalues[i] << "\t\t" << residuals[i] << std::endl;
-      //  }
-      //  std::cout << std::endl;
+        //std::cout << "heights\tfitted values\tresiduals" << std::endl;
+        //for (int i = 0; i < fitted.size(); i++) {
+        //  std::cout << z1[i] << "\t" << fitted[i] << "\t\t" << res[i] << std::endl;
+        //}
       }
 
       // Calculate the maximum residual
@@ -1192,11 +1191,10 @@ void Boundary3D::detect_outliers(int degrees_incline) {
       auto max = std::max_element(residuals.begin(), residuals.end(), abs_compare);
       double res_range = abs(*min) + abs(*max);
       int imax = max - residuals.begin();
-      double vtx = xtmp[imax];
+      int vtx = idx[imax];
       //double height = y[vtx];
-      //double residual = *max;
+      //double iresidual = *max;
 
-      // print and remove the maximum residual
       //std::cout << "vertex: " << vtx << ", abs res: " << res_range << std::endl;
 
       // store the index of the vertex marked as an outlier
@@ -1210,9 +1208,11 @@ void Boundary3D::detect_outliers(int degrees_incline) {
       // store the coefficients for later use
       residualCoeffs.push_back(coeffs);
 
-      // remove the outlier form both x_ite and y_ite
+      // remove the outlier from idx, xtmp, xtmp and xtmp arrays for next iteration
+      idx.erase(idx.begin() + imax);
       xtmp.erase(xtmp.begin() + imax);
       ytmp.erase(ytmp.begin() + imax);
+      ztmp.erase(ztmp.begin() + imax);
 
       // stop if residuals are <1 (mm precision)
       if (res_range < 1) {
@@ -1229,8 +1229,10 @@ void Boundary3D::detect_outliers(int degrees_incline) {
       //std::cout << "max gap i: " << maxgapi << ", max gap: " << *maxgap << std::endl;
 
       // get the new values based on the coeffs of the equation at max abs residual +1
-      std::vector<double> correctedvalues = polyvalqr<double>(residualCoeffs[maxgapi+1], x);
+      mathalgo::matrix<double> oXYMatrix = combineXY(x, y);
+      std::vector<double> correctedvalues = polyval3d<double>(residualCoeffs[maxgapi+1], oXYMatrix);
 
+      //std::cout << _id << std::endl;
       // replace the old values with the new values upto the maximum gap (not including since gap is this to next)
       for (int i = 0; i <= maxgapi; i++) {
         int idx = indices[i];
