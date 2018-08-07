@@ -1393,6 +1393,10 @@ void Map3d::stitch_bridges() {
   std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
     if (f->get_class() == BRIDGE && f->get_top_level() == false) {
+      // Make bridge face flat
+      Bridge* b = dynamic_cast<Bridge*>(f);
+      b->detect_outliers(true);
+
       //-- 1. store all touching top level (adjacent + incident)
       std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
 
@@ -1426,8 +1430,6 @@ void Map3d::stitch_bridges() {
           }
         }
       }
-      Bridge* b = dynamic_cast<Bridge*>(f);
-      //b->detect_outliers(_road_threshold_outliers);
     }
   }
 
