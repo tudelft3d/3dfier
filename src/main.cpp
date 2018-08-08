@@ -464,7 +464,7 @@ int main(int argc, const char * argv[]) {
 
   //-- add the polygons to the map3d
   if (bPolyData) {
-    bool bPolyData = map3d.add_polygons_files(polygonFiles);
+    bPolyData = map3d.add_polygons_files(polygonFiles);
   }
   if (!bPolyData) {
     std::cerr << "ERROR: Missing polygon data, cannot 3dfy the dataset. Aborting.\n";
