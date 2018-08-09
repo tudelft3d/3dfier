@@ -126,50 +126,41 @@ std::vector<T> polyfit3d(std::vector<T>& oX, std::vector<T>& oY, std::vector<T>&
     throw std::invalid_argument("X and Y or X and Z vector sizes do not match");
 
   size_t nCount = oX.size();
-  mathalgo::matrix<T> oXYMatrix(combineXY(oX, oY));
-  mathalgo::matrix<T> oZMatrix(nCount, 1);
+  mathalgo::matrix<T> A(combineXY(oX, oY));
+  mathalgo::matrix<T> X(nCount, 1);
 
   // copy z matrix
   for (size_t i = 0; i < nCount; i++) {
-    oZMatrix(i, 0) = oZ[i];
+    X(i, 0) = oZ[i];
   }
 
+  // Y=(AT*A)-1*AT*X
   // transpose X matrix
-  mathalgo::matrix<T> oXYtMatrix(oXYMatrix.transpose());
+  mathalgo::matrix<T> AT(A.transpose());
   // multiply transposed X matrix with X matrix
-  mathalgo::matrix<T> oXYtXYMatrix(oXYtMatrix * oXYMatrix);
+  mathalgo::matrix<T> ATA(AT * A);
   // multiply transposed X matrix with Y matrix
-  mathalgo::matrix<T> oXYtZMatrix(oXYtMatrix * oZMatrix);
+  mathalgo::matrix<T> ATX(AT * X);
 
   mathalgo::Givens<T> oGivens;
-  oGivens.Decompose(oXYtXYMatrix);
-  mathalgo::matrix<T> oCoeff = oGivens.Solve(oXYtZMatrix);
+  oGivens.Decompose(ATA);
+  mathalgo::matrix<T> Y = oGivens.Solve(ATX);
 
-  calculated = polyval3d(oCoeff.data(), oXYMatrix);
+  mathalgo::matrix<T> AY(A * Y.transpose());
+
+  calculated = AY.data();
   // copy the result to coeff
-  return oCoeff.data();
+  return Y.data();
 }
 
 template<typename T>
-std::vector<T> polyval3d(std::vector<T>& oCoeff, mathalgo::matrix<T>& oXY) {
-  size_t nCount = oXY.rows();
-  size_t nDegree = oCoeff.size();
-  mathalgo::matrix<T> oCoeffMatrix(oCoeff.size(), 1);
-
-  std::vector<T> oZ;
-
-  // copy coeffs matrix
-  for (size_t i = 0; i < nDegree; i++) {
-    oCoeffMatrix(i, 0) = oCoeff[i];
+std::vector<T> polyval3d(std::vector<T>& x, std::vector<T>& y, std::vector<T>& coeff) {
+  mathalgo::matrix<double> A = combineXY(x, y);
+  mathalgo::matrix<double> Y(coeff.size(), 1);
+  // build coeff matrix
+  for (size_t i = 0; i < coeff.size(); i++) {
+    Y(i, 0) = coeff[i];
   }
-
-  for (size_t i = 0; i < oXY.rows(); i++) {
-    // transpose Y matrix
-    mathalgo::matrix<T> oYtMatrix(oXY.row(i));
-    // multiply transposed Y matrix with Z matrix
-    mathalgo::matrix<T> oYtZMatrix(oYtMatrix * oCoeffMatrix);
-    oZ.push_back(oYtZMatrix(0, 0));
-  }
-
-  return oZ;
+  mathalgo::matrix<T> AY(A * Y);
+  return AY.data();
 }

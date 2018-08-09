@@ -29,10 +29,6 @@
 #include "TopoFeature.h"
 #include "io.h"
 #include "polyfit.hpp"
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics.hpp>
-
-using namespace boost::accumulators;
 
 TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attributes, std::string pid) {
   _id = pid;
@@ -1158,15 +1154,16 @@ void Boundary3D::detect_outliers(bool replace_all) {
 
         double sum = 0;
         for (int j = 0; j < correctedvalues.size(); j++) {
-          absResiduals.push_back(abs(correctedvalues[j] - ztmp[j]));
+          absResiduals.push_back(abs(ztmp[j] - correctedvalues[j]));
           if (i == 0) {
-            double z = correctedvalues[j] - ztmp[j];
+            double z = ztmp[j] - correctedvalues[j];
             residuals.push_back(z);
             sum += z;
           }
         }
         if (i == 0) {
-          double m = sum / residuals.size();
+          int n = residuals.size();
+          double m = sum / n;
 
           double sq_sum = 0;
           std::for_each(residuals.begin(), residuals.end(), [&](const double d) {
@@ -1174,18 +1171,16 @@ void Boundary3D::detect_outliers(bool replace_all) {
           });
 
           // Calculate standard deviation and 2 sigma
-          double stdev = sqrt(sq_sum / residuals.size());
-          se = 2 * stdev;
+          double stdev = sqrt(sq_sum / (n - 1));
+          se = 1.96 * stdev;
         }
 
         // Calculate the maximum residual
         auto max = std::max_element(absResiduals.begin(), absResiduals.end());
         // remove outlier if larger then 2*standard deviation
         if (*max > se) {
-          //double res_range = abs(*min) + abs(*max);
           int imax = max - absResiduals.begin();
           int vtx = idx[imax];
-          //std::cout << "vertex: " << vtx << ", max res: " << *max << std::endl;
 
           // store the index of the vertex marked as an outlier
           indices.push_back(vtx);
@@ -1202,8 +1197,7 @@ void Boundary3D::detect_outliers(bool replace_all) {
       }
 
       // get the new values based on the coeffs of the lase equation
-      mathalgo::matrix<double> oXYMatrix = combineXY(x, y);
-      std::vector<double> correctedvalues = polyval3d<double>(coeffs, oXYMatrix);
+      std::vector<double> correctedvalues = polyval3d<double>(x, y, coeffs);
       if (replace_all) {
         for (int i = 0; i < ring.size(); i++) {
           _p2z[ringi][i] = correctedvalues[i];
