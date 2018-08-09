@@ -7,8 +7,6 @@
 
 namespace mathalgo
 {
-	using namespace std;
-
 	template<class T>
 	class matrix
 	{
@@ -105,7 +103,7 @@ namespace mathalgo
 			return m_nCols;
 		}
 
-		inline vector<T> data()
+		inline std::vector<T> data()
 		{
 			return m_oData;
 		}
