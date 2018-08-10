@@ -51,7 +51,15 @@ std::string Road::get_mtl() {
 }
 
 bool Road::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
-  Boundary3D::add_elevation_point(p, z, radius, lasclass);
+  if (lasclass == 1) {
+    if (point_in_polygon(p, *(_p2))) {
+      Boundary3D::add_elevation_point(p, z, radius, lasclass);
+    }
+  }
+  else {
+    Boundary3D::add_elevation_point(p, z, radius, lasclass);
+  }
+
   return true;
 }
 
