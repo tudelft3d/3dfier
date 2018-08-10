@@ -260,8 +260,17 @@ int main(int argc, const char * argv[]) {
         std::string height = n["Road"]["height"].as<std::string>();
         map3d.set_road_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
       }
-      if (n["Road"]["threshold_outliers"]) {
-        map3d.set_road_threshold_outliers(n["Road"]["threshold_outliers"].as<int>());
+      if (n["Road"]["filter_outliers"]) {
+        if (n["Road"]["filter_outliers"].as<std::string>() == "true")
+          map3d.set_road_filter_outliers(true);
+        else
+          map3d.set_road_filter_outliers(false);
+      }
+      if (n["Road"]["flatten"]) {
+        if (n["Road"]["flatten"].as<std::string>() == "true")
+          map3d.set_road_flatten(true);
+        else
+          map3d.set_road_flatten(false);
       }
       YAML::Node tmp = n["Road"]["use_LAS_classes"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
@@ -280,6 +289,12 @@ int main(int argc, const char * argv[]) {
       if (n["Bridge/Overpass"]["height"]) {
         std::string height = n["Bridge/Overpass"]["height"].as<std::string>();
         map3d.set_bridge_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
+      }
+      if (n["Bridge/Overpass"]["flatten"]) {
+        if (n["Bridge/Overpass"]["flatten"].as<std::string>() == "true")
+          map3d.set_bridge_flatten(true);
+        else
+          map3d.set_bridge_flatten(false);
       }
       YAML::Node tmp = n["Bridge/Overpass"]["use_LAS_classes"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
@@ -890,10 +905,18 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
           std::cerr << "\tOption 'Road.height' invalid; must be 'percentile-XX'.\n";
         }
       }
-      if (n["Road"]["threshold_outliers"]) {
-        if (is_string_integer(n["Road"]["threshold_outliers"].as<std::string>()) == false) {
+      if (n["Road"]["filter_outliers"]) {
+        std::string s = n["Road"]["filter_outliers"].as<std::string>();
+        if ((s != "true") && (s != "false")) {
           wentgood = false;
-          std::cerr << "\tOption 'Road.threshold_outliers' invalid; must be an integer.\n";
+          std::cerr << "\tOption 'Road.filter_outliers' invalid; must be 'true' or 'false'.\n";
+        }
+      }
+      if (n["Road"]["flatten"]) {
+        std::string s = n["Road"]["flatten"].as<std::string>();
+        if ((s != "true") && (s != "false")) {
+          wentgood = false;
+          std::cerr << "\tOption 'Road.flatten' invalid; must be 'true' or 'false'.\n";
         }
       }
       if (n["Road"]["use_LAS_classes"]) {
@@ -941,6 +964,13 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
             wentgood = false;
             std::cerr << "\tOption 'Bridge/Overpass.use_LAS_classes' invalid; must be an integer.\n";
           }
+        }
+      }
+      if (n["Bridge/Overpass"]["flatten"]) {
+        std::string s = n["Bridge/Overpass"]["flatten"].as<std::string>();
+        if ((s != "true") && (s != "false")) {
+          wentgood = false;
+          std::cerr << "\tOption 'Bridge/Overpass.flatten' invalid; must be 'true' or 'false'.\n";
         }
       }
     }

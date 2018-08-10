@@ -94,9 +94,11 @@ public:
   void set_forest_innerbuffer(float innerbuffer);
   void set_water_heightref(float heightref);
   void set_road_heightref(float heightref);
-  void set_road_threshold_outliers(int t);
+  void set_road_filter_outliers(bool filter);
+  void set_road_flatten(bool flatten);
   void set_separation_heightref(float heightref);
   void set_bridge_heightref(float heightref);
+  void set_bridge_flatten(bool flatten);
   void set_radius_vertex_elevation(float radius);
   void set_building_radius_vertex_elevation(float radius);
   void set_threshold_jump_edges(float threshold);
@@ -121,9 +123,11 @@ private:
   float       _forest_innerbuffer;
   float       _water_heightref;
   float       _road_heightref;
-  int         _road_threshold_outliers;
+  bool        _road_filter_outliers;
+  bool        _road_flatten;
   float       _separation_heightref;
   float       _bridge_heightref;
+  bool        _bridge_flatten;
   float       _radius_vertex_elevation;
   float       _building_radius_vertex_elevation;
   int         _threshold_jump_edges; //-- in cm/integer
