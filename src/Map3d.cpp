@@ -50,7 +50,8 @@ Map3d::Map3d() {
   _forest_innerbuffer = 0.0;
   _water_heightref = 0.1;
   _road_heightref = 0.5;
-  _road_threshold_outliers = 30;
+  _road_filter_outliers = true;
+  _road_flatten = true;
   _separation_heightref = 0.8;
   _bridge_heightref = 0.5;
   _radius_vertex_elevation = 1.0;
@@ -134,8 +135,12 @@ void Map3d::set_road_heightref(float h) {
   _road_heightref = h;
 }
 
-void Map3d::set_road_threshold_outliers(int t) {
-  _road_threshold_outliers = t;
+void Map3d::set_road_filter_outliers(bool filter) {
+  _road_filter_outliers = filter;
+}
+
+void Map3d::set_road_flatten(bool flatten) {
+  _road_flatten = flatten;
 }
 
 void Map3d::set_separation_heightref(float h) {
@@ -144,6 +149,10 @@ void Map3d::set_separation_heightref(float h) {
 
 void Map3d::set_bridge_heightref(float h) {
   _bridge_heightref = h;
+}
+
+void Map3d::set_bridge_flatten(bool flatten) {
+  _bridge_flatten = flatten;
 }
 
 void Map3d::set_requested_extent(double xmin, double ymin, double xmax, double ymax) {
@@ -952,7 +961,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Road") {
-    Road* p3 = new Road(wkt, layername, attributes, id, this->_road_heightref, this->_road_threshold_outliers);
+    Road* p3 = new Road(wkt, layername, attributes, id, this->_road_heightref, this->_road_filter_outliers, this->_road_flatten);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Separation") {
@@ -960,7 +969,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Bridge/Overpass") {
-    Bridge* p3 = new Bridge(wkt, layername, attributes, id, this->_bridge_heightref);
+    Bridge* p3 = new Bridge(wkt, layername, attributes, id, this->_bridge_heightref, _bridge_flatten);
     _lsFeatures.push_back(p3);
   }
   //-- flag all polygons at (niveau != 0) or remove if not handling multiple height levels
@@ -1395,7 +1404,7 @@ void Map3d::stitch_bridges() {
     if (f->get_class() == BRIDGE && f->get_top_level() == false) {
       // Make bridge face flat
       Bridge* b = dynamic_cast<Bridge*>(f);
-      b->detect_outliers(true);
+      b->detect_outliers(b->get_flatten());
 
       //-- 1. store all touching top level (adjacent + incident)
       std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();

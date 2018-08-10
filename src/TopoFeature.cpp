@@ -1119,7 +1119,7 @@ void Boundary3D::smooth_boundary(int passes) {
   }
 }
 
-void Boundary3D::detect_outliers(bool replace_all){
+void Boundary3D::detect_outliers(bool flatten){
   //-- gather all rings
   std::vector<Ring2> rings;
   rings.push_back(_p2->outer());
@@ -1176,9 +1176,6 @@ void Boundary3D::detect_outliers(bool replace_all){
           se = 1.96 * stdev;
         }
 
-        if (_id == "O0121.13b76aa29e794ec299a4dca4797c2144\n") {
-          std::cout << "";
-        }
         // Calculate the maximum residual
         auto max = std::max_element(absResiduals.begin(), absResiduals.end());
         // remove outlier if larger then 2*standard deviation
@@ -1202,7 +1199,7 @@ void Boundary3D::detect_outliers(bool replace_all){
 
       // get the new values based on the coeffs of the lase equation
       std::vector<double> correctedvalues = polyval3d<double>(x, y, coeffs);
-      if (replace_all) {
+      if (flatten) {
         for (int i = 0; i < ring.size(); i++) {
           _p2z[ringi][i] = correctedvalues[i];
         }

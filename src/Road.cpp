@@ -30,12 +30,14 @@
 #include "io.h"
 
 float Road::_heightref;
-int Road::_threshold_outliers;
+bool  Road::_filter_outliers;
+bool  Road::_flatten;
 
-Road::Road(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, int threshold_outliers)
+Road::Road(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, bool filter_outliers, bool flatten)
   : Boundary3D(wkt, layername, attributes, pid) {
   _heightref = heightref;
-  _threshold_outliers = threshold_outliers;
+  _filter_outliers = filter_outliers;
+  _flatten = flatten;
 }
 
 TopoClass Road::get_class() {
@@ -57,7 +59,9 @@ bool Road::add_elevation_point(Point2 &p, double z, float radius, int lasclass) 
 
 bool Road::lift() {
   lift_each_boundary_vertices(_heightref);
-  detect_outliers(true);
+  if (_filter_outliers || _flatten) {
+    detect_outliers(_flatten);
+  }
   return true;
 }
 
