@@ -107,14 +107,17 @@ bool Building::lift() {
   return true;
 }
 
-bool Building::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
-  if (within_range(p, *(_p2), radius)) {
-    int zcm = int(z * 100);
-    if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0) ) {
-      _zvaluesinside.push_back(zcm);
-    }
-    if ( (_las_classes_ground.empty() == true) || (_las_classes_ground.count(lasclass) > 0) ) {
-      _zvaluesground.push_back(zcm);
+bool Building::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+  // if within then a point must lay within the polygon, otherwise add
+  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+    if (within_range(p, *(_p2), radius)) {
+      int zcm = int(z * 100);
+      if ((_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0)) {
+        _zvaluesinside.push_back(zcm);
+      }
+      if ((_las_classes_ground.empty() == true) || (_las_classes_ground.count(lasclass) > 0)) {
+        _zvaluesground.push_back(zcm);
+      }
     }
   }
   return true;

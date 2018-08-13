@@ -1062,11 +1062,14 @@ int Flat::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool Flat::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
-  if (within_range(p, *(_p2), radius)) {
-    int zcm = int(z * 100);
-    //-- 1. assign to polygon since within the threshold value (buffering of polygon)
-    _zvaluesinside.push_back(zcm);
+bool Flat::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+  // if within then a point must lay within the polygon, otherwise add
+  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+    if (within_range(p, *(_p2), radius)) {
+      int zcm = int(z * 100);
+      //-- 1. assign to polygon since within the threshold value (buffering of polygon)
+      _zvaluesinside.push_back(zcm);
+    }
   }
   return true;
 }
@@ -1096,9 +1099,11 @@ int Boundary3D::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool Boundary3D::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
-  // no need for checking for point-in-polygon since only points in range of the vertices are added
-  assign_elevation_to_vertex(p, z, radius);
+bool Boundary3D::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+  // if within then a point must lay within the polygon, otherwise add
+  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+    assign_elevation_to_vertex(p, z, radius);
+  }
   return true;
 }
 
@@ -1227,10 +1232,12 @@ int TIN::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool TIN::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
+bool TIN::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
   bool toadd = false;
-  // no need for checking for point-in-polygon since only points in range of the vertices are added
-  assign_elevation_to_vertex(p, z, radius);
+  // if within then a point must lay within the polygon, otherwise add
+  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+    assign_elevation_to_vertex(p, z, radius);
+  }
   if (_simplification <= 1)
     toadd = true;
   else {

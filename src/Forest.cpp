@@ -44,8 +44,8 @@ std::string Forest::get_mtl() {
   return "usemtl Forest";
 }
 
-bool Forest::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
-  return TIN::add_elevation_point(p, z, radius, lasclass);
+bool Forest::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+  return TIN::add_elevation_point(p, z, radius, lasclass, within);
 }
 
 bool Forest::lift() {

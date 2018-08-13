@@ -105,6 +105,7 @@ public:
   void set_requested_extent(double xmin, double ymin, double xmax, double ymax);
 
   void add_allowed_las_class(AllowedLASTopo c, int i);
+  void add_allowed_las_class_within(AllowedLASTopo c, int i);
   bool save_building_variables();
   int interpolate_height(TopoFeature* f, const Point2 &p, int prevringi, int prevpi, int nextringi, int nextpi);
 
@@ -136,6 +137,7 @@ private:
 
   //-- storing the LAS allowed for each TopoFeature
   std::array<std::set<int>,NUM_ALLOWEDLASTOPO> _las_classes_allowed;
+  std::array<std::set<int>,NUM_ALLOWEDLASTOPO> _las_classes_allowed_within;
 
   NodeColumn                                          _nc;
   NodeColumn                                          _nc_building_walls;

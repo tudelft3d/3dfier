@@ -638,6 +638,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
 
     int c = laspt.GetClassification().GetClass();
     bool bInsert = false;
+    bool bWithin = false;
     if (f->get_class() == BUILDING) {
       bInsert = true;
       radius = _building_radius_vertex_elevation;
@@ -646,36 +647,60 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
       if (_las_classes_allowed[LAS_TERRAIN].empty() || _las_classes_allowed[LAS_TERRAIN].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_TERRAIN].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
     else if (f->get_class() == FOREST) {
       if (_las_classes_allowed[LAS_FOREST].empty() || _las_classes_allowed[LAS_FOREST].count(c) > 0) {
         bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_FOREST].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
       }
     }
     else if (f->get_class() == ROAD) {
       if (_las_classes_allowed[LAS_ROAD].empty() || _las_classes_allowed[LAS_ROAD].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_ROAD].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
     else if (f->get_class() == WATER) {
       if (_las_classes_allowed[LAS_WATER].empty() || _las_classes_allowed[LAS_WATER].count(c) > 0) {
         bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_WATER].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
       }
     }
     else if (f->get_class() == SEPARATION) {
       if (_las_classes_allowed[LAS_SEPARATION].empty() || _las_classes_allowed[LAS_SEPARATION].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_SEPARATION].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
     else if (f->get_class() == BRIDGE) {
       if (_las_classes_allowed[LAS_BRIDGE].empty() || _las_classes_allowed[LAS_BRIDGE].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_BRIDGE].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
  
     if (bInsert == true) { //-- only insert if in the allowed LAS classes
       Point2 p(laspt.GetX(), laspt.GetY());
-      f->add_elevation_point(p, laspt.GetZ(), radius, c); 
+      f->add_elevation_point(p, laspt.GetZ(), radius, c, bWithin); 
     }
   }
 }
@@ -1402,7 +1427,7 @@ void Map3d::stitch_bridges() {
   std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
     if (f->get_class() == BRIDGE && f->get_top_level() == false) {
-      // Make bridge face flat
+      // Make bridge face flattened
       Bridge* b = dynamic_cast<Bridge*>(f);
       b->detect_outliers(b->get_flatten());
 
@@ -1860,3 +1885,8 @@ int Map3d::interpolate_height(TopoFeature* f, const Point2 &p, int prevringi, in
 void Map3d::add_allowed_las_class(AllowedLASTopo c, int i) {
   _las_classes_allowed[c].insert(i);
 }
+
+void Map3d::add_allowed_las_class_within(AllowedLASTopo c, int i) {
+  _las_classes_allowed_within[c].insert(i);
+}
+
