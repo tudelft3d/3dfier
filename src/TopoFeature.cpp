@@ -28,6 +28,7 @@
 
 #include "TopoFeature.h"
 #include "io.h"
+#include "polyfit.hpp"
 
 TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attributes, std::string pid) {
   _id = pid;
@@ -518,7 +519,7 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
         continue;
 
       //-- Make exeption for bridges, they have vw's from bottom up, swap. Also skip if adjacent feature is bridge, vw is then created by bridge
-      if (this->get_class() == BRIDGE) {
+      if (this->get_class() == BRIDGE && this->get_top_level()) {
         //-- find the height of the vertex in the node column
         std::vector<int>::const_iterator sait, eait, sbit, ebit;
         sait = std::find(anc.begin(), anc.end(), az);
@@ -572,7 +573,7 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
           _triangles_vw.push_back(t);
         }
       }
-      if (fadj->get_class() == BRIDGE) {
+      if (this->get_class() == BRIDGE || fadj->get_class() == BRIDGE) {
         continue;
       }
 
@@ -1061,11 +1062,14 @@ int Flat::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool Flat::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
-  if (within_range(p, *(_p2), radius)) {
-    int zcm = int(z * 100);
-    //-- 1. assign to polygon since within the threshold value (buffering of polygon)
-    _zvaluesinside.push_back(zcm);
+bool Flat::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+  // if within then a point must lay within the polygon, otherwise add
+  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+    if (within_range(p, *(_p2), radius)) {
+      int zcm = int(z * 100);
+      //-- 1. assign to polygon since within the threshold value (buffering of polygon)
+      _zvaluesinside.push_back(zcm);
+    }
   }
   return true;
 }
@@ -1075,28 +1079,31 @@ int Flat::get_height() {
 }
 
 bool Flat::lift_percentile(float percentile) {
-  int z = -9999;
-  if (_zvaluesinside.empty() == false) {
-    std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
-    z = _zvaluesinside[_zvaluesinside.size() * percentile];
-  }
-  this->lift_all_boundary_vertices_same_height(z);
-  return true;
+int z = -9999;
+if (_zvaluesinside.empty() == false) {
+  std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
+  z = _zvaluesinside[_zvaluesinside.size() * percentile];
+}
+this->lift_all_boundary_vertices_same_height(z);
+return true;
 }
 
 //-------------------------------
 //-------------------------------
 
 Boundary3D::Boundary3D(char *wkt, std::string layername, AttributeMap attributes, std::string pid)
-  : TopoFeature(wkt, layername, attributes, pid) {}
+  : TopoFeature(wkt, layername, attributes, pid) {
+}
 
 int Boundary3D::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool Boundary3D::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
-  // no need for checking for point-in-polygon since only points in range of the vertices are added
-  assign_elevation_to_vertex(p, z, radius);
+bool Boundary3D::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+  // if within then a point must lay within the polygon, otherwise add
+  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+    assign_elevation_to_vertex(p, z, radius);
+  }
   return true;
 }
 
@@ -1117,8 +1124,7 @@ void Boundary3D::smooth_boundary(int passes) {
   }
 }
 
-void Boundary3D::detect_outliers(int degrees_incline) {
-  // find spikes in roads (due to misclassified lidar points) and fix by averaging between previous and next vertex.
+void Boundary3D::detect_outliers(bool flatten){
   //-- gather all rings
   std::vector<Ring2> rings;
   rings.push_back(_p2->outer());
@@ -1128,99 +1134,84 @@ void Boundary3D::detect_outliers(int degrees_incline) {
   int ringi = -1;
   for (Ring2& ring : rings) {
     ringi++;
-    std::vector<int> ringz = _p2z[ringi];
-    std::vector<float> inclines(_p2z[ringi].size());
-    std::vector<int> changez(_p2z[ringi].size(), 0);
-    float PI = 3.14159265;
 
-    for (int i = 0; i < ring.size(); i++) {
-      int i0 = i - 1;
-      int i2 = i + 1;
-      if (i == 0) {
-        i0 = ring.size() - 1;
+    // itterate only if >6 points in the ring or the LS will not work
+    if (ring.size() > 6) {
+      // find spikes in roads (due to misclassified lidar points) and fix by averaging between previous and next vertex.
+      std::vector<int> idx;
+      std::vector<double> x, y, z, coeffs;
+      for (int i = 0; i < ring.size(); i++) {
+        idx.push_back(i);
+        x.push_back(ring[i].x());
+        y.push_back(ring[i].y());
+        z.push_back(_p2z[ringi][i]);
       }
-      if (i2 == ring.size()) {
-        i2 = 0;
-      }
-      float len1z = (ringz[i] - ringz[i0]) / 100.0;
-      float len2z = (ringz[i2] - ringz[i]) / 100.0;
-      float incline = atan2(len2z, distance(ring[i], ring[i2])) - atan2(len1z, distance(ring[i0], ring[i]));
-      if (incline <= -PI) {
-        incline = 2 * PI + incline;
-      }
-      if (incline > PI) {
-        incline = incline - 2 * PI;
-      }
-      incline = incline * 180 / PI;
-      //if (incline > 0) we have a peak down, otherwise we have a peak up
-      if (abs(incline) > degrees_incline) {
-        if (abs(len2z) > abs(len1z)) {
-          if (incline > 0) {
-            // going from 'flat' surface up
-            changez[i] = 1;
-          }
-          else {
-            // going from 'flat' surface down
-            changez[i] = -1;
+
+      std::vector<double> xtmp = x, ytmp = y, ztmp = z;
+
+      int niter = _p2z[ringi].size() - 6;
+      std::vector<int> indices;
+      double se = 0;
+      for (int i = 0; i < niter; i++) {
+        // Fit the model
+        std::vector<double> correctedvalues;
+        coeffs = polyfit3d<double>(xtmp, ytmp, ztmp, correctedvalues);
+        std::vector<double> residuals, absResiduals;
+
+        double sum = 0;
+        for (int j = 0; j < correctedvalues.size(); j++) {
+          absResiduals.push_back(abs(ztmp[j] - correctedvalues[j]));
+          if (i == 0) {
+            double z = ztmp[j] - correctedvalues[j];
+            residuals.push_back(z);
+            sum += z;
           }
         }
-      }
-    }
-    // find the index of the first peak up (value == 1)
-    int start_idx = std::find(changez.begin(), changez.end(), 1) - changez.begin();
-    if (start_idx == changez.size()) {
-      // else find the index of the first peak down (value == -1)
-      start_idx = std::find(changez.begin(), changez.end(), -1) - changez.begin();
-      if (start_idx == changez.size()) {
-        start_idx = 0;
-      }
-    }
+        if (i == 0) {
+          int n = residuals.size();
+          double mean = sum / n;
 
-    // Detect and fix outliers starting from the first peak up detected previously
-    for (int j = 0; j < ring.size(); ++j) {
-      //make round-trip through vector starting at start_idx
-      int i = (j + start_idx + ring.size()) % ring.size();
-      int i0 = i - 1;
-      int i2 = i + 1;
-      if (i == 0) {
-        i0 = ring.size() - 1;
-      }
-      if (i2 == ring.size()) {
-        i2 = 0;
-      }
-      float len1z = (ringz[i] - ringz[i0]) / 100.0;
-      float len2z = (ringz[i2] - ringz[i]) / 100.0;
-      float incline = atan2(len2z, distance(ring[i], ring[i2])) - atan2(len1z, distance(ring[i0], ring[i]));
-      if (incline <= -PI) {
-        incline = 2 * PI + incline;
-      }
-      if (incline > PI) {
-        incline = incline - 2 * PI;
-      }
-      incline = incline * 180 / PI;
-      //if (incline > 0) we have a peak down, otherwise we have a peak up
-      if (abs(incline) > degrees_incline) {
-        //find the outlier by sorting and comparing distance
-        std::vector<int> heights = { ringz[i0], ringz[i], ringz[i2] };
-        std::sort(heights.begin(), heights.end());
-        int h = heights[0];
-        if (abs(heights[2] - heights[1]) > abs(heights[0] - heights[1])) {
-          h = heights[2];
+          double sq_sum = 0;
+          std::for_each(residuals.begin(), residuals.end(), [&](const double res) {
+            sq_sum += (res - mean) * (res - mean);
+          });
+
+          // Calculate standard deviation and 2 sigma
+          double stdev = sqrt(sq_sum / (n - 1));
+          se = 1.96 * stdev;
         }
 
-        if (ringz[i0] == h) {
-          //put to height of closest vertex for now
-          _p2z[ringi][i0] = ringz[i];
-          ringz[i0] = ringz[i];
+        // Calculate the maximum residual
+        auto max = std::max_element(absResiduals.begin(), absResiduals.end());
+        // remove outlier if larger then 2*standard deviation
+        if (*max > se) {
+          int imax = max - absResiduals.begin();
+          int vtx = idx[imax];
+
+          // store the index of the vertex marked as an outlier
+          indices.push_back(vtx);
+
+          // remove the outlier from idx, xtmp, xtmp and xtmp arrays for next iteration
+          idx.erase(idx.begin() + imax);
+          xtmp.erase(xtmp.begin() + imax);
+          ytmp.erase(ytmp.begin() + imax);
+          ztmp.erase(ztmp.begin() + imax);
         }
-        else if (ringz[i] == h) {
-          _p2z[ringi][i] = (ringz[i0] + ringz[i2]) / 2;
-          ringz[i] = (ringz[i0] + ringz[i2]) / 2;
+        else {
+          break;
         }
-        else if (ringz[i2] == h) {
-          //put to height of closest vertex for now
-          _p2z[ringi][i2] = ringz[i];
-          ringz[i2] = ringz[i];
+      }
+
+      // get the new values based on the coeffs of the lase equation
+      std::vector<double> correctedvalues = polyval3d<double>(x, y, coeffs);
+      if (flatten) {
+        for (int i = 0; i < ring.size(); i++) {
+          _p2z[ringi][i] = correctedvalues[i];
+        }
+      }
+      else {
+        for (int i : indices) {
+          _p2z[ringi][i] = correctedvalues[i];
         }
       }
     }
@@ -1241,10 +1232,12 @@ int TIN::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool TIN::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
+bool TIN::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
   bool toadd = false;
-  // no need for checking for point-in-polygon since only points in range of the vertices are added
-  assign_elevation_to_vertex(p, z, radius);
+  // if within then a point must lay within the polygon, otherwise add
+  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+    assign_elevation_to_vertex(p, z, radius);
+  }
   if (_simplification <= 1)
     toadd = true;
   else {

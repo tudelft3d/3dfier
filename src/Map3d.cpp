@@ -50,7 +50,8 @@ Map3d::Map3d() {
   _forest_innerbuffer = 0.0;
   _water_heightref = 0.1;
   _road_heightref = 0.5;
-  _road_threshold_outliers = 30;
+  _road_filter_outliers = true;
+  _road_flatten = true;
   _separation_heightref = 0.8;
   _bridge_heightref = 0.5;
   _radius_vertex_elevation = 1.0;
@@ -134,8 +135,12 @@ void Map3d::set_road_heightref(float h) {
   _road_heightref = h;
 }
 
-void Map3d::set_road_threshold_outliers(int t) {
-  _road_threshold_outliers = t;
+void Map3d::set_road_filter_outliers(bool filter) {
+  _road_filter_outliers = filter;
+}
+
+void Map3d::set_road_flatten(bool flatten) {
+  _road_flatten = flatten;
 }
 
 void Map3d::set_separation_heightref(float h) {
@@ -144,6 +149,10 @@ void Map3d::set_separation_heightref(float h) {
 
 void Map3d::set_bridge_heightref(float h) {
   _bridge_heightref = h;
+}
+
+void Map3d::set_bridge_flatten(bool flatten) {
+  _bridge_flatten = flatten;
 }
 
 void Map3d::set_requested_extent(double xmin, double ymin, double xmax, double ymax) {
@@ -629,6 +638,7 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
 
     int c = laspt.GetClassification().GetClass();
     bool bInsert = false;
+    bool bWithin = false;
     if (f->get_class() == BUILDING) {
       bInsert = true;
       radius = _building_radius_vertex_elevation;
@@ -637,36 +647,60 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
       if (_las_classes_allowed[LAS_TERRAIN].empty() || _las_classes_allowed[LAS_TERRAIN].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_TERRAIN].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
     else if (f->get_class() == FOREST) {
       if (_las_classes_allowed[LAS_FOREST].empty() || _las_classes_allowed[LAS_FOREST].count(c) > 0) {
         bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_FOREST].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
       }
     }
     else if (f->get_class() == ROAD) {
       if (_las_classes_allowed[LAS_ROAD].empty() || _las_classes_allowed[LAS_ROAD].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_ROAD].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
     else if (f->get_class() == WATER) {
       if (_las_classes_allowed[LAS_WATER].empty() || _las_classes_allowed[LAS_WATER].count(c) > 0) {
         bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_WATER].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
       }
     }
     else if (f->get_class() == SEPARATION) {
       if (_las_classes_allowed[LAS_SEPARATION].empty() || _las_classes_allowed[LAS_SEPARATION].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_SEPARATION].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
     else if (f->get_class() == BRIDGE) {
       if (_las_classes_allowed[LAS_BRIDGE].empty() || _las_classes_allowed[LAS_BRIDGE].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_BRIDGE].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
  
     if (bInsert == true) { //-- only insert if in the allowed LAS classes
       Point2 p(laspt.GetX(), laspt.GetY());
-      f->add_elevation_point(p, laspt.GetZ(), radius, c); 
+      f->add_elevation_point(p, laspt.GetZ(), radius, c, bWithin); 
     }
   }
 }
@@ -952,7 +986,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Road") {
-    Road* p3 = new Road(wkt, layername, attributes, id, this->_road_heightref, this->_road_threshold_outliers);
+    Road* p3 = new Road(wkt, layername, attributes, id, this->_road_heightref, this->_road_filter_outliers, this->_road_flatten);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Separation") {
@@ -960,7 +994,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Bridge/Overpass") {
-    Bridge* p3 = new Bridge(wkt, layername, attributes, id, this->_bridge_heightref);
+    Bridge* p3 = new Bridge(wkt, layername, attributes, id, this->_bridge_heightref, _bridge_flatten);
     _lsFeatures.push_back(p3);
   }
   //-- flag all polygons at (niveau != 0) or remove if not handling multiple height levels
@@ -1113,7 +1147,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
   //-- get p and key_bucket once and check if nc location is empty
   Point2 p = f->get_point2(ringi, pi);
   std::string key_bucket = gen_key_bucket(&p);
-  if (_nc[key_bucket].empty() && _nc_building_walls[key_bucket].empty()) {
+  if (_nc.find(key_bucket) == _nc.end() && _nc_building_walls.find(key_bucket) == _nc_building_walls.end()) {
     //-- degree of vertex == 2
     if (star.size() == 1) {
       if (std::get<0>(star[0])->get_class() != BRIDGE) {
@@ -1125,10 +1159,6 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
         else {
           stitch_jumpedge(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
         }
-      }
-      else {
-        // for bridges we need to create VW and therefor add the height to the NC
-        _nc[key_bucket].push_back(f->get_vertex_elevation(ringi, pi));
       }
     }
     //-- degree of vertex >= 3: more complex cases
@@ -1217,7 +1247,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
             if (deltaz < this->_threshold_jump_edges) {
               fnext = it2;
               // it and it2 are same class, set height to first since averaging doesn't work if >2 objects of same class within threshold
-              // this mainly applies for bridges and outlier detection of roads, otherwise it shouldn't be possible
+              // this mainly applies for bridges and outlier detection of roads, otherwise it shouldn't be happening
               if (std::get<1>(*it)->get_class() == std::get<1>(*it2)->get_class()) {
                 std::get<0>(*it2) = std::get<0>(*it);
               }
@@ -1350,7 +1380,6 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
         int avgz = (f1->get_vertex_elevation(ringi1, pi1) + f2->get_vertex_elevation(ringi2, pi2)) / 2;
         f1->set_vertex_elevation(ringi1, pi1, avgz);
         f2->set_vertex_elevation(ringi2, pi2, avgz);
-        _nc[key_bucket].push_back(avgz);
         bStitched = true;
       }
       if (f1->is_hard() == false) {
@@ -1397,7 +1426,11 @@ void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2
 void Map3d::stitch_bridges() {
   std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
-    if (f->get_class() == BRIDGE) {
+    if (f->get_class() == BRIDGE && f->get_top_level() == false) {
+      // Make bridge face flattened
+      Bridge* b = dynamic_cast<Bridge*>(f);
+      b->detect_outliers(b->get_flatten());
+
       //-- 1. store all touching top level (adjacent + incident)
       std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
 
@@ -1411,57 +1444,118 @@ void Map3d::stitch_bridges() {
       for (Ring2& ring : rings) {
         ringi++;
 
-        std::vector< std::pair<int, bool> > corners;
         for (int i = 0; i < ring.size(); i++) {
-          Point2 p = f->get_point2(ringi, i);
-          std::string key_bucket = gen_key_bucket(&p);
-          std::vector<int> nc = _nc[key_bucket];
-          std::sort(nc.begin(), nc.end());
-          auto ncuIt = std::unique(nc.begin(), nc.end());
-          int unique = std::distance(nc.begin(), ncuIt);
-
-          if (unique > 0) {
-            bool bridgeAdj = false;
-            /* this can be 3 cases;
-            1. location where two bridges and other object meet without height jump.
-            2. location where one bridge meets multiple objects which should be a stitching error
-            3. error in stitching adjacent objects
-            */
-            if (unique <= 1) { // only check for bridge adjacent if there is only 1 unique value in NC for performance
-              for (auto& fadj : *lstouching) {
-                ringis.clear();
-                pis.clear();
-                if (fadj->get_class() == BRIDGE && fadj->has_point2(ring[i], ringis, pis) == true) {
-                  bridgeAdj = true;
+          for (auto& fadj : *lstouching) {
+            ringis.clear();
+            pis.clear();
+            if (!(fadj->get_class() == BRIDGE && fadj->get_top_level()) && fadj->has_point2(ring[i], ringis, pis)) {
+              int z = fadj->get_vertex_elevation(ringis[0], pis[0]);
+              if (abs(f->get_vertex_elevation(ringi, i) - z) < _threshold_jump_edges) {
+                f->set_vertex_elevation(ringi, i, z);
+                if (!(fadj->get_class() == BRIDGE && fadj->get_top_level() == f->get_top_level())) {
+                  // Add height to NC
+                  Point2 p = f->get_point2(ringi, i);
+                  std::string key_bucket = gen_key_bucket(&p);
+                  _nc[key_bucket].push_back(z);
+                  _bridge_stitches[key_bucket] = z;
                 }
               }
             }
-            /* Two cases which are seen as corners of the bridge object, either a height jump or where two bridge objects meet
-            1. if bridge adjacent, use nc. This is the case where a bridge is split into multiple parts touching the adjacent object
-            2. if 2 or more unique values in NC there is a height jump which should only occur at vw of bridge, skip values upto next occurence
-            */
-            if (bridgeAdj || unique > 1) {
-              //TODO: use NC closest to height of previous vertex? Then is no choice to make and it might support multiple overlapping bridges?
-              if (f->get_top_level() == false) {
-                f->set_vertex_elevation(ringi, i, nc.front());
-              }
-              else {
-                f->set_vertex_elevation(ringi, i, nc.back());
-              }
+          }
+        }
+      }
+    }
+  }
 
-              // if there are more then 1 unique height in NC we have a height jump.
-              bool heightjump = false;
-              if (unique > 1) {
-                heightjump = true;
-              }
-              corners.push_back(std::make_pair(i, heightjump));
+  for (auto& f : _lsFeatures) {
+    if (f->get_class() == BRIDGE && f->get_top_level()) {
+      //-- 1. store all touching top level (adjacent + incident)
+      std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
+
+      //-- gather all rings
+      std::vector<Ring2> rings;
+      rings.push_back(f->get_Polygon2()->outer());
+      for (Ring2& iring : f->get_Polygon2()->inners())
+        rings.push_back(iring);
+
+      int ringi = -1;
+      for (Ring2& ring : rings) {
+        ringi++;
+
+        //Search for corners to base stitching on
+        //Corners are based on highest level already stitched before
+        //and where a bridge is adjacent
+        std::vector< std::pair<int, bool> > corners;
+        for (int i = 0; i < ring.size(); i++) {
+          // find begin of stitched stretch
+          Point2 p = f->get_point2(ringi, i);
+          std::string key_bucket = gen_key_bucket(&p);
+
+          bool setheight = false;
+          int previ = i - 1;
+          if (i == 0) {
+            previ = ring.size() - 1;
+          }
+          Point2 prevp = f->get_point2(ringi, previ);
+          std::string prev_key_bucket = gen_key_bucket(&prevp);
+          if (_bridge_stitches.find(key_bucket) != _bridge_stitches.end() &&
+            _bridge_stitches.find(prev_key_bucket) == _bridge_stitches.end()) {
+            // add start of stitched stretch to corners
+            corners.push_back(std::make_pair(i, true));
+            setheight = true;
+          }
+          else {
+            // find end of stitching stretch
+            int nexti = i + 1;
+            if (i == ring.size() - 1) {
+              nexti = 0;
             }
+            Point2 nextp = f->get_point2(ringi, nexti);
+            std::string next_key_bucket = gen_key_bucket(&nextp);
+            if (_bridge_stitches.find(key_bucket) != _bridge_stitches.end() &&
+              _bridge_stitches.find(next_key_bucket) == _bridge_stitches.end()) {
+              // add end of stitched stretch to corners
+              corners.push_back(std::make_pair(i, false));
+              setheight = true;
+            }
+          }
+          if (!setheight) { // no corner found yet
+            bool bridgeAdj = false;
+            bool otherAdj = false;
+            //find if there are adjacent bridges
+            for (auto& fadj : *lstouching) {
+              ringis.clear();
+              pis.clear();
+              if (fadj->has_point2(ring[i], ringis, pis)) {
+                if (fadj->get_class() == BRIDGE && fadj->get_top_level()) {
+                  bridgeAdj = true;
+                }
+                else if (fadj->get_class() != BRIDGE) {
+                  otherAdj = true;
+                }
+              }
+            }
+
+            //TODO: Check previous/next vertex like with the _bridge_stitches?
+            if (bridgeAdj && otherAdj) {
+              // add end of stitched stretch to corners, set heightjump to false to stitch to adjacent object
+              corners.push_back(std::make_pair(i, false));
+              setheight = true;
+            }
+          }
+          if (setheight) {
+            // set corner height to lowest value in the NC
+            if (_nc.find(key_bucket) == _nc.end()) {
+              std::clog << "ERROR: NodeColumn not filled at " << key_bucket << std::endl;
+            }
+            int z = _nc[key_bucket].front();
+            f->set_vertex_elevation(ringi, i, z);
           }
         }
 
         // Set height of vertices in between two corners
         for (int c = 0; c < corners.size(); c++) {
-          // prepair vertices to loop for this stretch
+          // prepair vertices list to loop for this stretch
           std::pair<int, bool> startCorner = corners[c];
           // set endCorner to first or corners if end of array is reached
           std::pair<int, bool> endCorner = corners.front();
@@ -1472,64 +1566,71 @@ void Map3d::stitch_bridges() {
 
           std::vector<int> vertices;
           if (endCornerIdx < startCorner.first) {
+            for (int i = startCorner.first + 1; i < ring.size(); i++) {
+              vertices.push_back(i);
+            }
             for (int i = 0; i < endCornerIdx; i++) {
               vertices.push_back(i);
             }
-            endCornerIdx = ring.size();
           }
-          for (int i = startCorner.first + 1; i < endCornerIdx; i++) {
-            vertices.push_back(i);
+          else {
+            for (int i = startCorner.first + 1; i < endCornerIdx; i++) {
+              vertices.push_back(i);
+            }
           }
 
           for (int pi : vertices) {
-            bool otherAdj = false;
+            Point2 p = f->get_point2(ringi, pi);
+            std::string key_bucket = gen_key_bucket(&p);
             int stitchz = 0;
-            std::vector< std::tuple<TopoFeature*, int, int> > star;
-            for (auto& fadj : *lstouching) {
-              ringis.clear();
-              pis.clear();
-              if (fadj->get_class() != BRIDGE && fadj->has_point2(ring[pi], ringis, pis) == true) {
-                otherAdj = true;
-                stitchz = fadj->get_vertex_elevation(ringis[0], pis[0]);
+            if (_nc.find(key_bucket) != _nc.end()) {
+              stitchz = _nc[key_bucket].front();
+            }
+            else {
+              for (auto& fadj : *lstouching) {
+                ringis.clear();
+                pis.clear();
+                if (fadj->get_class() != BRIDGE && fadj->has_point2(ring[pi], ringis, pis)) {
+                  stitchz = fadj->get_vertex_elevation(ringis[0], pis[0]);
+                  break;
+                }
               }
             }
 
-            if (!otherAdj) { //No other type of objects then bridges are adjacent
-                             //This is empty stretch of points where only bridges connect, interpolate between prevCorner and nextCorner
-              Point2 p = f->get_point2(ringi, pi);
-              std::string key_bucket = gen_key_bucket(&p);
-              int z = 0;
-              //Check if height exists in NC thus is created by adjacent bridge
-              if (_nc[key_bucket].empty()) {
-                // Add height to NC for adjacent bridge
-                // interpolate height between previous and next corner distance weighted
-                // interpolate height between previous and next corner distance weighted
-                z = interpolate_height(f, p, ringi, startCorner.first, ringi, endCorner.first);
-                _nc[key_bucket].push_back(z);
+            if (startCorner.second) { // Stretch where the top is stitched, interpolate between corners and add VW
+              // interpolate between start and end corner distance weighted
+              int interz = interpolate_height(f, p, ringi, startCorner.first, ringi, endCorner.first);
+              // Allways stitch if there is a lower object, otherwise use interpolated height
+              if (stitchz < interz) {
+                f->set_vertex_elevation(ringi, pi, stitchz);
               }
               else {
-                z = _nc[key_bucket].front();
+                f->set_vertex_elevation(ringi, pi, interz);
+                // Add height to NC and add VW
+                _nc[key_bucket].push_back(interz);
+                f->add_vertical_wall();
               }
-              f->set_vertex_elevation(ringi, pi, z);
             }
-            else if (startCorner.second && endCorner.second) { //startCorner.heightjump && endCorner.heightjump
-                                                               //This is empty stretch of points at height jump and need to place VW
-              Point2 p = f->get_point2(ringi, pi);
-              std::string key_bucket = gen_key_bucket(&p);
-              // interpolate height between previous and next corner distance weighted
-              int z = interpolate_height(f, p, ringi, startCorner.first, ringi, endCorner.first);
-              f->set_vertex_elevation(ringi, pi, z);
-              // Add height to NC and add VW
-              _nc[key_bucket].push_back(z);
-              f->add_vertical_wall();
-            }
-            else {
-              //are these the connected points? Only other case possible?
-              //cases (not exaustive):
-              //prevCorner.heightjump && this.otherAdj
-              //nextCorner.heightjump && this.otherAdj
-              // Stitch to acjacent feature
-              f->set_vertex_elevation(ringi, pi, stitchz);
+            else { // Stretch where the bottom needs to be stitched, find adjacent object within threshold and stitch, otherwise interpolate between previous vertex and next corner
+              // check height of previous vertex
+              int previ = pi - 1;
+              if (pi == 0) {
+                previ = ring.size() - 1;
+              }
+
+              // interpolate height between previous vertex and next corner distance weighted
+              int interz = interpolate_height(f, p, ringi, previ, ringi, endCorner.first);
+              int prevz = f->get_vertex_elevation(ringi, previ);
+              //Allways stich to lower object or if interpolated between corners within threshold or previous within threshold
+              if (stitchz < interz || abs(stitchz - interz) < _threshold_jump_edges || abs(stitchz - prevz) < _threshold_jump_edges) {
+                f->set_vertex_elevation(ringi, pi, stitchz);
+              }
+              else {
+                f->set_vertex_elevation(ringi, pi, interz);
+                // Add height to NC and add VW
+                _nc[key_bucket].push_back(interz);
+                f->add_vertical_wall();
+              }
             }
           }
         }
@@ -1537,6 +1638,241 @@ void Map3d::stitch_bridges() {
     }
   }
 }
+
+//void Map3d::stitch_bridges() {
+//  std::vector<int> ringis, pis;
+//  for (auto& f : _lsFeatures) {
+//    if (f->get_class() == BRIDGE && f->get_top_level() == false) {
+//      //-- 1. store all touching top level (adjacent + incident)
+//      std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
+//
+//      //-- gather all rings
+//      std::vector<Ring2> rings;
+//      rings.push_back(f->get_Polygon2()->outer());
+//      for (Ring2& iring : f->get_Polygon2()->inners())
+//        rings.push_back(iring);
+//
+//      int ringi = -1;
+//      for (Ring2& ring : rings) {
+//        ringi++;
+//
+//        for (int i = 0; i < ring.size(); i++) {
+//          for (auto& fadj : *lstouching) {
+//            ringis.clear();
+//            pis.clear();
+//            if (!(fadj->get_class() == BRIDGE && fadj->get_top_level()) && fadj->has_point2(ring[i], ringis, pis)) {
+//              int z = fadj->get_vertex_elevation(ringis[0], pis[0]);
+//              if (abs(f->get_vertex_elevation(ringi, i)) - z < _threshold_jump_edges) {
+//                f->set_vertex_elevation(ringi, i, z);
+//                // Add height to NC
+//                Point2 p = f->get_point2(ringi, i);
+//                std::string key_bucket = gen_key_bucket(&p);
+//                _nc[key_bucket].push_back(z);
+//                _bridge_stitches[key_bucket] = z;
+//              }
+//            }
+//          }
+//        }
+//      }
+//      Bridge* b = dynamic_cast<Bridge*>(f);
+//      b->detect_outliers(_road_threshold_outliers);
+//    }
+//  }
+//
+//  for (auto& f : _lsFeatures) {
+//    if (f->get_class() == BRIDGE && f->get_top_level()) {
+//      //if (f->get_id() == "O0000.5cbe3212cc834f47ba6dfbc4dc83f71c") {
+//      //  std::cout << "stop" << std::endl;
+//      //}
+//      //-- 1. store all touching top level (adjacent + incident)
+//      std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
+//
+//      //-- gather all rings
+//      std::vector<Ring2> rings;
+//      rings.push_back(f->get_Polygon2()->outer());
+//      for (Ring2& iring : f->get_Polygon2()->inners())
+//        rings.push_back(iring);
+//
+//      int ringi = -1;
+//      for (Ring2& ring : rings) {
+//        ringi++;
+//
+//        std::vector< std::pair<int, bool> > corners;
+//        for (int i = 0; i < ring.size(); i++) {
+//          Point2 p = f->get_point2(ringi, i);
+//          std::string key_bucket = gen_key_bucket(&p);
+//          std::vector<int> nc;
+//          int unique = 0;
+//          if (_nc.find(key_bucket) != _nc.end()) {
+//            nc = _nc[key_bucket];
+//            std::sort(nc.begin(), nc.end());
+//            auto ncuIt = std::unique(nc.begin(), nc.end());
+//            unique = std::distance(nc.begin(), ncuIt);
+//          }
+//          if (unique > 0) {
+//            bool bridgeAdj = false;
+//
+//            /* this can be 3 cases;
+//            1. location where two bridges and other object meet without height jump.
+//            2. location where one bridge meets multiple objects which should be a stitching error
+//            3. error in stitching adjacent objects
+//            */
+//            if (unique <= 1) { // only check for bridge adjacent if there is only 1 unique value in NC for performance
+//              for (auto& fadj : *lstouching) {
+//                ringis.clear();
+//                pis.clear();
+//                if (fadj->get_class() == BRIDGE && fadj->get_top_level() && fadj->has_point2(ring[i], ringis, pis)) {
+//                  bridgeAdj = true;
+//                }
+//              }
+//            }
+//
+//            int previ = i - 1;
+//            if (i == 0) {
+//              previ = ring.size() - 1;
+//            }
+//            Point2 prevp = f->get_point2(ringi, previ);
+//            std::string prev_key_bucket = gen_key_bucket(&prevp);
+//            int nexti = i + 1;
+//            if (i == ring.size() - 1) {
+//              nexti = 0;
+//            }
+//            Point2 nextp = f->get_point2(ringi, nexti);
+//            std::string next_key_bucket = gen_key_bucket(&nextp);
+//            if ((_bridge_stitches.find(key_bucket) != _bridge_stitches.end() &&
+//              _bridge_stitches.find(next_key_bucket) == _bridge_stitches.end()) ||
+//              (_bridge_stitches.find(key_bucket) != _bridge_stitches.end() &&
+//              _bridge_stitches.find(prev_key_bucket) == _bridge_stitches.end()) ||
+//
+//
+//            /* Two cases which are seen as corners of the bridge object, either a height jump or where two bridge objects meet
+//            1. if bridge adjacent, use nc. This is the case where a bridge is split into multiple parts touching the adjacent object
+//            2. if 2 or more unique values in NC there is a height jump which should only occur at vw of bridge, skip values upto next occurence
+//            */
+//            bridgeAdj || unique > 1) {
+//              //This only works if previous is updated before checking, that is not the case now
+//              //auto const it = std::lower_bound(nc.begin(), nc.end(), f->get_vertex_elevation(ringi, i-1));
+//              f->set_vertex_elevation(ringi, i, nc.front());
+//              // if there are more then 1 unique height in NC we have a height jump.
+//              bool heightjump = false;
+//              if (_bridge_stitches.find(next_key_bucket) != _bridge_stitches.end()) {
+//                heightjump = true;
+//              }
+//              corners.push_back(std::make_pair(i, heightjump));
+//            }
+//          }
+//        }
+//
+//        // Set height of vertices in between two corners
+//        for (int c = 0; c < corners.size(); c++) {
+//          // prepair vertices to loop for this stretch
+//          std::pair<int, bool> startCorner = corners[c];
+//          // set endCorner to first or corners if end of array is reached
+//          std::pair<int, bool> endCorner = corners.front();
+//          if (c + 1 < corners.size()) {
+//            endCorner = corners[c + 1];
+//          }
+//          int endCornerIdx = endCorner.first;
+//
+//          std::vector<int> vertices;
+//          if (endCornerIdx < startCorner.first) {
+//            for (int i = startCorner.first + 1; i < ring.size(); i++) {
+//              vertices.push_back(i);
+//            }
+//            for (int i = 0; i < endCornerIdx; i++) {
+//              vertices.push_back(i);
+//            }
+//          }
+//          else {
+//            for (int i = startCorner.first + 1; i < endCornerIdx; i++) {
+//              vertices.push_back(i);
+//            }
+//          }
+//
+//          for (int pi : vertices) {
+//            //if (f->get_id() == "O0000.59d49cd362f54875b4a3196c1363606f" && pi == 18) {
+//            //  std::cout << "stop" << std::endl;
+//            //}
+//            bool otherAdj = false;
+//            int stitchz = 0;
+//            for (auto& fadj : *lstouching) {
+//              ringis.clear();
+//              pis.clear();
+//              if (fadj->get_class() != BRIDGE && fadj->has_point2(ring[pi], ringis, pis) == true) {
+//                otherAdj = true;
+//                stitchz = fadj->get_vertex_elevation(ringis[0], pis[0]);
+//              }
+//            }
+//            if (!otherAdj) { //No other type of objects then bridges are adjacent
+//                             //This is empty stretch of points where only bridges connect, interpolate between prevCorner and nextCorner
+//              Point2 p = f->get_point2(ringi, pi);
+//              std::string key_bucket = gen_key_bucket(&p);
+//              int z = 0;
+//              //Check if height exists in NC thus is created by adjacent bridge
+//              if (_nc.find(key_bucket) == _nc.end()) {
+//                // check height of previous vertex
+//                int previ = pi - 1;
+//                if (pi == 0) {
+//                  previ = ring.size() - 1;
+//                }
+//                // Add height to NC for adjacent bridge
+//                // interpolate height between previous vertex and next corner distance weighted
+//                z = interpolate_height(f, p, ringi, previ, ringi, endCorner.first);
+//                _nc[key_bucket].push_back(z);
+//              }
+//              else {
+//                z = _nc[key_bucket].front();
+//              }
+//              f->set_vertex_elevation(ringi, pi, z);
+//            }
+//            else {
+//              Point2 p = f->get_point2(ringi, pi);
+//              std::string key_bucket = gen_key_bucket(&p);
+//
+//              // This is where the top part is stitched, interpolate between corners
+//              if (startCorner.second && endCorner.second == false) {
+//                // interpolate height between start and end corner distance weighted
+//                int interz = interpolate_height(f, p, ringi, startCorner.first, ringi, endCorner.first);
+//
+//                // Allways stitch if there is a lower object, otherwise use interpolated height
+//                if (stitchz < interz) {
+//                  f->set_vertex_elevation(ringi, pi, stitchz);
+//                }
+//                else {
+//                  f->set_vertex_elevation(ringi, pi, interz);
+//                  // Add height to NC and add VW
+//                  _nc[key_bucket].push_back(interz);
+//                  f->add_vertical_wall();
+//                }
+//              }
+//              else { // when there is no value in _bridge_stitches the upper part is floating thus stitch bottem to adjacent object if within threshold of previous vertex or corner
+//                // check height of previous vertex
+//                int previ = pi - 1;
+//                if (pi == 0) {
+//                  previ = ring.size() - 1;
+//                }
+//
+//                // interpolate height between previous vertex and next corner distance weighted
+//                int interz = interpolate_height(f, p, ringi, previ, ringi, endCorner.first);
+//                int prevz = f->get_vertex_elevation(ringi, previ);
+//                //Allways stich to lower object or if interpolated between corners within threshold or previous within threshold
+//                if (stitchz < interz || abs(stitchz - interz) < _threshold_jump_edges || abs(stitchz - prevz) < _threshold_jump_edges) {
+//                  f->set_vertex_elevation(ringi, pi, stitchz);
+//                }
+//                else {
+//                  f->set_vertex_elevation(ringi, pi, interz);
+//                  // Add height to NC and add VW
+//                  _nc[key_bucket].push_back(interz);
+//                  f->add_vertical_wall();
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
+//    }
+//  }
+//}
 
 int Map3d::interpolate_height(TopoFeature* f, const Point2 &p, int prevringi, int prevpi, int nextringi, int nextpi) {
   // interpolate height between previous and next corner distance weighted
@@ -1549,3 +1885,8 @@ int Map3d::interpolate_height(TopoFeature* f, const Point2 &p, int prevringi, in
 void Map3d::add_allowed_las_class(AllowedLASTopo c, int i) {
   _las_classes_allowed[c].insert(i);
 }
+
+void Map3d::add_allowed_las_class_within(AllowedLASTopo c, int i) {
+  _las_classes_allowed_within[c].insert(i);
+}
+

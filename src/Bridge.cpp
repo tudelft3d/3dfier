@@ -30,10 +30,12 @@
 #include "io.h"
 
 float Bridge::_heightref;
+bool Bridge::_flatten;
 
-Bridge::Bridge(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref)
+Bridge::Bridge(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, bool flatten)
   : Boundary3D(wkt, layername, attributes, pid) {
   _heightref = heightref;
+  _flatten = flatten;
 }
 
 TopoClass Bridge::get_class() {
@@ -48,9 +50,9 @@ std::string Bridge::get_mtl() {
   return "usemtl Bridge";
 }
 
-bool Bridge::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
-  if (point_in_polygon(p, *(_p2))) {
-    Boundary3D::add_elevation_point(p, z, radius, lasclass);
+bool Bridge::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+    return Boundary3D::add_elevation_point(p, z, radius, lasclass, within);
   }
   return true;
 }
@@ -58,6 +60,10 @@ bool Bridge::add_elevation_point(Point2 &p, double z, float radius, int lasclass
 bool Bridge::lift() {
   lift_each_boundary_vertices(_heightref);
   return true;
+}
+
+bool Bridge::get_flatten() {
+  return _flatten;
 }
 
 void Bridge::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {
