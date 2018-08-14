@@ -102,6 +102,10 @@ bool Building::lift() {
   else {
     _height_base = -9999;
   }
+  if (_zvaluesinside.empty() && _zvaluesground.empty() == false) {
+    // if no points inside the building use the ground points to set height
+    _zvaluesinside = _zvaluesground;
+  }
   //-- for the roof
   Flat::lift_percentile(_heightref_top);
   return true;
