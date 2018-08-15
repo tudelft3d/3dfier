@@ -1163,9 +1163,6 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     }
     //-- degree of vertex >= 3: more complex cases
     else if (star.size() > 1) {
-      if (f->get_id() == "b71ed2cc7-0db1-11e6-b093-bd9bfd5080ba" && pi == 34) {
-        std::cout << "";
-      }
       //-- collect all elevations
       std::vector< std::tuple< int, TopoFeature*, int, int > > zstar;
       zstar.push_back(std::make_tuple(
@@ -1329,7 +1326,9 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       int tmph = -99999;
       for (auto& each : zstar) {
         int h = std::get<0>(each);
-        std::get<1>(each)->set_vertex_elevation(std::get<2>(each), std::get<3>(each), h);
+        if (std::get<1>(each)->get_class() != BUILDING) {
+          std::get<1>(each)->set_vertex_elevation(std::get<2>(each), std::get<3>(each), h);
+        }
         if (h != tmph) { //-- not to repeat the same height
           _nc[key_bucket].push_back(h);
           tmph = h;
