@@ -472,9 +472,6 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
   for (Ring2& ring : therings) {
     ringi++;
     for (int ai = 0; ai < ring.size(); ai++) {
-      if (_id == "b71ed2cc7-0db1-11e6-b093-bd9bfd5080ba" && ai == 34) {
-        std::cout << "";
-      }
       //-- Point a
       a = ring[ai];
       //-- find Point b
@@ -531,6 +528,17 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
         eait = std::find(anc.begin(), anc.end(), fadj_az);
         sbit = std::find(bnc.begin(), bnc.end(), bz);
         ebit = std::find(bnc.begin(), bnc.end(), fadj_bz);
+
+        if (this->get_class() == WATER && fadj->get_class() == BUILDING) {
+          if (eait == anc.end()) {
+            eait--;
+            fadj_az = *eait;
+          }
+          if (ebit == bnc.end()) {
+            ebit--;
+            fadj_bz = *ebit;
+          }
+        }
 
         //-- iterate to triangulate
         while ((sbit != ebit) && (sbit != bnc.end()) && ((sbit + 1) != bnc.end())) {
