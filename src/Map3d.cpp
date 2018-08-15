@@ -1171,9 +1171,16 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
         ringi,
         pi));
       for (auto& fadj : star) {
-        if (std::get<0>(fadj)->get_class() != BRIDGE) {
+        if (std::get<0>(fadj)->get_class() != BRIDGE && std::get<0>(fadj)->get_class() != BUILDING) {
           zstar.push_back(std::make_tuple(
             std::get<0>(fadj)->get_vertex_elevation(std::get<1>(fadj), std::get<2>(fadj)),
+            std::get<0>(fadj),
+            std::get<1>(fadj),
+            std::get<2>(fadj)));
+        }
+        else if (std::get<0>(fadj)->get_class() == BUILDING) {
+          zstar.push_back(std::make_tuple(
+            dynamic_cast<Building*>(std::get<0>(fadj))->get_height_base(),
             std::get<0>(fadj),
             std::get<1>(fadj),
             std::get<2>(fadj)));
@@ -1346,27 +1353,31 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
       }
     }
     else if (f1->get_class() == BUILDING) {
+      int f1base = dynamic_cast<Building*>(f1)->get_height_base();
       if (f2->get_class() != WATER) {
-        f2->set_vertex_elevation(ringi2, pi2, dynamic_cast<Building*>(f1)->get_height_base());
+        f2->set_vertex_elevation(ringi2, pi2, f1base);
       }
       else {
-        //- keep water flat, add the water height to the nc
-        _nc_building_walls[key_bucket].push_back(f2z);
+        //- keep water flat, add the water height and the building base height to the nc
+        _nc[key_bucket].push_back(f2z);
+        _nc[key_bucket].push_back(f1base);
       }
       //- expect a building to always be heighest adjacent feature
-      _nc_building_walls[key_bucket].push_back(dynamic_cast<Building*>(f1)->get_height_base());
+      _nc_building_walls[key_bucket].push_back(f1base);
       _nc_building_walls[key_bucket].push_back(f1z);
     }
     else { //-- f2 is Building
+      int f2base = dynamic_cast<Building*>(f2)->get_height_base();
       if (f1->get_class() != WATER) {
-        f1->set_vertex_elevation(ringi1, pi1, dynamic_cast<Building*>(f2)->get_height_base());
+        f1->set_vertex_elevation(ringi1, pi1, f2base);
       }
       else {
-        //- keep water flat, add the water height to the nc
-        _nc_building_walls[key_bucket].push_back(f1z);
+        //- keep water flat, add the water height and the building base height to the nc
+        _nc[key_bucket].push_back(f1z);
+        _nc[key_bucket].push_back(f2base);
       }
       //- expect a building to always be heighest adjacent feature
-      _nc_building_walls[key_bucket].push_back(dynamic_cast<Building*>(f2)->get_height_base());
+      _nc_building_walls[key_bucket].push_back(f2base);
       _nc_building_walls[key_bucket].push_back(f2z);
     }
   }

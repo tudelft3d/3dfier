@@ -472,6 +472,9 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
   for (Ring2& ring : therings) {
     ringi++;
     for (int ai = 0; ai < ring.size(); ai++) {
+      if (_id == "b71ed2cc7-0db1-11e6-b093-bd9bfd5080ba" && ai == 34) {
+        std::cout << "";
+      }
       //-- Point a
       a = ring[ai];
       //-- find Point b
@@ -519,7 +522,9 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
         continue;
 
       //-- Make exeption for bridges, they have vw's from bottom up, swap. Also skip if adjacent feature is bridge, vw is then created by bridge
-      if (this->get_class() == BRIDGE && this->get_top_level()) {
+      //-- Make exeption for buildings adjacent to water, they have vw's from bottom up.
+      if (this->get_class() == BRIDGE && this->get_top_level() ||
+        this->get_class() == WATER && fadj->get_class() == BUILDING) {
         //-- find the height of the vertex in the node column
         std::vector<int>::const_iterator sait, eait, sbit, ebit;
         sait = std::find(anc.begin(), anc.end(), az);
