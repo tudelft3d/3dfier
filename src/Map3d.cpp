@@ -1163,6 +1163,9 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     }
     //-- degree of vertex >= 3: more complex cases
     else if (star.size() > 1) {
+      if (f->get_id() == "b71ed2cc7-0db1-11e6-b093-bd9bfd5080ba" && pi == 34) {
+        std::cout << "";
+      }
       //-- collect all elevations
       std::vector< std::tuple< int, TopoFeature*, int, int > > zstar;
       zstar.push_back(std::make_tuple(
@@ -1229,10 +1232,14 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
             _nc_building_walls[key_bucket].push_back(hfloor);
           }
 
-          int hroof = std::get<0>(zstar[i]);
+          int hroof = dynamic_cast<Building*>(std::get<1>(zstar[i]))->get_height();
           if (std::find(_nc_building_walls[key_bucket].begin(), _nc_building_walls[key_bucket].end(), hroof) == _nc_building_walls[key_bucket].end()) {
             _nc_building_walls[key_bucket].push_back(hroof);
           }
+        }
+        // add vw to water since it might be lower then the building floor
+        if (water != -1) {
+          std::get<1>(zstar[water])->add_vertical_wall();
         }
         int baseheight = dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base();
         for (auto& each : zstar) {
