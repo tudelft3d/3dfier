@@ -1162,7 +1162,7 @@ void Boundary3D::detect_outliers(bool flatten){
       for (int i = 0; i < niter; i++) {
         // Fit the model
         std::vector<double> correctedvalues;
-        coeffs = polyfit3d<double>(xtmp, ytmp, ztmp, correctedvalues);
+        polyfit3d<double>(xtmp, ytmp, ztmp, coeffs, correctedvalues);
         std::vector<double> residuals, absResiduals;
 
         double sum = 0;
@@ -1210,7 +1210,8 @@ void Boundary3D::detect_outliers(bool flatten){
       }
 
       // get the new values based on the coeffs of the lase equation
-      std::vector<double> correctedvalues = polyval3d<double>(x, y, coeffs);
+      std::vector<double> correctedvalues;
+      polyval3d<double>(x, y, coeffs, correctedvalues);
       if (flatten) {
         for (int i = 0; i < ring.size(); i++) {
           _p2z[ringi][i] = correctedvalues[i];

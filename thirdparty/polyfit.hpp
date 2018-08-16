@@ -1,7 +1,8 @@
+#ifndef __3DFIER__polyfit__
+#define __3DFIER__polyfit__
 #include <vector>
-#include <stdexcept>
 #include "matrix.hpp"
-#include "GivensQR.hpp"
+#include "givensQR.hpp"
 /*
 Finds the coefficients of a polynomial p(x) of degree n that fits the data,
 p(x(i)) to y(i), in a least squares sense. The result p is a row vector of
@@ -10,13 +11,12 @@ length n+1 containing the polynomial coefficients in incremental powers.
 param:
 oX				x axis values
 oY				y axis values
-nDegree			polynomial degree including the constant
+nDegree		polynomial degree including the constant
 
 return:
 coefficients of a polynomial starting at the constant coefficient and
 ending with the coefficient of power to nDegree. C++0x-compatible
 compilers make returning locally created vectors very efficient.
-
 */
 template<typename T>
 std::vector<T> polyfitqr(const std::vector<T>& oX, const std::vector<T>& oY, int nDegree) {
@@ -94,10 +94,10 @@ std::vector<T> polyvalqr(const std::vector<T>& oCoeff, const std::vector<T>& oX)
 }
 
 template<typename T>
-mathalgo::matrix<T> combineXY(std::vector<T>& oX, std::vector<T>& oY) {
+void combineXY(std::vector<T>& oX, std::vector<T>& oY, mathalgo::matrix<T>& oXY) {
   size_t nCount = oX.size();
   size_t nCols = 3 * 2; // 3 unknowns in 2 dimensions
-  mathalgo::matrix<T> oXYMatrix(nCount, nCols);
+  oXY = mathalgo::matrix<T>(nCount, nCols);
   
   // normalize x and y matrix
   for (size_t i = 1; i < nCount; i++) {
@@ -109,24 +109,24 @@ mathalgo::matrix<T> combineXY(std::vector<T>& oX, std::vector<T>& oY) {
 
   // create the XY matrix
   for (size_t nRow = 0; nRow < nCount; nRow++) {
-    oXYMatrix(nRow, 0) = 1;
-    oXYMatrix(nRow, 1) = oX[nRow];
-    oXYMatrix(nRow, 2) = oY[nRow];
-    oXYMatrix(nRow, 3) = oX[nRow] * oY[nRow];
-    oXYMatrix(nRow, 4) = std::pow(oX[nRow], 2);
-    oXYMatrix(nRow, 5) = std::pow(oY[nRow], 2);
+    oXY(nRow, 0) = 1;
+    oXY(nRow, 1) = oX[nRow];
+    oXY(nRow, 2) = oY[nRow];
+    oXY(nRow, 3) = oX[nRow] * oY[nRow];
+    oXY(nRow, 4) = std::pow(oX[nRow], 2);
+    oXY(nRow, 5) = std::pow(oY[nRow], 2);
   }
-  return oXYMatrix;
 }
 
 // 3D plane fitting
 template<typename T>
-std::vector<T> polyfit3d(std::vector<T>& oX, std::vector<T>& oY, std::vector<T>& oZ, std::vector<T>& calculated) {
+void polyfit3d(std::vector<T>& oX, std::vector<T>& oY, std::vector<T>& oZ, std::vector<T>& coeffs, std::vector<T>& calculated) {
   if (oX.size() != oY.size() || oX.size() != oZ.size())
     throw std::invalid_argument("X and Y or X and Z vector sizes do not match");
 
   size_t nCount = oX.size();
-  mathalgo::matrix<T> A(combineXY(oX, oY));
+  mathalgo::matrix<T> A;
+  combineXY(oX, oY, A);
   mathalgo::matrix<T> X(nCount, 1);
 
   // copy z matrix
@@ -136,31 +136,41 @@ std::vector<T> polyfit3d(std::vector<T>& oX, std::vector<T>& oY, std::vector<T>&
 
   // Y=(AT*A)-1*AT*X
   // transpose X matrix
-  mathalgo::matrix<T> AT(A.transpose());
+  mathalgo::matrix<T> AT;
+  A.transpose(AT);
   // multiply transposed X matrix with X matrix
-  mathalgo::matrix<T> ATA(AT * A);
+  mathalgo::matrix<T> ATA;
+  AT.multiply(A, ATA);
   // multiply transposed X matrix with Y matrix
-  mathalgo::matrix<T> ATX(AT * X);
+  mathalgo::matrix<T> ATX;
+  AT.multiply(X, ATX);
 
   mathalgo::Givens<T> oGivens;
   oGivens.Decompose(ATA);
-  mathalgo::matrix<T> Y = oGivens.Solve(ATX);
+  mathalgo::matrix<T> Y;
+  oGivens.Solve(ATX, Y);
 
-  mathalgo::matrix<T> AY(A * Y.transpose());
+  mathalgo::matrix<T> YT;
+  Y.transpose(YT);
+  mathalgo::matrix<T> AY;
+  A.multiply(YT, AY);
 
   calculated = AY.data();
   // copy the result to coeff
-  return Y.data();
+  coeffs = Y.data();
 }
 
 template<typename T>
-std::vector<T> polyval3d(std::vector<T>& x, std::vector<T>& y, std::vector<T>& coeff) {
-  mathalgo::matrix<double> A = combineXY(x, y);
+void polyval3d(std::vector<T>& x, std::vector<T>& y, std::vector<T>& coeff, std::vector<T>& calculated) {
+  mathalgo::matrix<T> A;
+  combineXY(x, y, A);
   mathalgo::matrix<double> Y(coeff.size(), 1);
   // build coeff matrix
   for (size_t i = 0; i < coeff.size(); i++) {
     Y(i, 0) = coeff[i];
   }
-  mathalgo::matrix<T> AY(A * Y);
-  return AY.data();
+  mathalgo::matrix<T> AY;
+  A.multiply(Y, AY);
+  calculated = AY.data();
 }
+#endif
