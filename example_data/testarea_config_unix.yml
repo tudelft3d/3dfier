@@ -1,40 +1,40 @@
 input_polygons:
   - datasets: 
-      - bgt\bgt_waterdeel.sqlite
-      - bgt\bgt_ondersteunendwaterdeel.sqlite
+      - bgt/bgt_waterdeel.sqlite
+      - bgt/bgt_ondersteunendwaterdeel.sqlite
     uniqueid: gml_id
     lifting: Water
     height_field: relatievehoogteligging
   - datasets: 
-      - bgt\bgt_onbegroeidterreindeel.sqlite
+      - bgt/bgt_onbegroeidterreindeel.sqlite
     uniqueid: gml_id
     lifting: Terrain
     height_field: relatievehoogteligging
   - datasets: 
-      - bgt\bgt_wegdeel.sqlite
-      - bgt\bgt_ondersteunendwegdeel.sqlite
+      - bgt/bgt_wegdeel.sqlite
+      - bgt/bgt_ondersteunendwegdeel.sqlite
     uniqueid: gml_id
     lifting: Road
     height_field: relatievehoogteligging
   - datasets: 
-      - bgt\bgt_pand.sqlite
+      - bgt/bgt_pand.sqlite
     uniqueid: gml_id
     lifting: Building
     height_field: relatievehoogteligging
   - datasets: 
-      - bgt\bgt_begroeidterreindeel.sqlite
+      - bgt/bgt_begroeidterreindeel.sqlite
     uniqueid: gml_id
     lifting: Forest
     height_field: relatievehoogteligging
   - datasets: 
-      - bgt\bgt_scheiding.sqlite
-      - bgt\bgt_kunstwerkdeel.sqlite
-      - bgt\bgt_overigbouwwerk.sqlite
+      - bgt/bgt_scheiding.sqlite
+      - bgt/bgt_kunstwerkdeel.sqlite
+      - bgt/bgt_overigbouwwerk.sqlite
     uniqueid: gml_id
     lifting: Separation
     height_field: relatievehoogteligging
   - datasets: 
-      - bgt\bgt_overbruggingsdeel.sqlite
+      - bgt/bgt_overbruggingsdeel.sqlite
     uniqueid: gml_id
     lifting: Bridge/Overpass
     height_field: relatievehoogteligging
@@ -85,7 +85,7 @@ lifting_options:
       - 2
       - 9
       - 17
-  Bridge\Overpass:
+  Bridge/Overpass:
     height: percentile-50
     use_LAS_classes:
       - 2
@@ -93,8 +93,8 @@ lifting_options:
 
 input_elevation:
   - datasets:
-      - ahn3\ahn3_cropped_1.laz
-      - ahn3\ahn3_cropped_2.laz
+      - ahn3/ahn3_cropped_1.laz
+      - ahn3/ahn3_cropped_2.laz
     omit_LAS_classes:
       - 0 # Never classified
       - 1 # Unclassified
