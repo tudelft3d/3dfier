@@ -561,5 +561,93 @@ void Building::get_imgeo_nummeraanduiding(std::wostream& of) {
 }
 
 bool Building::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
-  return TopoFeature::get_multipolygon_features(layer, "Building", writeAttributes, extraAttributes, true, this->get_height_base(), this->get_height());
+  OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
+  OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
+  OGRMultiPolygon multipolygon = OGRMultiPolygon();
+  Point3 p;
+
+  //-- add all triangles to the layer
+  for (auto& t : _triangles) {
+    OGRPolygon polygon = OGRPolygon();
+    OGRLinearRing ring = OGRLinearRing();
+
+    p = _vertices[t.v0].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices[t.v1].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices[t.v2].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+
+    ring.closeRings();
+    polygon.addRing(&ring);
+    multipolygon.addGeometry(&polygon);
+  }
+
+  //-- add all vertical wall triangles to the layer
+  for (auto& t : _triangles_vw) {
+    OGRPolygon polygon = OGRPolygon();
+    OGRLinearRing ring = OGRLinearRing();
+
+    p = _vertices_vw[t.v0].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices_vw[t.v1].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices_vw[t.v2].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+
+    ring.closeRings();
+    polygon.addRing(&ring);
+    multipolygon.addGeometry(&polygon);
+  }
+
+  //-- add all floor triangles to the layer
+  if (_building_include_floor) {
+    float z = z_to_float(this->get_height_base());
+    for (auto& t : _triangles) {
+      OGRPolygon polygon = OGRPolygon();
+      OGRLinearRing ring = OGRLinearRing();
+
+      // reverse orientation for floor polygon, v0-v2-v1 instead of v0-v1-v2.
+      p = _vertices[t.v0].first;
+      ring.addPoint(p.get<0>(), p.get<1>(), z);
+      p = _vertices[t.v2].first;
+      ring.addPoint(p.get<0>(), p.get<1>(), z);
+      p = _vertices[t.v1].first;
+      ring.addPoint(p.get<0>(), p.get<1>(), z);
+
+      ring.closeRings();
+      polygon.addRing(&ring);
+      multipolygon.addGeometry(&polygon);
+    }
+  }
+
+  feature->SetGeometry(&multipolygon);
+  // perform extra character encoding for gdal.
+  const char* idcpl = CPLRecode(this->get_id().c_str(), "", CPL_ENC_UTF8);
+  feature->SetField("3df_id", idcpl);
+  // perform extra character encoding for gdal.
+  const char* classcpl = CPLRecode("Building", "", CPL_ENC_UTF8);
+  feature->SetField("3df_class", classcpl);
+  feature->SetField("baseheight", z_to_float(this->get_height_base()));
+  feature->SetField("roofheight", z_to_float(this->get_height()));
+  if (writeAttributes) {
+    for (auto attr : _attributes) {
+      if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
+        // perform extra character encoding for gdal.
+        const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
+        feature->SetField(attr.first.c_str(), attrcpl);
+      }
+    }
+    for (auto attr : extraAttributes) {
+      // perform extra character encoding for gdal.
+      const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
+      feature->SetField(attr.first.c_str(), attrcpl);
+    }
+  }
+  if (layer->CreateFeature(feature) != OGRERR_NONE) {
+    std::cerr << "Failed to create feature " << this->get_id() << ".\n";
+    return false;
+  }
+  OGRFeature::DestroyFeature(feature);
+  return true;
 }
