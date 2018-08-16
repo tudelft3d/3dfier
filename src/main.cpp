@@ -35,7 +35,6 @@
 #include "boost/chrono.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
-#include <map>
 
 std::string VERSION = "1.0";
 

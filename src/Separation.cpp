@@ -27,7 +27,6 @@
 */
 
 #include "Separation.h"
-#include "io.h"
 
 float Separation::_heightref;
 

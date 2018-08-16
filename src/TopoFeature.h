@@ -31,8 +31,9 @@
 
 #include "definitions.h"
 #include "geomtools.h"
+#include "io.h"
+#include "polyfit.hpp"
 #include "nlohmann-json/json.hpp"
-#include <random>
 
 class TopoFeature {
 public:

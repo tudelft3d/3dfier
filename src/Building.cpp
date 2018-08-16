@@ -27,8 +27,6 @@
 */
 
 #include "Building.h"
-#include "io.h"
-#include <algorithm>
 
 //-- static variable
 float Building::_heightref_top;

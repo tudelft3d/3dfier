@@ -27,12 +27,6 @@
 */
 
 #include "Map3d.h"
-#include "io.h"
-#include "boost/locale.hpp"
-#include "boost/tokenizer.hpp"
-#include "boost/algorithm/string.hpp"
-#include "nlohmann-json/json.hpp"
-#include "codecvt"
 
 Map3d::Map3d() {
   OGRRegisterAll();

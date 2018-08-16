@@ -30,6 +30,7 @@
 #define Road_h
 
 #include "TopoFeature.h"
+#include "io.h"
 
 class Road: public Boundary3D {
 public:

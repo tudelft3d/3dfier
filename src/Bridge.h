@@ -30,6 +30,7 @@
 #define Bridge_h
 
 #include "TopoFeature.h"
+#include "io.h"
 
 class Bridge: public Boundary3D {
 public:

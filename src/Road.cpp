@@ -27,7 +27,6 @@
 */
 
 #include "Road.h"
-#include "io.h"
 
 float Road::_heightref;
 bool  Road::_filter_outliers;

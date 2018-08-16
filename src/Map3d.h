@@ -31,6 +31,7 @@
 
 #include "definitions.h"
 #include "geomtools.h"
+#include "io.h"
 #include "TopoFeature.h"
 #include "Building.h"
 #include "Terrain.h"
@@ -39,9 +40,7 @@
 #include "Road.h"
 #include "Separation.h"
 #include "Bridge.h"
-
-#include <set>
-#include <array>
+#include "boost/locale.hpp"
 
 typedef std::pair<Box2, TopoFeature*> PairIndexed;
 
