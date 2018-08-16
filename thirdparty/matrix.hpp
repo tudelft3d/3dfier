@@ -49,7 +49,7 @@ namespace mathalgo {
       }
     }
 
-    inline matrix transpose(matrix& result) {
+    inline void transpose(matrix& result) {
       result = matrix(m_nCols, m_nRows);
       for (unsigned int r = 0; r < m_nRows; ++r) {
         for (unsigned int c = 0; c < m_nCols; ++c) {
