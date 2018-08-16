@@ -289,7 +289,7 @@ void TopoFeature::get_citygml_attributes(std::wostream& of, AttributeMap attribu
   }
 }
 
-bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, AttributeMap extraAttributes, bool writeHeights, int height_base, int height) {
+bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, AttributeMap extraAttributes) {
   OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
   OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
   OGRMultiPolygon multipolygon = OGRMultiPolygon();
@@ -336,10 +336,6 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
   // perform extra character encoding for gdal.
   const char* classcpl = CPLRecode(className.c_str(), "", CPL_ENC_UTF8);
   feature->SetField("3df_class", classcpl);
-  if (writeHeights) {
-    feature->SetField("baseheight", z_to_float(height_base));
-    feature->SetField("roofheight", z_to_float(height));
-  }
   if (writeAttributes) {
     for (auto attr : _attributes) {
       if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
