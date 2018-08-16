@@ -3,15 +3,20 @@ lifting_options:
     height_roof: percentile-90
     height_floor: percentile-10
     lod: 1
+    triangulate: true
+    floor: false
+    inner_walls: false
   Water:
     height: percentile-10
   Road:
     height: percentile-50
-    threshold_outliers: 30
+    filter_outliers: true
+    flatten: true
   Separation:
     height: percentile-80
   Bridge/Overpass:
     height: percentile-50
+    flatten: true
   Terrain:                      # Terrain is percentile-50
     simplification: 0
     simplification_tinsimp: 0.0
@@ -23,7 +28,7 @@ lifting_options:
 
 input_elevation:
   - datasets:
-      - ahn3.laz
+      - points.laz
     omit_LAS_classes:
       - 1 # unclassified
     thinning: 0

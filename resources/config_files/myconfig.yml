@@ -1,62 +1,96 @@
 input_polygons:
-  - datasets: 
-      - /Users/elvis/data/campus/partof.shp
+  - datasets:
+      # Unix
+      - /data/campus/partof.shp
+      # Windows
+      - D:\data\campus\partof.shp
     uniqueid: FACE_ID
     lifting: Building
-  - datasets: 
-      - /Users/elvis/data/campus/another.gml
-      - /Users/elvis/data/campus/another2.gml
+  - datasets:
+      # Unix
+      - /data/campus/another.gml
+      - /data/campus/another2.gml
+      # Windows
+      - D:\data\campus\another.gml
+      - D:\data\campus\another2.gml
     uniqueid: fid
     lifting_per_layer:
       Gebouw: Building
       Terrein: Terrain
       Waterdeel: Water
-  - datasets: 
-      - /Users/elvis/data/bgt_overbruggingsdeel.sqlite
+  - datasets:
+      # Unix
+      - /data/bgt_overbruggingsdeel.sqlite
+      # Windows
+      - D:\data\bgt_overbruggingsdeel.sqlite
     uniqueid: gml_id
     lifting: Bridge/Overpass
     height_field: relatievehoogteligging
     handle_multiple_heights: true
-  
-lifting_options: 
+
+lifting_options:
   Building:
     roof:
-      height: percentile-95
+      height: percentile-90
       use_LAS_classes:
-        - 1
-        - 2
+        - 6
     ground:
       height: percentile-10
       use_LAS_classes:
-        - 3
-        - 6
+        - 2
+        - 9
+    lod: 1
+    floor: true
+    inner_walls: true
+    triangulate: false
   Water:
     height: percentile-10
-    use_LAS_classes:
-      - 3
-      - 6
+    use_LAS_classes_within:
+      - 2
+      - 9
   Road:
     height: percentile-50
+    filter_outliers: true
+    flatten: true
+    use_LAS_classes:
+      - 2
+    use_LAS_classes_within:
+      - 17
   Separation:
     height: percentile-80
+    use_LAS_classes:
+      - 2
+      - 17
   Bridge/Overpass:
     height: percentile-50
+    flatten: true
+    use_LAS_classes_within:
+      - 17
   Terrain:
-    simplification: 10
+    simplification: 0
     simplification_tinsimp: 0.1
+    use_LAS_classes:
+      - 2
+      - 9
   Forest:
-    simplification: 10
+    simplification: 0
     simplification_tinsimp: 0.1
+    use_LAS_classes:
+      - 2
+      - 9
 
 input_elevation:
   - datasets:
-      # - /Users/elvis/data/top10nl/schie/ahn2_u.laz
-      # - /Users/elvis/data/top10nl/schie/ahn2_g.laz
-      - /Users/elvis/data/top10nl/schie/ahn3.laz
-    omit_LAS_classes:
-      - 1 # unclassified
-      - 6 # building
-    thinning: 10
+    # Unix
+    - /data/top10nl/schie/ahn3.laz
+    # Windows
+    - D:\data\top10nl\schie\ahn3.laz
+  omit_LAS_classes:
+    - 1 # unclassified
+    - 3 # vegation
+    - 4 # vegation
+    - 5 # vegation 
+  thinning: 1
 
 options:
   building_radius_vertex_elevation: 3.0
