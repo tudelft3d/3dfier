@@ -519,13 +519,26 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
         continue;
 
       //-- Make exeption for bridges, they have vw's from bottom up, swap. Also skip if adjacent feature is bridge, vw is then created by bridge
-      if (this->get_class() == BRIDGE && this->get_top_level()) {
+      //-- Make exeption for buildings adjacent to water, they have vw's from bottom up.
+      if ((this->get_class() == BRIDGE && this->get_top_level()) ||
+        (this->get_class() == WATER && fadj->get_class() == BUILDING)) {
         //-- find the height of the vertex in the node column
         std::vector<int>::const_iterator sait, eait, sbit, ebit;
         sait = std::find(anc.begin(), anc.end(), az);
         eait = std::find(anc.begin(), anc.end(), fadj_az);
         sbit = std::find(bnc.begin(), bnc.end(), bz);
         ebit = std::find(bnc.begin(), bnc.end(), fadj_bz);
+
+        if (this->get_class() == WATER && fadj->get_class() == BUILDING) {
+          if (eait == anc.end()) {
+            eait--;
+            fadj_az = *eait;
+          }
+          if (ebit == bnc.end()) {
+            ebit--;
+            fadj_bz = *ebit;
+          }
+        }
 
         //-- iterate to triangulate
         while ((sbit != ebit) && (sbit != bnc.end()) && ((sbit + 1) != bnc.end())) {
