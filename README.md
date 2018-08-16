@@ -13,6 +13,10 @@
 
 The [3dfier wiki](https://github.com/tudelft3d/3dfier/wiki) has extensive information on the installation, data preparation, usage and output of 3dfier.
 
+**SETTINGS**
+
+For all available setting and default values look at the [config files folder](https://github.com/tudelft3d/3dfier/tree/master/resources/config_files)
+
 # 3dfier
 <img src="https://dl.dropboxusercontent.com/s/05eo2r5yc2kke5g/3dfierNoBridge.png" width="300">
 
@@ -44,7 +48,6 @@ It is possible to define new classes, although that would require a bit of progr
 Output is in the following formats: OBJ, CityGML, CityJSON, CSV (for buildings only, i.e. their ID and height (ground+roof) are output in a tabular format), and PostGIS.
 The ID of each polygon is preserved, and there is a 1-to-1 mapping between the input and the output. 
 
-Notice that this version is beta , although it is in our opinion usable. 
 If you use it, feedback is very much appreciated.
 
 ## LAS/LAZ Pointcloud
