@@ -27,8 +27,6 @@
 */
 
 #include "TopoFeature.h"
-#include "io.h"
-#include "polyfit.hpp"
 
 TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attributes, std::string pid) {
   _id = pid;

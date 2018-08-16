@@ -30,6 +30,7 @@
 #define Forest_h
 
 #include "TopoFeature.h"
+#include "io.h"
 
 class Forest: public TIN {
 public:

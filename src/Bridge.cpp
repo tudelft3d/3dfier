@@ -27,7 +27,6 @@
 */
 
 #include "Bridge.h"
-#include "io.h"
 
 float Bridge::_heightref;
 bool Bridge::_flatten;

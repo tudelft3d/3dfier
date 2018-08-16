@@ -30,6 +30,7 @@
 #define Terrain_h
 
 #include "TopoFeature.h"
+#include "io.h"
 
 class Terrain: public TIN {
 public:

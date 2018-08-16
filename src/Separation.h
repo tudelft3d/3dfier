@@ -30,6 +30,7 @@
 #define Separation_h
 
 #include "TopoFeature.h"
+#include "io.h"
 
 class Separation: public Boundary3D {
 public:

@@ -26,8 +26,8 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
-#include "io.h"
 #include "geomtools.h"
+#include "io.h"
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>
 #include <CGAL/Projection_traits_xy_3.h>
@@ -37,8 +37,6 @@
 
 #include <vector>
 #include <unordered_set>
-#include <iterator>
-#include <memory>
 #include <boost/heap/fibonacci_heap.hpp>
 
 // fibonacci heap for greedy insertion code

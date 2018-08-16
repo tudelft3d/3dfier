@@ -30,6 +30,8 @@
 #define Building_h
 
 #include "TopoFeature.h"
+#include "io.h"
+#include <algorithm>
 
 class Building: public Flat {
 public:

@@ -27,8 +27,6 @@
 */
 
 #include "Terrain.h"
-#include "io.h"
-#include <algorithm>
 
 Terrain::Terrain(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer)
   : TIN(wkt, layername, attributes, pid, simplification, simplification_tinsimp, innerbuffer) {}
