@@ -33,9 +33,9 @@
 
 class Road: public Boundary3D {
 public:
-  Road(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, int outlier_threshold);
+  Road(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, bool filter_outliers, bool flatten);
   bool                lift();
-  bool                add_elevation_point(Point2 &p, double z, float radius, int lasclass);
+  bool                add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within);
   void                get_citygml(std::wostream& of);
   void                get_citygml_imgeo(std::wostream& of);
   void                get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts);
@@ -45,7 +45,8 @@ public:
   bool                is_hard();
 private:
   static float _heightref;
-  static int   _threshold_outliers;
+  static bool  _filter_outliers;
+  static bool  _flatten;
 };
 
 #endif /* Road_h */

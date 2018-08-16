@@ -28,6 +28,7 @@
 
 #include "TopoFeature.h"
 #include "io.h"
+#include "polyfit.hpp"
 
 TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attributes, std::string pid) {
   _id = pid;
@@ -179,36 +180,35 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
   }
 
   //-- vertical triangles
-  if (_bVerticalWalls == true && _triangles_vw.size() > 0) {
+  if (_triangles_vw.size() > 0) {
     fs += mtl; fs += "Wall"; fs += "\n";
-  }
+    for (auto& t : _triangles_vw) {
+      unsigned long a, b, c;
+      auto it = dPts.find(_vertices_vw[t.v0].second);
+      if (it == dPts.end()) {
+        a = dPts.size() + 1;
+        dPts[_vertices_vw[t.v0].second] = a;
+      }
+      else
+        a = it->second;
+      it = dPts.find(_vertices_vw[t.v1].second);
+      if (it == dPts.end()) {
+        b = dPts.size() + 1;
+        dPts[_vertices_vw[t.v1].second] = b;
+      }
+      else
+        b = it->second;
+      it = dPts.find(_vertices_vw[t.v2].second);
+      if (it == dPts.end()) {
+        c = dPts.size() + 1;
+        dPts[_vertices_vw[t.v2].second] = c;
+      }
+      else
+        c = it->second;
 
-  for (auto& t : _triangles_vw) {
-    unsigned long a, b, c;
-    auto it = dPts.find(_vertices_vw[t.v0].second);
-    if (it == dPts.end()) {
-      a = dPts.size() + 1;
-      dPts[_vertices_vw[t.v0].second] = a;
-    }
-    else
-      a = it->second;
-    it = dPts.find(_vertices_vw[t.v1].second);
-    if (it == dPts.end()) {
-      b = dPts.size() + 1;
-      dPts[_vertices_vw[t.v1].second] = b;
-    }
-    else
-      b = it->second;
-    it = dPts.find(_vertices_vw[t.v2].second);
-    if (it == dPts.end()) {
-      c = dPts.size() + 1;
-      dPts[_vertices_vw[t.v2].second] = c;
-    }
-    else
-      c = it->second;
-
-    if ((a != b) && (a != c) && (b != c)) {
-      fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
+      if ((a != b) && (a != c) && (b != c)) {
+        fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
+      }
     }
   }
 }
@@ -289,7 +289,7 @@ void TopoFeature::get_citygml_attributes(std::wostream& of, AttributeMap attribu
   }
 }
 
-bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, AttributeMap extraAttributes, bool writeHeights, int height_base, int height) {
+bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, AttributeMap extraAttributes) {
   OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
   OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
   OGRMultiPolygon multipolygon = OGRMultiPolygon();
@@ -336,10 +336,6 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
   // perform extra character encoding for gdal.
   const char* classcpl = CPLRecode(className.c_str(), "", CPL_ENC_UTF8);
   feature->SetField("3df_class", classcpl);
-  if (writeHeights) {
-    feature->SetField("baseheight", z_to_float(height_base));
-    feature->SetField("roofheight", z_to_float(height));
-  }
   if (writeAttributes) {
     for (auto attr : _attributes) {
       if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
@@ -456,10 +452,7 @@ void TopoFeature::fix_bowtie() {
   }
 }
 
-void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight) {
-  if (this->has_vertical_walls() == false)
-    return;
-
+void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
   //-- gather all rings
   std::vector<Ring2> therings;
   therings.push_back(_p2->outer());
@@ -487,16 +480,6 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight)
         b = ring[ai + 1];
         bi = ai + 1;
       }
-      //-- check if there's a nc for either
-      ncit = nc.find(gen_key_bucket(&a));
-      if (ncit != nc.end())
-        anc = ncit->second;
-      ncit = nc.find(gen_key_bucket(&b));
-      if (ncit != nc.end())
-        bnc = ncit->second;
-
-      if ((anc.empty() == true) && (bnc.empty() == true))
-        continue;
 
       //-- find the adjacent polygon to segment ab (fadj)
       fadj = nullptr;
@@ -505,36 +488,53 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight)
       int adj_b_ringi = 0;
       int adj_b_pi = 0;
       for (auto& adj : *(_adjFeatures)) {
-        if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi) == true) {
+        if (adj->has_segment(b, a, adj_b_ringi, adj_b_pi, adj_a_ringi, adj_a_pi)) {
           fadj = adj;
           break;
         }
       }
-      if (fadj == nullptr && this->get_class() != BUILDING) {
+      if (fadj == nullptr) {
         continue;
       }
 
       int az = this->get_vertex_elevation(ringi, ai);
       int bz = this->get_vertex_elevation(ringi, bi);
-      int fadj_az, fadj_bz;
-      if(fadj == nullptr) {
-        fadj_az = baseheight;
-        fadj_bz = baseheight;
-      }
-      else {
-        fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
-        fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
-      }
+      int fadj_az = fadj->get_vertex_elevation(adj_a_ringi, adj_a_pi);
+      int fadj_bz = fadj->get_vertex_elevation(adj_b_ringi, adj_b_pi);
 
+      //-- check if there's a nc for either
+      ncit = nc.find(gen_key_bucket(&a));
+      if (ncit != nc.end()) {
+        anc = ncit->second;
+      }
+      ncit = nc.find(gen_key_bucket(&b));
+      if (ncit != nc.end()) {
+        bnc = ncit->second;
+      }
+      if ((anc.empty() == true) && (bnc.empty() == true))
+        continue;
 
-      //-- Make exeption for bridges, they have vw's from bottom up, swap . Also skip if adjacent feature is bridge, vw is then created by bridge
-      if (this->get_class() == BRIDGE) {
+      //-- Make exeption for bridges, they have vw's from bottom up, swap. Also skip if adjacent feature is bridge, vw is then created by bridge
+      //-- Make exeption for buildings adjacent to water, they have vw's from bottom up.
+      if ((this->get_class() == BRIDGE && this->get_top_level()) ||
+        (this->get_class() == WATER && fadj->get_class() == BUILDING)) {
         //-- find the height of the vertex in the node column
         std::vector<int>::const_iterator sait, eait, sbit, ebit;
         sait = std::find(anc.begin(), anc.end(), az);
         eait = std::find(anc.begin(), anc.end(), fadj_az);
         sbit = std::find(bnc.begin(), bnc.end(), bz);
         ebit = std::find(bnc.begin(), bnc.end(), fadj_bz);
+
+        if (this->get_class() == WATER && fadj->get_class() == BUILDING) {
+          if (eait == anc.end()) {
+            eait--;
+            fadj_az = *eait;
+          }
+          if (ebit == bnc.end()) {
+            ebit--;
+            fadj_bz = *ebit;
+          }
+        }
 
         //-- iterate to triangulate
         while ((sbit != ebit) && (sbit != bnc.end()) && ((sbit + 1) != bnc.end())) {
@@ -582,9 +582,10 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc, int baseheight)
           _triangles_vw.push_back(t);
         }
       }
-      if (fadj != nullptr && fadj->get_class() == BRIDGE) {
+      if (this->get_class() == BRIDGE || fadj->get_class() == BRIDGE) {
         continue;
       }
+
       //-- check height differences: f > fadj for *both* Points a and b. 
       if (az < fadj_az || bz < fadj_bz) {
         continue;
@@ -656,7 +657,6 @@ bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& 
   Point2 tmp;
   if (this->has_point2(a, ringis, pis) == true) {
     for (int k = 0; k < ringis.size(); k++) {
-      // nextpi = pis[k];
       int nextpi;
       tmp = this->get_next_point2_in_ring(ringis[k], pis[k], nextpi);
       if (sqr_distance(b, tmp) <= sqr_threshold) {
@@ -892,17 +892,41 @@ void TopoFeature::get_triangle_as_gml_surfacemember(std::wostream& of, Triangle&
   of << "<gml:exterior>";
   of << "<gml:LinearRing>";
   if (verticalwall == false) {
-    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
+    of << "<gml:posList>"
+      << _vertices[t.v0].second << " "
+      << _vertices[t.v1].second << " "
+      << _vertices[t.v2].second << " "
+      << _vertices[t.v0].second << "</gml:posList>";
   }
   else {
-    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
+    of << "<gml:posList>"
+      << _vertices_vw[t.v0].second << " "
+      << _vertices_vw[t.v1].second << " "
+      << _vertices_vw[t.v2].second << " "
+      << _vertices_vw[t.v0].second << "</gml:posList>";
   }
+  of << "</gml:LinearRing>";
+  of << "</gml:exterior>";
+  of << "</gml:Polygon>";
+  of << "</gml:surfaceMember>";
+}
+
+void TopoFeature::get_floor_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, int baseheight) {
+  of << "<gml:surfaceMember>";
+  of << "<gml:Polygon>";
+  of << "<gml:exterior>";
+  of << "<gml:LinearRing>";
+
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(3);
+  // replace z of the vertices with baseheight
+  ss << "<gml:posList>"
+    << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
+    << _vertices[t.v2].second.substr(0, _vertices[t.v2].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
+    << _vertices[t.v1].second.substr(0, _vertices[t.v1].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
+    << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << z_to_float(baseheight) << "</gml:posList>";
+
+  of << ss.str();
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
   of << "</gml:Polygon>";
@@ -914,16 +938,17 @@ void TopoFeature::get_triangle_as_gml_triangle(std::wostream& of, Triangle& t, b
   of << "<gml:exterior>";
   of << "<gml:LinearRing>";
   if (verticalwall == false) {
-    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v1].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v2].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices[t.v0].second << "</gml:pos>";
+    of << "<gml:posList>"
+      << _vertices[t.v0].second << " "
+      << _vertices[t.v1].second << " "
+      << _vertices[t.v2].second << " "
+      << _vertices[t.v0].second << "</gml:posList>";
   }
   else {
-    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v1].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v2].second << "</gml:pos>";
-    of << "<gml:pos>" << _vertices_vw[t.v0].second << "</gml:pos>";
+    of << _vertices_vw[t.v0].second << " "
+      << _vertices_vw[t.v1].second << " "
+      << _vertices_vw[t.v2].second << " "
+      << _vertices_vw[t.v0].second << "</gml:posList>";
   }
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
@@ -1046,11 +1071,14 @@ int Flat::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool Flat::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
-  if (within_range(p, *(_p2), radius)) {
-    int zcm = int(z * 100);
-    //-- 1. assign to polygon since within the threshold value (buffering of polygon)
-    _zvaluesinside.push_back(zcm);
+bool Flat::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+  // if within then a point must lay within the polygon, otherwise add
+  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+    if (within_range(p, *(_p2), radius)) {
+      int zcm = int(z * 100);
+      //-- 1. assign to polygon since within the threshold value (buffering of polygon)
+      _zvaluesinside.push_back(zcm);
+    }
   }
   return true;
 }
@@ -1060,30 +1088,31 @@ int Flat::get_height() {
 }
 
 bool Flat::lift_percentile(float percentile) {
-  int z = -9999;
-  if (_zvaluesinside.empty() == false) {
-    std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
-    z = _zvaluesinside[_zvaluesinside.size() * percentile];
-  }
-  this->lift_all_boundary_vertices_same_height(z);
-  _zvaluesinside.clear();
-  _zvaluesinside.shrink_to_fit();
-  return true;
+int z = -9999;
+if (_zvaluesinside.empty() == false) {
+  std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
+  z = _zvaluesinside[_zvaluesinside.size() * percentile];
+}
+this->lift_all_boundary_vertices_same_height(z);
+return true;
 }
 
 //-------------------------------
 //-------------------------------
 
 Boundary3D::Boundary3D(char *wkt, std::string layername, AttributeMap attributes, std::string pid)
-  : TopoFeature(wkt, layername, attributes, pid) {}
+  : TopoFeature(wkt, layername, attributes, pid) {
+}
 
 int Boundary3D::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool Boundary3D::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
-  // no need for checking for point-in-polygon since only points in range of the vertices are added
-  assign_elevation_to_vertex(p, z, radius);
+bool Boundary3D::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+  // if within then a point must lay within the polygon, otherwise add
+  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+    assign_elevation_to_vertex(p, z, radius);
+  }
   return true;
 }
 
@@ -1104,8 +1133,7 @@ void Boundary3D::smooth_boundary(int passes) {
   }
 }
 
-void Boundary3D::detect_outliers(int degrees_incline) {
-  // find spikes in roads (due to misclassified lidar points) and fix by averaging between previous and next vertex.
+void Boundary3D::detect_outliers(bool flatten){
   //-- gather all rings
   std::vector<Ring2> rings;
   rings.push_back(_p2->outer());
@@ -1115,52 +1143,84 @@ void Boundary3D::detect_outliers(int degrees_incline) {
   int ringi = -1;
   for (Ring2& ring : rings) {
     ringi++;
-    std::vector<int> ringz = _p2z[ringi];
-    float PI = 3.14159265;
 
-    for (int i = 0; i < ring.size(); i++) {
-      int i0 = i - 1;
-      int i2 = i + 1;
-      if (i == 0) {
-        i0 = ring.size() - 1;
+    // itterate only if >6 points in the ring or the LS will not work
+    if (ring.size() > 6) {
+      // find spikes in roads (due to misclassified lidar points) and fix by averaging between previous and next vertex.
+      std::vector<int> idx;
+      std::vector<double> x, y, z, coeffs;
+      for (int i = 0; i < ring.size(); i++) {
+        idx.push_back(i);
+        x.push_back(ring[i].x());
+        y.push_back(ring[i].y());
+        z.push_back(_p2z[ringi][i]);
       }
-      if (i2 == ring.size()) {
-        i2 = 0;
-      }
-      float len1z = (ringz[i] - ringz[i0]) / 100.0;
-      float len2z = (ringz[i2] - ringz[i]) / 100.0;
-      float incline = atan2(len2z, distance(ring[i], ring[i2])) - atan2(len1z, distance(ring[i0], ring[i]));
-      if (incline <= -PI) {
-        incline = 2 * PI + incline;
-      }
-      if (incline > PI) {
-        incline = incline - 2 * PI;
-      }
-      incline = incline * 180 / PI;
 
-      //if (incline > 0) we have a peak down, otherwise we have a peak up
-      if (abs(incline) > degrees_incline) {
-        //find the outlier by sorting and comparing distance
-        std::vector<int> heights = { ringz[i0], ringz[i], ringz[i2] };
-        std::sort(heights.begin(), heights.end());
-        int h = heights[0];
-        if (abs(heights[2] - heights[1]) > abs(heights[0] - heights[1])) {
-          h = heights[2];
+      std::vector<double> xtmp = x, ytmp = y, ztmp = z;
+
+      int niter = _p2z[ringi].size() - 6;
+      std::vector<int> indices;
+      double se = 0;
+      for (int i = 0; i < niter; i++) {
+        // Fit the model
+        std::vector<double> correctedvalues;
+        coeffs = polyfit3d<double>(xtmp, ytmp, ztmp, correctedvalues);
+        std::vector<double> residuals, absResiduals;
+
+        double sum = 0;
+        for (int j = 0; j < correctedvalues.size(); j++) {
+          absResiduals.push_back(abs(ztmp[j] - correctedvalues[j]));
+          if (i == 0) {
+            double z = ztmp[j] - correctedvalues[j];
+            residuals.push_back(z);
+            sum += z;
+          }
+        }
+        if (i == 0) {
+          int n = residuals.size();
+          double mean = sum / n;
+
+          double sq_sum = 0;
+          std::for_each(residuals.begin(), residuals.end(), [&](const double res) {
+            sq_sum += (res - mean) * (res - mean);
+          });
+
+          // Calculate standard deviation and 2 sigma
+          double stdev = sqrt(sq_sum / (n - 1));
+          se = 1.96 * stdev;
         }
 
-        if (ringz[i0] == h) {
-          //put to height of closest vertex for now
-          _p2z[ringi][i0] = ringz[i];
-          ringz[i0] = ringz[i];
+        // Calculate the maximum residual
+        auto max = std::max_element(absResiduals.begin(), absResiduals.end());
+        // remove outlier if larger then 2*standard deviation
+        if (*max > se) {
+          int imax = max - absResiduals.begin();
+          int vtx = idx[imax];
+
+          // store the index of the vertex marked as an outlier
+          indices.push_back(vtx);
+
+          // remove the outlier from idx, xtmp, xtmp and xtmp arrays for next iteration
+          idx.erase(idx.begin() + imax);
+          xtmp.erase(xtmp.begin() + imax);
+          ytmp.erase(ytmp.begin() + imax);
+          ztmp.erase(ztmp.begin() + imax);
         }
-        else if (ringz[i] == h) {
-          _p2z[ringi][i] = (ringz[i0] + ringz[i2]) / 2;
-          ringz[i] = (ringz[i0] + ringz[i2]) / 2;
+        else {
+          break;
         }
-        else if (ringz[i2] == h) {
-          //put to height of closest vertex for now
-          _p2z[ringi][i2] = ringz[i];
-          ringz[i2] = ringz[i];
+      }
+
+      // get the new values based on the coeffs of the lase equation
+      std::vector<double> correctedvalues = polyval3d<double>(x, y, coeffs);
+      if (flatten) {
+        for (int i = 0; i < ring.size(); i++) {
+          _p2z[ringi][i] = correctedvalues[i];
+        }
+      }
+      else {
+        for (int i : indices) {
+          _p2z[ringi][i] = correctedvalues[i];
         }
       }
     }
@@ -1181,10 +1241,12 @@ int TIN::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool TIN::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
+bool TIN::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
   bool toadd = false;
-  // no need for checking for point-in-polygon since only points in range of the vertices are added
-  assign_elevation_to_vertex(p, z, radius);
+  // if within then a point must lay within the polygon, otherwise add
+  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+    assign_elevation_to_vertex(p, z, radius);
+  }
   if (_simplification <= 1)
     toadd = true;
   else {

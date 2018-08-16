@@ -34,7 +34,7 @@
 
 std::string gen_key_bucket(const Point2* p);
 std::string gen_key_bucket(const Point3* p);
-std::string gen_key_bucket(const Point3* p, int z);
+std::string gen_key_bucket(const Point3* p, float z);
 
 double distance(const Point2 &p1, const Point2 &p2);
 double sqr_distance(const Point2 &p1, const Point2 &p2);

@@ -37,7 +37,7 @@
 #include <boost/filesystem.hpp>
 #include <map>
 
-std::string VERSION = "1.0-RC2";
+std::string VERSION = "1.0";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
@@ -114,6 +114,8 @@ int main(int argc, const char * argv[]) {
       options(poall).positional(popos).run(), vm);
     po::notify(vm);
 
+    std::clog << licensewarning << std::endl;
+
     if (vm.count("help")) {
       std::cout << "Usage: 3dfier config.yml --OBJ myoutput.obj" << std::endl;
       std::cout << "       3dfier config.yml --CityGML myoutput.gml" << std::endl;
@@ -166,9 +168,6 @@ int main(int argc, const char * argv[]) {
     return EXIT_FAILURE;
   }
 
-  std::clog << licensewarning << std::endl;
-
-
   //-- allowed feature classes
   std::set<std::string> allowedFeatures{ "Building", "Water", "Terrain", "Road", "Forest", "Separation", "Bridge/Overpass" };
 
@@ -193,6 +192,11 @@ int main(int argc, const char * argv[]) {
         YAML::Node tmp = n["Building"]["roof"]["use_LAS_classes"];
         for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
           map3d.add_allowed_las_class(LAS_BUILDING_ROOF, it2->as<int>());
+        if (n["Building"]["roof"]["use_LAS_classes_within"]) {
+          tmp = n["Building"]["roof"]["use_LAS_classes_within"];
+          for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+            map3d.add_allowed_las_class_within(LAS_BUILDING_ROOF, it2->as<int>());
+        }
       }
       if (n["Building"]["ground"]) {
         if (n["Building"]["ground"]["height"]) {
@@ -202,6 +206,11 @@ int main(int argc, const char * argv[]) {
         YAML::Node tmp = n["Building"]["ground"]["use_LAS_classes"];
         for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
           map3d.add_allowed_las_class(LAS_BUILDING_GROUND, it2->as<int>());
+        if (n["Building"]["ground"]["use_LAS_classes_within"]) {
+          tmp = n["Building"]["ground"]["use_LAS_classes_within"];
+          for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+            map3d.add_allowed_las_class_within(LAS_BUILDING_GROUND, it2->as<int>());
+        }
       }
       if (n["Building"]["lod"]) {
         map3d.set_building_lod(n["Building"]["lod"].as<int>());
@@ -211,6 +220,18 @@ int main(int argc, const char * argv[]) {
           map3d.set_building_triangulate(true);
         else
           map3d.set_building_triangulate(false);
+      }
+      if (n["Building"]["floor"]) {
+        if (n["Building"]["floor"].as<std::string>() == "true")
+          map3d.set_building_include_floor(true);
+        else
+          map3d.set_building_include_floor(false);
+      }
+      if (n["Building"]["inner_walls"]) {
+        if (n["Building"]["inner_walls"].as<std::string>() == "true")
+          map3d.set_building_inner_walls(true);
+        else
+          map3d.set_building_inner_walls(false);
       }
     }
     if (n["Terrain"]) {
@@ -223,6 +244,11 @@ int main(int argc, const char * argv[]) {
       YAML::Node tmp = n["Terrain"]["use_LAS_classes"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
         map3d.add_allowed_las_class(LAS_TERRAIN, it2->as<int>());
+      if (n["Terrain"]["use_LAS_classes_within"]) {
+        tmp = n["Terrain"]["use_LAS_classes_within"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+          map3d.add_allowed_las_class_within(LAS_TERRAIN, it2->as<int>());
+      }
     }
     if (n["Forest"]) {
       if (n["Forest"]["simplification"])
@@ -234,6 +260,11 @@ int main(int argc, const char * argv[]) {
       YAML::Node tmp = n["Forest"]["use_LAS_classes"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
         map3d.add_allowed_las_class(LAS_FOREST, it2->as<int>());
+      if (n["Forest"]["use_LAS_classes_within"]) {
+        tmp = n["Forest"]["use_LAS_classes_within"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+          map3d.add_allowed_las_class_within(LAS_FOREST, it2->as<int>());
+      }
     }
     if (n["Water"]) {
       if (n["Water"]["height"]) {
@@ -243,18 +274,37 @@ int main(int argc, const char * argv[]) {
       YAML::Node tmp = n["Water"]["use_LAS_classes"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
         map3d.add_allowed_las_class(LAS_WATER, it2->as<int>());
+      if (n["Water"]["use_LAS_classes_within"]) {
+        tmp = n["Water"]["use_LAS_classes_within"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+          map3d.add_allowed_las_class_within(LAS_WATER, it2->as<int>());
+      }
     }
     if (n["Road"]) {
       if (n["Road"]["height"]) {
         std::string height = n["Road"]["height"].as<std::string>();
         map3d.set_road_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
       }
-      if (n["Road"]["threshold_outliers"]) {
-        map3d.set_road_threshold_outliers(n["Road"]["threshold_outliers"].as<int>());
+      if (n["Road"]["filter_outliers"]) {
+        if (n["Road"]["filter_outliers"].as<std::string>() == "true")
+          map3d.set_road_filter_outliers(true);
+        else
+          map3d.set_road_filter_outliers(false);
+      }
+      if (n["Road"]["flatten"]) {
+        if (n["Road"]["flatten"].as<std::string>() == "true")
+          map3d.set_road_flatten(true);
+        else
+          map3d.set_road_flatten(false);
       }
       YAML::Node tmp = n["Road"]["use_LAS_classes"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
         map3d.add_allowed_las_class(LAS_ROAD, it2->as<int>());
+      if (n["Road"]["use_LAS_classes_within"]) {
+        tmp = n["Road"]["use_LAS_classes_within"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+          map3d.add_allowed_las_class_within(LAS_ROAD, it2->as<int>());
+      }
     }
     if (n["Separation"]) {
       if (n["Separation"]["height"]) {
@@ -264,15 +314,31 @@ int main(int argc, const char * argv[]) {
       YAML::Node tmp = n["Separation"]["use_LAS_classes"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
         map3d.add_allowed_las_class(LAS_SEPARATION, it2->as<int>());
+      if (n["Separation"]["use_LAS_classes_within"]) {
+        tmp = n["Separation"]["use_LAS_classes_within"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+          map3d.add_allowed_las_class_within(LAS_SEPARATION, it2->as<int>());
+      }
     }
     if (n["Bridge/Overpass"]) {
       if (n["Bridge/Overpass"]["height"]) {
         std::string height = n["Bridge/Overpass"]["height"].as<std::string>();
         map3d.set_bridge_heightref(std::stof(height.substr(height.find_first_of("-") + 1)) / 100);
       }
+      if (n["Bridge/Overpass"]["flatten"]) {
+        if (n["Bridge/Overpass"]["flatten"].as<std::string>() == "true")
+          map3d.set_bridge_flatten(true);
+        else
+          map3d.set_bridge_flatten(false);
+      }
       YAML::Node tmp = n["Bridge/Overpass"]["use_LAS_classes"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
         map3d.add_allowed_las_class(LAS_BRIDGE, it2->as<int>());
+      if (n["Bridge/Overpass"]["use_LAS_classes_within"]) {
+        tmp = n["Bridge/Overpass"]["use_LAS_classes_within"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
+          map3d.add_allowed_las_class_within(LAS_BRIDGE, it2->as<int>());
+      }
     }
   }
 
@@ -294,7 +360,6 @@ int main(int argc, const char * argv[]) {
       double xmin, xmax, ymin, ymax;
       bool wentgood = true;
       try {
-        (n["radius_vertex_elevation"].as<std::string>());
         xmin = boost::lexical_cast<double>(extent_split[0]);
         ymin = boost::lexical_cast<double>(extent_split[1]);
         xmax = boost::lexical_cast<double>(extent_split[2]);
@@ -325,7 +390,7 @@ int main(int argc, const char * argv[]) {
         uniqueid = (*it)["uniqueid"].as<std::string>();
       }
       // Get the correct height attribute
-      std::string heightfield = "heightfield";
+      std::string heightfield = "";
       if ((*it)["height_field"]) {
         heightfield = (*it)["height_field"].as<std::string>();
       }
@@ -360,14 +425,34 @@ int main(int argc, const char * argv[]) {
 
   //-- check if all polygon files exist
   bool bPolyData = false;
-  for (auto file : polygonFiles) {
-    std::ifstream f(file.filename);
-    if (f.good()) {
+#if GDAL_VERSION_MAJOR < 2
+  if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0)
+    OGRRegisterAll();
+#else
+  if (GDALGetDriverCount() == 0)
+    GDALAllRegister();
+#endif
+
+  for (auto file = polygonFiles.begin(); file != polygonFiles.end(); ++file) {
+#if GDAL_VERSION_MAJOR < 2
+    OGRDataSource *dataSource = OGRSFDriverRegistrar::Open(file->filename.c_str(), false);
+#else
+    GDALDataset *dataSource = (GDALDataset*)GDALOpenEx(file->filename.c_str(), GDAL_OF_READONLY | GDAL_OF_VECTOR, NULL, NULL, NULL);
+#endif
+    if (dataSource != NULL) {
       bPolyData = true;
     }
-    else {
-      bPolyData = false;
-      std::cerr << "ERROR: Missing polygon data, cannot open file " << file.filename << std::endl;
+#if GDAL_VERSION_MAJOR < 2
+    OGRDataSource::DestroyDataSource(dataSource);
+#else
+    GDALClose(dataSource);
+#endif
+    if (bPolyData == false) {
+      std::string logstring = "Reading input dataset: " + file->filename;
+      if (strncmp(file->filename.c_str(), "PG:", strlen("PG:")) == 0) {
+        logstring = "Opening PostgreSQL database connection.";
+      }
+      std::cerr << "\tERROR: " << logstring << std::endl;
       return EXIT_FAILURE;
     }
   }
@@ -434,7 +519,7 @@ int main(int argc, const char * argv[]) {
 
   //-- add the polygons to the map3d
   if (bPolyData) {
-    bool bPolyData = map3d.add_polygons_files(polygonFiles);
+    bPolyData = map3d.add_polygons_files(polygonFiles);
   }
   if (!bPolyData) {
     std::cerr << "ERROR: Missing polygon data, cannot 3dfy the dataset. Aborting.\n";
@@ -469,26 +554,31 @@ int main(int argc, const char * argv[]) {
   std::clog << "3dfying all input polygons...\n";
   bool threedfy = true;
   bool cdt = true;
-  if (outputs.size() == 1) {
-    if (outputs.count("CSV-BUILDINGS-MULTIPLE") == 1) {
+  int outputcount = 0;
+  for (auto& each : outputs) {
+    if (each.second != "") {
+      outputcount++;
+    }
+  }
+  if (outputcount == 1) {
+    if (outputs["CSV-BUILDINGS"] != "") {
       threedfy = false;
+      cdt = false;
+      std::clog << "CSV-BUILDINGS: no 3D reconstruction" << std::endl;
+    }
+    else if (outputs["CSV-BUILDINGS-MULTIPLE"] != "") {
+      threedfy = false;
+      cdt = false;
       std::clog << "CSV-BUILDINGS-MULTIPLE: no 3D reconstruction" << std::endl;
     }
-    else if (outputs.count("CSV-BUILDINGS-ALL-Z") == 1) {
+    else if (outputs["CSV-BUILDINGS-ALL-Z"] != "") {
       threedfy = false;
+      cdt = false;
       std::clog << "CSV-BUILDINGS-ALL-Z: no 3D reconstruction" << std::endl;
     }
-    else {
-      if (outputs.count("OBJ-NoID") == 1) {
-        // for OBJ-NoID only lift objects, skip stitching
-        bStitching = false;
-      }
-      if (outputs.count("CSV-BUILDINGS") == 1) {
-        // for CSV-BUILDINGS only lift objects, skip stitching and skip CDT.
-        // TODO: Make CSV-BUILDINGS like CSV-BUILDINGS-MULTIPLE so no lifting is needed at all
-        bStitching = false;
-        cdt = false;
-      }
+    else if (outputs["OBJ-NoID"] != "") {
+      // for OBJ-NoID only lift objects, skip stitching
+      bStitching = false;
     }
   }
   if (threedfy) {
@@ -504,16 +594,6 @@ int main(int argc, const char * argv[]) {
     print_duration("CDT created in %lld seconds || %02d:%02d:%02d\n", startCDT);
   }
   std::clog << "...3dfying done.\n";
-
-  //-- output
-  if (nodes["output"]) {
-    YAML::Node n = nodes["output"];
-    if (n["building_floor"]) {
-      if (n["building_floor"].as<std::string>() == "true") {
-        map3d.set_building_include_floor(true);
-      }
-    }
-  }
 
   //-- iterate over all output
   for (auto& output : outputs) {
@@ -719,6 +799,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
             }
           }
         }
+        if (n["Building"]["roof"]["use_LAS_classes_within"]) {
+          YAML::Node tmp = n["Building"]["roof"]["use_LAS_classes_within"];
+          for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+            if (is_string_integer(it2->as<std::string>()) == false) {
+              wentgood = false;
+              std::cerr << "\tOption 'Building.roof.use_LAS_classes_within' invalid; must be an integer.\n";
+            }
+          }
+        }
       }
       if (n["Building"]["ground"]) {
         if (n["Building"]["ground"]["height"]) {
@@ -738,6 +827,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
             }
           }
         }
+        if (n["Building"]["ground"]["use_LAS_classes_within"]) {
+          YAML::Node tmp = n["Building"]["ground"]["use_LAS_classes_within"];
+          for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+            if (is_string_integer(it2->as<std::string>()) == false) {
+              wentgood = false;
+              std::cerr << "\tOption 'Building.ground.use_LAS_classes_within' invalid; must be an integer.\n";
+            }
+          }
+        }
       }
       if (n["Building"]["lod"]) {
         if (is_string_integer(n["Building"]["lod"].as<std::string>(), 0, 1) == false) {
@@ -750,6 +848,20 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
         if ((s != "true") && (s != "false")) {
           wentgood = false;
           std::cerr << "\tOption 'Building.triangulate' invalid; must be 'true' or 'false'.\n";
+        }
+      }
+      if (n["Building"]["floor"]) {
+        std::string s = n["Building"]["floor"].as<std::string>();
+        if ((s != "true") && (s != "false")) {
+          wentgood = false;
+          std::cerr << "\tOption 'Building.floor' invalid; must be 'true' or 'false'.\n";
+        }
+      }
+      if (n["Building"]["inner_walls"]) {
+        std::string s = n["Building"]["inner_walls"].as<std::string>();
+        if ((s != "true") && (s != "false")) {
+          wentgood = false;
+          std::cerr << "\tOption 'Building.inner_walls' invalid; must be 'true' or 'false'.\n";
         }
       }
     }
@@ -784,6 +896,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
           if (is_string_integer(it2->as<std::string>()) == false) {
             wentgood = false;
             std::cerr << "\tOption 'Terrain.use_LAS_classes' invalid; must be an integer.\n";
+          }
+        }
+      }        
+      if (n["Terrain"]["use_LAS_classes_within"]) {
+        YAML::Node tmp = n["Terrain"]["use_LAS_classes_within"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+          if (is_string_integer(it2->as<std::string>()) == false) {
+            wentgood = false;
+            std::cerr << "\tOption 'Terrain.use_LAS_classes_within' invalid; must be an integer.\n";
           }
         }
       }
@@ -821,6 +942,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
             std::cerr << "\tOption 'Forest.use_LAS_classes' invalid; must be an integer.\n";
           }
         }
+      } 
+      if (n["Forest"]["use_LAS_classes_within"]) {
+        YAML::Node tmp = n["Forest"]["use_LAS_classes_within"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+          if (is_string_integer(it2->as<std::string>()) == false) {
+            wentgood = false;
+            std::cerr << "\tOption 'Forest.use_LAS_classes_within' invalid; must be an integer.\n";
+          }
+        }
       }
     }
     if (n["Water"]) {
@@ -840,6 +970,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
             std::cerr << "\tOption 'Water.use_LAS_classes' invalid; must be an integer.\n";
           }
         }
+      }   
+      if (n["Water"]["use_LAS_classes_within"]) {
+        YAML::Node tmp = n["Water"]["use_LAS_classes_within"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+          if (is_string_integer(it2->as<std::string>()) == false) {
+            wentgood = false;
+            std::cerr << "\tOption 'Water.use_LAS_classes_within' invalid; must be an integer.\n";
+          }
+        }
       }
     }
     if (n["Road"]) {
@@ -851,12 +990,35 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
           std::cerr << "\tOption 'Road.height' invalid; must be 'percentile-XX'.\n";
         }
       }
+      if (n["Road"]["filter_outliers"]) {
+        std::string s = n["Road"]["filter_outliers"].as<std::string>();
+        if ((s != "true") && (s != "false")) {
+          wentgood = false;
+          std::cerr << "\tOption 'Road.filter_outliers' invalid; must be 'true' or 'false'.\n";
+        }
+      }
+      if (n["Road"]["flatten"]) {
+        std::string s = n["Road"]["flatten"].as<std::string>();
+        if ((s != "true") && (s != "false")) {
+          wentgood = false;
+          std::cerr << "\tOption 'Road.flatten' invalid; must be 'true' or 'false'.\n";
+        }
+      }
       if (n["Road"]["use_LAS_classes"]) {
         YAML::Node tmp = n["Road"]["use_LAS_classes"];
         for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
           if (is_string_integer(it2->as<std::string>()) == false) {
             wentgood = false;
             std::cerr << "\tOption 'Road.use_LAS_classes' invalid; must be an integer.\n";
+          }
+        }
+      }
+      if (n["Road"]["use_LAS_classes_within"]) {
+        YAML::Node tmp = n["Road"]["use_LAS_classes_within"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+          if (is_string_integer(it2->as<std::string>()) == false) {
+            wentgood = false;
+            std::cerr << "\tOption 'Road.use_LAS_classes_within' invalid; must be an integer.\n";
           }
         }
       }
@@ -879,6 +1041,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
           }
         }
       }
+      if (n["Separation"]["use_LAS_classes_within"]) {
+        YAML::Node tmp = n["Separation"]["use_LAS_classes_within"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+          if (is_string_integer(it2->as<std::string>()) == false) {
+            wentgood = false;
+            std::cerr << "\tOption 'Separation.use_LAS_classes_within' invalid; must be an integer.\n";
+          }
+        }
+      }
     }
     if (n["Bridge/Overpass"]) {
       if (n["Bridge/Overpass"]["height"]) {
@@ -896,6 +1067,22 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
             wentgood = false;
             std::cerr << "\tOption 'Bridge/Overpass.use_LAS_classes' invalid; must be an integer.\n";
           }
+        }
+      }
+      if (n["Bridge/Overpass"]["use_LAS_classes_within"]) {
+        YAML::Node tmp = n["Bridge/Overpass"]["use_LAS_classes_within"];
+        for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
+          if (is_string_integer(it2->as<std::string>()) == false) {
+            wentgood = false;
+            std::cerr << "\tOption 'Bridge/Overpass.use_LAS_classes_within' invalid; must be an integer.\n";
+          }
+        }
+      }
+      if (n["Bridge/Overpass"]["flatten"]) {
+        std::string s = n["Bridge/Overpass"]["flatten"].as<std::string>();
+        if ((s != "true") && (s != "false")) {
+          wentgood = false;
+          std::cerr << "\tOption 'Bridge/Overpass.flatten' invalid; must be 'true' or 'false'.\n";
         }
       }
     }
@@ -967,7 +1154,6 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       double xmin, xmax, ymin, ymax;
       bool correct = true;
       try {
-        (n["radius_vertex_elevation"].as<std::string>());
         xmin = boost::lexical_cast<double>(extent_split[0]);
         ymin = boost::lexical_cast<double>(extent_split[1]);
         xmax = boost::lexical_cast<double>(extent_split[2]);
@@ -989,13 +1175,6 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
     if (n["gdal_driver"] && n["gdal_driver"].as<std::string>().empty()) {
       wentgood = false;
       std::cerr << "\tOutput format GDAL needs gdal_driver setting\n";
-    }
-    if (n["building_floor"]) {
-      std::string s = n["building_floor"].as<std::string>();
-      if ((s != "true") && (s != "false")) {
-        wentgood = false;
-        std::cerr << "\tOption 'output.building_floor' invalid; must be 'true' or 'false'.\n";
-      }
     }
   }
 

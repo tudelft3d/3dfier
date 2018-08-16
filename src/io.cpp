@@ -56,14 +56,14 @@ void get_citygml_namespaces(std::wostream& of) {
   of << "xmlns:xAL=\"urn:oasis:names:tc:ciq:xsdschema:xAL:2.0\"\n";
   of << "xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n";
   of << "xmlns:gml=\"http://www.opengis.net/gml\"\n";
-  of << "xmlns:bldg=\"http://www.opengis.net/citygml/building/2.0\"\n";
+  of << "xmlns:bui=\"http://www.opengis.net/citygml/building/2.0\"\n";
   of << "xmlns:wtr=\"http://www.opengis.net/citygml/waterbody/2.0\"\n";
   of << "xmlns:veg=\"http://www.opengis.net/citygml/vegetation/2.0\"\n";
   of << "xmlns:dem=\"http://www.opengis.net/citygml/relief/2.0\"\n";
-  of << "xmlns:tran=\"http://www.opengis.net/citygml/transportation/2.0\"\n";
-  of << "xmlns:luse=\"http://www.opengis.net/citygml/landuse/2.0\"\n";
+  of << "xmlns:tra=\"http://www.opengis.net/citygml/transportation/2.0\"\n";
+  of << "xmlns:lu=\"http://www.opengis.net/citygml/landuse/2.0\"\n";
   of << "xmlns:gen=\"http://www.opengis.net/citygml/generics/2.0\"\n";
-  of << "xmlns:brg=\"http://www.opengis.net/citygml/bridge/2.0\"\n";
+  of << "xmlns:bri=\"http://www.opengis.net/citygml/bridge/2.0\"\n";
   of << "xmlns:app=\"http://www.opengis.net/citygml/appearance/2.0\"\n";
   of << "xmlns:tun=\"http://www.opengis.net/citygml/tunnel/2.0\"\n";
   of << "xmlns:cif=\"http://www.opengis.net/citygml/cityfurniture/2.0\"\n";
@@ -100,9 +100,11 @@ void get_polygon_lifted_gml(std::wostream& of, Polygon2* p2, double height, bool
   auto r = p2->outer();
   of << "<gml:exterior>";
   of << "<gml:LinearRing>";
+  of << "<gml:posList>";
   for (int i = 0; i < r.size(); i++)
-    of << "<gml:pos>" << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << "</gml:pos>";
-  of << "<gml:pos>" << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << height << "</gml:pos>";
+    of << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << " ";
+  of << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << height;
+  of << "</gml:posList>";
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
   //-- irings
@@ -110,9 +112,11 @@ void get_polygon_lifted_gml(std::wostream& of, Polygon2* p2, double height, bool
   for (Ring2& r : irings) {
     of << "<gml:interior>";
     of << "<gml:LinearRing>";
+    of << "<gml:posList>";
     for (int i = 0; i < r.size(); i++)
-      of << "<gml:pos>" << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << "</gml:pos>";
-    of << "<gml:pos>" << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << height << "</gml:pos>";
+      of << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << " ";
+    of << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << height;
+    of << "</gml:posList>";
     of << "</gml:LinearRing>";
     of << "</gml:interior>";
   }
@@ -127,26 +131,39 @@ void get_extruded_line_gml(std::wostream& of, Point2* a, Point2* b, double high,
   of << "<gml:Polygon>";
   of << "<gml:exterior>";
   of << "<gml:LinearRing>";
-  of << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low << "</gml:pos>";
-  of << "<gml:pos>" << bg::get<0>(a) << " " << bg::get<1>(a) << " " << low << "</gml:pos>";
-  of << "<gml:pos>" << bg::get<0>(a) << " " << bg::get<1>(a) << " " << high << "</gml:pos>";
-  of << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << high << "</gml:pos>";
-  of << "<gml:pos>" << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low << "</gml:pos>";
+  of << "<gml:posList>";
+  of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low << " ";
+  of << bg::get<0>(a) << " " << bg::get<1>(a) << " " << low << " ";
+  of << bg::get<0>(a) << " " << bg::get<1>(a) << " " << high << " ";
+  of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << high << " ";
+  of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low;
+  of << "</gml:posList>";
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
   of << "</gml:Polygon>";
   of << "</gml:surfaceMember>";
 }
 
-void get_extruded_lod1_block_gml(std::wostream& of, Polygon2* p2, double high, double low) {
-  //-- get floor
-  get_polygon_lifted_gml(of, p2, low, false);
+void get_extruded_lod1_block_gml(std::wostream& of, Polygon2* p2, double high, double low, bool building_include_floor) {
+  if (building_include_floor) {
+    //-- get floor
+    get_polygon_lifted_gml(of, p2, low, false);
+  }
   //-- get roof
   get_polygon_lifted_gml(of, p2, high, true);
   //-- get the walls
   auto r = p2->outer();
-  for (int i = 0; i < (r.size() - 1); i++)
+  int i;
+  for (i = 0; i < (r.size() - 1); i++)
     get_extruded_line_gml(of, &r[i], &r[i + 1], high, low, false);
+  get_extruded_line_gml(of, &r[i], &r[0], high, low, false);
+  //-- irings
+  auto irings = p2->inners();
+  for (Ring2& r : irings) {
+    for (i = 0; i < (r.size() - 1); i++)
+      get_extruded_line_gml(of, &r[i], &r[i + 1], high, low, false);
+    get_extruded_line_gml(of, &r[i], &r[0], high, low, false);
+  }
 }
 
 bool is_string_integer(std::string s, int min, int max) {

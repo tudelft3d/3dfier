@@ -76,4 +76,7 @@ typedef enum {
    NUM_ALLOWEDLASTOPO     = 8
 } AllowedLASTopo;
 
+static bool abs_compare(double a, double b) {
+  return (std::abs(a) < std::abs(b));
+}
 #endif

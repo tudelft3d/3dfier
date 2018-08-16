@@ -33,10 +33,10 @@
 
 class Bridge: public Boundary3D {
 public:
-  Bridge(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref);
+  Bridge(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, bool flatten);
 
   bool          lift();
-  bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass);
+  bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within);
   void          get_citygml(std::wostream& of);
   void          get_citygml_imgeo(std::wostream& of);
   void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts);
@@ -44,8 +44,10 @@ public:
   bool          get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes = AttributeMap());
   TopoClass     get_class();
   bool          is_hard();
+  bool          get_flatten();
 private:
   static float  _heightref;
+  static bool   _flatten;
 };
 
 #endif /* Bridge_h */

@@ -39,7 +39,7 @@ void get_citygml_imgeo_namespaces(std::wostream& of);
 
 void get_polygon_lifted_gml(std::wostream& of, Polygon2* p2, double height, bool reverse = false);
 void get_extruded_line_gml(std::wostream& of, Point2* a, Point2* b, double high, double low, bool reverse = false);
-void get_extruded_lod1_block_gml(std::wostream& of, Polygon2* p2, double high, double low = 0.0);
+void get_extruded_lod1_block_gml(std::wostream& of, Polygon2* p2, double high, double low = 0.0, bool building_include_floor = false);
 
 bool  is_string_integer(std::string s, int min = 0, int max = 1e6);
 float z_to_float(int z);
