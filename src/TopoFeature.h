@@ -79,7 +79,8 @@ public:
   void         get_imgeo_object_info(std::wostream& of, std::string id);
   void         get_citygml_attributes(std::wostream& of, AttributeMap attributes);
   void         get_cityjson_attributes(nlohmann::json& f, AttributeMap attributes);
-  double       get_point_distance(liblas::Point const& laspt, float radius, AABB_Tree& TriTree);
+  void         create_triangle_tree();
+  double       get_point_distance(liblas::Point const& laspt, float radius);
 
 
   std::vector< std::vector< std::vector<int> > >  _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
@@ -87,6 +88,7 @@ public:
   std::vector<Triangle>                           _triangles;
   std::vector< std::pair<Point3, std::string> >   _vertices_vw;
   std::vector<Triangle>                           _triangles_vw;
+  AABB_Tree                                       _triangle_tree;
 
 protected:
   Polygon2*                         _p2;

@@ -648,6 +648,19 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
   return _lsFeatures;
 }
 
+void Map3d::construct_TriTrees() {
+  std::clog << "=====  /AABB Tree =====\n";
+  for (auto& f : _lsFeatures) {
+    try {
+      f->create_triangle_tree();
+    }
+    catch (const std::exception& e) {
+      std::cerr << std::endl << "AABB Tree failed for " << f->get_id() << " (" << f->get_class() << ") with error: " << e.what() << std::endl;
+    }
+  }
+  std::clog << "=====  AABB Tree/ =====\n";
+}
+
 void Map3d::add_elevation_point(liblas::Point const& laspt) {
   std::vector<PairIndexed> re;
   Point2 minp(laspt.GetX() - _radius_vertex_elevation, laspt.GetY() - _radius_vertex_elevation);
@@ -723,7 +736,6 @@ void Map3d::add_point_distance(liblas::Point const& laspt, bool multi_rmse) {
   maxp = Point2(laspt.GetX() + _building_radius_vertex_elevation, laspt.GetY() + _building_radius_vertex_elevation);
   querybox = Box2(minp, maxp);
   _rtree_buildings.query(bgi::intersects(querybox), std::back_inserter(re));
-  AABB_Tree TriTree;
 
   for (auto& v : re) {
     TopoFeature* f = v.second;
@@ -774,10 +786,9 @@ void Map3d::add_point_distance(liblas::Point const& laspt, bool multi_rmse) {
       if (f->get_class() != BUILDING) { bInsert = false; }
     }
     if (bInsert == true) {
-      if (!TriTree.empty()) { TriTree.clear(); }
-      double dist = f->get_point_distance(laspt, radius, TriTree);
+      double dist = f->get_point_distance(laspt, radius);
       if (std::isfinite(dist)) { f->push_distance(dist, c); } else {
-          //std::clog << "add_point_distance() dist is infinite L779" << std::endl;
+//          std::clog << "add_point_distance() dist is infinite L779" << std::endl;
       }
     }
   }
@@ -1180,7 +1191,7 @@ bool Map3d::add_las_file(PointFile pointFile, const std::string &operation, bool
         std::clog << std::endl;
       }
     }
-    catch (std::exception e) {
+    catch (const std::exception& e) {
       std::cerr << std::endl << e.what() << std::endl;
       ifs.close();
       return false;

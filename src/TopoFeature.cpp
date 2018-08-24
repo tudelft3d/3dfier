@@ -1052,40 +1052,46 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
   }
 }
 
-double TopoFeature::get_point_distance(liblas::Point const& laspt, float radius,
-                                     AABB_Tree& TriTree) {
-  int lasclass = laspt.GetClassification().GetClass();
+void TopoFeature::create_triangle_tree() {
+  if (!_triangle_tree.empty()) { _triangle_tree.clear(); }
+  std::list<Triangle3D> cgal_tris;
+  for (auto& t : _triangles) {
+    auto v0 = _vertices[t.v0].first;
+    auto v1 = _vertices[t.v1].first;
+    auto v2 = _vertices[t.v2].first;
+    Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
+    Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
+    Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
+    cgal_tris.push_back(Triangle3D(a,b,c));
+  }
+  for (auto& t : _triangles_vw) {
+    auto v0 = _vertices_vw[t.v0].first;
+    auto v1 = _vertices_vw[t.v1].first;
+    auto v2 = _vertices_vw[t.v2].first;
+    Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
+    Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
+    Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
+    cgal_tris.push_back(Triangle3D(a,b,c));
+  }
+  _triangle_tree.rebuild(cgal_tris.begin(), cgal_tris.end());
+  bool suc = _triangle_tree.accelerate_distance_queries();
+  if (!suc) {
+      std::clog << "build AABB_tree fail\n";
+      _triangle_tree.clear();
+  }
+  auto b = _triangle_tree.bbox();
+  std::cout << get_id() << " TriTree bbox: "<< b.xmin() << " " << b.xmax() << " " << b.ymin() << " " << b.ymax() << " " << b.zmin() << " " << b.zmax() << std::endl;
+  std::cout << std::endl << "AABB Tree " << get_id() << " (" << get_class()
+      << ") is empty: " << _triangle_tree.empty()
+      << " nr. of triangles: " << _triangle_tree.size() << std::endl;
+}
+
+double TopoFeature::get_point_distance(liblas::Point const& laspt,
+                                       float radius) {
   Point2 p(laspt.GetX(), laspt.GetY());
   double dist = std::numeric_limits<double>::quiet_NaN();
   if (within_range(p, *(_p2), radius)) {
-    // TODO B: do not reconstruct the TriTree for each inserted laspoint
-    std::list<Triangle3D> cgal_tris;
-    for (auto& t : _triangles) {
-      auto v0 = _vertices[t.v0].first;
-      auto v1 = _vertices[t.v1].first;
-      auto v2 = _vertices[t.v2].first;
-      Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
-      Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
-      Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
-      cgal_tris.push_back(Triangle3D(a,b,c));
-    }
-    for (auto& t : _triangles_vw) {
-      auto v0 = _vertices_vw[t.v0].first;
-      auto v1 = _vertices_vw[t.v1].first;
-      auto v2 = _vertices_vw[t.v2].first;
-      Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
-      Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
-      Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
-      cgal_tris.push_back(Triangle3D(a,b,c));
-    }
-    TriTree.insert(cgal_tris.begin(), cgal_tris.end());
-    if (!TriTree.accelerate_distance_queries()) {
-        std::clog << "build AABB_tree fail\n";
-        return dist;
-    }
-    else {
-      dist = distance_3d(TriTree, laspt);
-    }
+    dist = distance_3d(_triangle_tree, laspt);
   }
   return dist;
 }

@@ -51,3 +51,4 @@ x86/
 /ressources/convert-to-simulation/bin/
 /example_data/o.json
 /buildxcode
+/build/

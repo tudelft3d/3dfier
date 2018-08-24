@@ -242,12 +242,20 @@ double distance_3d(AABB_Tree const& TriTree, liblas::Point const& laspt){
   Point3D p(laspt.GetX(), laspt.GetY(), laspt.GetZ());
   double dist = std::numeric_limits<double>::quiet_NaN();
   if (!TriTree.empty()) {
+//    dist = TriTree.squared_distance(p);
+//    return dist;
     try {
+      auto pt = TriTree.closest_point(p);
+      std::cerr << "closest_point: " << pt.x() << " " << pt.y() << " " << pt.z() << std::endl;
       dist = TriTree.squared_distance(p);
       return dist;
     }
-    catch (std::exception e){
+    catch (const std::exception& e){
+      auto b = TriTree.bbox();
+      std::cerr << "TriTree bbox: "<< b.xmin() << " " << b.xmax() << " " << b.ymin() << " " << b.ymax() << " " << b.zmin() << " " << b.zmax() << std::endl;
+      std::cerr << "p: " << p.x() << " " << p.y() << " " << p.z() << std::endl;
       std::cerr << std::endl << e.what() << std::endl;
+      std::exit(1);
       return dist;
     }
   }

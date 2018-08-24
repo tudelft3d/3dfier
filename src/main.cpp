@@ -556,7 +556,7 @@ int main(int argc, const char * argv[]) {
       print_duration("CDT created in %lld seconds || %02d:%02d:%02d\n", startCDT);
 
       auto startPoints = boost::chrono::high_resolution_clock::now();
-      //TODO B: construct TriTree for each TopoFeature here
+      map3d.construct_TriTrees();
       for (auto file : elevationFiles) {
         bool added = map3d.add_las_file(file, "distance", multi_rmse);
         if (!added) {
@@ -586,7 +586,7 @@ int main(int argc, const char * argv[]) {
     if (stats == 1) {
 //      std::clog << std::endl << "main.cpp you better fucking be here already L587" << std::endl;
       auto startPoints = boost::chrono::high_resolution_clock::now();
-      //TODO B: construct TriTree for each TopoFeature here
+      map3d.construct_TriTrees();
       for (auto file : elevationFiles) {
         bool added = map3d.add_las_file(file, "distance", multi_rmse);
         if (!added) {
