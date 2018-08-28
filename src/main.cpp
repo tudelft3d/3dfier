@@ -539,6 +539,7 @@ int main(int argc, const char * argv[]) {
       std::clog << "\nPerforming 3D reconstruction in order to compute quality metrics" << std::endl;
   }
   if (stats == 1 && multi_rmse) {
+    //K: starts here
     std::vector<float> rpercentiles = {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
     for (int i = 0; i < rpercentiles.size(); i++) {
       float pctile = rpercentiles[i];
@@ -556,8 +557,10 @@ int main(int argc, const char * argv[]) {
       print_duration("CDT created in %lld seconds || %02d:%02d:%02d\n", startCDT);
 
       auto startPoints = boost::chrono::high_resolution_clock::now();
+      //K: construct an AABB tree for each feature. At this point a triangulation is created for each feature.
       map3d.construct_TriTrees();
       for (auto file : elevationFiles) {
+        //K: compute the distance for each in the point cloud
         bool added = map3d.add_las_file(file, "distance", multi_rmse);
         if (!added) {
           std::cerr << "ERROR: corrupt file " << file.filename << std::endl;

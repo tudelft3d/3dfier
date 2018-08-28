@@ -650,8 +650,10 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
 
 void Map3d::construct_TriTrees() {
   std::clog << "=====  /AABB Tree =====\n";
+  //K: _lsFeatures contains TopoFeatures. Practically everything in the map is a TopoFeature
   for (auto& f : _lsFeatures) {
     try {
+      //K: so for each TopoFeature, create the triangle tree
       f->create_triangle_tree();
     }
     catch (const std::exception& e) {
