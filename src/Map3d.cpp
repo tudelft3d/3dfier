@@ -52,10 +52,7 @@ Map3d::Map3d() {
   _building_radius_vertex_elevation = 3.0;
   _threshold_jump_edges = 50;
   _requestedExtent = Box2(Point2(0, 0), Point2(0, 0));
-  bg::set<bg::min_corner, 0>(_bbox, 999999);
-  bg::set<bg::min_corner, 1>(_bbox, 999999);
-  bg::set<bg::max_corner, 0>(_bbox, -999999);
-  bg::set<bg::max_corner, 1>(_bbox, -999999);
+  _bbox = Box2(Point2(999999, 999999), Point2(-999999, -999999));
 }
 
 Map3d::~Map3d() {
