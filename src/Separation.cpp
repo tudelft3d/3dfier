@@ -111,7 +111,13 @@ void Separation::get_citygml_imgeo(std::wostream& of) {
     if (get_attribute("bgt-type", attribute)) {
       of << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerk\">" << attribute << "</imgeo:bgt-type>";
     }
+    else if (get_attribute("bgt_type", attribute)) {
+      of << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerk\">" << attribute << "</imgeo:bgt-type>";
+    }
     if (get_attribute("plus-type", attribute)) {
+      of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerkPlus\">" << attribute << "</imgeo:plus-type>";
+    }
+    else if (get_attribute("plus_type", attribute)) {
       of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeKunstwerkPlus\">" << attribute << "</imgeo:plus-type>";
     }
     of << "</imgeo:Kunstwerkdeel>";
@@ -120,7 +126,13 @@ void Separation::get_citygml_imgeo(std::wostream& of) {
     if (get_attribute("bgt-type", attribute)) {
       of << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerk\">" << attribute << "</imgeo:bgt-type>";
     }
+    else if (get_attribute("bgt_type", attribute)) {
+      of << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerk\">" << attribute << "</imgeo:bgt-type>";
+    }
     if (get_attribute("plus-type", attribute)) {
+      of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerkPlus\">" << attribute << "</imgeo:plus-type>";
+    }
+    else if (get_attribute("plus_type", attribute)) {
       of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOverigBouwwerkPlus\">" << attribute << "</imgeo:plus-type>";
     }
     of << "</imgeo:OverigBouwwerk>";
@@ -129,7 +141,13 @@ void Separation::get_citygml_imgeo(std::wostream& of) {
     if (get_attribute("bgt-type", attribute)) {
       of << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheiding\">" << attribute << "</imgeo:bgt-type>";
     }
+    else if (get_attribute("bgt_type", attribute)) {
+      of << "<imgeo:bgt-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheiding\">" << attribute << "</imgeo:bgt-type>";
+    }
     if (get_attribute("plus-type", attribute)) {
+      of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheidingPlus\">" << attribute << "</imgeo:plus-type>";
+    }
+    else if (get_attribute("plus_type", attribute)) {
       of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeScheidingPlus\">" << attribute << "</imgeo:plus-type>";
     }
     of << "</imgeo:Scheiding>";

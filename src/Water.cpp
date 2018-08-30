@@ -106,7 +106,13 @@ void Water::get_citygml_imgeo(std::wostream& of) {
     if (get_attribute("bgt-type", attribute)) {
       of << "<wat:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOndersteunendWaterdeel\">" << attribute << "</wat:class>";
     }
+    else if (get_attribute("bgt_type", attribute)) {
+      of << "<wat:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOndersteunendWaterdeel\">" << attribute << "</wat:class>";
+    }
     if (get_attribute("plus-type", attribute)) {
+      of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOndersteunendWaterdeelPlus\">" << attribute << "</imgeo:plus-type>";
+    }
+    else if (get_attribute("plus_type", attribute)) {
       of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeOndersteunendWaterdeelPlus\">" << attribute << "</imgeo:plus-type>";
     }
     of << "</imgeo:OndersteunendWaterdeel>";
@@ -115,7 +121,13 @@ void Water::get_citygml_imgeo(std::wostream& of) {
     if (get_attribute("bgt-type", attribute)) {
       of << "<wat:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWater\">" << attribute << "</wat:class>";
     }
+    else if (get_attribute("bgt_type", attribute)) {
+      of << "<wat:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWater\">" << attribute << "</wat:class>";
+    }
     if (get_attribute("plus-type", attribute)) {
+      of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWaterPlus\">" << attribute << "</imgeo:plus-type>";
+    }
+    else if (get_attribute("plus_type", attribute)) {
       of << "<imgeo:plus-type codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#TypeWaterPlus\">" << attribute << "</imgeo:plus-type>";
     }
     of << "</imgeo:Waterdeel>";
