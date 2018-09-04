@@ -36,7 +36,7 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
-std::string VERSION = "1.0";
+std::string VERSION = "1.0.1";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
@@ -684,6 +684,7 @@ int main(int argc, const char * argv[]) {
     }
     else {
       std::cerr << "ERROR: Writing features failed for " << format << ". Aborting.\n";
+      return EXIT_FAILURE;
     }
   }
 

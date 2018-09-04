@@ -96,12 +96,18 @@ void Terrain::get_citygml_imgeo(std::wostream& of) {
   if (get_attribute("bgt-fysiekvoorkomen", attribute)) {
     of << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" << attribute /*"erf"*/ << "</imgeo:bgt-fysiekVoorkomen>";
   }
+  else if (get_attribute("bgt_fysiekvoorkomen", attribute)) {
+    of << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" << attribute /*"erf"*/ << "</imgeo:bgt-fysiekVoorkomen>";
+  }
   if (get_attribute("onbegroeidterreindeeloptalud", attribute, "false")) {
     of << "<imgeo:onbegroeidTerreindeelOpTalud>" << attribute << "</imgeo:onbegroeidTerreindeelOpTalud>";
   }
   if (get_attribute("plus-fysiekvoorkomen", attribute)) {
     of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>";
   }
+  else if (get_attribute("plus_fysiekvoorkomen", attribute)) {
+      of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>";
+    }
   of << "</imgeo:OnbegroeidTerreindeel>";
   of << "</cityObjectMember>";
 }
