@@ -95,10 +95,16 @@ void Forest::get_citygml_imgeo(std::wostream& of) {
   if (get_attribute("bgt-fysiekvoorkomen", attribute)) {
     of << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</veg:class>";
   }
+  else if (get_attribute("bgt_fysiekvoorkomen", attribute)) {
+    of << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</veg:class>";
+  }
   if (get_attribute("begroeidterreindeeloptalud", attribute, "false")) {
     of << "<imgeo:begroeidTerreindeelOpTalud>" << attribute << "</imgeo:begroeidTerreindeelOpTalud>";
   }
   if (get_attribute("plus-fysiekvoorkomen", attribute)) {
+    of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>";
+  }
+  else if (get_attribute("plus_fysiekvoorkomen", attribute)) {
     of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>";
   }
   of << "</veg:PlantCover>";

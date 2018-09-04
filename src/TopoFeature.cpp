@@ -240,6 +240,9 @@ void TopoFeature::get_imgeo_object_info(std::wostream& of, std::string id) {
   if (get_attribute("lv-publicatiedatum", attribute)) {
     of << "<imgeo:LV-publicatiedatum>" << attribute << "</imgeo:LV-publicatiedatum>";
   }
+  else if (get_attribute("lv_publicatiedatum", attribute)) {
+    of << "<imgeo:LV-publicatiedatum>" << attribute << "</imgeo:LV-publicatiedatum>";
+  }
   if (get_attribute("bronhouder", attribute)) {
     of << "<imgeo:bronhouder>" << attribute << "</imgeo:bronhouder>";
   }
@@ -252,9 +255,15 @@ void TopoFeature::get_imgeo_object_info(std::wostream& of, std::string id) {
   if (get_attribute("bgt-status", attribute, "bestaand")) {
     of << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" << attribute << "</imgeo:bgt-status>";
   }
+  else if (get_attribute("bgt_status", attribute, "bestaand")) {
+    of << "<imgeo:bgt-status codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#Status\">" << attribute << "</imgeo:bgt-status>";
+  }
   if (get_attribute("plus-status", attribute)) {
     of << "<imgeo:plus-status>" << attribute << "</imgeo:plus-status>";
   }
+  else if (get_attribute("plus_status", attribute)) {
+      of << "<imgeo:plus-status>" << attribute << "</imgeo:plus-status>";
+    }
 }
 
 void TopoFeature::get_cityjson_attributes(nlohmann::json& f, AttributeMap attributes) {
