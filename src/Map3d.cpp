@@ -423,7 +423,7 @@ bool Map3d::get_pdok_output(std::string filename) {
       OGRLayer *layer = create_gdal_layer(driver, tmpFilename, layername, attributes, f->get_class() == BUILDING);
       if (layer == NULL) {
         std::cerr << "ERROR: Cannot open database '" + filename + "' for writing" << std::endl;
-        close_gdal_resources(driver, layers);
+        GDALClose(driver);
         return false;
       }
       layers.emplace(layername, layer);
@@ -440,7 +440,7 @@ bool Map3d::get_pdok_output(std::string filename) {
 
     f->get_shape(layers[layername], true, extraAttribute);
   }
-  close_gdal_resources(driver, layers);
+  GDALClose(driver);
   return true;
 #endif
 }

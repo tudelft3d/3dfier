@@ -684,6 +684,7 @@ int main(int argc, const char * argv[]) {
     }
     else {
       std::cerr << "ERROR: Writing features failed for " << format << ". Aborting.\n";
+      return EXIT_FAILURE;
     }
   }
 
