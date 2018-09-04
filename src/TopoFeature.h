@@ -89,6 +89,7 @@ public:
   std::vector< std::pair<Point3, std::string> >   _vertices_vw;
   std::vector<Triangle>                           _triangles_vw;
   AABB_Tree                                       _triangle_tree;
+  std::list<Triangle3D>                           _cgal_tris;
 
 protected:
   Polygon2*                         _p2;

@@ -1054,9 +1054,7 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
 
 void TopoFeature::create_triangle_tree() {
   if (!_triangle_tree.empty()) { _triangle_tree.clear(); }
-  //K: 3dfier uses geometry class of Boost, so I need to re-cast the Boost-triangles into CGAL-triangles
-  //K: Triangle3D, Point3D, AABBTree are defined in geomtools.h
-  std::list<Triangle3D> cgal_tris;
+  if (!_cgal_tris.empty()) { _cgal_tris.clear(); }
   for (auto& t : _triangles) {
     auto v0 = _vertices[t.v0].first;
     auto v1 = _vertices[t.v1].first;
@@ -1064,9 +1062,8 @@ void TopoFeature::create_triangle_tree() {
     Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
     Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
     Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
-    cgal_tris.push_back(Triangle3D(a,b,c));
+    _cgal_tris.push_back(Triangle3D(a,b,c));
   }
-  //K: the triangles of vertical walls are stored separately for some reason
   for (auto& t : _triangles_vw) {
     auto v0 = _vertices_vw[t.v0].first;
     auto v1 = _vertices_vw[t.v1].first;
@@ -1074,22 +1071,14 @@ void TopoFeature::create_triangle_tree() {
     Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
     Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
     Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
-    cgal_tris.push_back(Triangle3D(a,b,c));
+    _cgal_tris.push_back(Triangle3D(a,b,c));
   }
-  //K: rebuild() calls clear() then inserts the triangles
-  _triangle_tree.rebuild(cgal_tris.begin(), cgal_tris.end());
-  //K: construct a search tree
+  _triangle_tree.rebuild(_cgal_tris.begin(), _cgal_tris.end());
   bool suc = _triangle_tree.accelerate_distance_queries();
   if (!suc) {
       std::clog << "build AABB_tree fail\n";
       _triangle_tree.clear();
   }
-  //K: this is just for debugging
-  auto b = _triangle_tree.bbox();
-  std::cout << get_id() << " TriTree bbox: "<< b.xmin() << " " << b.xmax() << " " << b.ymin() << " " << b.ymax() << " " << b.zmin() << " " << b.zmax() << std::endl;
-  std::cout << std::endl << "AABB Tree " << get_id() << " (" << get_class()
-      << ") is empty: " << _triangle_tree.empty()
-      << " nr. of triangles: " << _triangle_tree.size() << std::endl;
 }
 
 double TopoFeature::get_point_distance(liblas::Point const& laspt,
