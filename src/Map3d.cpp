@@ -411,6 +411,8 @@ bool Map3d::get_pdok_output(std::string filename) {
   if (GDALGetDriverCount() == 0)
     GDALAllRegister();
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("PostgreSQL");
+  GDALDataset* dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+  dataSource->StartTransaction();
 
   std::unordered_map<std::string, OGRLayer*> layers;
   for (auto& f : _lsFeatures) {
@@ -420,9 +422,11 @@ bool Map3d::get_pdok_output(std::string filename) {
       AttributeMap attributes = f->get_attributes();
       //Add additional attribute to list for layer creation
       attributes["xml"] = std::make_pair(OFTString, "");
-      OGRLayer *layer = create_gdal_layer(driver, tmpFilename, layername, attributes, f->get_class() == BUILDING);
+      OGRLayer *layer = create_gdal_layer(driver, dataSource, tmpFilename, layername, attributes, f->get_class() == BUILDING);
       if (layer == NULL) {
         std::cerr << "ERROR: Cannot open database '" + filename + "' for writing" << std::endl;
+        dataSource->RollbackTransaction();
+        GDALClose(dataSource);
         GDALClose(driver);
         return false;
       }
@@ -440,6 +444,8 @@ bool Map3d::get_pdok_output(std::string filename) {
 
     f->get_shape(layers[layername], true, extraAttribute);
   }
+  dataSource->CommitTransaction();
+  GDALClose(dataSource);
   GDALClose(driver);
   return true;
 #endif
@@ -455,7 +461,7 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName(drivername.c_str());
 
   if (!multi) {
-    OGRLayer *layer = create_gdal_layer(driver, filename, "my3dmap", AttributeMap(), true);
+    OGRLayer *layer = create_gdal_layer(driver, NULL, filename, "my3dmap", AttributeMap(), true);
     if (layer == NULL) {
       std::cerr << "ERROR: Cannot open file '" + filename + "' for writing" << std::endl;
       GDALClose(layer);
@@ -477,7 +483,7 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
         if (drivername == "ESRI Shapefile") {
           tmpFilename = filename + layername;
         }
-        OGRLayer *layer = create_gdal_layer(driver, tmpFilename, layername, f->get_attributes(), f->get_class() == BUILDING);
+        OGRLayer *layer = create_gdal_layer(driver, NULL, tmpFilename, layername, f->get_attributes(), f->get_class() == BUILDING);
         if (layer == NULL) {
           std::cerr << "ERROR: Cannot open file '" + filename + "' for writing" << std::endl;
           close_gdal_resources(driver, layers);
@@ -503,8 +509,10 @@ void Map3d::close_gdal_resources(GDALDriver* driver, std::unordered_map<std::str
 #endif
 
 #if GDAL_VERSION_MAJOR >= 2
-OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, AttributeMap attributes, bool addHeightAttributes) {
-  GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+OGRLayer* Map3d::create_gdal_layer(GDALDriver* driver, GDALDataset* dataSource, std::string filename, std::string layername, AttributeMap attributes, bool addHeightAttributes) {
+  if (dataSource == NULL) {
+    dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+  }
 
   if (dataSource == NULL) {
     std::cerr << "ERROR: could not open file, skipping it.\n";
