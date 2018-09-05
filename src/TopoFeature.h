@@ -51,6 +51,7 @@ public:
   virtual void          get_citygml_imgeo(std::wostream& of) = 0;
   virtual bool          get_shape(OGRLayer*, bool writeAttributes, AttributeMap extraAttributes = AttributeMap()) = 0;
   virtual bool          push_distance(double dist, int lasclass) = 0;
+  virtual void          clear_distances() = 0;
   virtual void          set_heightref_top(float h) {};
 
   std::string  get_id();
@@ -90,6 +91,7 @@ public:
   std::vector<Triangle>                           _triangles_vw;
   AABB_Tree                                       _triangle_tree;
   std::list<Triangle3D>                           _cgal_tris;
+  std::vector< std::vector<double> >              _distancesinside;
 
 protected:
   Polygon2*                         _p2;
@@ -100,7 +102,6 @@ protected:
   bool                              _toplevel;
   std::string                       _layername;
   AttributeMap                      _attributes;
-  std::vector< std::vector<double> > _distancesinside;
 
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(Point2 &p, double z, float radius);

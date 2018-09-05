@@ -55,10 +55,9 @@ bool Terrain::push_distance(double dist, int lasclass) {
   return true;
 }
 
-//bool Terrain::add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree) {
-//  //-- placeholder
-//  return false;
-//}
+void Terrain::clear_distances() {
+  if (!_distancesinside[0].empty()) { _distancesinside[0].clear(); }
+}
 
 bool Terrain::lift() {
   //-- lift vertices to their median of lidar points

@@ -37,6 +37,7 @@ public:
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass);
   bool          push_distance(double dist, int lasclass);
+  void          clear_distances();
   void          get_citygml(std::wostream& of);
   void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts);
   void          get_citygml_imgeo(std::wostream& of);

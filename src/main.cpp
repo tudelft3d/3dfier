@@ -493,8 +493,9 @@ int main(int argc, const char * argv[]) {
   //-- add the elevation data to the map3d
   auto startPoints = boost::chrono::high_resolution_clock::now();
   bool multi_rmse = false;
+  bool distance = false;
   for (auto file : elevationFiles) {
-    bool added = map3d.add_las_file(file, "elevation", multi_rmse);
+    bool added = map3d.add_las_file(file, distance, multi_rmse);
     if (!added) {
       std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
       return EXIT_FAILURE;
@@ -540,6 +541,7 @@ int main(int argc, const char * argv[]) {
   }
   if (stats == 1 && multi_rmse) {
     std::vector<float> rpercentiles = {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
+    distance = true;
     for (int i = 0; i < rpercentiles.size(); i++) {
       float pctile = rpercentiles[i];
       std::clog << std::setprecision(2) << "\nPerforming 3D reconstruction of Buildings for roof percentile-" << pctile << std::endl;
@@ -558,7 +560,7 @@ int main(int argc, const char * argv[]) {
       auto startPoints = boost::chrono::high_resolution_clock::now();
       map3d.construct_TriTrees();
       for (auto file : elevationFiles) {
-        bool added = map3d.add_las_file(file, "distance", multi_rmse);
+        bool added = map3d.add_las_file(file, distance, multi_rmse);
         if (!added) {
           std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
           return EXIT_FAILURE;
@@ -584,11 +586,11 @@ int main(int argc, const char * argv[]) {
 
     //-- add the elevation data to the map3d again for computing the Building-mesh - PC distances
     if (stats == 1) {
-//      std::clog << std::endl << "main.cpp you better fucking be here already L587" << std::endl;
+      distance = true;
       auto startPoints = boost::chrono::high_resolution_clock::now();
       map3d.construct_TriTrees();
       for (auto file : elevationFiles) {
-        bool added = map3d.add_las_file(file, "distance", multi_rmse);
+        bool added = map3d.add_las_file(file, distance, multi_rmse);
         if (!added) {
           std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
           return EXIT_FAILURE;

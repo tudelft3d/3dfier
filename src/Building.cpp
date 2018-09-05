@@ -116,23 +116,22 @@ int Building::get_height_roof_at_percentile(float percentile) {
 
 std::vector<double> Building::get_RMSE() {
   std::vector<double> rmse;
-//  std::clog << this->get_id() << " get_RMSE _distancesinside.size() " << _distancesinside.size() << std::endl;
   for (int i = 0; i < _distancesinside.size(); i++) {
+    std::cout << "size: " << _distancesinside[i].size() << " ";
     auto& distinside = _distancesinside[i];
     if (distinside.empty()) {
-//      std::clog << this->get_id() << "get_RMSE distinside empty" << std::endl;
       rmse.push_back(-9999.0);
     }
     else {
-//      std::clog << this->get_id() << "get_RMSE distinside full" << std::endl;
       double sum = 0.0;
-      for (auto& d : distinside) sum += d;
+      for (double& d : distinside) sum += d;
       double n = distinside.size();
       auto rm = sqrt(sum/n);
-//      std::clog << this->get_id() << "rm: " << rm << std::endl;
+      std::cout << "rmse: " << rm << "; ";
       rmse.push_back(rm);
     }
   }
+  std::cout << std::endl;
   return rmse;
 }
 
@@ -168,16 +167,18 @@ bool Building::add_elevation_point(Point2 &p, double z, float radius, int lascla
   return true;
 }
 
+void Building::clear_distances() {
+  int key = _heightref_top * 100;
+  int idx = _rpctile_map[key];
+  if (!_distancesinside[idx].empty()) { _distancesinside[idx].clear(); }
+}
+
 bool Building::push_distance(double dist, int lasclass) {
-  if (_distancesinside.size()==0) { _distancesinside.resize(8); }
+  //TODO B: remove the if clause it doesnt make sense
   if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0) ) {
-//    std::clog << "push_distance() yes lasclasses whatever" << std::endl;
     int key = _heightref_top * 100;
     int idx = _rpctile_map[key];
-//    std::clog << "push_distance() dist " << dist << std::endl;
     _distancesinside[idx].push_back(dist);
-  } else {
-//    std::clog << "push_distance() no lasclasses whatever" << std::endl;
   }
   return true;
 }
@@ -352,18 +353,9 @@ void Building::get_csv(std::wostream& of, int stats) {
     this->get_height_roof_at_percentile(_heightref_top) / 100.0 << ";" <<
     this->get_height_ground_at_percentile(_heightref_base) / 100.0;
   if (stats == 1) {
-//    std::clog << "WTF is in get_csv() stats==1?! L350" << std::endl;
     std::vector<double> rmse = this->get_RMSE();
-//    std::clog << "WTF is in get_csv() rmse.size() L352 " << rmse.size() << std::endl;
-//    for (auto i: rmse)
-//      std::clog << i << ' ' << std::endl;
     int key = _heightref_top * 100;
-//    std::clog << "WTF is in get_csv() key L355 " << key << std::endl;
     int idx = _rpctile_map[key];
-//    std::clog << "WTF is in get_csv() idx L355 " << idx << std::endl;
-//    auto r = rmse[idx];
-//    std::clog << "WTF is in get_csv() rmse[idx]?! L357 " << rmse[idx] << std::endl;
-//    std::clog << this->get_id() << "\t" << rmse[idx] << std::endl;
     of << ";" << rmse[idx] << std::endl;
   }
   else {

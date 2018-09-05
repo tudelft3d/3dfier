@@ -54,15 +54,13 @@ bool Separation::add_elevation_point(Point2 &p, double z, float radius, int lasc
 }
 
 bool Separation::push_distance(double dist, int lasclass) {
-  if (_distancesinside.size()==0) { _distancesinside.resize(8); }
   _distancesinside[0].push_back(dist);
   return true;
 }
 
-//bool Separation::add_point_distance(liblas::Point const& laspt, float radius, AABB_Tree const& TriTree) {
-//  //-- placeholder
-//  return false;
-//}
+void Separation::clear_distances() {
+  if (!_distancesinside[0].empty()) { _distancesinside[0].clear(); }
+}
 
 bool Separation::lift() {
   lift_each_boundary_vertices(_heightref);

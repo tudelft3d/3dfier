@@ -308,10 +308,8 @@ void Map3d::get_csv_buildings(std::wostream& of, int stats) {
     of << "id,roof,ground" << std::endl;
   }
   for (auto& p : _lsFeatures) {
-//    std::clog << "WTF is going on here?!" << std::endl;
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
-//      std::clog << "WTF is going on in the if-clause?!" << std::endl;
       b->get_csv(of, stats);
     }
   }
@@ -341,7 +339,6 @@ void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, int stats) {
     of << "roof-" << each << ",";
     if (stats == 1) {
         of << "rmse-" << each << ",";
-//    of << "rmse" << "," << "alldist";
     }
   }
   of << std::endl;
@@ -349,6 +346,7 @@ void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, int stats) {
     for (auto& p : _lsFeatures) {
       if (p->get_class() == BUILDING) {
         Building* b = dynamic_cast<Building*>(p);
+        std::cout << b->get_id() << " ";
         std::vector<double> rmse = b->get_RMSE();
         of << b->get_id() << ",";
         for (auto& each : gpercentiles) {
@@ -650,11 +648,14 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
 
 void Map3d::construct_TriTrees() {
   std::clog << "=====  /AABB Tree =====\n";
-  //K: _lsFeatures contains TopoFeatures. Practically everything in the map is a TopoFeature
   for (auto& f : _lsFeatures) {
     try {
-      //K: so for each TopoFeature, create the triangle tree
       f->create_triangle_tree();
+      if (f->_distancesinside.size()==0) { f->_distancesinside.resize(8); }
+      f->clear_distances();
+//      if (f->get_class() == BUILDING) {
+//        f->clear_distances();
+//      }
     }
     catch (const std::exception& e) {
       std::cerr << std::endl << "AABB Tree failed for " << f->get_id() << " (" << f->get_class() << ") with error: " << e.what() << std::endl;
@@ -790,7 +791,6 @@ void Map3d::add_point_distance(liblas::Point const& laspt, bool multi_rmse) {
     if (bInsert == true) {
       double dist = f->get_point_distance(laspt, radius);
       if (std::isfinite(dist)) { f->push_distance(dist, c); } else {
-//          std::clog << "add_point_distance() dist is infinite L779" << std::endl;
       }
     }
   }
@@ -1103,7 +1103,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
 }
 
 //-- http://www.liblas.org/tutorial/cpp.html#applying-filters-to-a-reader-to-extract-specified-classes
-bool Map3d::add_las_file(PointFile pointFile, const std::string &operation, bool multi_rmse) {
+bool Map3d::add_las_file(PointFile pointFile, bool distance, bool multi_rmse) {
   std::clog << "Reading LAS/LAZ file: " << pointFile.filename << std::endl;
   std::ifstream ifs;
   ifs.open(pointFile.filename.c_str(), std::ios::in | std::ios::binary);
@@ -1145,8 +1145,7 @@ bool Map3d::add_las_file(PointFile pointFile, const std::string &operation, bool
     int i = 0;
     
     try {
-      //-- TODO B: change to bool instead of string comparison
-      if (operation == "elevation") {
+      if (!distance) {
         while (reader.ReadNextPoint()) {
           liblas::Point const& p = reader.GetPoint();
           //-- set the thinning filter
@@ -1166,23 +1165,14 @@ bool Map3d::add_las_file(PointFile pointFile, const std::string &operation, bool
         printProgressBar(100);
         std::clog << std::endl;
       }
-      else if (operation == "distance") {
-//        std::clog << std::endl << "add_las_file() L1155 are we fucking there yet?!" << std::endl;
+      else if (distance) {
         while (reader.ReadNextPoint()) {
           liblas::Point const& p = reader.GetPoint();
           if (i % pointFile.thinning == 0) {
             if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end()) {
               if (polygonBounds.contains(p)) {
-//                std::clog << "add_las_file() L1160 are we fucking there yet?!" << std::endl;
                 this->add_point_distance(p, multi_rmse);
-//                std::clog << "add_las_file() L1162 sth happened" << std::endl;
               }
-              else {
-//                std::clog << std::endl << "add_las_file() L1166 NOT polygonBounds.contains(p)" << std::endl;
-              }
-            }
-            else {
-//              std::clog << std::endl << "add_las_file() L1170 NOT std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end()" << std::endl;
             }
           }
           if (i % (pointCount / 100) == 0)

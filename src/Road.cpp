@@ -56,11 +56,13 @@ bool Road::add_elevation_point(Point2 &p, double z, float radius, int lasclass) 
 }
 
 bool Road::push_distance(double dist, int lasclass) {
-  if (_distancesinside.size()==0) { _distancesinside.resize(8); }
   _distancesinside[0].push_back(dist);
   return true;
 }
 
+void Road::clear_distances() {
+  if (!_distancesinside[0].empty()) { _distancesinside[0].clear(); }
+}
 
 bool Road::lift() {
   lift_each_boundary_vertices(_heightref);
