@@ -119,18 +119,18 @@ int main(int argc, const char * argv[]) {
       std::cout << "Usage: 3dfier config.yml --OBJ myoutput.obj" << std::endl;
       std::cout << "       3dfier config.yml --CityGML myoutput.gml" << std::endl;
       std::cout << pomain << std::endl;
-      return EXIT_FAILURE;
+      return EXIT_SUCCESS;
     }
     if (vm.count("license")) {
       std::cout << print_license() << std::endl;
-      return EXIT_FAILURE;
+      return EXIT_SUCCESS;
     }
     if (vm.count("version")) {
       std::cout << "3dfier " << VERSION << std::endl;
       std::cout << liblas::GetFullVersion() << std::endl;
       std::cout << "GDAL " << GDALVersionInfo("--version") << std::endl;
       //-- TODO : put here the date and/or the git-commit?
-      return EXIT_FAILURE;
+      return EXIT_SUCCESS;
     }
     if (vm.count("yaml") == 0) {
       std::cerr << "ERROR: one YAML config file must be specified." << std::endl;
