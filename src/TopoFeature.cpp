@@ -266,7 +266,7 @@ void TopoFeature::get_imgeo_object_info(std::wostream& of, std::string id) {
     }
 }
 
-void TopoFeature::get_cityjson_attributes(nlohmann::json& f, AttributeMap attributes) {
+void TopoFeature::get_cityjson_attributes(nlohmann::json& f, const AttributeMap& attributes) {
   for (auto& attribute : attributes) {
     // add attributes except gml_id
     if (attribute.first.compare("gml_id") != 0) 
@@ -274,7 +274,7 @@ void TopoFeature::get_cityjson_attributes(nlohmann::json& f, AttributeMap attrib
   }
 }
 
-void TopoFeature::get_citygml_attributes(std::wostream& of, AttributeMap attributes) {
+void TopoFeature::get_citygml_attributes(std::wostream& of, const AttributeMap& attributes) {
   for (auto& attribute : attributes) {
     // add attributes except gml_id
     if (attribute.first.compare("gml_id") != 0) {
@@ -296,7 +296,7 @@ void TopoFeature::get_citygml_attributes(std::wostream& of, AttributeMap attribu
   }
 }
 
-bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, AttributeMap extraAttributes) {
+bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, const AttributeMap& extraAttributes) {
   OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
   OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
   OGRMultiPolygon multipolygon = OGRMultiPolygon();
@@ -657,7 +657,7 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
   }
 }
 
-bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& bringi, int& bpi) {
+bool TopoFeature::has_segment(const Point2& a, const Point2& b, int& aringi, int& api, int& bringi, int& bpi) {
   double threshold = 0.001;
   double sqr_threshold = threshold * threshold;
   std::vector<int> ringis, pis;
@@ -678,7 +678,7 @@ bool TopoFeature::has_segment(Point2& a, Point2& b, int& aringi, int& api, int& 
   return false;
 }
 
-float TopoFeature::get_distance_to_boundaries(Point2& p) {
+float TopoFeature::get_distance_to_boundaries(const Point2& p) {
   //-- collect the rings of the polygon
   std::vector<Ring2> therings;
   therings.push_back(_p2->outer());
@@ -801,7 +801,7 @@ int TopoFeature::get_vertex_elevation(int ringi, int pi) {
   return _p2z[ringi][pi];
 }
 
-int TopoFeature::get_vertex_elevation(Point2& p) {
+int TopoFeature::get_vertex_elevation(const Point2& p) {
   std::vector<int> ringis, pis;
   has_point2(p, ringis, pis);
   return _p2z[ringis[0]][pis[0]];
@@ -813,7 +813,7 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
 
 //-- used to collect all points linked to the polygon
 //-- later all these values are used to lift the polygon (and put values in _p2z)
-bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) {
+bool TopoFeature::assign_elevation_to_vertex(const Point2 &p, double z, float radius) {
   float sqr_radius = radius * radius;
   int zcm = int(z * 100);
   int ringi = 0;
@@ -835,9 +835,9 @@ bool TopoFeature::assign_elevation_to_vertex(Point2 &p, double z, float radius) 
   return true;
 }
 
-bool TopoFeature::within_range(Point2 &p, Polygon2 &poly, double radius) {
+bool TopoFeature::within_range(const Point2 &p, const Polygon2 &poly, double radius) {
   double sqr_radius = radius * radius;
-  Ring2 oring = poly.outer();
+  const Ring2& oring = poly.outer();
   //-- point is within range of the polygon rings
   for (int i = 0; i < oring.size(); i++) {
     if (sqr_distance(p, oring[i]) <= sqr_radius) {
@@ -862,7 +862,7 @@ bool TopoFeature::within_range(Point2 &p, Polygon2 &poly, double radius) {
 // based on http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon/2922778#2922778
 bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
   //test outer ring
-  Ring2 oring = poly.outer();
+  const Ring2& oring = poly.outer();
   int nvert = oring.size();
   int i, j = 0;
   bool insideOuter = false;
