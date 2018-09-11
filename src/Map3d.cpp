@@ -651,7 +651,12 @@ void Map3d::construct_TriTrees() {
   for (auto& f : _lsFeatures) {
     try {
       f->create_triangle_tree();
-      if (f->_distancesinside.size()==0) { f->_distancesinside.resize(8); }
+      if (f->_distancesinside.size()==0) {
+//          f->_distancesinside.resize(8);
+          for (int i = 0; i < 8; ++i) {
+              f->_distancesinside.push_back( std::vector<double>() );
+          }
+      }
       f->clear_distances();
 //      if (f->get_class() == BUILDING) {
 //        f->clear_distances();
