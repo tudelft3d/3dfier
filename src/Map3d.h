@@ -61,7 +61,7 @@ public:
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>&  get_polygons3d();
   Box2 get_bbox();
-  liblas::Bounds<double> get_bounds();
+  bool Map3d::check_bounds(LASheader header);
 
   void get_citygml(std::wostream& of);
   void get_citygml_multifile(std::string);

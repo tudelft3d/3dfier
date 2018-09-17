@@ -155,10 +155,16 @@ Box2 Map3d::get_bbox() {
   return _bbox;
 }
 
-liblas::Bounds<double> Map3d::get_bounds() {
+bool Map3d::check_bounds(LASheader header) {
   double radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
-  liblas::Bounds<double> bounds(_bbox.min_corner().x() - radius, _bbox.min_corner().y() - radius, _bbox.max_corner().x() + radius, _bbox.max_corner().y() + radius);
-  return bounds;
+  if ((header.min_x < _bbox.max_corner().x() + radius ||
+    header.max_x < _bbox.min_corner().x() - radius) &&
+    (header.min_y < _bbox.max_corner().y() + radius ||
+      header.max_y < _bbox.min_corner().y() - radius)
+    ) {
+    return true;
+  }
+  return false;
 }
 
 bool Map3d::get_cityjson(std::string filename) {
@@ -1012,28 +1018,28 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
 //-- http://www.liblas.org/tutorial/cpp.html#applying-filters-to-a-reader-to-extract-specified-classes
 bool Map3d::add_las_file(PointFile pointFile) {
   std::clog << "Reading LAS/LAZ file: " << pointFile.filename << std::endl;
-  std::ifstream ifs;
-  ifs.open(pointFile.filename.c_str(), std::ios::in | std::ios::binary);
-  if (ifs.is_open() == false) {
-    std::cerr << "\tERROR: could not open file: " << pointFile.filename << std::endl;
-    return false;
-  }
-  //-- LAS classes to omit
-  std::vector<liblas::Classification> liblasomits;
-  for (int i : pointFile.lasomits) {
-    liblasomits.push_back(liblas::Classification(i));
-  }
+  
+  LASreadOpener lasreadopener;
+  lasreadopener.set_file_name(pointFile.filename.c_str());
+  LASreader* lasreader = lasreadopener.open();
 
-  //-- read each point 1-by-1
-  liblas::ReaderFactory f;
-  liblas::Reader reader = f.CreateWithStream(ifs);
-  liblas::Header const& header = reader.GetHeader();
+  //TODO TJC: Check if file is open correctly.
+  //if (ifs.is_open() == false) {
+  //  std::cerr << "\tERROR: could not open file: " << pointFile.filename << std::endl;
+  //  return false;
+  //}
+  LASheader header = lasreader->header;
 
-  //-- check if the file overlaps the polygons
-  liblas::Bounds<double> bounds = header.GetExtent();
-  liblas::Bounds<double> polygonBounds = get_bounds();
-  uint32_t pointCount = header.GetPointRecordsCount();
-  if (polygonBounds.intersects(bounds)) {
+  if (check_bounds(header)) {
+    //-- LAS classes to omit
+    std::vector<U8> liblasomits;
+    for (int i : pointFile.lasomits) {
+      liblasomits.push_back(i);
+    }
+
+    //-- read each point 1-by-1
+    uint32_t pointCount = header.number_of_point_records;
+
     std::clog << "\t(" << boost::locale::as::number << pointCount << " points in the file)\n";
     if ((pointFile.thinning > 1)) {
       std::clog << "\t(skipping every " << pointFile.thinning << "th points, thus ";
@@ -1052,12 +1058,12 @@ bool Map3d::add_las_file(PointFile pointFile) {
     int i = 0;
     
     try {
-      while (reader.ReadNextPoint()) {
-        liblas::Point const& p = reader.GetPoint();
+      while (lasreader->read_point()) {
+        LASpoint const& p = lasreader->point;
         //-- set the thinning filter
         if (i % pointFile.thinning == 0) {
           //-- set the classification filter
-          if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end()) {
+          if (std::find(liblasomits.begin(), liblasomits.end(), p.classification) == liblasomits.end()) {
             //-- set the bounds filter
             if (polygonBounds.contains(p)) {
               this->add_elevation_point(p);
