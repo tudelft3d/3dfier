@@ -86,7 +86,7 @@ void TopoFeature::get_cityjson_geom(nlohmann::json& g, std::unordered_map<std::s
   g["type"] = primitive;
   g["lod"] = 1;
   g["boundaries"];
-  std::vector<std::vector<std::vector<unsigned long>>>  shelli;
+  std::vector<std::vector<std::vector<unsigned long>>> shelli;
   for (auto& t : _triangles) {
     unsigned long a, b, c;
     auto it = dPts.find(_vertices[t.v0].second);
