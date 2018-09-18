@@ -56,12 +56,12 @@ public:
   bool construct_rtree();
   bool threeDfy(bool stitching = true);
   bool construct_CDT();
-  void add_elevation_point(liblas::Point const& laspt);
+  void add_elevation_point(LASpoint const& laspt);
 
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>&  get_polygons3d();
   Box2 get_bbox();
-  bool Map3d::check_bounds(LASheader header);
+  bool check_bounds(const double xmin, const double xmax, const double ymin, const double ymax);
 
   void get_citygml(std::wostream& of);
   void get_citygml_multifile(std::string);
@@ -132,6 +132,10 @@ private:
   float       _building_radius_vertex_elevation;
   int         _threshold_jump_edges; //-- in cm/integer
   Box2        _bbox;
+  double      _minxradius;
+  double      _maxxradius;
+  double      _minyradius;
+  double      _maxyradius;
   Box2        _requestedExtent;
 
   //-- storing the LAS allowed for each TopoFeature
@@ -142,7 +146,6 @@ private:
   NodeColumn                                          _nc_building_walls;
   std::unordered_map<std::string, int>                _bridge_stitches;
   std::vector<TopoFeature*>                           _lsFeatures;
-  std::vector<std::string>                            _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree_buildings;
 

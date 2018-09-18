@@ -2,6 +2,7 @@
 #define __3DFIER__Definitions__
 
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include <vector>
 #include <unordered_map>
