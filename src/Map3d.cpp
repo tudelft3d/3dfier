@@ -165,17 +165,15 @@ bool Map3d::get_cityjson(std::string filename) {
   std::cout << "CityJSON" << std::endl;
   nlohmann::json j;
   j["type"] = "CityJSON";
-  j["version"] = "0.6";
+  j["version"] = "0.8";
   j["metadata"] = {};
-  j["metadata"]["datasetTitle"] = "my 3dfied map";
-  j["metadata"]["pointOfContact"] = "https://3d.bk.tudelft.nl";
   double b[] = {bg::get<bg::min_corner, 0>(_bbox),
                 bg::get<bg::min_corner, 1>(_bbox), 
                 0,
                 bg::get<bg::max_corner, 0>(_bbox),
                 bg::get<bg::max_corner, 1>(_bbox), 
                 0};
-  j["metadata"]["bbox"] = b;
+  j["metadata"]["geographicalExtent"] = b;
   std::unordered_map< std::string, unsigned long > dPts;
   for (auto& f : _lsFeatures) {
     f->get_cityjson(j, dPts);
