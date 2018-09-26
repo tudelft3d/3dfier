@@ -387,6 +387,42 @@ void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, u
   b["attributes"]["measuredHeight"] = h;
   nlohmann::json g;
   this->get_cityjson_geom(g, dPts, "Solid");
+
+  if (_building_include_floor) {
+    for (auto& t : _triangles) {
+      unsigned long a, b, c;
+      float z = z_to_float(this->get_height_base());
+      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
+      if (it == dPts.end()) {
+        a = dPts.size();
+        dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
+      }
+      else {
+        a = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
+      if (it == dPts.end()) {
+        b = dPts.size();
+        dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
+      }
+      else {
+        b = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
+      if (it == dPts.end()) {
+        c = dPts.size();
+        dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
+      }
+      else {
+        c = it->second;
+      }
+      //reverse orientation for floor polygon, a-c-b instead of a-b-c.
+      if ((a != b) && (a != c) && (b != c)) {
+        g["boundaries"].at(0).push_back({{ a, c, b }});
+      }
+    }
+  }
+
   b["geometry"].push_back(g);
   j["CityObjects"][this->get_id()] = b;
 }

@@ -62,22 +62,22 @@ public:
   std::string  get_layername();
   Point2       get_point2(int ringi, int pi);
   bool         has_point2(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis);
-  bool         has_segment(Point2& a, Point2& b, int& aringi, int& api, int& bringi, int& bpi);
+  bool         has_segment(const Point2& a, const Point2& b, int& aringi, int& api, int& bringi, int& bpi);
   bool         adjacent(const Polygon2& poly);
-  float        get_distance_to_boundaries(Point2& p);
+  float        get_distance_to_boundaries(const Point2& p);
   int          get_vertex_elevation(int ringi, int pi);
-  int          get_vertex_elevation(Point2& p);
+  int          get_vertex_elevation(const Point2& p);
   void         set_vertex_elevation(int ringi, int pi, int z);
   void         set_top_level(bool toplevel);
   bool         has_vertical_walls();
   void         add_vertical_wall();
   bool         get_top_level();
-  bool         get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, AttributeMap extraAttributes = AttributeMap());
+  bool         get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap());
   void         get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs);
   AttributeMap get_attributes();
   void         get_imgeo_object_info(std::wostream& of, std::string id);
-  void         get_citygml_attributes(std::wostream& of, AttributeMap attributes);
-  void         get_cityjson_attributes(nlohmann::json& f, AttributeMap attributes);
+  void         get_citygml_attributes(std::wostream& of, const AttributeMap& attributes);
+  void         get_cityjson_attributes(nlohmann::json& f, const AttributeMap& attributes);
 protected:
   Polygon2*                         _p2;
   std::vector< std::vector<int> >   _p2z;
@@ -95,8 +95,8 @@ protected:
   std::vector<Triangle>                           _triangles_vw;
 
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
-  bool    assign_elevation_to_vertex(Point2 &p, double z, float radius);
-  bool    within_range(Point2 &p, Polygon2 &oly, double radius);
+  bool    assign_elevation_to_vertex(const Point2 &p, double z, float radius);
+  bool    within_range(const Point2 &p, const Polygon2 &oly, double radius);
   bool    point_in_polygon(const Point2 &p, const Polygon2 &poly);
   void    lift_each_boundary_vertices(float percentile);
   void    lift_all_boundary_vertices_same_height(int height);
