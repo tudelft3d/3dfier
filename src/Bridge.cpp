@@ -50,10 +50,7 @@ std::string Bridge::get_mtl() {
 }
 
 bool Bridge::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
-  if (!within || (within && point_in_polygon(p, *(_p2)))) {
-    return Boundary3D::add_elevation_point(p, z, radius, lasclass, within);
-  }
-  return true;
+  return Boundary3D::add_elevation_point(p, z, radius, lasclass, within);
 }
 
 bool Bridge::lift() {
