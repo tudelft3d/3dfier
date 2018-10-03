@@ -413,7 +413,7 @@ bool Map3d::get_pdok_output(std::string filename) {
   dataSource->StartTransaction();
 
   std::unordered_map<std::string, OGRLayer*> layers;
-  int i = 0;
+  int i = 1;
   for (auto& f : _lsFeatures) {
     std::string layername = f->get_layername();
     if (layers.find(layername) == layers.end()) {
@@ -446,6 +446,7 @@ bool Map3d::get_pdok_output(std::string filename) {
         dataSource->CommitTransaction();
         dataSource->StartTransaction();
     }
+    i++;
   }
   dataSource->CommitTransaction();
   GDALClose(dataSource);

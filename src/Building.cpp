@@ -594,7 +594,7 @@ void Building::get_imgeo_nummeraanduiding(std::wostream& of) {
   }
 }
 
-bool Building::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+bool Building::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes) {
   OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
   OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
   OGRMultiPolygon multipolygon = OGRMultiPolygon();
@@ -657,25 +657,29 @@ bool Building::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap ext
 
   feature->SetGeometry(&multipolygon);
   // perform extra character encoding for gdal.
-  const char* idcpl = CPLRecode(this->get_id().c_str(), "", CPL_ENC_UTF8);
+  char* idcpl = CPLRecode(this->get_id().c_str(), "", CPL_ENC_UTF8);
   feature->SetField("3df_id", idcpl);
+  CPLFree(idcpl);
   // perform extra character encoding for gdal.
-  const char* classcpl = CPLRecode("Building", "", CPL_ENC_UTF8);
+  char* classcpl = CPLRecode("Building", "", CPL_ENC_UTF8);
   feature->SetField("3df_class", classcpl);
+  CPLFree(classcpl);
   feature->SetField("baseheight", z_to_float(this->get_height_base()));
   feature->SetField("roofheight", z_to_float(this->get_height()));
   if (writeAttributes) {
     for (auto attr : _attributes) {
       if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
         // perform extra character encoding for gdal.
-        const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
+        char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
         feature->SetField(attr.first.c_str(), attrcpl);
+        CPLFree(attrcpl);
       }
     }
     for (auto attr : extraAttributes) {
       // perform extra character encoding for gdal.
-      const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
+      char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
       feature->SetField(attr.first.c_str(), attrcpl);
+      CPLFree(attrcpl);
     }
   }
   if (layer->CreateFeature(feature) != OGRERR_NONE) {

@@ -193,6 +193,6 @@ void Road::get_citygml_imgeo(std::wostream& of) {
   of << "</cityObjectMember>";
 }
 
-bool Road::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+bool Road::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes) {
   return TopoFeature::get_multipolygon_features(layer, "Road", writeAttributes, extraAttributes);
 }

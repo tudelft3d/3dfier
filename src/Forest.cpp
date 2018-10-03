@@ -111,6 +111,6 @@ void Forest::get_citygml_imgeo(std::wostream& of) {
   of << "</cityObjectMember>";
 }
 
-bool Forest::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+bool Forest::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes) {
   return TopoFeature::get_multipolygon_features(layer, "Forest", writeAttributes, extraAttributes);
 }
