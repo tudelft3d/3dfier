@@ -658,15 +658,13 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
 }
 
 bool TopoFeature::has_segment(const Point2& a, const Point2& b, int& aringi, int& api, int& bringi, int& bpi) {
-  double threshold = 0.001;
-  double sqr_threshold = threshold * threshold;
   std::vector<int> ringis, pis;
   Point2 tmp;
   if (this->has_point2(a, ringis, pis) == true) {
     for (int k = 0; k < ringis.size(); k++) {
       int nextpi;
       tmp = this->get_next_point2_in_ring(ringis[k], pis[k], nextpi);
-      if (sqr_distance(b, tmp) <= sqr_threshold) {
+      if (sqr_distance(b, tmp) <= SQTOPODIST) {
         aringi = ringis[k];
         api = pis[k];
         bringi = ringis[k];
@@ -712,8 +710,6 @@ float TopoFeature::get_distance_to_boundaries(const Point2& p) {
 }
 
 bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis) {
-  double threshold = 0.001;
-  double sqr_threshold = threshold * threshold;
   std::vector<Ring2> rings;
   rings.push_back(_p2->outer());
   for (auto iring : _p2->inners())
@@ -724,7 +720,7 @@ bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vec
   for (Ring2& ring : rings) {
     ringi++;
     for (int i = 0; i < ring.size(); i++) {
-      if (sqr_distance(p, ring[i]) <= sqr_threshold) {
+      if (sqr_distance(p, ring[i]) <= SQTOPODIST) {
         ringis.push_back(ringi);
         pis.push_back(i);
         re = true;
@@ -736,9 +732,6 @@ bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vec
 }
 
 bool TopoFeature::adjacent(const Polygon2& poly) {
-  double threshold = 0.001;
-  double sqr_threshold = threshold * threshold;
-
   std::vector<Ring2> rings1;
   rings1.push_back(_p2->outer());
   for (Ring2& iring : _p2->inners())
@@ -753,7 +746,7 @@ bool TopoFeature::adjacent(const Polygon2& poly) {
     for (int pi1 = 0; pi1 < ring1.size(); pi1++) {
       for (Ring2& ring2 : rings2) {
         for (int pi2 = 0; pi2 < ring2.size(); pi2++) {
-          if (sqr_distance(ring1[pi1], ring2[pi2]) <= sqr_threshold) {
+          if (sqr_distance(ring1[pi1], ring2[pi2]) <= SQTOPODIST) {
             return true;
           }
         }

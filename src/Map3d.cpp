@@ -1084,8 +1084,9 @@ bool Map3d::add_las_file(PointFile pointFile) {
 
 void Map3d::collect_adjacent_features(TopoFeature* f) {
   std::vector<PairIndexed> re;
-  _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-  _rtree_buildings.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+  Box2 b = f->get_bbox2d();
+  _rtree.query(bgi::satisfies([&](PairIndexed const& v) {return bg::distance(v.first, b) < TOPODIST; }), std::back_inserter(re));
+  _rtree_buildings.query(bgi::satisfies([&](PairIndexed const& v) {return bg::distance(v.first, b) < TOPODIST; }), std::back_inserter(re));
   for (auto& each : re) {
     TopoFeature* fadj = each.second;
     if (f != fadj && f->adjacent(*(fadj->get_Polygon2()))){

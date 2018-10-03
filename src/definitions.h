@@ -27,6 +27,9 @@ typedef bg::model::point<double, 3, bg::cs::cartesian> Point3;
 typedef std::unordered_map< std::string, std::vector<int> > NodeColumn;
 typedef std::unordered_map< std::string, std::pair<OGRFieldType, std::string> > AttributeMap;
 
+const double TOPODIST = 0.001;
+const double SQTOPODIST = TOPODIST * TOPODIST;
+
 typedef struct Triangle {
   int v0;
   int v1;
