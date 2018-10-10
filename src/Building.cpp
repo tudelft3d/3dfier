@@ -655,35 +655,46 @@ bool Building::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeM
     }
   }
 
-  feature->SetGeometry(&multipolygon);
-  // perform extra character encoding for gdal.
-  char* idcpl = CPLRecode(this->get_id().c_str(), "", CPL_ENC_UTF8);
-  feature->SetField("3df_id", idcpl);
-  CPLFree(idcpl);
-  // perform extra character encoding for gdal.
-  char* classcpl = CPLRecode("Building", "", CPL_ENC_UTF8);
-  feature->SetField("3df_class", classcpl);
-  CPLFree(classcpl);
-  feature->SetField("baseheight", z_to_float(this->get_height_base()));
-  feature->SetField("roofheight", z_to_float(this->get_height()));
+  if (feature->SetGeometry(&multipolygon) != OGRERR_NONE) {
+    std::cerr << "Creating feature geometry failed.\n";
+    OGRFeature::DestroyFeature(feature);
+    return false;
+  }
+  if (!writeAttribute(feature, featureDefn, "3df_id", this->get_id())) {
+    return false;
+  }
+  if (!writeAttribute(feature, featureDefn, "3df_class", "Building")) {
+    return false;
+  }
+  int fi = featureDefn->GetFieldIndex("baseheight");
+  if (fi == -1) {
+    std::cerr << "Failed to write attribute " << "baseheight" << ".\n";
+    return false;
+  }
+  feature->SetField(fi, z_to_float(this->get_height_base()));
+  fi = featureDefn->GetFieldIndex("roofheight");
+  if (fi == -1) {
+    std::cerr << "Failed to write attribute " << "roofheight" << ".\n";
+    return false;
+  }
+  feature->SetField(fi, z_to_float(this->get_height()));
   if (writeAttributes) {
     for (auto attr : _attributes) {
       if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
-        // perform extra character encoding for gdal.
-        char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
-        feature->SetField(attr.first.c_str(), attrcpl);
-        CPLFree(attrcpl);
+        if (!writeAttribute(feature, featureDefn, attr.first, attr.second.second)) {
+          return false;
+        }
       }
     }
     for (auto attr : extraAttributes) {
-      // perform extra character encoding for gdal.
-      char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
-      feature->SetField(attr.first.c_str(), attrcpl);
-      CPLFree(attrcpl);
+      if (!writeAttribute(feature, featureDefn, attr.first, attr.second.second)) {
+        return false;
+      }
     }
   }
   if (layer->CreateFeature(feature) != OGRERR_NONE) {
     std::cerr << "Failed to create feature " << this->get_id() << ".\n";
+    OGRFeature::DestroyFeature(feature);
     return false;
   }
   OGRFeature::DestroyFeature(feature);
