@@ -410,18 +410,24 @@ bool Map3d::get_pdok_output(std::string filename) {
     GDALAllRegister();
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("PostgreSQL");
   GDALDataset* dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
-  dataSource->StartTransaction();
+  if (dataSource == NULL) {
+    std::cerr << "Starting database connection failed.\n";
+    return false;
+  }
+  if (dataSource->StartTransaction() != OGRERR_NONE) {
+    std::cerr << "Starting database transaction failed.\n";
+    return false;
+  }
 
   std::unordered_map<std::string, OGRLayer*> layers;
-  int i = 1;
+  // create and write layers first
   for (auto& f : _lsFeatures) {
     std::string layername = f->get_layername();
     if (layers.find(layername) == layers.end()) {
-      std::string tmpFilename = filename;
-      AttributeMap attributes = f->get_attributes();
+      AttributeMap &attributes = f->get_attributes();
       //Add additional attribute to list for layer creation
       attributes["xml"] = std::make_pair(OFTString, "");
-      OGRLayer *layer = create_gdal_layer(driver, dataSource, tmpFilename, layername, attributes, f->get_class() == BUILDING);
+      OGRLayer *layer = create_gdal_layer(driver, dataSource, filename, layername, attributes, f->get_class() == BUILDING);
       if (layer == NULL) {
         std::cerr << "ERROR: Cannot open database '" + filename + "' for writing" << std::endl;
         dataSource->RollbackTransaction();
@@ -431,7 +437,20 @@ bool Map3d::get_pdok_output(std::string filename) {
       }
       layers.emplace(layername, layer);
     }
+  }
+  if (dataSource->CommitTransaction() != OGRERR_NONE) {
+    std::cerr << "Writing to database failed.\n";
+    return false;
+  }
+  if (dataSource->StartTransaction() != OGRERR_NONE) {
+    std::cerr << "Starting database transaction failed.\n";
+    return false;
+  }
 
+  // create and write features to layers
+  int i = 1;
+  for (auto& f : _lsFeatures) {
+    std::string layername = f->get_layername();
     //Add additional attribute describing CityGML of feature
     std::wstring_convert<codecvt<wchar_t, char, std::mbstate_t>>converter;
     std::wstringstream ss;
@@ -441,14 +460,25 @@ bool Map3d::get_pdok_output(std::string filename) {
     AttributeMap extraAttribute = AttributeMap();
     extraAttribute["xml"] = std::make_pair(OFTString, gmlAttribute);
 
-    f->get_shape(layers[layername], true, extraAttribute);
+    if (!f->get_shape(layers[layername], true, extraAttribute)) {
+      return false;
+    }
     if (i % 1000 == 0) {
-        dataSource->CommitTransaction();
-        dataSource->StartTransaction();
+      if (dataSource->CommitTransaction() != OGRERR_NONE) {
+        std::cerr << "Writing to database failed.\n";
+        return false;
+      }  
+      if (dataSource->StartTransaction() != OGRERR_NONE) {
+        std::cerr << "Starting database transaction failed.\n";
+        return false;
+      }
     }
     i++;
   }
-  dataSource->CommitTransaction();
+  if (dataSource->CommitTransaction() != OGRERR_NONE) {
+    std::cerr << "Writing to database failed.\n";
+    return false;
+  }
   GDALClose(dataSource);
   GDALClose(driver);
   return true;

@@ -211,7 +211,7 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
   }
 }
 
-AttributeMap TopoFeature::get_attributes() {
+AttributeMap &TopoFeature::get_attributes() {
   return _attributes;
 }
 
@@ -336,36 +336,50 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
     multipolygon.addGeometry(&polygon);
   }
 
-  feature->SetGeometry(&multipolygon);
-  // perform extra character encoding for gdal.
-  char* idcpl = CPLRecode(this->get_id().c_str(), "", CPL_ENC_UTF8);
-  feature->SetField("3df_id", idcpl);
-  CPLFree(idcpl);
-  // perform extra character encoding for gdal.
-  char* classcpl = CPLRecode(className.c_str(), "", CPL_ENC_UTF8);
-  feature->SetField("3df_class", classcpl);
-  CPLFree(classcpl);
+  if (feature->SetGeometry(&multipolygon) != OGRERR_NONE) {
+    std::cerr << "Creating feature geometry failed.\n";
+    OGRFeature::DestroyFeature(feature);
+    return false;
+  }
+  if (!writeAttribute(feature, featureDefn, "3df_id", this->get_id())) {
+    return false;
+  }
+  if (!writeAttribute(feature, featureDefn, "3df_class", className)) {
+    return false;
+  }
   if (writeAttributes) {
     for (auto attr : _attributes) {
       if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
-        // perform extra character encoding for gdal.
-        char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
-        feature->SetField(attr.first.c_str(), attrcpl);
-        CPLFree(attrcpl);
+        if (!writeAttribute(feature, featureDefn, attr.first, attr.second.second)) {
+          return false;
+        }
       }
     }
     for (auto attr : extraAttributes) {
-      // perform extra character encoding for gdal.
-      char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
-      feature->SetField(attr.first.c_str(), attrcpl);
-      CPLFree(attrcpl);
+      if (!writeAttribute(feature, featureDefn, attr.first, attr.second.second)) {
+        return false;
+      }
     }
   }
   if (layer->CreateFeature(feature) != OGRERR_NONE) {
     std::cerr << "Failed to create feature " << this->get_id() << ".\n";
+    OGRFeature::DestroyFeature(feature);
     return false;
   }
   OGRFeature::DestroyFeature(feature);
+  return true;
+}
+
+bool TopoFeature::writeAttribute(OGRFeature* feature, OGRFeatureDefn* featureDefn, std::string name, std::string value) {
+  int fi = featureDefn->GetFieldIndex(name.c_str());
+  if (fi == -1) {
+    std::cerr << "Failed to write attribute " << name << ".\n";
+    return false;
+  }
+  // perform extra character encoding for gdal.
+  char* attrcpl = CPLRecode(value.c_str(), "", CPL_ENC_UTF8);
+  feature->SetField(fi, attrcpl);
+  CPLFree(attrcpl);
   return true;
 }
 
