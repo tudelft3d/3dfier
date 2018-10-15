@@ -86,7 +86,7 @@ void TopoFeature::get_cityjson_geom(nlohmann::json& g, std::unordered_map<std::s
   g["type"] = primitive;
   g["lod"] = 1;
   g["boundaries"];
-  std::vector<std::vector<std::vector<unsigned long>>>  shelli;
+  std::vector<std::vector<std::vector<unsigned long>>> shelli;
   for (auto& t : _triangles) {
     unsigned long a, b, c;
     auto it = dPts.find(_vertices[t.v0].second);
@@ -211,7 +211,7 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
   }
 }
 
-AttributeMap TopoFeature::get_attributes() {
+AttributeMap &TopoFeature::get_attributes() {
   return _attributes;
 }
 
@@ -336,32 +336,50 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
     multipolygon.addGeometry(&polygon);
   }
 
-  feature->SetGeometry(&multipolygon);
-  // perform extra character encoding for gdal.
-  const char* idcpl = CPLRecode(this->get_id().c_str(), "", CPL_ENC_UTF8);
-  feature->SetField("3df_id", idcpl);
-  // perform extra character encoding for gdal.
-  const char* classcpl = CPLRecode(className.c_str(), "", CPL_ENC_UTF8);
-  feature->SetField("3df_class", classcpl);
+  if (feature->SetGeometry(&multipolygon) != OGRERR_NONE) {
+    std::cerr << "Creating feature geometry failed.\n";
+    OGRFeature::DestroyFeature(feature);
+    return false;
+  }
+  if (!writeAttribute(feature, featureDefn, "3df_id", this->get_id())) {
+    return false;
+  }
+  if (!writeAttribute(feature, featureDefn, "3df_class", className)) {
+    return false;
+  }
   if (writeAttributes) {
     for (auto attr : _attributes) {
       if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
-        // perform extra character encoding for gdal.
-        const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
-        feature->SetField(attr.first.c_str(), attrcpl);
+        if (!writeAttribute(feature, featureDefn, attr.first, attr.second.second)) {
+          return false;
+        }
       }
     }
     for (auto attr : extraAttributes) {
-      // perform extra character encoding for gdal.
-      const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
-      feature->SetField(attr.first.c_str(), attrcpl);
+      if (!writeAttribute(feature, featureDefn, attr.first, attr.second.second)) {
+        return false;
+      }
     }
   }
   if (layer->CreateFeature(feature) != OGRERR_NONE) {
     std::cerr << "Failed to create feature " << this->get_id() << ".\n";
+    OGRFeature::DestroyFeature(feature);
     return false;
   }
   OGRFeature::DestroyFeature(feature);
+  return true;
+}
+
+bool TopoFeature::writeAttribute(OGRFeature* feature, OGRFeatureDefn* featureDefn, std::string name, std::string value) {
+  int fi = featureDefn->GetFieldIndex(name.c_str());
+  if (fi == -1) {
+    std::cerr << "Failed to write attribute " << name << ".\n";
+    return false;
+  }
+  // perform extra character encoding for gdal.
+  char* attrcpl = CPLRecode(value.c_str(), "", CPL_ENC_UTF8);
+  feature->SetField(fi, attrcpl);
+  CPLFree(attrcpl);
   return true;
 }
 
@@ -658,15 +676,13 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
 }
 
 bool TopoFeature::has_segment(const Point2& a, const Point2& b, int& aringi, int& api, int& bringi, int& bpi) {
-  double threshold = 0.001;
-  double sqr_threshold = threshold * threshold;
   std::vector<int> ringis, pis;
   Point2 tmp;
   if (this->has_point2(a, ringis, pis) == true) {
     for (int k = 0; k < ringis.size(); k++) {
       int nextpi;
       tmp = this->get_next_point2_in_ring(ringis[k], pis[k], nextpi);
-      if (sqr_distance(b, tmp) <= sqr_threshold) {
+      if (sqr_distance(b, tmp) <= SQTOPODIST) {
         aringi = ringis[k];
         api = pis[k];
         bringi = ringis[k];
@@ -712,8 +728,6 @@ float TopoFeature::get_distance_to_boundaries(const Point2& p) {
 }
 
 bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis) {
-  double threshold = 0.001;
-  double sqr_threshold = threshold * threshold;
   std::vector<Ring2> rings;
   rings.push_back(_p2->outer());
   for (auto iring : _p2->inners())
@@ -724,7 +738,7 @@ bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vec
   for (Ring2& ring : rings) {
     ringi++;
     for (int i = 0; i < ring.size(); i++) {
-      if (sqr_distance(p, ring[i]) <= sqr_threshold) {
+      if (sqr_distance(p, ring[i]) <= SQTOPODIST) {
         ringis.push_back(ringi);
         pis.push_back(i);
         re = true;
@@ -736,9 +750,6 @@ bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vec
 }
 
 bool TopoFeature::adjacent(const Polygon2& poly) {
-  double threshold = 0.001;
-  double sqr_threshold = threshold * threshold;
-
   std::vector<Ring2> rings1;
   rings1.push_back(_p2->outer());
   for (Ring2& iring : _p2->inners())
@@ -753,7 +764,7 @@ bool TopoFeature::adjacent(const Polygon2& poly) {
     for (int pi1 = 0; pi1 < ring1.size(); pi1++) {
       for (Ring2& ring2 : rings2) {
         for (int pi2 = 0; pi2 < ring2.size(); pi2++) {
-          if (sqr_distance(ring1[pi1], ring2[pi2]) <= sqr_threshold) {
+          if (sqr_distance(ring1[pi1], ring2[pi2]) <= SQTOPODIST) {
             return true;
           }
         }

@@ -155,6 +155,6 @@ void Separation::get_citygml_imgeo(std::wostream& of) {
   of << "</cityObjectMember>";
 }
 
-bool Separation::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+bool Separation::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes) {
   return TopoFeature::get_multipolygon_features(layer, "Separation", writeAttributes, extraAttributes);
 }

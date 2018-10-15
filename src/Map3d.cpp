@@ -171,17 +171,15 @@ bool Map3d::get_cityjson(std::string filename) {
   std::cout << "CityJSON" << std::endl;
   nlohmann::json j;
   j["type"] = "CityJSON";
-  j["version"] = "0.6";
+  j["version"] = "0.8";
   j["metadata"] = {};
-  j["metadata"]["datasetTitle"] = "my 3dfied map";
-  j["metadata"]["pointOfContact"] = "https://3d.bk.tudelft.nl";
   double b[] = {bg::get<bg::min_corner, 0>(_bbox),
                 bg::get<bg::min_corner, 1>(_bbox), 
                 0,
                 bg::get<bg::max_corner, 0>(_bbox),
                 bg::get<bg::max_corner, 1>(_bbox), 
                 0};
-  j["metadata"]["bbox"] = b;
+  j["metadata"]["geographicalExtent"] = b;
   std::unordered_map< std::string, unsigned long > dPts;
   for (auto& f : _lsFeatures) {
     f->get_cityjson(j, dPts);
@@ -418,17 +416,24 @@ bool Map3d::get_pdok_output(std::string filename) {
     GDALAllRegister();
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("PostgreSQL");
   GDALDataset* dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
-  dataSource->StartTransaction();
+  if (dataSource == NULL) {
+    std::cerr << "Starting database connection failed.\n";
+    return false;
+  }
+  if (dataSource->StartTransaction() != OGRERR_NONE) {
+    std::cerr << "Starting database transaction failed.\n";
+    return false;
+  }
 
   std::unordered_map<std::string, OGRLayer*> layers;
+  // create and write layers first
   for (auto& f : _lsFeatures) {
     std::string layername = f->get_layername();
     if (layers.find(layername) == layers.end()) {
-      std::string tmpFilename = filename;
-      AttributeMap attributes = f->get_attributes();
+      AttributeMap &attributes = f->get_attributes();
       //Add additional attribute to list for layer creation
       attributes["xml"] = std::make_pair(OFTString, "");
-      OGRLayer *layer = create_gdal_layer(driver, dataSource, tmpFilename, layername, attributes, f->get_class() == BUILDING);
+      OGRLayer *layer = create_gdal_layer(driver, dataSource, filename, layername, attributes, f->get_class() == BUILDING);
       if (layer == NULL) {
         std::cerr << "ERROR: Cannot open database '" + filename + "' for writing" << std::endl;
         dataSource->RollbackTransaction();
@@ -438,7 +443,20 @@ bool Map3d::get_pdok_output(std::string filename) {
       }
       layers.emplace(layername, layer);
     }
+  }
+  if (dataSource->CommitTransaction() != OGRERR_NONE) {
+    std::cerr << "Writing to database failed.\n";
+    return false;
+  }
+  if (dataSource->StartTransaction() != OGRERR_NONE) {
+    std::cerr << "Starting database transaction failed.\n";
+    return false;
+  }
 
+  // create and write features to layers
+  int i = 1;
+  for (auto& f : _lsFeatures) {
+    std::string layername = f->get_layername();
     //Add additional attribute describing CityGML of feature
     std::wstring_convert<codecvt<wchar_t, char, std::mbstate_t>>converter;
     std::wstringstream ss;
@@ -448,9 +466,25 @@ bool Map3d::get_pdok_output(std::string filename) {
     AttributeMap extraAttribute = AttributeMap();
     extraAttribute["xml"] = std::make_pair(OFTString, gmlAttribute);
 
-    f->get_shape(layers[layername], true, extraAttribute);
+    if (!f->get_shape(layers[layername], true, extraAttribute)) {
+      return false;
+    }
+    if (i % 1000 == 0) {
+      if (dataSource->CommitTransaction() != OGRERR_NONE) {
+        std::cerr << "Writing to database failed.\n";
+        return false;
+      }  
+      if (dataSource->StartTransaction() != OGRERR_NONE) {
+        std::cerr << "Starting database transaction failed.\n";
+        return false;
+      }
+    }
+    i++;
   }
-  dataSource->CommitTransaction();
+  if (dataSource->CommitTransaction() != OGRERR_NONE) {
+    std::cerr << "Writing to database failed.\n";
+    return false;
+  }
   GDALClose(dataSource);
   GDALClose(driver);
   return true;
@@ -1105,8 +1139,9 @@ bool Map3d::add_las_file(PointFile pointFile) {
 
 void Map3d::collect_adjacent_features(TopoFeature* f) {
   std::vector<PairIndexed> re;
-  _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-  _rtree_buildings.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+  Box2 b = f->get_bbox2d();
+  _rtree.query(bgi::satisfies([&](PairIndexed const& v) {return bg::distance(v.first, b) < TOPODIST; }), std::back_inserter(re));
+  _rtree_buildings.query(bgi::satisfies([&](PairIndexed const& v) {return bg::distance(v.first, b) < TOPODIST; }), std::back_inserter(re));
   for (auto& each : re) {
     TopoFeature* fadj = each.second;
     if (f != fadj && f->adjacent(*(fadj->get_Polygon2()))){

@@ -135,6 +135,6 @@ void Water::get_citygml_imgeo(std::wostream& of) {
   of << "</cityObjectMember>";
 }
 
-bool Water::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+bool Water::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes) {
   return TopoFeature::get_multipolygon_features(layer, "Water", writeAttributes, extraAttributes);
 }

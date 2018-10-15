@@ -50,7 +50,7 @@ public:
   virtual void          get_citygml(std::wostream& of) = 0;
   virtual void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) = 0;
   virtual void          get_citygml_imgeo(std::wostream& of) = 0;
-  virtual bool          get_shape(OGRLayer*, bool writeAttributes, AttributeMap extraAttributes = AttributeMap()) = 0;
+  virtual bool          get_shape(OGRLayer*, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap()) = 0;
 
   std::string  get_id();
   void         construct_vertical_walls(const NodeColumn& nc);
@@ -73,8 +73,9 @@ public:
   void         add_vertical_wall();
   bool         get_top_level();
   bool         get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap());
+  bool         writeAttribute(OGRFeature* feature, OGRFeatureDefn* featureDefn, std::string name, std::string value);
   void         get_obj(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs);
-  AttributeMap get_attributes();
+  AttributeMap& get_attributes();
   void         get_imgeo_object_info(std::wostream& of, std::string id);
   void         get_citygml_attributes(std::wostream& of, const AttributeMap& attributes);
   void         get_cityjson_attributes(nlohmann::json& f, const AttributeMap& attributes);

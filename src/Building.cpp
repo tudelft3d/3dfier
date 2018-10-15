@@ -387,6 +387,42 @@ void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, u
   b["attributes"]["measuredHeight"] = h;
   nlohmann::json g;
   this->get_cityjson_geom(g, dPts, "Solid");
+
+  if (_building_include_floor) {
+    for (auto& t : _triangles) {
+      unsigned long a, b, c;
+      float z = z_to_float(this->get_height_base());
+      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
+      if (it == dPts.end()) {
+        a = dPts.size();
+        dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
+      }
+      else {
+        a = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
+      if (it == dPts.end()) {
+        b = dPts.size();
+        dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
+      }
+      else {
+        b = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
+      if (it == dPts.end()) {
+        c = dPts.size();
+        dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
+      }
+      else {
+        c = it->second;
+      }
+      //reverse orientation for floor polygon, a-c-b instead of a-b-c.
+      if ((a != b) && (a != c) && (b != c)) {
+        g["boundaries"].at(0).push_back({{ a, c, b }});
+      }
+    }
+  }
+
   b["geometry"].push_back(g);
   j["CityObjects"][this->get_id()] = b;
 }
@@ -558,7 +594,7 @@ void Building::get_imgeo_nummeraanduiding(std::wostream& of) {
   }
 }
 
-bool Building::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+bool Building::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes) {
   OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
   OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
   OGRMultiPolygon multipolygon = OGRMultiPolygon();
@@ -619,31 +655,46 @@ bool Building::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap ext
     }
   }
 
-  feature->SetGeometry(&multipolygon);
-  // perform extra character encoding for gdal.
-  const char* idcpl = CPLRecode(this->get_id().c_str(), "", CPL_ENC_UTF8);
-  feature->SetField("3df_id", idcpl);
-  // perform extra character encoding for gdal.
-  const char* classcpl = CPLRecode("Building", "", CPL_ENC_UTF8);
-  feature->SetField("3df_class", classcpl);
-  feature->SetField("baseheight", z_to_float(this->get_height_base()));
-  feature->SetField("roofheight", z_to_float(this->get_height()));
+  if (feature->SetGeometry(&multipolygon) != OGRERR_NONE) {
+    std::cerr << "Creating feature geometry failed.\n";
+    OGRFeature::DestroyFeature(feature);
+    return false;
+  }
+  if (!writeAttribute(feature, featureDefn, "3df_id", this->get_id())) {
+    return false;
+  }
+  if (!writeAttribute(feature, featureDefn, "3df_class", "Building")) {
+    return false;
+  }
+  int fi = featureDefn->GetFieldIndex("baseheight");
+  if (fi == -1) {
+    std::cerr << "Failed to write attribute " << "baseheight" << ".\n";
+    return false;
+  }
+  feature->SetField(fi, z_to_float(this->get_height_base()));
+  fi = featureDefn->GetFieldIndex("roofheight");
+  if (fi == -1) {
+    std::cerr << "Failed to write attribute " << "roofheight" << ".\n";
+    return false;
+  }
+  feature->SetField(fi, z_to_float(this->get_height()));
   if (writeAttributes) {
     for (auto attr : _attributes) {
       if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
-        // perform extra character encoding for gdal.
-        const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
-        feature->SetField(attr.first.c_str(), attrcpl);
+        if (!writeAttribute(feature, featureDefn, attr.first, attr.second.second)) {
+          return false;
+        }
       }
     }
     for (auto attr : extraAttributes) {
-      // perform extra character encoding for gdal.
-      const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
-      feature->SetField(attr.first.c_str(), attrcpl);
+      if (!writeAttribute(feature, featureDefn, attr.first, attr.second.second)) {
+        return false;
+      }
     }
   }
   if (layer->CreateFeature(feature) != OGRERR_NONE) {
     std::cerr << "Failed to create feature " << this->get_id() << ".\n";
+    OGRFeature::DestroyFeature(feature);
     return false;
   }
   OGRFeature::DestroyFeature(feature);

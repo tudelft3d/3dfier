@@ -112,6 +112,6 @@ void Terrain::get_citygml_imgeo(std::wostream& of) {
   of << "</cityObjectMember>";
 }
 
-bool Terrain::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+bool Terrain::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes) {
   return TopoFeature::get_multipolygon_features(layer, "Terrain", writeAttributes, extraAttributes);
 }
