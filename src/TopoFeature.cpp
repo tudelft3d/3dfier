@@ -939,10 +939,10 @@ void TopoFeature::get_floor_triangle_as_gml_surfacemember(std::wostream& of, Tri
   ss << std::fixed << std::setprecision(3);
   // replace z of the vertices with baseheight
   ss << "<gml:posList>"
-    << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
-    << _vertices[t.v2].second.substr(0, _vertices[t.v2].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
-    << _vertices[t.v1].second.substr(0, _vertices[t.v1].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
-    << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << z_to_float(baseheight) << "</gml:posList>";
+    << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << std::setprecision(2) << z_to_float(baseheight) << std::setprecision(3) << " "
+    << _vertices[t.v2].second.substr(0, _vertices[t.v2].second.find_last_of(" ") + 1) << std::setprecision(2) << z_to_float(baseheight) << std::setprecision(3) << " "
+    << _vertices[t.v1].second.substr(0, _vertices[t.v1].second.find_last_of(" ") + 1) << std::setprecision(2) << z_to_float(baseheight) << std::setprecision(3) << " "
+    << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << std::setprecision(2) << z_to_float(baseheight) << std::setprecision(3) << "</gml:posList>";
 
   of << ss.str();
   of << "</gml:LinearRing>";

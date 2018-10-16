@@ -102,8 +102,8 @@ void get_polygon_lifted_gml(std::wostream& of, Polygon2* p2, double height, bool
   of << "<gml:LinearRing>";
   of << "<gml:posList>";
   for (int i = 0; i < r.size(); i++)
-    of << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << " ";
-  of << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << height;
+    of << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << std::setprecision(2) << height << std::setprecision(3) << " ";
+  of << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << std::setprecision(2) << height << std::setprecision(3);
   of << "</gml:posList>";
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
@@ -114,8 +114,8 @@ void get_polygon_lifted_gml(std::wostream& of, Polygon2* p2, double height, bool
     of << "<gml:LinearRing>";
     of << "<gml:posList>";
     for (int i = 0; i < r.size(); i++)
-      of << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << " ";
-    of << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << height;
+      of << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << std::setprecision(2) << height << std::setprecision(3) << " ";
+    of << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << std::setprecision(2) << height << std::setprecision(3);
     of << "</gml:posList>";
     of << "</gml:LinearRing>";
     of << "</gml:interior>";
