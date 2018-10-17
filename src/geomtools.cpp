@@ -140,7 +140,7 @@ void mark_domains(CDT& cdt) {
   }
 }
 
-bool getCDT(const Polygon2* pgn,
+bool getCDT(Polygon2* pgn,
   const std::vector< std::vector<int> > &z,
   std::vector< std::pair<Point3, std::string> > &vertices,
   std::vector<Triangle> &triangles,
@@ -151,7 +151,7 @@ bool getCDT(const Polygon2* pgn,
   //-- gather all rings
   std::vector<Ring2> rings;
   rings.push_back(pgn->outer());
-  for (Ring2 iring : pgn->inners())
+  for (Ring2& iring : pgn->inners())
     rings.push_back(iring);
 
   Polygon_2 poly;
@@ -225,11 +225,15 @@ std::string gen_key_bucket(const Point3* p, float z) {
 }
 
 double distance(const Point2 &p1, const Point2 &p2) {
-  return sqrt((p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y()));
+  double dx = p1.x() - p2.x();
+  double dy = p1.y() - p2.y();
+  return sqrt(dx * dx + dy * dy);
 }
 
 double sqr_distance(const Point2 &p1, const Point2 &p2) {
-  return (p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y());
+  double dx = p1.x() - p2.x();
+  double dy = p1.y() - p2.y();
+  return dx * dx + dy * dy;
 }
 
 //--- TIN Simplification

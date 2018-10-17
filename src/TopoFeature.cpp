@@ -749,7 +749,7 @@ bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vec
   return re;
 }
 
-bool TopoFeature::adjacent(const Polygon2& poly) {
+bool TopoFeature::adjacent(Polygon2& poly) {
   std::vector<Ring2> rings1;
   rings1.push_back(_p2->outer());
   for (Ring2& iring : _p2->inners())
@@ -757,7 +757,7 @@ bool TopoFeature::adjacent(const Polygon2& poly) {
 
   std::vector<Ring2> rings2;
   rings2.push_back(poly.outer());
-  for (Ring2 iring : poly.inners())
+  for (Ring2& iring : poly.inners())
     rings2.push_back(iring);
 
   for (Ring2& ring1 : rings1) {
@@ -775,12 +775,10 @@ bool TopoFeature::adjacent(const Polygon2& poly) {
 }
 
 Point2 TopoFeature::get_point2(int ringi, int pi) {
-  Ring2 ring;
   if (ringi == 0)
-    ring = _p2->outer();
+    return _p2->outer()[pi];
   else
-    ring = _p2->inners()[ringi - 1];
-  return ring[pi];
+    return _p2->inners()[ringi - 1][pi];
 }
 
 Point2 TopoFeature::get_next_point2_in_ring(int ringi, int i, int& pi) {
@@ -824,11 +822,11 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
 
 //-- used to collect all points linked to the polygon
 //-- later all these values are used to lift the polygon (and put values in _p2z)
-bool TopoFeature::assign_elevation_to_vertex(const Point2 &p, double z, float radius) {
+bool TopoFeature::assign_elevation_to_vertex(const Point2& p, double z, float radius) {
   float sqr_radius = radius * radius;
   int zcm = int(z * 100);
   int ringi = 0;
-  Ring2 oring = _p2->outer();
+  Ring2& oring = _p2->outer();
   for (int i = 0; i < oring.size(); i++) {
     if (sqr_distance(p, oring[i]) <= sqr_radius)
       _lidarelevs[ringi][i].push_back(zcm);
@@ -846,7 +844,7 @@ bool TopoFeature::assign_elevation_to_vertex(const Point2 &p, double z, float ra
   return true;
 }
 
-bool TopoFeature::within_range(const Point2 &p, const Polygon2 &poly, double radius) {
+bool TopoFeature::within_range(const Point2& p, const Polygon2& poly, double radius) {
   double sqr_radius = radius * radius;
   const Ring2& oring = poly.outer();
   //-- point is within range of the polygon rings
@@ -871,7 +869,7 @@ bool TopoFeature::within_range(const Point2 &p, const Polygon2 &poly, double rad
 }
 
 // based on http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon/2922778#2922778
-bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
+bool TopoFeature::point_in_polygon(const Point2& p, const Polygon2& poly) {
   //test outer ring
   const Ring2& oring = poly.outer();
   int nvert = oring.size();
@@ -973,7 +971,7 @@ void TopoFeature::get_triangle_as_gml_triangle(std::wostream& of, Triangle& t, b
   of << "</gml:Triangle>";
 }
 
-bool TopoFeature::get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue)
+bool TopoFeature::get_attribute(std::string attributeName, std::string& attribute, std::string defaultValue)
 {
   auto it = _attributes.find(attributeName);
   if (it != _attributes.end()) {
@@ -994,7 +992,7 @@ bool TopoFeature::get_attribute(std::string attributeName, std::string &attribut
 
 void TopoFeature::lift_all_boundary_vertices_same_height(int height) {
   int ringi = 0;
-  Ring2 oring = _p2->outer();
+  Ring2& oring = _p2->outer();
   for (int i = 0; i < oring.size(); i++)
     _p2z[ringi][i] = height;
   ringi++;
@@ -1081,7 +1079,7 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
 //-------------------------------
 //-------------------------------
 
-Flat::Flat(char *wkt, std::string layername, AttributeMap attributes, std::string pid)
+Flat::Flat(char* wkt, std::string layername, AttributeMap attributes, std::string pid)
   : TopoFeature(wkt, layername, attributes, pid) {}
 
 int Flat::get_number_vertices() {
@@ -1089,7 +1087,7 @@ int Flat::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool Flat::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+bool Flat::add_elevation_point(Point2& p, double z, float radius, int lasclass, bool within) {
   // if within then a point must lay within the polygon, otherwise add
   if (!within || (within && point_in_polygon(p, *(_p2)))) {
     if (within_range(p, *(_p2), radius)) {
@@ -1118,7 +1116,7 @@ return true;
 //-------------------------------
 //-------------------------------
 
-Boundary3D::Boundary3D(char *wkt, std::string layername, AttributeMap attributes, std::string pid)
+Boundary3D::Boundary3D(char* wkt, std::string layername, AttributeMap attributes, std::string pid)
   : TopoFeature(wkt, layername, attributes, pid) {
 }
 
@@ -1126,7 +1124,7 @@ int Boundary3D::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool Boundary3D::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+bool Boundary3D::add_elevation_point(Point2& p, double z, float radius, int lasclass, bool within) {
   // if within then a point must lay within the polygon, otherwise add
   if (!within || (within && point_in_polygon(p, *(_p2)))) {
     assign_elevation_to_vertex(p, z, radius);
@@ -1249,7 +1247,7 @@ void Boundary3D::detect_outliers(bool flatten){
 //-------------------------------
 //-------------------------------
 
-TIN::TIN(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer)
+TIN::TIN(char* wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer)
   : TopoFeature(wkt, layername, attributes, pid) {
   _simplification = simplification;
   _simplification_tinsimp = simplification_tinsimp;
@@ -1260,7 +1258,7 @@ int TIN::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool TIN::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+bool TIN::add_elevation_point(Point2& p, double z, float radius, int lasclass, bool within) {
   bool toadd = false;
   // if within then a point must lay within the polygon, otherwise add
   if (!within || (within && point_in_polygon(p, *(_p2)))) {
