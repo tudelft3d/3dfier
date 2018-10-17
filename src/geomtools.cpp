@@ -214,13 +214,13 @@ std::string gen_key_bucket(const Point2* p) {
 
 std::string gen_key_bucket(const Point3* p) {
   std::stringstream ss;
-  ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>() << " " << p->get<2>();
+  ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>() << " " << std::setprecision(2) << p->get<2>();
   return ss.str();
 }
 
 std::string gen_key_bucket(const Point3* p, float z) {
   std::stringstream ss;
-  ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>() << " " << z;
+  ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>() << " " << std::setprecision(2) << z;
   return ss.str();
 }
 
