@@ -307,9 +307,9 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   else if (lod == 0) {
     fs += mtl;
     fs += "\n";
+    float z = z_to_float(this->get_height_base());
     for (auto& t : _triangles) {
       unsigned long a, b, c;
-      float z = z_to_float(this->get_height_base());
       auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
       if (it == dPts.end()) {
         a = dPts.size() + 1;
@@ -341,9 +341,9 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   }
   if (_building_include_floor) {
     fs += "usemtl BuildingFloor\n";
+    float z = z_to_float(this->get_height_base());
     for (auto& t : _triangles) {
       unsigned long a, b, c;
-      float z = z_to_float(this->get_height_base());
       auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
       if (it == dPts.end()) {
         a = dPts.size() + 1;
@@ -391,27 +391,26 @@ void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, u
   if (_building_include_floor) {
     for (auto& t : _triangles) {
       unsigned long a, b, c;
-      float z = z_to_float(this->get_height_base());
-      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
+      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, hbase));
       if (it == dPts.end()) {
         a = dPts.size();
-        dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
+        dPts[gen_key_bucket(&_vertices[t.v0].first, hbase)] = a;
       }
       else {
         a = it->second;
       }
-      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
+      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, hbase));
       if (it == dPts.end()) {
         b = dPts.size();
-        dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
+        dPts[gen_key_bucket(&_vertices[t.v1].first, hbase)] = b;
       }
       else {
         b = it->second;
       }
-      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
+      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, hbase));
       if (it == dPts.end()) {
         c = dPts.size();
-        dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
+        dPts[gen_key_bucket(&_vertices[t.v2].first, hbase)] = c;
       }
       else {
         c = it->second;
@@ -434,9 +433,9 @@ void Building::get_citygml(std::wostream& of) {
   of << "<bui:Building gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
   of << "<gen:measureAttribute name=\"min height surface\">";
-  of << "<gen:value uom=\"#m\">" << hbase << "</gen:value>";
+  of << "<gen:value uom=\"#m\">" << std::setprecision(2) << hbase << std::setprecision(3) << "</gen:value>";
   of << "</gen:measureAttribute>";
-  of << "<bui:measuredHeight uom=\"#m\">" << h << "</bui:measuredHeight>";
+  of << "<bui:measuredHeight uom=\"#m\">" << std::setprecision(2) << h << std::setprecision(3) << "</bui:measuredHeight>";
   //-- LOD0 footprint
   of << "<bui:lod0FootPrint>";
   of << "<gml:MultiSurface>";
