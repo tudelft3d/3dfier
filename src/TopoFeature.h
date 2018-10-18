@@ -34,6 +34,7 @@
 #include "io.h"
 #include "polyfit.hpp"
 #include "nlohmann-json/json.hpp"
+#include "ptinpoly.h"
 
 class TopoFeature {
 public:
@@ -99,6 +100,7 @@ protected:
   bool    assign_elevation_to_vertex(const Point2& p, double z, float radius);
   bool    within_range(const Point2& p, const Polygon2& poly, double radius);
   bool    point_in_polygon(const Point2& p, const Polygon2& poly);
+  bool    point_in_polygon_grid(const Point2& p, std::vector<GridSet> grids);
   void    lift_each_boundary_vertices(float percentile);
   void    lift_all_boundary_vertices_same_height(int height);
 

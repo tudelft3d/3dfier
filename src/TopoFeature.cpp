@@ -844,6 +844,21 @@ bool TopoFeature::assign_elevation_to_vertex(const Point2& p, double z, float ra
   return true;
 }
 
+#include <sys/timeb.h>
+int getMilliCount() {
+  timeb tb;
+  ftime(&tb);
+  int nCount = tb.millitm + (tb.time & 0xfffff) * 1000;
+  return nCount;
+}
+
+int getMilliSpan(int nTimeStart) {
+  int nSpan = getMilliCount() - nTimeStart;
+  if (nSpan < 0)
+    nSpan += 0x100000 * 1000;
+  return nSpan;
+}
+
 bool TopoFeature::within_range(const Point2& p, const Polygon2& poly, double radius) {
   double sqr_radius = radius * radius;
   const Ring2& oring = poly.outer();
@@ -861,10 +876,73 @@ bool TopoFeature::within_range(const Point2& p, const Polygon2& poly, double rad
       }
     }
   }
-  //-- point is within the polygon
-  if (point_in_polygon(p, poly)) {
-    return true;
+  ////-- point is within the polygon
+  //if (point_in_polygon(p, poly)) {
+  //  return true;
+  //}
+
+  int count1 = 0, count2 = 0, count3 = 0;
+  int it = 1;
+
+  int start;
+  int duration;
+  start = getMilliCount();
+
+  for (unsigned i = 0; (i < it); i++) {
+    if (point_in_polygon(p, poly)) {
+      count1++;
+    }
   }
+  duration = getMilliSpan(start);
+  //std::cout << "pip old: " << duration << '\n';
+
+  std::vector<GridSet> grids;
+
+  int size = poly.outer().size();
+  std::vector<pPipoint> pgon;
+  for (int i = 0; i < size; i++) {
+    pgon.push_back(new Pipoint{ poly.outer()[i].x(), poly.outer()[i].y() });
+  }
+  GridSet grid_set;
+  int Grid_Resolution = 20;
+  GridSetup(&pgon[0], pgon.size(), Grid_Resolution, &grid_set);
+  grids.push_back(grid_set);
+  for (int i = 0; i < size; i++) {
+    delete pgon[i];
+  }
+
+  for (int r = 0; r < poly.inners().size(); r++) {
+    int size = poly.inners()[r].size();
+    std::vector<pPipoint> pgon;
+    for (int i = 0; i < size; i++) {
+      pgon.push_back(new Pipoint{ poly.inners()[r][i].x(), poly.inners()[r][i].y() });
+    }
+    GridSet grid_set;
+    int Grid_Resolution = 20;
+    GridSetup(&pgon[0], pgon.size(), Grid_Resolution, &grid_set);
+    grids.push_back(grid_set);
+    for (int i = 0; i < size; i++) {
+      delete pgon[i];
+    }
+  }
+
+  start = getMilliCount();
+  for (unsigned i = 0; (i < it); i++) {
+    if (point_in_polygon_grid(p, grids)) {
+      count2++;
+    }
+  }
+  duration = getMilliSpan(start);
+  //std::cout << "pip new: " << duration << '\n';
+
+  for (auto grid : grids) {
+    GridCleanup(&grid);
+  }
+
+  if (count1 != count2) {
+    std::cout << std::fixed << std::setprecision(3) << _id << " Point(" << p.x() << " " << p.y() << ") " << count1 << " != " << count2 << std::endl;
+  }
+
   return false;
 }
 
@@ -900,6 +978,22 @@ bool TopoFeature::point_in_polygon(const Point2& p, const Polygon2& poly) {
     }
   }
   return insideOuter;
+}
+
+bool TopoFeature::point_in_polygon_grid(const Point2& p, std::vector<GridSet> grids) {
+  double point[]{ p.x(), p.y() };
+  int insideouter = GridTest(&(grids[0]), point);
+  if (insideouter) {
+    for (int i = 1; i < grids.size(); i++) {
+      if (GridTest(&(grids[i]), point)) {
+        return false;
+      }
+    }
+  }
+  else {
+    return false;
+  }
+  return true;
 }
 
 void TopoFeature::get_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, bool verticalwall) {
