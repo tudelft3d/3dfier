@@ -947,13 +947,16 @@ bool TopoFeature::point_in_polygon_grid(const Point2& p) {
   if (insideouter) {
     for (int i = 1; i < _grids.size(); i++) {
       if (GridTest(_grids[i], point)) {
+        delete point;
         return false;
       }
     }
   }
   else {
+    delete point;
     return false;
   }
+  delete point;
   return true;
 }
 
