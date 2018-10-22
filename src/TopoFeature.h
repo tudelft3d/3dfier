@@ -89,6 +89,7 @@ protected:
   bool                              _toplevel;
   std::string                       _layername;
   AttributeMap                      _attributes;
+  std::vector<GridSet*>             _grids;
 
   std::vector< std::vector< std::vector<int> > >  _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
   std::vector< std::pair<Point3, std::string> >   _vertices;
@@ -96,11 +97,13 @@ protected:
   std::vector< std::pair<Point3, std::string> >   _vertices_vw;
   std::vector<Triangle>                           _triangles_vw;
 
+  void    prepare_grid();
+  void    cleanup_grid();
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(const Point2& p, double z, float radius);
   bool    within_range(const Point2& p, const Polygon2& poly, double radius);
   bool    point_in_polygon(const Point2& p, const Polygon2& poly);
-  bool    point_in_polygon_grid(const Point2& p, std::vector<GridSet> grids);
+  bool    point_in_polygon_grid(const Point2& p);
   void    lift_each_boundary_vertices(float percentile);
   void    lift_all_boundary_vertices_same_height(int height);
 
