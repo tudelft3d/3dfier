@@ -514,7 +514,7 @@ void Building::get_citygml_imgeo(std::wostream& of) {
       get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
     get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
     //-- irings
-    auto irings = _p2->inners();
+    std::vector<Ring2>& irings = _p2->inners();
     for (Ring2& r : irings) {
       for (i = 0; i < (r.size() - 1); i++)
         get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);

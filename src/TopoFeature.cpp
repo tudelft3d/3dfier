@@ -732,7 +732,7 @@ float TopoFeature::get_distance_to_boundaries(const Point2& p) {
 bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis) {
   std::vector<Ring2> rings;
   rings.push_back(_p2->outer());
-  for (auto iring : _p2->inners())
+  for (Ring2& iring : _p2->inners())
     rings.push_back(iring);
 
   bool re = false;
@@ -827,6 +827,7 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
 bool TopoFeature::assign_elevation_to_vertex(const Point2& p, double z, float radius) {
   double sqr_radius = radius * radius;
   int zcm = int(z * 100);
+
   int ringi = 0;
   Ring2& oring = _p2->outer();
   for (int i = 0; i < oring.size(); i++) {
@@ -859,7 +860,7 @@ bool TopoFeature::within_range(const Point2& p, double radius) {
       return true;
     }
   }
-  auto irings = _p2->inners();
+  std::vector<Ring2>& irings = _p2->inners();
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
       if (sqr_distance(p, iring[i]) <= sqr_radius) {
@@ -1050,7 +1051,7 @@ void TopoFeature::lift_all_boundary_vertices_same_height(int height) {
   for (int i = 0; i < oring.size(); i++)
     _p2z[ringi][i] = height;
   ringi++;
-  auto irings = _p2->inners();
+  std::vector<Ring2>& irings = _p2->inners();
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++)
       _p2z[ringi][i] = height;
