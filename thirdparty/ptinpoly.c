@@ -438,7 +438,7 @@ double		slope, inv_slope ;
  *	  state of the edge or corner the ray went to and so determine the
  *	  state of the point (inside or outside).
  */
-int GridTest(pGridSet p_gs, double point[2])
+int GridTest(pGridSet p_gs, pPipoint point)
 {
 int	j, count, init_flag ;
 pGridCell	p_gc ;
@@ -449,9 +449,9 @@ unsigned short	gc_flags ;
 int	inside_flag ;
 
     /* first, is point inside bounding rectangle? */
-    if ( ( ty = point[Y] ) < p_gs->miny ||
+    if ( ( ty = point->y ) < p_gs->miny ||
 	 ty >= p_gs->maxy ||
-	 ( tx = point[X] ) < p_gs->minx ||
+	 ( tx = point->x ) < p_gs->minx ||
 	 tx >= p_gs->maxx ) {
 
 	/* outside of box */

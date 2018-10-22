@@ -84,10 +84,10 @@ typedef struct {
     double	minx, maxx ;	/* X bounds for bin */
 } Edge, *pEdge ;
 
-void GridSetup(pPipoint pgon[], int	numverts, int	resolution, pGridSet	p_gs);
+void GridSetup(pPipoint pgon[], int	numverts, int	resolution, pGridSet p_gs);
 int AddGridRecAlloc(pGridCell p_gc, double xa, double ya, double xb, double yb, double eps);
 void GridCleanup(pGridSet	p_gs);
-int GridTest(pGridSet p_gs, double point[2]);
+int GridTest(pGridSet p_gs, pPipoint point);
 
 #ifdef __cplusplus
 }

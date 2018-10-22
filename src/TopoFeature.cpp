@@ -825,7 +825,7 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
 //-- used to collect all points linked to the polygon
 //-- later all these values are used to lift the polygon (and put values in _p2z)
 bool TopoFeature::assign_elevation_to_vertex(const Point2& p, double z, float radius) {
-  float sqr_radius = radius * radius;
+  double sqr_radius = radius * radius;
   int zcm = int(z * 100);
   int ringi = 0;
   Ring2& oring = _p2->outer();
@@ -834,7 +834,7 @@ bool TopoFeature::assign_elevation_to_vertex(const Point2& p, double z, float ra
       _lidarelevs[ringi][i].push_back(zcm);
   }
   ringi++;
-  auto irings = _p2->inners();
+  std::vector<Ring2>& irings = _p2->inners();
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
       if (sqr_distance(p, iring[i]) <= sqr_radius) {
@@ -846,9 +846,13 @@ bool TopoFeature::assign_elevation_to_vertex(const Point2& p, double z, float ra
   return true;
 }
 
-bool TopoFeature::within_range(const Point2& p, const Polygon2& poly, double radius) {
+bool TopoFeature::within_range(const Point2& p, double radius) {
+  if (point_in_polygon_grid(p)) {
+    return true;
+  }  
+  
   double sqr_radius = radius * radius;
-  const Ring2& oring = poly.outer();
+  const Ring2& oring = _p2->outer();
   //-- point is within range of the polygon rings
   for (int i = 0; i < oring.size(); i++) {
     if (sqr_distance(p, oring[i]) <= sqr_radius) {
@@ -862,14 +866,6 @@ bool TopoFeature::within_range(const Point2& p, const Polygon2& poly, double rad
         return true;
       }
     }
-  }
-  ////-- point is within the polygon
-  //if (point_in_polygon(p, poly)) {
-  //  return true;
-  //}
-
-  if (point_in_polygon_grid(p)) {
-    return true;
   }
   return false;
 }
@@ -914,7 +910,7 @@ void TopoFeature::prepare_grid() {
   for (int i = 0; i < size; i++) {
     pgon.push_back(new Pipoint{ _p2->outer()[i].x(), _p2->outer()[i].y() });
   }
-  GridSet* grid_set = new GridSet();
+  pGridSet grid_set = new GridSet();
   int Grid_Resolution = 20;
   GridSetup(&pgon[0], pgon.size(), Grid_Resolution, grid_set);
   _grids.push_back(grid_set);
@@ -928,7 +924,7 @@ void TopoFeature::prepare_grid() {
     for (int i = 0; i < size; i++) {
       pgon.push_back(new Pipoint{ _p2->inners()[r][i].x(), _p2->inners()[r][i].y() });
     }
-    GridSet* grid_set = new GridSet();
+    pGridSet grid_set = new GridSet();
     int Grid_Resolution = 20;
     GridSetup(&pgon[0], pgon.size(), Grid_Resolution, grid_set);
     _grids.push_back(grid_set);
@@ -939,13 +935,13 @@ void TopoFeature::prepare_grid() {
 }
 
 void TopoFeature::cleanup_grid() {
-  for (GridSet* grid : _grids) {
+  for (pGridSet grid : _grids) {
     GridCleanup(grid);
   }
 }
 
 bool TopoFeature::point_in_polygon_grid(const Point2& p) {
-  double point[]{ p.x(), p.y() };
+  pPipoint point = new Pipoint{ p.x(), p.y() };
   int insideouter = GridTest(_grids[0], point);
   if (insideouter) {
     for (int i = 1; i < _grids.size(); i++) {
@@ -1147,8 +1143,8 @@ int Flat::get_number_vertices() {
 
 bool Flat::add_elevation_point(Point2& p, double z, float radius, int lasclass, bool within) {
   // if within then a point must lay within the polygon, otherwise add
-  if (!within || (within && point_in_polygon(p, *(_p2)))) {
-    if (within_range(p, *(_p2), radius)) {
+  if (!within || (within && point_in_polygon_grid(p))) {
+    if (within_range(p, radius)) {
       int zcm = int(z * 100);
       //-- 1. assign to polygon since within the threshold value (buffering of polygon)
       _zvaluesinside.push_back(zcm);
@@ -1184,7 +1180,7 @@ int Boundary3D::get_number_vertices() {
 
 bool Boundary3D::add_elevation_point(Point2& p, double z, float radius, int lasclass, bool within) {
   // if within then a point must lay within the polygon, otherwise add
-  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+  if (!within || (within && point_in_polygon_grid(p))) {
     assign_elevation_to_vertex(p, z, radius);
   }
   return true;
@@ -1319,7 +1315,7 @@ int TIN::get_number_vertices() {
 bool TIN::add_elevation_point(Point2& p, double z, float radius, int lasclass, bool within) {
   bool toadd = false;
   // if within then a point must lay within the polygon, otherwise add
-  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+  if (!within || (within && point_in_polygon_grid(p))) {
     assign_elevation_to_vertex(p, z, radius);
   }
   if (_simplification <= 1)
@@ -1332,7 +1328,7 @@ bool TIN::add_elevation_point(Point2& p, double z, float radius, int lasclass, b
       toadd = true;
   }
   // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
-  if (toadd && point_in_polygon(p, *(_p2)) && (_innerbuffer == 0.0 || (within_range(p, *(_p2), _innerbuffer) && this->get_distance_to_boundaries(p) > _innerbuffer))) {
+  if (toadd && point_in_polygon_grid(p) && (_innerbuffer == 0.0 || this->get_distance_to_boundaries(p) > _innerbuffer)) {
     _lidarpts.push_back(Point3(p.x(), p.y(), z));
   }
   return toadd;
