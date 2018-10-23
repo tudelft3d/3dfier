@@ -351,7 +351,6 @@ void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, int stats) {
     for (auto& p : _lsFeatures) {
       if (p->get_class() == BUILDING) {
         Building* b = dynamic_cast<Building*>(p);
-        std::cout << b->get_id() << " ";
         std::vector<double> rmse = b->get_RMSE();
         of << b->get_id() << ",";
         for (auto& each : gpercentiles) {
@@ -812,27 +811,28 @@ void Map3d::add_elevation_point(LASpoint const& laspt) {
 
 
 void Map3d::add_point_distance(LASpoint const& laspt, bool multi_rmse) {
+  if (laspt.return_number != laspt.number_of_returns)
+    return;
+
   std::vector<PairIndexed> re;
-  Point2 minp(laspt.get_x() - _radius_vertex_elevation, laspt.get_y() - _radius_vertex_elevation);
-  Point2 maxp(laspt.get_x() + _radius_vertex_elevation, laspt.get_y() + _radius_vertex_elevation);
+  float x = laspt.get_x();
+  float y = laspt.get_y();
+  Point2 minp(x - _radius_vertex_elevation, y - _radius_vertex_elevation);
+  Point2 maxp(x + _radius_vertex_elevation, y + _radius_vertex_elevation);
   Box2 querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
-  minp = Point2(laspt.get_x() - _building_radius_vertex_elevation, laspt.get_y() - _building_radius_vertex_elevation);
-  maxp = Point2(laspt.get_x() + _building_radius_vertex_elevation, laspt.get_y() + _building_radius_vertex_elevation);
+  minp = Point2(x - _building_radius_vertex_elevation, y - _building_radius_vertex_elevation);
+  maxp = Point2(x + _building_radius_vertex_elevation, y + _building_radius_vertex_elevation);
   querybox = Box2(minp, maxp);
   _rtree_buildings.query(bgi::intersects(querybox), std::back_inserter(re));
 
   for (auto& v : re) {
     TopoFeature* f = v.second;
     float radius = _radius_vertex_elevation;
-    //-- only process last returns;
-    //-- although perhaps not smart for vegetation/forest in the future
-    //-- TODO: always ignore the non-last-return points?
-    if (laspt.GetReturnNumber() != laspt.GetNumberOfReturns())
-      continue;
 
-    int c = laspt.GetClassification().GetClass();
+    int c = (int)laspt.classification;
     bool bInsert = false;
+    bool bWithin = false;
     if (f->get_class() == BUILDING) {
       bInsert = true;
       radius = _building_radius_vertex_elevation;
@@ -841,30 +841,54 @@ void Map3d::add_point_distance(LASpoint const& laspt, bool multi_rmse) {
       if (_las_classes_allowed[LAS_TERRAIN].empty() || _las_classes_allowed[LAS_TERRAIN].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_TERRAIN].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
     else if (f->get_class() == FOREST) {
       if (_las_classes_allowed[LAS_FOREST].empty() || _las_classes_allowed[LAS_FOREST].count(c) > 0) {
         bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_FOREST].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
       }
     }
     else if (f->get_class() == ROAD) {
       if (_las_classes_allowed[LAS_ROAD].empty() || _las_classes_allowed[LAS_ROAD].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_ROAD].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
     else if (f->get_class() == WATER) {
       if (_las_classes_allowed[LAS_WATER].empty() || _las_classes_allowed[LAS_WATER].count(c) > 0) {
         bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_WATER].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
       }
     }
     else if (f->get_class() == SEPARATION) {
       if (_las_classes_allowed[LAS_SEPARATION].empty() || _las_classes_allowed[LAS_SEPARATION].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_SEPARATION].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
     else if (f->get_class() == BRIDGE) {
       if (_las_classes_allowed[LAS_BRIDGE].empty() || _las_classes_allowed[LAS_BRIDGE].count(c) > 0) {
         bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_BRIDGE].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
       }
     }
     if (multi_rmse) {

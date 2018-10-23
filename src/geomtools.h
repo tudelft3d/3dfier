@@ -51,7 +51,7 @@ std::string gen_key_bucket(const Point3* p, float z);
 
 double distance(const Point2 &p1, const Point2 &p2);
 double sqr_distance(const Point2 &p1, const Point2 &p2);
-double distance_3d(AABB_Tree const& TriTree, liblas::Point const& laspt);
+double distance_3d(AABB_Tree const& TriTree, LASpoint const& laspt);
 bool   getCDT(Polygon2* pgn,
             const std::vector< std::vector<int> > &z, 
             std::vector< std::pair<Point3, std::string> > &vertices, 

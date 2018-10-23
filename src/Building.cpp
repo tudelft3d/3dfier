@@ -115,7 +115,6 @@ int Building::get_height_roof_at_percentile(float percentile) {
 std::vector<double> Building::get_RMSE() {
   std::vector<double> rmse;
   for (int i = 0; i < _distancesinside.size(); i++) {
-    std::cout << "size: " << _distancesinside[i].size() << " ";
     auto& distinside = _distancesinside[i];
     if (distinside.empty()) {
       rmse.push_back(-9999.0);
@@ -125,11 +124,9 @@ std::vector<double> Building::get_RMSE() {
       for (double& d : distinside) sum += d;
       double n = distinside.size();
       auto rm = sqrt(sum/n);
-      std::cout << "rmse: " << rm << "; ";
       rmse.push_back(rm);
     }
   }
-  std::cout << std::endl;
   return rmse;
 }
 
