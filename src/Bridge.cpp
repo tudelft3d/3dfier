@@ -45,6 +45,10 @@ bool Bridge::is_hard() {
   return true;
 }
 
+void Bridge::cleanup_elevations() {
+  TopoFeature::cleanup_elevations();
+}
+
 std::string Bridge::get_mtl() {
   return "usemtl Bridge";
 }

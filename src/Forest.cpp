@@ -39,6 +39,10 @@ bool Forest::is_hard() {
   return false;
 }
 
+void Forest::cleanup_elevations() {
+  TIN::cleanup_elevations();
+}
+
 std::string Forest::get_mtl() {
   return "usemtl Forest";
 }

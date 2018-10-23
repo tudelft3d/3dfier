@@ -50,6 +50,7 @@ public:
   bool          get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap());
   TopoClass     get_class();
   bool          is_hard();
+  void          cleanup_elevations();
   int           get_height_base();
   int           get_height_ground_at_percentile(float percentile);
   int           get_height_roof_at_percentile(float percentile);

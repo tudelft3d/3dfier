@@ -289,6 +289,12 @@ bool Building::is_hard() {
   return true;
 }
 
+void Building::cleanup_elevations() {
+  _zvaluesground.clear();
+  _zvaluesground.shrink_to_fit();
+  Flat::cleanup_elevations();
+}
+
 void Building::get_csv(std::wostream& of) {
   of << this->get_id() << ";" <<
     std::setprecision(2) << std::fixed <<

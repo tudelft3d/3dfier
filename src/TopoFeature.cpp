@@ -905,25 +905,13 @@ bool TopoFeature::point_in_polygon(const Point2& p, const Polygon2& poly) {
 }
 
 void TopoFeature::prepare_grid() {
-  int Grid_Resolution = 20;
+  try {
+    int Grid_Resolution = 20;
 
-  int size = _p2->outer().size();
-  std::vector<pPipoint> pgon;
-  for (int i = 0; i < size; i++) {
-    pgon.push_back(new Pipoint{ _p2->outer()[i].x(), _p2->outer()[i].y() });
-  }
-  pGridSet grid_set = new GridSet();
-  GridSetup(&pgon[0], pgon.size(), Grid_Resolution, grid_set);
-  _grids.push_back(grid_set);
-  for (int i = 0; i < size; i++) {
-    delete pgon[i];
-  }
-
-  for (int r = 0; r < _p2->inners().size(); r++) {
-    int size = _p2->inners()[r].size();
+    int size = _p2->outer().size();
     std::vector<pPipoint> pgon;
     for (int i = 0; i < size; i++) {
-      pgon.push_back(new Pipoint{ _p2->inners()[r][i].x(), _p2->inners()[r][i].y() });
+      pgon.push_back(new Pipoint{ _p2->outer()[i].x(), _p2->outer()[i].y() });
     }
     pGridSet grid_set = new GridSet();
     GridSetup(&pgon[0], pgon.size(), Grid_Resolution, grid_set);
@@ -931,6 +919,24 @@ void TopoFeature::prepare_grid() {
     for (int i = 0; i < size; i++) {
       delete pgon[i];
     }
+
+    for (int r = 0; r < _p2->inners().size(); r++) {
+      int size = _p2->inners()[r].size();
+      std::vector<pPipoint> pgon;
+      for (int i = 0; i < size; i++) {
+        pgon.push_back(new Pipoint{ _p2->inners()[r][i].x(), _p2->inners()[r][i].y() });
+      }
+      pGridSet grid_set = new GridSet();
+      GridSetup(&pgon[0], pgon.size(), Grid_Resolution, grid_set);
+      _grids.push_back(grid_set);
+      for (int i = 0; i < size; i++) {
+        delete pgon[i];
+      }
+    }
+  }
+  catch (std::exception e) {
+    std::cerr << "ERROR: Point-in-polygon grid creation failed.\n";
+    throw e;
   }
 }
 
@@ -940,23 +946,36 @@ void TopoFeature::cleanup_grid() {
   }
 }
 
+void TopoFeature::cleanup_elevations() {
+  _lidarelevs.clear();
+  _lidarelevs.shrink_to_fit();
+  _p2z.clear();
+  _p2z.shrink_to_fit();
+}
+
 bool TopoFeature::point_in_polygon_grid(const Point2& p) {
-  pPipoint point = new Pipoint{ p.x(), p.y() };
-  int insideouter = GridTest(_grids[0], point);
-  if (insideouter) {
-    for (int i = 1; i < _grids.size(); i++) {
-      if (GridTest(_grids[i], point)) {
-        delete point;
-        return false;
+  try {  
+    pPipoint point = new Pipoint{ p.x(), p.y() };
+    int insideouter = GridTest(_grids[0], point);
+    if (insideouter) {
+      for (int i = 1; i < _grids.size(); i++) {
+        if (GridTest(_grids[i], point)) {
+          delete point;
+          return false;
+        }
       }
     }
-  }
-  else {
+    else {
+      delete point;
+      return false;
+    }
     delete point;
+    return true;
+  }
+  catch (std::exception e) {
+    std::cerr << "ERROR: Point-in-polygon error, ignoring point.\n";
     return false;
   }
-  delete point;
-  return true;
 }
 
 void TopoFeature::get_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, bool verticalwall) {
@@ -1170,6 +1189,12 @@ this->lift_all_boundary_vertices_same_height(z);
 return true;
 }
 
+void Flat::cleanup_elevations() {
+  _zvaluesinside.clear();
+  _zvaluesinside.shrink_to_fit();
+  TopoFeature::cleanup_elevations();
+}
+
 //-------------------------------
 //-------------------------------
 
@@ -1335,6 +1360,12 @@ bool TIN::add_elevation_point(Point2& p, double z, float radius, int lasclass, b
     _lidarpts.push_back(Point3(p.x(), p.y(), z));
   }
   return toadd;
+}
+
+void TIN::cleanup_elevations() {
+  _lidarpts.clear();
+  _lidarpts.shrink_to_fit();
+  TopoFeature::cleanup_elevations();
 }
 
 bool TIN::buildCDT() {

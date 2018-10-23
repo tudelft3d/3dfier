@@ -43,6 +43,10 @@ bool Separation::is_hard() {
   return true;
 }
 
+void Separation::cleanup_elevations() {
+  TopoFeature::cleanup_elevations();
+}
+
 std::string Separation::get_mtl() {
   return "usemtl Separation";
 }

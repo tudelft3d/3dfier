@@ -745,6 +745,12 @@ void Map3d::cleanup_grids() {
   }
 }
 
+void Map3d::cleanup_elevations() {
+  for (auto& f : _lsFeatures) {
+    f->cleanup_elevations();
+  }
+}
+
 bool Map3d::threeDfy(bool stitching) {
   /*
     1. lift

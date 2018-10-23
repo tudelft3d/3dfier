@@ -52,6 +52,7 @@ public:
   virtual void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long>& dPts) = 0;
   virtual void          get_citygml_imgeo(std::wostream& of) = 0;
   virtual bool          get_shape(OGRLayer*, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap()) = 0;
+  virtual void          cleanup_elevations() = 0;
 
   std::string  get_id();
   void         construct_vertical_walls(const NodeColumn& nc);
@@ -127,6 +128,7 @@ public:
   virtual bool        lift() = 0;
   virtual void        get_citygml(std::wostream& of) = 0;
   virtual void        get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long>& dPts) = 0;
+  virtual void        cleanup_elevations() = 0;
 protected:
   std::vector<int>    _zvaluesinside;
   bool                lift_percentile(float percentile);
@@ -144,6 +146,7 @@ public:
   virtual bool         lift() = 0;
   virtual void         get_citygml(std::wostream& of) = 0;
   virtual void         get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long>& dPts) = 0;
+  virtual void         cleanup_elevations() = 0;
   void                 detect_outliers(bool replace_all);
 protected:
   int                  _simplification;
@@ -162,6 +165,7 @@ public:
   virtual bool        lift() = 0;
   virtual void        get_citygml(std::wostream& of) = 0;
   virtual void        get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long>& dPts) = 0;
+  virtual void        cleanup_elevations() = 0;
   bool                buildCDT();
 protected:
   int                 _simplification;
