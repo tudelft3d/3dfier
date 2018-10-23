@@ -2,12 +2,11 @@
 #define __3DFIER__Definitions__
 
 #include <iostream>
-#include <fstream>
 #include <cmath>
 #include <vector>
 #include <unordered_map>
 
-#include "lasreader.hpp"
+#include <liblas/liblas.hpp>
 #include <ogrsf_frmts.h>
 
 #include <boost/geometry.hpp>

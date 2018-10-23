@@ -53,10 +53,6 @@ Map3d::Map3d() {
   _threshold_jump_edges = 50;
   _requestedExtent = Box2(Point2(0, 0), Point2(0, 0));
   _bbox = Box2(Point2(999999, 999999), Point2(-999999, -999999));
-  _minxradius = 999999;
-  _maxxradius = 999999;
-  _minyradius = -999999;
-  _maxyradius = -999999;
 }
 
 Map3d::~Map3d() {
@@ -159,12 +155,10 @@ Box2 Map3d::get_bbox() {
   return _bbox;
 }
 
-bool Map3d::check_bounds(const double xmin, const double xmax, const double ymin, const double ymax) {
-  if ((xmin < _maxxradius || xmax > _minxradius) &&
-    (ymin < _maxyradius || ymax > _minyradius)) {
-    return true;
-  }
-  return false;
+liblas::Bounds<double> Map3d::get_bounds() {
+  double radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
+  liblas::Bounds<double> bounds(_bbox.min_corner().x() - radius, _bbox.min_corner().y() - radius, _bbox.max_corner().x() + radius, _bbox.max_corner().y() + radius);
+  return bounds;
 }
 
 bool Map3d::get_cityjson(std::string filename) {
@@ -656,30 +650,27 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
   return _lsFeatures;
 }
 
-void Map3d::add_elevation_point(LASpoint const& laspt) {
-  //-- only process last returns; 
-  //-- although perhaps not smart for vegetation/forest in the future
-  //-- TODO: always ignore the non-last-return points?
-  if (laspt.return_number != laspt.number_of_returns)
-    return;
-
+void Map3d::add_elevation_point(liblas::Point const& laspt) {
   std::vector<PairIndexed> re;
-  float x = laspt.get_x();
-  float y = laspt.get_y();
-  Point2 minp(x - _radius_vertex_elevation, y - _radius_vertex_elevation);
-  Point2 maxp(x + _radius_vertex_elevation, y + _radius_vertex_elevation);
+  Point2 minp(laspt.GetX() - _radius_vertex_elevation, laspt.GetY() - _radius_vertex_elevation);
+  Point2 maxp(laspt.GetX() + _radius_vertex_elevation, laspt.GetY() + _radius_vertex_elevation);
   Box2 querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
-  minp = Point2(x - _building_radius_vertex_elevation, y - _building_radius_vertex_elevation);
-  maxp = Point2(x + _building_radius_vertex_elevation, y + _building_radius_vertex_elevation);
+  minp = Point2(laspt.GetX() - _building_radius_vertex_elevation, laspt.GetY() - _building_radius_vertex_elevation);
+  maxp = Point2(laspt.GetX() + _building_radius_vertex_elevation, laspt.GetY() + _building_radius_vertex_elevation);
   querybox = Box2(minp, maxp);
   _rtree_buildings.query(bgi::intersects(querybox), std::back_inserter(re));
 
   for (auto& v : re) {
     TopoFeature* f = v.second;
     float radius = _radius_vertex_elevation;
+    //-- only process last returns; 
+    //-- although perhaps not smart for vegetation/forest in the future
+    //-- TODO: always ignore the non-last-return points?
+    if (laspt.GetReturnNumber() != laspt.GetNumberOfReturns()) 
+      continue;
 
-    int c = (int)laspt.classification;
+    int c = laspt.GetClassification().GetClass();
     bool bInsert = false;
     bool bWithin = false;
     if (f->get_class() == BUILDING) {
@@ -742,8 +733,8 @@ void Map3d::add_elevation_point(LASpoint const& laspt) {
     }
  
     if (bInsert == true) { //-- only insert if in the allowed LAS classes
-      Point2 p(x, y);
-      f->add_elevation_point(p, laspt.get_z(), radius, c, bWithin); 
+      Point2 p(laspt.GetX(), laspt.GetY());
+      f->add_elevation_point(p, laspt.GetZ(), radius, c, bWithin); 
     }
   }
 }
@@ -864,12 +855,6 @@ bool Map3d::construct_rtree() {
       std::min(bg::get<bg::min_corner, 1>(_rtree.bounds()), bg::get<bg::min_corner, 1>(_rtree_buildings.bounds()))),
     Point2(std::max(bg::get<bg::max_corner, 0>(_rtree.bounds()), bg::get<bg::max_corner, 0>(_rtree_buildings.bounds())),
       std::max(bg::get<bg::max_corner, 1>(_rtree.bounds()), bg::get<bg::max_corner, 1>(_rtree_buildings.bounds()))));
-  
-  double radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
-  _minxradius = std::min(bg::get<bg::min_corner, 0>(_rtree.bounds()), bg::get<bg::min_corner, 0>(_rtree_buildings.bounds())) - radius;
-  _maxxradius = std::min(bg::get<bg::min_corner, 1>(_rtree.bounds()), bg::get<bg::min_corner, 1>(_rtree_buildings.bounds())) + radius;
-  _minyradius = std::max(bg::get<bg::max_corner, 0>(_rtree.bounds()), bg::get<bg::max_corner, 0>(_rtree_buildings.bounds())) - radius;
-  _maxyradius = std::max(bg::get<bg::max_corner, 1>(_rtree.bounds()), bg::get<bg::max_corner, 1>(_rtree_buildings.bounds())) + radius;
   return true;
 }
 
@@ -1073,30 +1058,28 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
 //-- http://www.liblas.org/tutorial/cpp.html#applying-filters-to-a-reader-to-extract-specified-classes
 bool Map3d::add_las_file(PointFile pointFile) {
   std::clog << "Reading LAS/LAZ file: " << pointFile.filename << std::endl;
-  
-  LASreadOpener lasreadopener;
-  lasreadopener.set_file_name(pointFile.filename.c_str());
-  //-- set to compute bounding box
-  lasreadopener.set_populate_header(true);
-  LASreader* lasreader = lasreadopener.open();
-
-  //-- check if file is open
-  if (lasreader == 0) {
+  std::ifstream ifs;
+  ifs.open(pointFile.filename.c_str(), std::ios::in | std::ios::binary);
+  if (ifs.is_open() == false) {
     std::cerr << "\tERROR: could not open file: " << pointFile.filename << std::endl;
     return false;
   }
-  LASheader header = lasreader->header;
+  //-- LAS classes to omit
+  std::vector<liblas::Classification> liblasomits;
+  for (int i : pointFile.lasomits) {
+    liblasomits.push_back(liblas::Classification(i));
+  }
 
-  if (check_bounds(header.min_x, header.max_x, header.min_y, header.max_y)) {
-    //-- LAS classes to omit
-    std::vector<int> lasomits;
-    for (int i : pointFile.lasomits) {
-      lasomits.push_back(i);
-    }
+  //-- read each point 1-by-1
+  liblas::ReaderFactory f;
+  liblas::Reader reader = f.CreateWithStream(ifs);
+  liblas::Header const& header = reader.GetHeader();
 
-    //-- read each point 1-by-1
-    uint32_t pointCount = header.number_of_point_records;
-
+  //-- check if the file overlaps the polygons
+  liblas::Bounds<double> bounds = header.GetExtent();
+  liblas::Bounds<double> polygonBounds = get_bounds();
+  uint32_t pointCount = header.GetPointRecordsCount();
+  if (polygonBounds.intersects(bounds)) {
     std::clog << "\t(" << boost::locale::as::number << pointCount << " points in the file)\n";
     if ((pointFile.thinning > 1)) {
       std::clog << "\t(skipping every " << pointFile.thinning << "th points, thus ";
@@ -1115,14 +1098,14 @@ bool Map3d::add_las_file(PointFile pointFile) {
     int i = 0;
     
     try {
-      while (lasreader->read_point()) {
-        LASpoint const& p = lasreader->point;
+      while (reader.ReadNextPoint()) {
+        liblas::Point const& p = reader.GetPoint();
         //-- set the thinning filter
         if (i % pointFile.thinning == 0) {
           //-- set the classification filter
-          if (std::find(lasomits.begin(), lasomits.end(), (int)p.classification) == lasomits.end()) {
+          if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end()) {
             //-- set the bounds filter
-            if (check_bounds(p.X, p.X, p.Y, p.Y)) {
+            if (polygonBounds.contains(p)) {
               this->add_elevation_point(p);
             }
           }
@@ -1136,16 +1119,14 @@ bool Map3d::add_las_file(PointFile pointFile) {
     }
     catch (std::exception e) {
       std::cerr << std::endl << e.what() << std::endl;
-      lasreader->close();
-      delete lasreader;
+      ifs.close();
       return false;
     }
   }
   else {
     std::clog << "\tskipping file, bounds do not intersect polygon extent\n";
   }
-  lasreader->close();
-  //delete lasreader;
+  ifs.close();
   return true;
 }
 
