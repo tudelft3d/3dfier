@@ -1,18 +1,28 @@
 input_polygons:                                         # Group for 2D input polygons
   - datasets:                                           # List of data set with specific settings
-      - /Users/elvis/data/campus/partof.shp             # Input file, can be full path or relative to the executable
+      # Unix
+      - /data/campus/partof.shp                         # Input file under Unix, can be full path or relative to the executable
+      # Windows
+      - D:\data\campus\partof.shp                       # Input file under Windows, can be full path or relative to the executable
     uniqueid: FACE_ID                                   # Unique identifier attribute within input file
     lifting: Building                                   # Class to which this input file will be mapped, class settings are defined in lifting_options
   - datasets:
-      - /Users/elvis/data/campus/another.gml            # Definition for multiple files using the same parameters
-      - /Users/elvis/data/campus/another2.gml           #
+      # Unix
+      - /data/campus/another.gml                        # Definition under Unix for multiple files using the same parameters
+      - /data/campus/another2.gml
+      # Windows
+      - D:\data\campus\another.gml                      # Definition under Windows for multiple files using the same parameters
+      - D:\data\campus\another2.gml
     uniqueid: fid
     lifting_per_layer:                                  # Settings for mapping class to the layers defined within the input files
       Gebouw: Building                                  # Layer to class linking, 'Layer name in file:Class'
       Terrein: Terrain
       Waterdeel: Water
   - datasets: 
-      - /Users/elvis/data/bgt_overbruggingsdeel.sqlite
+      # Unix
+      - /data/bgt_overbruggingsdeel.sqlite
+      # Windows
+      - D:\data\bgt_overbruggingsdeel.sqlite
     uniqueid: gml_id
     lifting: Bridge/Overpass
     height_field: relatievehoogteligging                # Attribute containing relative height level, should be an integer where ground surface is 0
@@ -20,43 +30,64 @@ input_polygons:                                         # Group for 2D input pol
   
 lifting_options:                                        # Group for class lifting options
   Building:                                             # Class definition for Building
-    height_roof: percentile-90                          # Percentile of points within radius of building vertices for roof height lifting, building_radius_vertex_elevation is defined in options
-    height_floor: percentile-10                         # Percentile of points within radius of building vertices for floor height lifting
+    roof:
+      height: percentile-90                             # Percentile of points within radius of building vertices for roof height lifting, building_radius_vertex_elevation is defined in options
+      use_LAS_classes:                                  # LAS classes to be used for this class. If empty all classes are used
+        - 6
+    ground:
+      height: percentile-10                             # Percentile of points within radius of building vertices for floor height lifting
+      use_LAS_classes:
+        - 2
+        - 9
     lod: 1                                              # Define the Level Of Detail for Buildings (0 and 1 possible)
+    floor: true                                         # Set if floors should be created
+    inner_walls: true                                   # Set if the walls between to adjacent buildings in a block should be created
+    triangulate: false                                  # Set if the output should be triangulated, only works for non-triangular output formats like CityGML/IMGeo
   Water:                                                # Class definition for Water
     height: percentile-10                               # Percentile of points within radius of water vertices for lifting, radius_vertex_elevation is defined in options
-  Road:
+    use_LAS_classes_within:                             # LAS classes to be used for this class, but only if points fall within the polygon and the range of the vertex.
+      - 2
+      - 9
+  Road:                                                 # Class definition for Road
     height: percentile-50
-    threshold_outliers: 30                              # Maximum angle between 2 edges in a road polygon, if threshold is exceeded the average height between previous and next vertex is used
+    filter_outliers: true                               # Filter outliers by iterative Least Squares fitting of 3D quadric suface. Only replace heights of detected outliers
+    flatten: true                                       # Filter outliers by iterative Least Squares fitting of 3D quadric suface. Replace all heights of polygon with the fitted plane. Results in smoother roads
     use_LAS_classes:                                    # LAS classes to be used for this class. If empty all classes are used
       - 3
       - 6
-  Separation:
+  Separation:                                           # Class definition for Seperation
     height: percentile-80
-  Bridge/Overpass:
+  Bridge/Overpass:                                      # Class definition for Bridge/Overpass
     height: percentile-50
+    flatten: true                                       # Filter outliers by iterative Least Squares fitting of 3D quadric suface. Replace all heights of polygon with the fitted plane. Results in smoother bridges
   Terrain:                                              # Class definition for Terrain
     simplification: 100                                 # Simplification factor for points added within terrain polygons, points are added random
-    simplification_tinsimp: 0.1                         # Simplification threshold for points added within terrain polygons, points are removed after triangulation until specified error threshold value is reached
-    inner_buffer: 1.0                                   # Inner buffer in meters where no additional points will be added within the terrain polygon
+    simplification_tinsimp: 0.1                         # Simplification threshold for points added within terrain polygons, points are removed from triangulation until specified error threshold value is reached
+    inner_buffer: 1.0                                   # Inner buffer in meters where no additional points will be added within boundary of the terrain polygon
   Forest:                                               # Class definition for Forest
     simplification: 10                                  # Simplification factor for points added within forest polygons, points are added random
-    simplification_tinsimp: 0.1                         # Simplification threshold for points added within forest polygons, points are removed after triangulation until specified error threshold value is reached
-    inner_buffer: 1.0                                   # Inner buffer in meters where no additional points will be added within the forest polygon
+    simplification_tinsimp: 0.1                         # Simplification threshold for points added within forest polygons, points are removed from triangulation until specified error threshold value is reached
+    inner_buffer: 1.0                                   # Inner buffer in meters where no additional points will be added within boundary of the forest polygon
 
 input_elevation:                                        # Group for point clouds
   - datasets:                                           # List of data set with specific settings
-      # - /Users/elvis/data/top10nl/schie/ahn2_u.laz    # Definition for one or multiple LAS/LAZ files using the same parameters
-      # - /Users/elvis/data/top10nl/schie/ahn2_g.laz    #
-      - /Users/elvis/data/top10nl/schie/ahn3.laz        #
-    omit_LAS_classes:                                   # Option to omit classes defined in the files
-      - 1 # unclassified                                # ASPRS Standard Lidar Point Classes classification value
-      - 6 # building
-    thinning: 10                                        # Thinning factor for points, this is the amount of points skipped during read, a value of 10 would result in points 1, 11, 21, 31 beeing used
+    # Unix
+    - /data/top10nl/schie/ahn3.laz                      # Definition under Unix for one or multiple LAS/LAZ files using the same parameters
+    # Windows
+    - D:\data\top10nl\schie\ahn3.laz                    # Definition under Windows for one or multiple LAS/LAZ files using the same parameters
+    # Unix
+    - /data/top10nl/schie/*                             # Definition under Unix for directory with LAS/LAZ files using the same parameters
+    # Windows
+    - D:\data\top10nl\schie\*                           # Definition under Windows for directory with LAS/LAZ files using the same parameters
+  omit_LAS_classes:                                     # Option to omit classes defined in the LAS/LAZ files
+    - 1 # unclassified                                  # ASPRS Standard Lidar Point Classes classification value
+    - 3 # vegation
+    - 4 # vegation
+    - 5 # vegation 
+  thinning: 10                                          # Thinning factor for points, this is the amount of points skipped during read, a value of 10 would result in points 1, 11, 21, 31 beeing used
 
 options:                                                # Global options
-  building_radius_vertex_elevation: 3.0                 # Radius in meters used for point-vertex distance between 3D points and building polygons, radius_vertex_elevation used when not specified
-  radius_vertex_elevation: 1.0                          # Radius in meters used for point-vertex distance between 3D points and polygons
-  threshold_jump_edges: 0.25                            # Threshold in meters for stitching adjacent objects, when the height difference is larger then the threshold a vertical wall is created 
-  stitching: true                                       # Adjust heights of polygons after stiching and add vertical walls
+  building_radius_vertex_elevation: 3.0                 # Radius in meters used for point-vertex distance between 3D points and vertices of building polygons, radius_vertex_elevation used when not specified
+  radius_vertex_elevation: 1.0                          # Radius in meters used for point-vertex distance between 3D points and vertices of polygons
+  threshold_jump_edges: 0.5                             # Threshold in meters for stitching adjacent objects, when the height difference is larger then the threshold a vertical wall is created 
   extent: xmin, ymin, xmax, ymax                        # Filter the input polygons to this extent

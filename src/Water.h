@@ -30,19 +30,20 @@
 #define Water_h
 
 #include "TopoFeature.h"
+#include "io.h"
 
 class Water: public Flat {
 public:
   Water(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref);
   bool          lift();
-  bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass);
+  bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within);
   bool          push_distance(double dist, int lasclass);
   void          clear_distances();
   void          get_citygml(std::wostream& of);
   void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts);
   void          get_citygml_imgeo(std::wostream& of);
   std::string   get_mtl();
-  bool          get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes = AttributeMap());
+  bool          get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap());
   TopoClass     get_class();
   bool          is_hard();
 private:

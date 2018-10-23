@@ -1,11 +1,11 @@
 
 ## To run:
 
-`$ 3dfier testarea_config.yml -o out/myoutput.obj`
+`3dfier testarea_config.yml --OBJ out/myoutput.obj`
 
-if you want CityGML output, change line 74 in `testarea_config.yml` to `format: CityGML` and run:
+if you want CityGML output, change command to `--CityGML` and run:
 
-`$ 3dfier testarea_config.yml -o out/myoutput.gml`
+`3dfier testarea_config.yml --CityGML out/myoutput.gml`
 
 
 ## 2D input data: the BGT

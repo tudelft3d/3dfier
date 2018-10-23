@@ -27,7 +27,6 @@
 */
 
 #include "Forest.h"
-#include "io.h"
 
 Forest::Forest(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer)
   : TIN(wkt, layername, attributes, pid, simplification, simplification_tinsimp, innerbuffer) {}
@@ -44,8 +43,8 @@ std::string Forest::get_mtl() {
   return "usemtl Forest";
 }
 
-bool Forest::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
-  return TIN::add_elevation_point(p, z, radius, lasclass);
+bool Forest::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+  return TIN::add_elevation_point(p, z, radius, lasclass, within);
 }
 
 bool Forest::push_distance(double dist, int lasclass) {
@@ -105,16 +104,22 @@ void Forest::get_citygml_imgeo(std::wostream& of) {
   if (get_attribute("bgt-fysiekvoorkomen", attribute)) {
     of << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</veg:class>";
   }
+  else if (get_attribute("bgt_fysiekvoorkomen", attribute)) {
+    of << "<veg:class codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerrein\">" << attribute << "</veg:class>";
+  }
   if (get_attribute("begroeidterreindeeloptalud", attribute, "false")) {
     of << "<imgeo:begroeidTerreindeelOpTalud>" << attribute << "</imgeo:begroeidTerreindeelOpTalud>";
   }
   if (get_attribute("plus-fysiekvoorkomen", attribute)) {
     of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>";
   }
+  else if (get_attribute("plus_fysiekvoorkomen", attribute)) {
+    of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenBegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>";
+  }
   of << "</veg:PlantCover>";
   of << "</cityObjectMember>";
 }
 
-bool Forest::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+bool Forest::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes) {
   return TopoFeature::get_multipolygon_features(layer, "Forest", writeAttributes, extraAttributes);
 }

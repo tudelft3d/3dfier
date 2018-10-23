@@ -27,12 +27,6 @@
 */
 
 #include "Map3d.h"
-#include "io.h"
-#include "boost/locale.hpp"
-#include "boost/tokenizer.hpp"
-#include "boost/algorithm/string.hpp"
-#include "nlohmann-json/json.hpp"
-#include "codecvt"
 
 Map3d::Map3d() {
   OGRRegisterAll();
@@ -50,16 +44,19 @@ Map3d::Map3d() {
   _forest_innerbuffer = 0.0;
   _water_heightref = 0.1;
   _road_heightref = 0.5;
-  _road_threshold_outliers = 30;
+  _road_filter_outliers = true;
+  _road_flatten = true;
   _separation_heightref = 0.8;
   _bridge_heightref = 0.5;
   _radius_vertex_elevation = 1.0;
   _building_radius_vertex_elevation = 3.0;
   _threshold_jump_edges = 50;
-  bg::set<bg::min_corner, 0>(_bbox, 999999);
-  bg::set<bg::min_corner, 1>(_bbox, 999999);
-  bg::set<bg::max_corner, 0>(_bbox, -999999);
-  bg::set<bg::max_corner, 1>(_bbox, -999999);
+  _requestedExtent = Box2(Point2(0, 0), Point2(0, 0));
+  _bbox = Box2(Point2(999999, 999999), Point2(-999999, -999999));
+  _minxradius = 999999;
+  _maxxradius = 999999;
+  _minyradius = -999999;
+  _maxyradius = -999999;
 }
 
 Map3d::~Map3d() {
@@ -142,8 +139,12 @@ void Map3d::set_road_heightref(float h) {
   _road_heightref = h;
 }
 
-void Map3d::set_road_threshold_outliers(int t) {
-  _road_threshold_outliers = t;
+void Map3d::set_road_filter_outliers(bool filter) {
+  _road_filter_outliers = filter;
+}
+
+void Map3d::set_road_flatten(bool flatten) {
+  _road_flatten = flatten;
 }
 
 void Map3d::set_separation_heightref(float h) {
@@ -154,6 +155,10 @@ void Map3d::set_bridge_heightref(float h) {
   _bridge_heightref = h;
 }
 
+void Map3d::set_bridge_flatten(bool flatten) {
+  _bridge_flatten = flatten;
+}
+
 void Map3d::set_requested_extent(double xmin, double ymin, double xmax, double ymax) {
   _requestedExtent = Box2(Point2(xmin, ymin), Point2(xmax, ymax));
 }
@@ -162,27 +167,27 @@ Box2 Map3d::get_bbox() {
   return _bbox;
 }
 
-liblas::Bounds<double> Map3d::get_bounds() {
-  double radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
-  liblas::Bounds<double> bounds(_bbox.min_corner().x() - radius, _bbox.min_corner().y() - radius, _bbox.max_corner().x() + radius, _bbox.max_corner().y() + radius);
-  return bounds;
+bool Map3d::check_bounds(const double xmin, const double xmax, const double ymin, const double ymax) {
+  if ((xmin < _maxxradius || xmax > _minxradius) &&
+    (ymin < _maxyradius || ymax > _minyradius)) {
+    return true;
+  }
+  return false;
 }
 
 bool Map3d::get_cityjson(std::string filename) {
   std::cout << "CityJSON" << std::endl;
   nlohmann::json j;
   j["type"] = "CityJSON";
-  j["version"] = "0.6";
+  j["version"] = "0.8";
   j["metadata"] = {};
-  j["metadata"]["datasetTitle"] = "my 3dfied map";
-  j["metadata"]["pointOfContact"] = "https://3d.bk.tudelft.nl";
   double b[] = {bg::get<bg::min_corner, 0>(_bbox),
                 bg::get<bg::min_corner, 1>(_bbox), 
                 0,
                 bg::get<bg::max_corner, 0>(_bbox),
                 bg::get<bg::max_corner, 1>(_bbox), 
                 0};
-  j["metadata"]["bbox"] = b;
+  j["metadata"]["geographicalExtent"] = b;
   std::unordered_map< std::string, unsigned long > dPts;
   for (auto& f : _lsFeatures) {
     f->get_cityjson(j, dPts);
@@ -449,24 +454,48 @@ bool Map3d::get_pdok_output(std::string filename) {
   if (GDALGetDriverCount() == 0)
     GDALAllRegister();
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("PostgreSQL");
+  GDALDataset* dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+  if (dataSource == NULL) {
+    std::cerr << "Starting database connection failed.\n";
+    return false;
+  }
+  if (dataSource->StartTransaction() != OGRERR_NONE) {
+    std::cerr << "Starting database transaction failed.\n";
+    return false;
+  }
 
   std::unordered_map<std::string, OGRLayer*> layers;
+  // create and write layers first
   for (auto& f : _lsFeatures) {
     std::string layername = f->get_layername();
     if (layers.find(layername) == layers.end()) {
-      std::string tmpFilename = filename;
-      AttributeMap attributes = f->get_attributes();
+      AttributeMap &attributes = f->get_attributes();
       //Add additional attribute to list for layer creation
       attributes["xml"] = std::make_pair(OFTString, "");
-      OGRLayer *layer = create_gdal_layer(driver, tmpFilename, layername, attributes, f->get_class() == BUILDING);
+      OGRLayer *layer = create_gdal_layer(driver, dataSource, filename, layername, attributes, f->get_class() == BUILDING);
       if (layer == NULL) {
         std::cerr << "ERROR: Cannot open database '" + filename + "' for writing" << std::endl;
-        close_gdal_resources(driver, layers);
+        dataSource->RollbackTransaction();
+        GDALClose(dataSource);
+        GDALClose(driver);
         return false;
       }
       layers.emplace(layername, layer);
     }
+  }
+  if (dataSource->CommitTransaction() != OGRERR_NONE) {
+    std::cerr << "Writing to database failed.\n";
+    return false;
+  }
+  if (dataSource->StartTransaction() != OGRERR_NONE) {
+    std::cerr << "Starting database transaction failed.\n";
+    return false;
+  }
 
+  // create and write features to layers
+  int i = 1;
+  for (auto& f : _lsFeatures) {
+    std::string layername = f->get_layername();
     //Add additional attribute describing CityGML of feature
     std::wstring_convert<codecvt<wchar_t, char, std::mbstate_t>>converter;
     std::wstringstream ss;
@@ -476,9 +505,27 @@ bool Map3d::get_pdok_output(std::string filename) {
     AttributeMap extraAttribute = AttributeMap();
     extraAttribute["xml"] = std::make_pair(OFTString, gmlAttribute);
 
-    f->get_shape(layers[layername], true, extraAttribute);
+    if (!f->get_shape(layers[layername], true, extraAttribute)) {
+      return false;
+    }
+    if (i % 1000 == 0) {
+      if (dataSource->CommitTransaction() != OGRERR_NONE) {
+        std::cerr << "Writing to database failed.\n";
+        return false;
+      }  
+      if (dataSource->StartTransaction() != OGRERR_NONE) {
+        std::cerr << "Starting database transaction failed.\n";
+        return false;
+      }
+    }
+    i++;
   }
-  close_gdal_resources(driver, layers);
+  if (dataSource->CommitTransaction() != OGRERR_NONE) {
+    std::cerr << "Writing to database failed.\n";
+    return false;
+  }
+  GDALClose(dataSource);
+  GDALClose(driver);
   return true;
 #endif
 }
@@ -493,7 +540,7 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName(drivername.c_str());
 
   if (!multi) {
-    OGRLayer *layer = create_gdal_layer(driver, filename, "my3dmap", AttributeMap(), true);
+    OGRLayer *layer = create_gdal_layer(driver, NULL, filename, "my3dmap", AttributeMap(), true);
     if (layer == NULL) {
       std::cerr << "ERROR: Cannot open file '" + filename + "' for writing" << std::endl;
       GDALClose(layer);
@@ -515,7 +562,7 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
         if (drivername == "ESRI Shapefile") {
           tmpFilename = filename + layername;
         }
-        OGRLayer *layer = create_gdal_layer(driver, tmpFilename, layername, f->get_attributes(), f->get_class() == BUILDING);
+        OGRLayer *layer = create_gdal_layer(driver, NULL, tmpFilename, layername, f->get_attributes(), f->get_class() == BUILDING);
         if (layer == NULL) {
           std::cerr << "ERROR: Cannot open file '" + filename + "' for writing" << std::endl;
           close_gdal_resources(driver, layers);
@@ -541,8 +588,10 @@ void Map3d::close_gdal_resources(GDALDriver* driver, std::unordered_map<std::str
 #endif
 
 #if GDAL_VERSION_MAJOR >= 2
-OGRLayer* Map3d::create_gdal_layer(GDALDriver *driver, std::string filename, std::string layername, AttributeMap attributes, bool addHeightAttributes) {
-  GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+OGRLayer* Map3d::create_gdal_layer(GDALDriver* driver, GDALDataset* dataSource, std::string filename, std::string layername, AttributeMap attributes, bool addHeightAttributes) {
+  if (dataSource == NULL) {
+    dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+  }
 
   if (dataSource == NULL) {
     std::cerr << "ERROR: could not open file, skipping it.\n";
@@ -669,28 +718,32 @@ void Map3d::construct_TriTrees() {
   std::clog << "=====  AABB Tree/ =====\n";
 }
 
-void Map3d::add_elevation_point(liblas::Point const& laspt) {
+void Map3d::add_elevation_point(LASpoint const& laspt) {
+  //-- only process last returns; 
+  //-- although perhaps not smart for vegetation/forest in the future
+  //-- TODO: always ignore the non-last-return points?
+  if (laspt.return_number != laspt.number_of_returns)
+    return;
+
   std::vector<PairIndexed> re;
-  Point2 minp(laspt.GetX() - _radius_vertex_elevation, laspt.GetY() - _radius_vertex_elevation);
-  Point2 maxp(laspt.GetX() + _radius_vertex_elevation, laspt.GetY() + _radius_vertex_elevation);
+  float x = laspt.get_x();
+  float y = laspt.get_y();
+  Point2 minp(x - _radius_vertex_elevation, y - _radius_vertex_elevation);
+  Point2 maxp(x + _radius_vertex_elevation, y + _radius_vertex_elevation);
   Box2 querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
-  minp = Point2(laspt.GetX() - _building_radius_vertex_elevation, laspt.GetY() - _building_radius_vertex_elevation);
-  maxp = Point2(laspt.GetX() + _building_radius_vertex_elevation, laspt.GetY() + _building_radius_vertex_elevation);
+  minp = Point2(x - _building_radius_vertex_elevation, y - _building_radius_vertex_elevation);
+  maxp = Point2(x + _building_radius_vertex_elevation, y + _building_radius_vertex_elevation);
   querybox = Box2(minp, maxp);
   _rtree_buildings.query(bgi::intersects(querybox), std::back_inserter(re));
 
   for (auto& v : re) {
     TopoFeature* f = v.second;
     float radius = _radius_vertex_elevation;
-    //-- only process last returns; 
-    //-- although perhaps not smart for vegetation/forest in the future
-    //-- TODO: always ignore the non-last-return points?
-    if (laspt.GetReturnNumber() != laspt.GetNumberOfReturns()) 
-      continue;
 
-    int c = laspt.GetClassification().GetClass();
+    int c = (int)laspt.classification;
     bool bInsert = false;
+    bool bWithin = false;
     if (f->get_class() == BUILDING) {
       bInsert = true;
       radius = _building_radius_vertex_elevation;
@@ -699,49 +752,73 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
       if (_las_classes_allowed[LAS_TERRAIN].empty() || _las_classes_allowed[LAS_TERRAIN].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_TERRAIN].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
     else if (f->get_class() == FOREST) {
       if (_las_classes_allowed[LAS_FOREST].empty() || _las_classes_allowed[LAS_FOREST].count(c) > 0) {
         bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_FOREST].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
       }
     }
     else if (f->get_class() == ROAD) {
       if (_las_classes_allowed[LAS_ROAD].empty() || _las_classes_allowed[LAS_ROAD].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_ROAD].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
     else if (f->get_class() == WATER) {
       if (_las_classes_allowed[LAS_WATER].empty() || _las_classes_allowed[LAS_WATER].count(c) > 0) {
         bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_WATER].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
       }
     }
     else if (f->get_class() == SEPARATION) {
       if (_las_classes_allowed[LAS_SEPARATION].empty() || _las_classes_allowed[LAS_SEPARATION].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_SEPARATION].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
     else if (f->get_class() == BRIDGE) {
       if (_las_classes_allowed[LAS_BRIDGE].empty() || _las_classes_allowed[LAS_BRIDGE].count(c) > 0) {
         bInsert = true;
       }
+      if (_las_classes_allowed_within[LAS_BRIDGE].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
     }
  
     if (bInsert == true) { //-- only insert if in the allowed LAS classes
-      Point2 p(laspt.GetX(), laspt.GetY());
-      f->add_elevation_point(p, laspt.GetZ(), radius, c); 
+      Point2 p(x, y);
+      f->add_elevation_point(p, laspt.get_z(), radius, c, bWithin); 
     }
   }
 }
 
 
-void Map3d::add_point_distance(liblas::Point const& laspt, bool multi_rmse) {
+void Map3d::add_point_distance(LASpoint const& laspt, bool multi_rmse) {
   std::vector<PairIndexed> re;
-  Point2 minp(laspt.GetX() - _radius_vertex_elevation, laspt.GetY() - _radius_vertex_elevation);
-  Point2 maxp(laspt.GetX() + _radius_vertex_elevation, laspt.GetY() + _radius_vertex_elevation);
+  Point2 minp(laspt.get_x() - _radius_vertex_elevation, laspt.get_y() - _radius_vertex_elevation);
+  Point2 maxp(laspt.get_x() + _radius_vertex_elevation, laspt.get_y() + _radius_vertex_elevation);
   Box2 querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
-  minp = Point2(laspt.GetX() - _building_radius_vertex_elevation, laspt.GetY() - _building_radius_vertex_elevation);
-  maxp = Point2(laspt.GetX() + _building_radius_vertex_elevation, laspt.GetY() + _building_radius_vertex_elevation);
+  minp = Point2(laspt.get_x() - _building_radius_vertex_elevation, laspt.get_y() - _building_radius_vertex_elevation);
+  maxp = Point2(laspt.get_x() + _building_radius_vertex_elevation, laspt.get_y() + _building_radius_vertex_elevation);
   querybox = Box2(minp, maxp);
   _rtree_buildings.query(bgi::intersects(querybox), std::back_inserter(re));
 
@@ -907,6 +984,12 @@ bool Map3d::construct_rtree() {
       std::min(bg::get<bg::min_corner, 1>(_rtree.bounds()), bg::get<bg::min_corner, 1>(_rtree_buildings.bounds()))),
     Point2(std::max(bg::get<bg::max_corner, 0>(_rtree.bounds()), bg::get<bg::max_corner, 0>(_rtree_buildings.bounds())),
       std::max(bg::get<bg::max_corner, 1>(_rtree.bounds()), bg::get<bg::max_corner, 1>(_rtree_buildings.bounds()))));
+  
+  double radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
+  _minxradius = std::min(bg::get<bg::min_corner, 0>(_rtree.bounds()), bg::get<bg::min_corner, 0>(_rtree_buildings.bounds())) - radius;
+  _maxxradius = std::min(bg::get<bg::min_corner, 1>(_rtree.bounds()), bg::get<bg::min_corner, 1>(_rtree_buildings.bounds())) + radius;
+  _minyradius = std::max(bg::get<bg::max_corner, 0>(_rtree.bounds()), bg::get<bg::max_corner, 0>(_rtree_buildings.bounds())) - radius;
+  _maxyradius = std::max(bg::get<bg::max_corner, 1>(_rtree.bounds()), bg::get<bg::max_corner, 1>(_rtree_buildings.bounds())) + radius;
   return true;
 }
 
@@ -1084,7 +1167,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Road") {
-    Road* p3 = new Road(wkt, layername, attributes, id, this->_road_heightref, this->_road_threshold_outliers);
+    Road* p3 = new Road(wkt, layername, attributes, id, this->_road_heightref, this->_road_filter_outliers, this->_road_flatten);
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Separation") {
@@ -1092,7 +1175,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
     _lsFeatures.push_back(p3);
   }
   else if (layertype == "Bridge/Overpass") {
-    Bridge* p3 = new Bridge(wkt, layername, attributes, id, this->_bridge_heightref);
+    Bridge* p3 = new Bridge(wkt, layername, attributes, id, this->_bridge_heightref, _bridge_flatten);
     _lsFeatures.push_back(p3);
   }
   //-- flag all polygons at (niveau != 0) or remove if not handling multiple height levels
@@ -1110,28 +1193,30 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
 //-- http://www.liblas.org/tutorial/cpp.html#applying-filters-to-a-reader-to-extract-specified-classes
 bool Map3d::add_las_file(PointFile pointFile, bool distance, bool multi_rmse) {
   std::clog << "Reading LAS/LAZ file: " << pointFile.filename << std::endl;
-  std::ifstream ifs;
-  ifs.open(pointFile.filename.c_str(), std::ios::in | std::ios::binary);
-  if (ifs.is_open() == false) {
+  
+  LASreadOpener lasreadopener;
+  lasreadopener.set_file_name(pointFile.filename.c_str());
+  //-- set to compute bounding box
+  lasreadopener.set_populate_header(true);
+  LASreader* lasreader = lasreadopener.open();
+
+  //-- check if file is open
+  if (lasreader == 0) {
     std::cerr << "\tERROR: could not open file: " << pointFile.filename << std::endl;
     return false;
   }
-  //-- LAS classes to omit
-  std::vector<liblas::Classification> liblasomits;
-  for (int i : pointFile.lasomits) {
-    liblasomits.push_back(liblas::Classification(i));
-  }
+  LASheader header = lasreader->header;
 
-  //-- read each point 1-by-1
-  liblas::ReaderFactory f;
-  liblas::Reader reader = f.CreateWithStream(ifs);
-  liblas::Header const& header = reader.GetHeader();
+  if (check_bounds(header.min_x, header.max_x, header.min_y, header.max_y)) {
+    //-- LAS classes to omit
+    std::vector<int> lasomits;
+    for (int i : pointFile.lasomits) {
+      lasomits.push_back(i);
+    }
 
-  //-- check if the file overlaps the polygons
-  liblas::Bounds<double> bounds = header.GetExtent();
-  liblas::Bounds<double> polygonBounds = get_bounds();
-  uint32_t pointCount = header.GetPointRecordsCount();
-  if (polygonBounds.intersects(bounds)) {
+    //-- read each point 1-by-1
+    uint32_t pointCount = header.number_of_point_records;
+
     std::clog << "\t(" << boost::locale::as::number << pointCount << " points in the file)\n";
     if ((pointFile.thinning > 1)) {
       std::clog << "\t(skipping every " << pointFile.thinning << "th points, thus ";
@@ -1151,60 +1236,66 @@ bool Map3d::add_las_file(PointFile pointFile, bool distance, bool multi_rmse) {
     
     try {
       if (!distance) {
-        while (reader.ReadNextPoint()) {
-          liblas::Point const& p = reader.GetPoint();
-          //-- set the thinning filter
-          if (i % pointFile.thinning == 0) {
-            //-- set the classification filter
-            if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end()) {
-              //-- set the bounds filter
-              if (polygonBounds.contains(p)) {
-                this->add_elevation_point(p);
-              }
+      while (lasreader->read_point()) {
+        LASpoint const& p = lasreader->point;
+        //-- set the thinning filter
+        if (i % pointFile.thinning == 0) {
+          //-- set the classification filter
+          if (std::find(lasomits.begin(), lasomits.end(), (int)p.classification) == lasomits.end()) {
+            //-- set the bounds filter
+            if (check_bounds(p.X, p.X, p.Y, p.Y)) {
+              this->add_elevation_point(p);
             }
           }
-          if (i % (pointCount / 100) == 0)
-            printProgressBar(100 * (i / double(pointCount)));
-          i++;
         }
-        printProgressBar(100);
-        std::clog << std::endl;
+        if (i % (pointCount / 100) == 0)
+          printProgressBar(100 * (i / double(pointCount)));
+        i++;
+      }
+      printProgressBar(100);
+      std::clog << std::endl;
       }
       else if (distance) {
-        while (reader.ReadNextPoint()) {
-          liblas::Point const& p = reader.GetPoint();
-          if (i % pointFile.thinning == 0) {
-            if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end()) {
-              if (polygonBounds.contains(p)) {
-                this->add_point_distance(p, multi_rmse);
-              }
+      while (lasreader->read_point()) {
+        LASpoint const& p = lasreader->point;
+        //-- set the thinning filter
+        if (i % pointFile.thinning == 0) {
+          //-- set the classification filter
+          if (std::find(lasomits.begin(), lasomits.end(), (int)p.classification) == lasomits.end()) {
+            //-- set the bounds filter
+            if (check_bounds(p.X, p.X, p.Y, p.Y)) {
+              this->add_point_distance(p, multi_rmse);
             }
           }
-          if (i % (pointCount / 100) == 0)
-            printProgressBar(100 * (i / double(pointCount)));
-          i++;
         }
-        printProgressBar(100);
-        std::clog << std::endl;
+        if (i % (pointCount / 100) == 0)
+          printProgressBar(100 * (i / double(pointCount)));
+        i++;
+      }
+      printProgressBar(100);
+      std::clog << std::endl;
       }
     }
     catch (const std::exception& e) {
       std::cerr << std::endl << e.what() << std::endl;
-      ifs.close();
+      lasreader->close();
+      delete lasreader;
       return false;
     }
   }
   else {
     std::clog << "\tskipping file, bounds do not intersect polygon extent\n";
   }
-  ifs.close();
+  lasreader->close();
+  //delete lasreader;
   return true;
 }
 
 void Map3d::collect_adjacent_features(TopoFeature* f) {
   std::vector<PairIndexed> re;
-  _rtree.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
-  _rtree_buildings.query(bgi::intersects(f->get_bbox2d()), std::back_inserter(re));
+  Box2 b = f->get_bbox2d();
+  _rtree.query(bgi::satisfies([&](PairIndexed const& v) {return bg::distance(v.first, b) < TOPODIST; }), std::back_inserter(re));
+  _rtree_buildings.query(bgi::satisfies([&](PairIndexed const& v) {return bg::distance(v.first, b) < TOPODIST; }), std::back_inserter(re));
   for (auto& each : re) {
     TopoFeature* fadj = each.second;
     if (f != fadj && f->adjacent(*(fadj->get_Polygon2()))){
@@ -1264,7 +1355,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
   //-- get p and key_bucket once and check if nc location is empty
   Point2 p = f->get_point2(ringi, pi);
   std::string key_bucket = gen_key_bucket(&p);
-  if (_nc[key_bucket].empty() && _nc_building_walls[key_bucket].empty()) {
+  if (_nc.find(key_bucket) == _nc.end() && _nc_building_walls.find(key_bucket) == _nc_building_walls.end()) {
     //-- degree of vertex == 2
     if (star.size() == 1) {
       if (std::get<0>(star[0])->get_class() != BRIDGE) {
@@ -1277,10 +1368,6 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
           stitch_jumpedge(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
         }
       }
-      else {
-        // for bridges we need to create VW and therefor add the height to the NC
-        _nc[key_bucket].push_back(f->get_vertex_elevation(ringi, pi));
-      }
     }
     //-- degree of vertex >= 3: more complex cases
     else if (star.size() > 1) {
@@ -1292,9 +1379,16 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
         ringi,
         pi));
       for (auto& fadj : star) {
-        if (std::get<0>(fadj)->get_class() != BRIDGE) {
+        if (std::get<0>(fadj)->get_class() != BRIDGE && std::get<0>(fadj)->get_class() != BUILDING) {
           zstar.push_back(std::make_tuple(
             std::get<0>(fadj)->get_vertex_elevation(std::get<1>(fadj), std::get<2>(fadj)),
+            std::get<0>(fadj),
+            std::get<1>(fadj),
+            std::get<2>(fadj)));
+        }
+        else if (std::get<0>(fadj)->get_class() == BUILDING) {
+          zstar.push_back(std::make_tuple(
+            dynamic_cast<Building*>(std::get<0>(fadj))->get_height_base(),
             std::get<0>(fadj),
             std::get<1>(fadj),
             std::get<2>(fadj)));
@@ -1343,10 +1437,14 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
             _nc_building_walls[key_bucket].push_back(hfloor);
           }
 
-          int hroof = std::get<0>(zstar[i]);
+          int hroof = dynamic_cast<Building*>(std::get<1>(zstar[i]))->get_height();
           if (std::find(_nc_building_walls[key_bucket].begin(), _nc_building_walls[key_bucket].end(), hroof) == _nc_building_walls[key_bucket].end()) {
             _nc_building_walls[key_bucket].push_back(hroof);
           }
+        }
+        // add vw to water since it might be lower then the building floor
+        if (water != -1) {
+          std::get<1>(zstar[water])->add_vertical_wall();
         }
         int baseheight = dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base();
         for (auto& each : zstar) {
@@ -1368,7 +1466,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
             if (deltaz < this->_threshold_jump_edges) {
               fnext = it2;
               // it and it2 are same class, set height to first since averaging doesn't work if >2 objects of same class within threshold
-              // this mainly applies for bridges and outlier detection of roads, otherwise it shouldn't be possible
+              // this mainly applies for bridges and outlier detection of roads, otherwise it shouldn't be happening
               if (std::get<1>(*it)->get_class() == std::get<1>(*it2)->get_class()) {
                 std::get<0>(*it2) = std::get<0>(*it);
               }
@@ -1436,7 +1534,9 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
       int tmph = -99999;
       for (auto& each : zstar) {
         int h = std::get<0>(each);
-        std::get<1>(each)->set_vertex_elevation(std::get<2>(each), std::get<3>(each), h);
+        if (std::get<1>(each)->get_class() != BUILDING) {
+          std::get<1>(each)->set_vertex_elevation(std::get<2>(each), std::get<3>(each), h);
+        }
         if (h != tmph) { //-- not to repeat the same height
           _nc[key_bucket].push_back(h);
           tmph = h;
@@ -1467,27 +1567,31 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
       }
     }
     else if (f1->get_class() == BUILDING) {
+      int f1base = dynamic_cast<Building*>(f1)->get_height_base();
       if (f2->get_class() != WATER) {
-        f2->set_vertex_elevation(ringi2, pi2, dynamic_cast<Building*>(f1)->get_height_base());
+        f2->set_vertex_elevation(ringi2, pi2, f1base);
       }
       else {
-        //- keep water flat, add the water height to the nc
-        _nc_building_walls[key_bucket].push_back(f2z);
+        //- keep water flat, add the water height and the building base height to the nc
+        _nc[key_bucket].push_back(f2z);
+        _nc[key_bucket].push_back(f1base);
       }
       //- expect a building to always be heighest adjacent feature
-      _nc_building_walls[key_bucket].push_back(dynamic_cast<Building*>(f1)->get_height_base());
+      _nc_building_walls[key_bucket].push_back(f1base);
       _nc_building_walls[key_bucket].push_back(f1z);
     }
     else { //-- f2 is Building
+      int f2base = dynamic_cast<Building*>(f2)->get_height_base();
       if (f1->get_class() != WATER) {
-        f1->set_vertex_elevation(ringi1, pi1, dynamic_cast<Building*>(f2)->get_height_base());
+        f1->set_vertex_elevation(ringi1, pi1, f2base);
       }
       else {
-        //- keep water flat, add the water height to the nc
-        _nc_building_walls[key_bucket].push_back(f1z);
+        //- keep water flat, add the water height and the building base height to the nc
+        _nc[key_bucket].push_back(f1z);
+        _nc[key_bucket].push_back(f2base);
       }
       //- expect a building to always be heighest adjacent feature
-      _nc_building_walls[key_bucket].push_back(dynamic_cast<Building*>(f2)->get_height_base());
+      _nc_building_walls[key_bucket].push_back(f2base);
       _nc_building_walls[key_bucket].push_back(f2z);
     }
   }
@@ -1501,7 +1605,6 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
         int avgz = (f1->get_vertex_elevation(ringi1, pi1) + f2->get_vertex_elevation(ringi2, pi2)) / 2;
         f1->set_vertex_elevation(ringi1, pi1, avgz);
         f2->set_vertex_elevation(ringi2, pi2, avgz);
-        _nc[key_bucket].push_back(avgz);
         bStitched = true;
       }
       if (f1->is_hard() == false) {
@@ -1548,7 +1651,11 @@ void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2
 void Map3d::stitch_bridges() {
   std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
-    if (f->get_class() == BRIDGE) {
+    if (f->get_class() == BRIDGE && f->get_top_level() == false) {
+      // Make bridge face flattened
+      Bridge* b = dynamic_cast<Bridge*>(f);
+      b->detect_outliers(b->get_flatten());
+
       //-- 1. store all touching top level (adjacent + incident)
       std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
 
@@ -1562,57 +1669,118 @@ void Map3d::stitch_bridges() {
       for (Ring2& ring : rings) {
         ringi++;
 
-        std::vector< std::pair<int, bool> > corners;
         for (int i = 0; i < ring.size(); i++) {
-          Point2 p = f->get_point2(ringi, i);
-          std::string key_bucket = gen_key_bucket(&p);
-          std::vector<int> nc = _nc[key_bucket];
-          std::sort(nc.begin(), nc.end());
-          auto ncuIt = std::unique(nc.begin(), nc.end());
-          int unique = std::distance(nc.begin(), ncuIt);
-
-          if (unique > 0) {
-            bool bridgeAdj = false;
-            /* this can be 3 cases;
-            1. location where two bridges and other object meet without height jump.
-            2. location where one bridge meets multiple objects which should be a stitching error
-            3. error in stitching adjacent objects
-            */
-            if (unique <= 1) { // only check for bridge adjacent if there is only 1 unique value in NC for performance
-              for (auto& fadj : *lstouching) {
-                ringis.clear();
-                pis.clear();
-                if (fadj->get_class() == BRIDGE && fadj->has_point2(ring[i], ringis, pis) == true) {
-                  bridgeAdj = true;
+          for (auto& fadj : *lstouching) {
+            ringis.clear();
+            pis.clear();
+            if (!(fadj->get_class() == BRIDGE && fadj->get_top_level()) && fadj->has_point2(ring[i], ringis, pis)) {
+              int z = fadj->get_vertex_elevation(ringis[0], pis[0]);
+              if (abs(f->get_vertex_elevation(ringi, i) - z) < _threshold_jump_edges) {
+                f->set_vertex_elevation(ringi, i, z);
+                if (!(fadj->get_class() == BRIDGE && fadj->get_top_level() == f->get_top_level())) {
+                  // Add height to NC
+                  Point2 p = f->get_point2(ringi, i);
+                  std::string key_bucket = gen_key_bucket(&p);
+                  _nc[key_bucket].push_back(z);
+                  _bridge_stitches[key_bucket] = z;
                 }
               }
             }
-            /* Two cases which are seen as corners of the bridge object, either a height jump or where two bridge objects meet
-            1. if bridge adjacent, use nc. This is the case where a bridge is split into multiple parts touching the adjacent object
-            2. if 2 or more unique values in NC there is a height jump which should only occur at vw of bridge, skip values upto next occurence
-            */
-            if (bridgeAdj || unique > 1) {
-              //TODO: use NC closest to height of previous vertex? Then is no choice to make and it might support multiple overlapping bridges?
-              if (f->get_top_level() == false) {
-                f->set_vertex_elevation(ringi, i, nc.front());
-              }
-              else {
-                f->set_vertex_elevation(ringi, i, nc.back());
-              }
+          }
+        }
+      }
+    }
+  }
 
-              // if there are more then 1 unique height in NC we have a height jump.
-              bool heightjump = false;
-              if (unique > 1) {
-                heightjump = true;
-              }
-              corners.push_back(std::make_pair(i, heightjump));
+  for (auto& f : _lsFeatures) {
+    if (f->get_class() == BRIDGE && f->get_top_level()) {
+      //-- 1. store all touching top level (adjacent + incident)
+      std::vector<TopoFeature*>* lstouching = f->get_adjacent_features();
+
+      //-- gather all rings
+      std::vector<Ring2> rings;
+      rings.push_back(f->get_Polygon2()->outer());
+      for (Ring2& iring : f->get_Polygon2()->inners())
+        rings.push_back(iring);
+
+      int ringi = -1;
+      for (Ring2& ring : rings) {
+        ringi++;
+
+        //Search for corners to base stitching on
+        //Corners are based on highest level already stitched before
+        //and where a bridge is adjacent
+        std::vector< std::pair<int, bool> > corners;
+        for (int i = 0; i < ring.size(); i++) {
+          // find begin of stitched stretch
+          Point2 p = f->get_point2(ringi, i);
+          std::string key_bucket = gen_key_bucket(&p);
+
+          bool setheight = false;
+          int previ = i - 1;
+          if (i == 0) {
+            previ = ring.size() - 1;
+          }
+          Point2 prevp = f->get_point2(ringi, previ);
+          std::string prev_key_bucket = gen_key_bucket(&prevp);
+          if (_bridge_stitches.find(key_bucket) != _bridge_stitches.end() &&
+            _bridge_stitches.find(prev_key_bucket) == _bridge_stitches.end()) {
+            // add start of stitched stretch to corners
+            corners.push_back(std::make_pair(i, true));
+            setheight = true;
+          }
+          else {
+            // find end of stitching stretch
+            int nexti = i + 1;
+            if (i == ring.size() - 1) {
+              nexti = 0;
             }
+            Point2 nextp = f->get_point2(ringi, nexti);
+            std::string next_key_bucket = gen_key_bucket(&nextp);
+            if (_bridge_stitches.find(key_bucket) != _bridge_stitches.end() &&
+              _bridge_stitches.find(next_key_bucket) == _bridge_stitches.end()) {
+              // add end of stitched stretch to corners
+              corners.push_back(std::make_pair(i, false));
+              setheight = true;
+            }
+          }
+          if (!setheight) { // no corner found yet
+            bool bridgeAdj = false;
+            bool otherAdj = false;
+            //find if there are adjacent bridges
+            for (auto& fadj : *lstouching) {
+              ringis.clear();
+              pis.clear();
+              if (fadj->has_point2(ring[i], ringis, pis)) {
+                if (fadj->get_class() == BRIDGE && fadj->get_top_level()) {
+                  bridgeAdj = true;
+                }
+                else if (fadj->get_class() != BRIDGE) {
+                  otherAdj = true;
+                }
+              }
+            }
+
+            //TODO: Check previous/next vertex like with the _bridge_stitches?
+            if (bridgeAdj && otherAdj) {
+              // add end of stitched stretch to corners, set heightjump to false to stitch to adjacent object
+              corners.push_back(std::make_pair(i, false));
+              setheight = true;
+            }
+          }
+          if (setheight) {
+            // set corner height to lowest value in the NC
+            if (_nc.find(key_bucket) == _nc.end()) {
+              std::clog << "ERROR: NodeColumn not filled at " << key_bucket << std::endl;
+            }
+            int z = _nc[key_bucket].front();
+            f->set_vertex_elevation(ringi, i, z);
           }
         }
 
         // Set height of vertices in between two corners
         for (int c = 0; c < corners.size(); c++) {
-          // prepair vertices to loop for this stretch
+          // prepair vertices list to loop for this stretch
           std::pair<int, bool> startCorner = corners[c];
           // set endCorner to first or corners if end of array is reached
           std::pair<int, bool> endCorner = corners.front();
@@ -1623,64 +1791,71 @@ void Map3d::stitch_bridges() {
 
           std::vector<int> vertices;
           if (endCornerIdx < startCorner.first) {
+            for (int i = startCorner.first + 1; i < ring.size(); i++) {
+              vertices.push_back(i);
+            }
             for (int i = 0; i < endCornerIdx; i++) {
               vertices.push_back(i);
             }
-            endCornerIdx = ring.size();
           }
-          for (int i = startCorner.first + 1; i < endCornerIdx; i++) {
-            vertices.push_back(i);
+          else {
+            for (int i = startCorner.first + 1; i < endCornerIdx; i++) {
+              vertices.push_back(i);
+            }
           }
 
           for (int pi : vertices) {
-            bool otherAdj = false;
+            Point2 p = f->get_point2(ringi, pi);
+            std::string key_bucket = gen_key_bucket(&p);
             int stitchz = 0;
-            std::vector< std::tuple<TopoFeature*, int, int> > star;
-            for (auto& fadj : *lstouching) {
-              ringis.clear();
-              pis.clear();
-              if (fadj->get_class() != BRIDGE && fadj->has_point2(ring[pi], ringis, pis) == true) {
-                otherAdj = true;
-                stitchz = fadj->get_vertex_elevation(ringis[0], pis[0]);
+            if (_nc.find(key_bucket) != _nc.end()) {
+              stitchz = _nc[key_bucket].front();
+            }
+            else {
+              for (auto& fadj : *lstouching) {
+                ringis.clear();
+                pis.clear();
+                if (fadj->get_class() != BRIDGE && fadj->has_point2(ring[pi], ringis, pis)) {
+                  stitchz = fadj->get_vertex_elevation(ringis[0], pis[0]);
+                  break;
+                }
               }
             }
 
-            if (!otherAdj) { //No other type of objects then bridges are adjacent
-                             //This is empty stretch of points where only bridges connect, interpolate between prevCorner and nextCorner
-              Point2 p = f->get_point2(ringi, pi);
-              std::string key_bucket = gen_key_bucket(&p);
-              int z = 0;
-              //Check if height exists in NC thus is created by adjacent bridge
-              if (_nc[key_bucket].empty()) {
-                // Add height to NC for adjacent bridge
-                // interpolate height between previous and next corner distance weighted
-                // interpolate height between previous and next corner distance weighted
-                z = interpolate_height(f, p, ringi, startCorner.first, ringi, endCorner.first);
-                _nc[key_bucket].push_back(z);
+            if (startCorner.second) { // Stretch where the top is stitched, interpolate between corners and add VW
+              // interpolate between start and end corner distance weighted
+              int interz = interpolate_height(f, p, ringi, startCorner.first, ringi, endCorner.first);
+              // Allways stitch if there is a lower object, otherwise use interpolated height
+              if (stitchz < interz) {
+                f->set_vertex_elevation(ringi, pi, stitchz);
               }
               else {
-                z = _nc[key_bucket].front();
+                f->set_vertex_elevation(ringi, pi, interz);
+                // Add height to NC and add VW
+                _nc[key_bucket].push_back(interz);
+                f->add_vertical_wall();
               }
-              f->set_vertex_elevation(ringi, pi, z);
             }
-            else if (startCorner.second && endCorner.second) { //startCorner.heightjump && endCorner.heightjump
-                                                               //This is empty stretch of points at height jump and need to place VW
-              Point2 p = f->get_point2(ringi, pi);
-              std::string key_bucket = gen_key_bucket(&p);
-              // interpolate height between previous and next corner distance weighted
-              int z = interpolate_height(f, p, ringi, startCorner.first, ringi, endCorner.first);
-              f->set_vertex_elevation(ringi, pi, z);
-              // Add height to NC and add VW
-              _nc[key_bucket].push_back(z);
-              f->add_vertical_wall();
-            }
-            else {
-              //are these the connected points? Only other case possible?
-              //cases (not exaustive):
-              //prevCorner.heightjump && this.otherAdj
-              //nextCorner.heightjump && this.otherAdj
-              // Stitch to acjacent feature
-              f->set_vertex_elevation(ringi, pi, stitchz);
+            else { // Stretch where the bottom needs to be stitched, find adjacent object within threshold and stitch, otherwise interpolate between previous vertex and next corner
+              // check height of previous vertex
+              int previ = pi - 1;
+              if (pi == 0) {
+                previ = ring.size() - 1;
+              }
+
+              // interpolate height between previous vertex and next corner distance weighted
+              int interz = interpolate_height(f, p, ringi, previ, ringi, endCorner.first);
+              int prevz = f->get_vertex_elevation(ringi, previ);
+              //Allways stich to lower object or if interpolated between corners within threshold or previous within threshold
+              if (stitchz < interz || abs(stitchz - interz) < _threshold_jump_edges || abs(stitchz - prevz) < _threshold_jump_edges) {
+                f->set_vertex_elevation(ringi, pi, stitchz);
+              }
+              else {
+                f->set_vertex_elevation(ringi, pi, interz);
+                // Add height to NC and add VW
+                _nc[key_bucket].push_back(interz);
+                f->add_vertical_wall();
+              }
             }
           }
         }
@@ -1700,3 +1875,8 @@ int Map3d::interpolate_height(TopoFeature* f, const Point2 &p, int prevringi, in
 void Map3d::add_allowed_las_class(AllowedLASTopo c, int i) {
   _las_classes_allowed[c].insert(i);
 }
+
+void Map3d::add_allowed_las_class_within(AllowedLASTopo c, int i) {
+  _las_classes_allowed_within[c].insert(i);
+}
+

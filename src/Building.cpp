@@ -27,8 +27,6 @@
 */
 
 #include "Building.h"
-#include "io.h"
-#include <algorithm>
 #include <map>
 
 //-- static variable
@@ -149,19 +147,26 @@ bool Building::lift() {
   else {
     _height_base = -9999;
   }
+  if (_zvaluesinside.empty() && _zvaluesground.empty() == false) {
+    // if no points inside the building use the ground points to set height
+    _zvaluesinside = _zvaluesground;
+  }
   //-- for the roof
   Flat::lift_percentile(_heightref_top);
   return true;
 }
 
-bool Building::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
-  if (within_range(p, *(_p2), radius)) {
-    int zcm = int(z * 100);
-    if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0) ) {
-      _zvaluesinside.push_back(zcm);
-    }
-    if ( (_las_classes_ground.empty() == true) || (_las_classes_ground.count(lasclass) > 0) ) {
-      _zvaluesground.push_back(zcm);
+bool Building::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+  // if within then a point must lay within the polygon, otherwise add
+  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+    if (within_range(p, *(_p2), radius)) {
+      int zcm = int(z * 100);
+      if ((_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0)) {
+        _zvaluesinside.push_back(zcm);
+      }
+      if ((_las_classes_ground.empty() == true) || (_las_classes_ground.count(lasclass) > 0)) {
+        _zvaluesground.push_back(zcm);
+      }
     }
   }
   return true;
@@ -375,9 +380,9 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   else if (lod == 0) {
     fs += mtl;
     fs += "\n";
+    float z = z_to_float(this->get_height_base());
     for (auto& t : _triangles) {
       unsigned long a, b, c;
-      float z = z_to_float(this->get_height_base());
       auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
       if (it == dPts.end()) {
         a = dPts.size() + 1;
@@ -409,9 +414,9 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   }
   if (_building_include_floor) {
     fs += "usemtl BuildingFloor\n";
+    float z = z_to_float(this->get_height_base());
     for (auto& t : _triangles) {
       unsigned long a, b, c;
-      float z = z_to_float(this->get_height_base());
       auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
       if (it == dPts.end()) {
         a = dPts.size() + 1;
@@ -455,6 +460,41 @@ void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, u
   b["attributes"]["measuredHeight"] = h;
   nlohmann::json g;
   this->get_cityjson_geom(g, dPts, "Solid");
+
+  if (_building_include_floor) {
+    for (auto& t : _triangles) {
+      unsigned long a, b, c;
+      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, hbase));
+      if (it == dPts.end()) {
+        a = dPts.size();
+        dPts[gen_key_bucket(&_vertices[t.v0].first, hbase)] = a;
+      }
+      else {
+        a = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, hbase));
+      if (it == dPts.end()) {
+        b = dPts.size();
+        dPts[gen_key_bucket(&_vertices[t.v1].first, hbase)] = b;
+      }
+      else {
+        b = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, hbase));
+      if (it == dPts.end()) {
+        c = dPts.size();
+        dPts[gen_key_bucket(&_vertices[t.v2].first, hbase)] = c;
+      }
+      else {
+        c = it->second;
+      }
+      //reverse orientation for floor polygon, a-c-b instead of a-b-c.
+      if ((a != b) && (a != c) && (b != c)) {
+        g["boundaries"].at(0).push_back({{ a, c, b }});
+      }
+    }
+  }
+
   b["geometry"].push_back(g);
   j["CityObjects"][this->get_id()] = b;
 }
@@ -466,9 +506,9 @@ void Building::get_citygml(std::wostream& of) {
   of << "<bui:Building gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
   of << "<gen:measureAttribute name=\"min height surface\">";
-  of << "<gen:value uom=\"#m\">" << hbase << "</gen:value>";
+  of << "<gen:value uom=\"#m\">" << std::setprecision(2) << hbase << std::setprecision(3) << "</gen:value>";
   of << "</gen:measureAttribute>";
-  of << "<bui:measuredHeight uom=\"#m\">" << h << "</bui:measuredHeight>";
+  of << "<bui:measuredHeight uom=\"#m\">" << std::setprecision(2) << h << std::setprecision(3) << "</bui:measuredHeight>";
   //-- LOD0 footprint
   of << "<bui:lod0FootPrint>";
   of << "<gml:MultiSurface>";
@@ -626,6 +666,109 @@ void Building::get_imgeo_nummeraanduiding(std::wostream& of) {
   }
 }
 
-bool Building::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
-  return TopoFeature::get_multipolygon_features(layer, "Building", writeAttributes, extraAttributes, true, this->get_height_base(), this->get_height());
+bool Building::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes) {
+  OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
+  OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
+  OGRMultiPolygon multipolygon = OGRMultiPolygon();
+  Point3 p;
+
+  //-- add all triangles to the layer
+  for (auto& t : _triangles) {
+    OGRPolygon polygon = OGRPolygon();
+    OGRLinearRing ring = OGRLinearRing();
+
+    p = _vertices[t.v0].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices[t.v1].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices[t.v2].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+
+    ring.closeRings();
+    polygon.addRing(&ring);
+    multipolygon.addGeometry(&polygon);
+  }
+
+  //-- add all vertical wall triangles to the layer
+  for (auto& t : _triangles_vw) {
+    OGRPolygon polygon = OGRPolygon();
+    OGRLinearRing ring = OGRLinearRing();
+
+    p = _vertices_vw[t.v0].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices_vw[t.v1].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+    p = _vertices_vw[t.v2].first;
+    ring.addPoint(p.get<0>(), p.get<1>(), p.get<2>());
+
+    ring.closeRings();
+    polygon.addRing(&ring);
+    multipolygon.addGeometry(&polygon);
+  }
+
+  //-- add all floor triangles to the layer
+  if (_building_include_floor) {
+    float z = z_to_float(this->get_height_base());
+    for (auto& t : _triangles) {
+      OGRPolygon polygon = OGRPolygon();
+      OGRLinearRing ring = OGRLinearRing();
+
+      // reverse orientation for floor polygon, v0-v2-v1 instead of v0-v1-v2.
+      p = _vertices[t.v0].first;
+      ring.addPoint(p.get<0>(), p.get<1>(), z);
+      p = _vertices[t.v2].first;
+      ring.addPoint(p.get<0>(), p.get<1>(), z);
+      p = _vertices[t.v1].first;
+      ring.addPoint(p.get<0>(), p.get<1>(), z);
+
+      ring.closeRings();
+      polygon.addRing(&ring);
+      multipolygon.addGeometry(&polygon);
+    }
+  }
+
+  if (feature->SetGeometry(&multipolygon) != OGRERR_NONE) {
+    std::cerr << "Creating feature geometry failed.\n";
+    OGRFeature::DestroyFeature(feature);
+    return false;
+  }
+  if (!writeAttribute(feature, featureDefn, "3df_id", this->get_id())) {
+    return false;
+  }
+  if (!writeAttribute(feature, featureDefn, "3df_class", "Building")) {
+    return false;
+  }
+  int fi = featureDefn->GetFieldIndex("baseheight");
+  if (fi == -1) {
+    std::cerr << "Failed to write attribute " << "baseheight" << ".\n";
+    return false;
+  }
+  feature->SetField(fi, z_to_float(this->get_height_base()));
+  fi = featureDefn->GetFieldIndex("roofheight");
+  if (fi == -1) {
+    std::cerr << "Failed to write attribute " << "roofheight" << ".\n";
+    return false;
+  }
+  feature->SetField(fi, z_to_float(this->get_height()));
+  if (writeAttributes) {
+    for (auto attr : _attributes) {
+      if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
+        if (!writeAttribute(feature, featureDefn, attr.first, attr.second.second)) {
+          return false;
+        }
+      }
+    }
+    for (auto attr : extraAttributes) {
+      if (!writeAttribute(feature, featureDefn, attr.first, attr.second.second)) {
+        return false;
+      }
+    }
+  }
+  if (layer->CreateFeature(feature) != OGRERR_NONE) {
+    std::cerr << "Failed to create feature " << this->get_id() << ".\n";
+    OGRFeature::DestroyFeature(feature);
+    return false;
+  }
+  OGRFeature::DestroyFeature(feature);
+  return true;
 }

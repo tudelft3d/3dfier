@@ -27,8 +27,6 @@
 */
 
 #include "Terrain.h"
-#include "io.h"
-#include <algorithm>
 
 Terrain::Terrain(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer)
   : TIN(wkt, layername, attributes, pid, simplification, simplification_tinsimp, innerbuffer) {}
@@ -45,8 +43,8 @@ std::string Terrain::get_mtl() {
   return "usemtl Terrain";
 }
 
-bool Terrain::add_elevation_point(Point2 &p, double z, float radius, int lasclass) {
-  return TIN::add_elevation_point(p, z, radius, lasclass);
+bool Terrain::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+  return TIN::add_elevation_point(p, z, radius, lasclass, within);
 }
 
 bool Terrain::push_distance(double dist, int lasclass) {
@@ -108,16 +106,22 @@ void Terrain::get_citygml_imgeo(std::wostream& of) {
   if (get_attribute("bgt-fysiekvoorkomen", attribute)) {
     of << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" << attribute /*"erf"*/ << "</imgeo:bgt-fysiekVoorkomen>";
   }
+  else if (get_attribute("bgt_fysiekvoorkomen", attribute)) {
+    of << "<imgeo:bgt-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerrein\">" << attribute /*"erf"*/ << "</imgeo:bgt-fysiekVoorkomen>";
+  }
   if (get_attribute("onbegroeidterreindeeloptalud", attribute, "false")) {
     of << "<imgeo:onbegroeidTerreindeelOpTalud>" << attribute << "</imgeo:onbegroeidTerreindeelOpTalud>";
   }
   if (get_attribute("plus-fysiekvoorkomen", attribute)) {
     of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>";
   }
+  else if (get_attribute("plus_fysiekvoorkomen", attribute)) {
+      of << "<imgeo:plus-fysiekVoorkomen codeSpace=\"http://www.geostandaarden.nl/imgeo/def/2.1#FysiekVoorkomenOnbegroeidTerreinPlus\">" << attribute << "</imgeo:plus-fysiekVoorkomen>";
+    }
   of << "</imgeo:OnbegroeidTerreindeel>";
   of << "</cityObjectMember>";
 }
 
-bool Terrain::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+bool Terrain::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes) {
   return TopoFeature::get_multipolygon_features(layer, "Terrain", writeAttributes, extraAttributes);
 }
