@@ -44,6 +44,7 @@ public:
   bool                get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap());
   TopoClass           get_class();
   bool                is_hard();
+  void                cleanup_elevations();
 private:
   static float _heightref;
   static bool  _filter_outliers;

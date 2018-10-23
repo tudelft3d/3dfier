@@ -156,7 +156,7 @@ bool getCDT(Polygon2* pgn,
 
   Polygon_2 poly;
   int ringi = -1;
-  for (auto ring : rings) {
+  for (Ring2& ring : rings) {
     ringi++;
     for (int i = 0; i < ring.size(); i++) {
       poly.push_back(Point(bg::get<0>(ring[i]), bg::get<1>(ring[i]), z_to_float(z[ringi][i])));

@@ -108,7 +108,7 @@ void get_polygon_lifted_gml(std::wostream& of, Polygon2* p2, double height, bool
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
   //-- irings
-  auto irings = p2->inners();
+  std::vector<Ring2>& irings = p2->inners();
   for (Ring2& r : irings) {
     of << "<gml:interior>";
     of << "<gml:LinearRing>";
@@ -158,7 +158,7 @@ void get_extruded_lod1_block_gml(std::wostream& of, Polygon2* p2, double high, d
     get_extruded_line_gml(of, &r[i], &r[i + 1], high, low, false);
   get_extruded_line_gml(of, &r[i], &r[0], high, low, false);
   //-- irings
-  auto irings = p2->inners();
+  std::vector<Ring2>& irings = p2->inners();
   for (Ring2& r : irings) {
     for (i = 0; i < (r.size() - 1); i++)
       get_extruded_line_gml(of, &r[i], &r[i + 1], high, low, false);

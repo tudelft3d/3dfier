@@ -39,6 +39,10 @@ bool Terrain::is_hard() {
   return false;
 }
 
+void Terrain::cleanup_elevations() {
+  TIN::cleanup_elevations();
+}
+
 std::string Terrain::get_mtl() {
   return "usemtl Terrain";
 }

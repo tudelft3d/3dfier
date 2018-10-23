@@ -111,8 +111,8 @@ bool Building::lift() {
 
 bool Building::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
   // if within then a point must lay within the polygon, otherwise add
-  if (!within || (within && point_in_polygon(p, *(_p2)))) {
-    if (within_range(p, *(_p2), radius)) {
+  if (!within || (within && point_in_polygon_grid(p))) {
+    if (within_range(p, radius)) {
       int zcm = int(z * 100);
       if ((_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0)) {
         _zvaluesinside.push_back(zcm);
@@ -287,6 +287,12 @@ TopoClass Building::get_class() {
 
 bool Building::is_hard() {
   return true;
+}
+
+void Building::cleanup_elevations() {
+  _zvaluesground.clear();
+  _zvaluesground.shrink_to_fit();
+  Flat::cleanup_elevations();
 }
 
 void Building::get_csv(std::wostream& of) {
@@ -514,7 +520,7 @@ void Building::get_citygml_imgeo(std::wostream& of) {
       get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
     get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
     //-- irings
-    auto irings = _p2->inners();
+    std::vector<Ring2>& irings = _p2->inners();
     for (Ring2& r : irings) {
       for (i = 0; i < (r.size() - 1); i++)
         get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);

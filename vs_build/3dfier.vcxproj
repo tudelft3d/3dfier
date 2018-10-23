@@ -165,6 +165,7 @@
     <ClCompile Include="..\src\geomtools.cpp" />
     <ClCompile Include="..\src\Bridge.cpp" />
     <ClCompile Include="..\src\Separation.cpp" />
+    <ClCompile Include="..\thirdparty\ptinpoly.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Bridge.h" />
