@@ -80,6 +80,7 @@ public:
   void         get_imgeo_object_info(std::wostream& of, std::string id);
   void         get_citygml_attributes(std::wostream& of, const AttributeMap& attributes);
   void         get_cityjson_attributes(nlohmann::json& f, const AttributeMap& attributes);
+  void         cleanup_grid();
 protected:
   Polygon2*                         _p2;
   std::vector< std::vector<int> >   _p2z;
@@ -98,7 +99,6 @@ protected:
   std::vector<Triangle>                           _triangles_vw;
 
   void    prepare_grid();
-  void    cleanup_grid();
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(const Point2& p, double z, float radius);
   bool    within_range(const Point2& p, double radius);

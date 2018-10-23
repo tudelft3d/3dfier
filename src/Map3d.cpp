@@ -739,6 +739,12 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
   }
 }
 
+void Map3d::cleanup_grids() {
+  for (auto& f : _lsFeatures) {
+    f->cleanup_grid();
+  }
+}
+
 bool Map3d::threeDfy(bool stitching) {
   /*
     1. lift

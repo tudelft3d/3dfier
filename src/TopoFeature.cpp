@@ -52,7 +52,6 @@ TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attribut
 }
 
 TopoFeature::~TopoFeature() {
-  cleanup_grid();
   // TODO: clear memory properly
 }
 
@@ -906,7 +905,7 @@ bool TopoFeature::point_in_polygon(const Point2& p, const Polygon2& poly) {
 }
 
 void TopoFeature::prepare_grid() {
-  int Grid_Resolution = 30;
+  int Grid_Resolution = 20;
 
   int size = _p2->outer().size();
   std::vector<pPipoint> pgon;
