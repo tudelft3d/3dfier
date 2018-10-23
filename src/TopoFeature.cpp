@@ -906,13 +906,14 @@ bool TopoFeature::point_in_polygon(const Point2& p, const Polygon2& poly) {
 }
 
 void TopoFeature::prepare_grid() {
+  int Grid_Resolution = 30;
+
   int size = _p2->outer().size();
   std::vector<pPipoint> pgon;
   for (int i = 0; i < size; i++) {
     pgon.push_back(new Pipoint{ _p2->outer()[i].x(), _p2->outer()[i].y() });
   }
   pGridSet grid_set = new GridSet();
-  int Grid_Resolution = 20;
   GridSetup(&pgon[0], pgon.size(), Grid_Resolution, grid_set);
   _grids.push_back(grid_set);
   for (int i = 0; i < size; i++) {
@@ -926,7 +927,6 @@ void TopoFeature::prepare_grid() {
       pgon.push_back(new Pipoint{ _p2->inners()[r][i].x(), _p2->inners()[r][i].y() });
     }
     pGridSet grid_set = new GridSet();
-    int Grid_Resolution = 20;
     GridSetup(&pgon[0], pgon.size(), Grid_Resolution, grid_set);
     _grids.push_back(grid_set);
     for (int i = 0; i < size; i++) {
