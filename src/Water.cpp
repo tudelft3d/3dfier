@@ -47,6 +47,10 @@ bool Water::is_hard() {
   return true;
 }
 
+void Water::cleanup_elevations() {
+  Flat::cleanup_elevations();
+}
+
 bool Water::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
   return Flat::add_elevation_point(p, z, radius, lasclass, within);
 }

@@ -58,6 +58,7 @@ public:
   bool construct_CDT();
   void add_elevation_point(LASpoint const& laspt);
   void cleanup_grids();
+  void cleanup_elevations();
 
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>&  get_polygons3d();

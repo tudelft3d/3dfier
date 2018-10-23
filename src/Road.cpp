@@ -47,6 +47,10 @@ bool Road::is_hard() {
   return true;
 }
 
+void Road::cleanup_elevations() {
+  TopoFeature::cleanup_elevations();
+}
+
 std::string Road::get_mtl() {
   return "usemtl Road";
 }
