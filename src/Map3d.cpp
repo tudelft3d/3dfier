@@ -348,7 +348,7 @@ void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, int stats) {
   }
   of << "nr_ground_pts,";
   of << "nr_roof_pts,";
-  of << "pc_date";
+  of << "roof_var";
   of << std::endl;
   if (stats == 1) {
     for (auto& p : _lsFeatures) {
@@ -367,7 +367,7 @@ void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, int stats) {
         }
         of << b->get_nr_ground_pts() << ",";
         of << b->get_nr_roof_pts() << ",";
-        of << "ahn_date";
+        of << b->get_roof_variance();
         of << std::endl;
       }
     }

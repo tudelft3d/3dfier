@@ -149,6 +149,26 @@ std::vector<double> Building::get_RMSE() {
   return rmse;
 }
 
+double Building::get_roof_variance() {
+  double var = 0;
+  if (_zvaluesinside.size() > 1) {
+    int n = _zvaluesinside.size();
+    double sum = 0;
+    for (auto& z : _zvaluesinside) {
+      sum += z / 100;
+    };
+    double mean = sum / n;
+
+    double sq_sum = 0;
+    for (auto& z : _zvaluesinside) {
+      sq_sum += ((z/100) - mean) * ((z/100) - mean);
+    };
+
+    var = sq_sum / (n - 1);
+  }
+  return var;
+}
+
 bool Building::lift() {
   //-- for the ground
   if (_zvaluesground.empty() == false) {

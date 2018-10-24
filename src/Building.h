@@ -60,6 +60,7 @@ public:
   int           get_nr_ground_pts();
   std::vector<double>           get_RMSE();
   void          set_heightref_top(float h);
+  double        get_roof_variance();
 
   static void   set_las_classes_roof(std::set<int> theset);
   static void   set_las_classes_ground(std::set<int> theset);
