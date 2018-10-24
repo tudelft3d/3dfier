@@ -82,6 +82,7 @@ std::string Building::get_all_z_values() {
   return ss.str();
 }
 
+//TODO B: is this function used or needed?
 std::string Building::get_all_distances() {
   std::vector<float> alldist (_distancesinside[0].begin(), _distancesinside[0].end());
   alldist.insert(alldist.end(), _distancesinside[0].begin(), _distancesinside[0].end());
@@ -109,6 +110,24 @@ int Building::get_height_roof_at_percentile(float percentile) {
   }
   else {
     return -9999;
+  }
+}
+
+int Building::get_nr_roof_pts() {
+  if (_zvaluesinside.empty() == false) {
+    return _zvaluesinside.size();
+  }
+  else {
+    return 0;
+  }
+}
+
+int Building::get_nr_ground_pts() {
+  if (_zvaluesground.empty() == false) {
+    return _zvaluesground.size();
+  }
+  else {
+    return 0;
   }
 }
 

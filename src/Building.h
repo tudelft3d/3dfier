@@ -56,6 +56,8 @@ public:
   int           get_height_base();
   int           get_height_ground_at_percentile(float percentile);
   int           get_height_roof_at_percentile(float percentile);
+  int           get_nr_roof_pts();
+  int           get_nr_ground_pts();
   std::vector<double>           get_RMSE();
   void          set_heightref_top(float h);
 
