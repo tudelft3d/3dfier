@@ -114,8 +114,8 @@ int Building::get_height_roof_at_percentile(float percentile) {
 }
 
 int Building::get_nr_roof_pts() {
-  if (_zvaluesinside.empty() == false) {
-    return _zvaluesinside.size();
+  if (_zvaluesroof.empty() == false) {
+    return _zvaluesroof.size();
   }
   else {
     return 0;
@@ -149,24 +149,87 @@ std::vector<double> Building::get_RMSE() {
   return rmse;
 }
 
-double Building::get_roof_variance() {
-  double var = 0;
+std::map<std::string,float> Building::compute_histogram() {
+  // compute a histogram of z-values of the point cloud
+  std::map<std::string,float> hist_result;
+  int n_bins = 24; // (magical) empirical value
+  // z-values are in cm, not in meters!
+  int min = 0;
+  min = *std::min_element( _zvaluesinside.begin(), _zvaluesinside.end() );
+  int max = *std::max_element( _zvaluesinside.begin(), _zvaluesinside.end() );
+//  std::cout << "hist min-max got" << std::endl;
+  _zhistogram.resize(n_bins);
+  float bin_width = 0;
+  bin_width = std::abs((max-min)/(n_bins-1));
+//  std::cout << "hist bin width got" << std::endl;
+  for(auto& val : _zvaluesinside) {
+    if(val>max || val<min) continue;
+    auto bin = std::floor((val-min)/bin_width);
+//    std::cout << "hist bin computed" << std::endl;
+    if(bin>=0 && bin<n_bins)
+      _zhistogram[bin]++;
+//    std::cout << "hist added to bin" << std::endl;
+  }
+  hist_result["min"] = static_cast<float>(min);
+  hist_result["bin_width"] = bin_width;
+  return hist_result;
+}
+
+float Building::find_roof_z_threshold() {
+  // find the z-values that represent the roof of the building
+  std::map<std::string,float> hist = compute_histogram();
+//  std::cout << "hist computed" << std::endl;
+  std::vector<int> bin_idx;
+  float z_threshold = 0;
+  for (int i = 0; i < _zhistogram.size(); i++) {
+      int threshold = 30; // the number of points in a bin, another (magical) empirical value
+      if (_zhistogram[i] >= threshold) { bin_idx.push_back(i); }
+  }
+//  std::cout << "find bins selected" << std::endl;
+//  int min_bin = *std::min_element( bin_idx.begin(), bin_idx.end() ); // bin of the min required z-value
+  if (bin_idx.size() > 0 && hist["min"] > 0.0) {
+    z_threshold = std::ceil( hist["min"] + (hist["bin_width"] * bin_idx[0]) );
+  }
+  else {
+    z_threshold = 0;
+  }
+//  std::cout << "find threshold found" << std::endl;
+  return z_threshold;
+}
+
+float Building::get_roof_variance() {
+  float var = 0;
+  if (_zvaluesroof.empty() == false) { _zvaluesroof.clear(); }
   if (_zvaluesinside.size() > 1) {
-    int n = _zvaluesinside.size();
-    double sum = 0;
+    float z_threshold = find_roof_z_threshold();
+//    std::cout << "get threshold" << std::endl;
+    float sum = 0;
     for (auto& z : _zvaluesinside) {
-      sum += z / 100;
-    };
-    double mean = sum / n;
-
-    double sq_sum = 0;
-    for (auto& z : _zvaluesinside) {
-      sq_sum += ((z/100) - mean) * ((z/100) - mean);
+      if(z >= z_threshold) {
+        _zvaluesroof.push_back(z);
+        sum += float(z) / 100;
+      }
     };
 
+    int n = _zvaluesroof.size();
+    float mean = sum / n;
+    float sq_sum = 0;
+    for (auto& z : _zvaluesroof) {
+      sq_sum += ((float(z)/100) - mean) * ((float(z)/100) - mean);
+    };
     var = sq_sum / (n - 1);
+    std::cout << get_id() << " " << z_threshold << " " << _zvaluesinside.size() << " " <<  _zvaluesroof.size() << " " << var << std::endl;
   }
   return var;
+}
+
+int Building::has_flat_roof() {
+  float roof_variance = get_roof_variance();
+  float threshold = 0.25;
+  std::cout << roof_variance << " " << threshold << std::endl;
+  // the variance threshold of 0.25 is an empirical value, based on Balázs' analysis
+  if (roof_variance <= threshold) { std::cout << "flat" << std::endl; return 1; }
+  else { return 0; }
 }
 
 bool Building::lift() {

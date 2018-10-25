@@ -60,12 +60,16 @@ public:
   int           get_nr_ground_pts();
   std::vector<double>           get_RMSE();
   void          set_heightref_top(float h);
-  double        get_roof_variance();
+  std::map<std::string,float> compute_histogram();
+  float         find_roof_z_threshold();
+  float         get_roof_variance();
+  int           has_flat_roof();
 
   static void   set_las_classes_roof(std::set<int> theset);
   static void   set_las_classes_ground(std::set<int> theset);
 private:
   std::vector<int>     _zvaluesground;
+  std::vector<int>     _zvaluesroof;
   int                  _height_base;
   static float         _heightref_top;
   static float         _heightref_base; 
@@ -75,6 +79,7 @@ private:
   static std::set<int> _las_classes_roof;
   static std::set<int> _las_classes_ground;
   std::map<int,int>    _rpctile_map;
+  std::vector<int>     _zhistogram;
 };
 
 #endif /* Building_h */
