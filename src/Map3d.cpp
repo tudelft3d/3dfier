@@ -347,7 +347,7 @@ void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, int stats) {
     }
   }
   of << "roof_var,";
-  of << "flat_roof,";
+  of << "roof_flat,";
   of << "nr_ground_pts,";
   of << "nr_roof_pts";
   of << std::endl;
