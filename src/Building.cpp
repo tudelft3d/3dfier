@@ -216,7 +216,7 @@ float Building::get_roof_variance() {
 
 int Building::has_flat_roof() {
   float roof_variance = get_roof_variance();
-  float threshold = 0.25;
+  float threshold = 0.35;
   // the variance threshold of 0.25 is an empirical value, based on Balázs' analysis
   if (roof_variance <= threshold) { return 1; }
   else { return 0; }
