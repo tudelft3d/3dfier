@@ -36,8 +36,8 @@ if ( NOT GDAL_FOUND )
   message(SEND_ERROR "3dfier requires the GDAL library")
 endif()
 
-# LAStools
-include_directories(/usr/local/include/LASlib /usr/local/include/LASzip)
+# LASlib
+find_package(LASlib REQUIRED)
 
 # YamlCpp
 find_package(YamlCpp REQUIRED)
@@ -54,7 +54,7 @@ include( ${CGAL_USE_FILE} )
 
 include_directories( ${CMAKE_SOURCE_DIR}/thirdparty )
 
-include_directories( ${CGAL_INCLUDE_DIR} ${CGAL_3RD_PARTY_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${YAMLCPP_INCLUDE_DIR} ${GDAL_INCLUDE_DIR})
+include_directories( ${CGAL_INCLUDE_DIR} ${CGAL_3RD_PARTY_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${LASLIB_INCLUDE_DIR} ${YAMLCPP_INCLUDE_DIR} ${GDAL_INCLUDE_DIR})
 link_directories(${YamlCpp_LIBRARY_DIRS})
 
 # build ptinpoly as static lib
@@ -68,6 +68,6 @@ set_target_properties(
 FILE(GLOB SRC_FILES src/*.cpp)
 add_executable(3dfier ${SRC_FILES})
 
-target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY} Boost::program_options Boost::filesystem Boost::locale Boost::chrono /usr/local/lib/LASlib/liblas.a ptinpoly)
+target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${GDAL_LIBRARY} ${LASLIB_LIBRARY} ${YAMLCPP_LIBRARY} Boost::program_options Boost::filesystem Boost::locale Boost::chrono)
 
 install(TARGETS 3dfier DESTINATION bin)
