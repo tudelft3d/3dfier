@@ -98,7 +98,8 @@ build:
   project: vs_build\3dfier.sln
   verbosity: minimal
 after_build:
-  7z a 3dfier-windows-x64-v$(appveyor_build_version).zip %APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe
+  - if exist %APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe
+    7z a 3dfier-windows-x64-v$(appveyor_build_version).zip %APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe
 artifacts:
   - path: 3dfier-windows-x64-v$(appveyor_build_version).zip
     name: 3dfier-v$(appveyor_build_version)
