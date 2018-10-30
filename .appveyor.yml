@@ -83,11 +83,17 @@ install:
       cmake -G "Visual Studio 14 2015 Win64" -H.\ -B.\ -DBUILD_SHARED_LIBS=OFF -DBoost_USE_STATIC_LIBS=ON)
 
   - if not exist %CGAL_DIR%\lib\libCGAL_Core-vc140-mt-4.8.lib (
-      msbuild "%CGAL_DIR%\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=$(configuration) /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" &&
-      copy /Y "%CGAL_DIR%\lib\$(configuration)\libCGAL_Core-vc140-mt-4.8.lib" "%CGAL_DIR%\lib")
+      msbuild "%CGAL_DIR%\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" &&
+      copy /Y "%CGAL_DIR%\lib\Release\libCGAL_Core-vc140-mt-4.8.lib" "%CGAL_DIR%\lib")
   - if not exist %CGAL_DIR%\lib\libCGAL-vc140-mt-4.8.lib (
-      msbuild "%CGAL_DIR%\src\CGAL\CGAL.vcxproj" /property:Configuration=$(configuration) /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" &&
-      copy /Y "%CGAL_DIR%\lib\$(configuration)\libCGAL-vc140-mt-4.8.lib" "%CGAL_DIR%\lib" )
+      msbuild "%CGAL_DIR%\src\CGAL\CGAL.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" &&
+      copy /Y "%CGAL_DIR%\lib\Release\libCGAL-vc140-mt-4.8.lib" "%CGAL_DIR%\lib" )
+  - if not exist %CGAL_DIR%\lib\libCGAL_Core-vc140-mt-gd-4.8.lib (
+      msbuild "%CGAL_DIR%\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" &&
+      copy /Y "%CGAL_DIR%\lib\Debug\libCGAL_Core-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\lib")
+  - if not exist %CGAL_DIR%\lib\libCGAL-vc140-mt-gd-4.8.lib (
+      msbuild "%CGAL_DIR%\src\CGAL\CGAL.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" &&
+      copy /Y "%CGAL_DIR%\lib\Debug\libCGAL-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\lib" )
 build:
   project: vs_build\3dfier.sln
   verbosity: minimal
@@ -97,9 +103,13 @@ artifacts:
   - path: 3dfier-windows-x64-v$(appveyor_build_version).zip
     name: 3dfier-v$(appveyor_build_version)
 deploy:
-    provider: GitHub
-    auth_token:
-      secure: obYcLBaTyGg2mTaei6/3a0kGupsMQDxB9IJY3fM+Kj99r9TsP6BYczD8pGuQbsek
-    artifact: 3dfier-v$(appveyor_build_version)
-    draft: true
-    prerelease: false
+  release: 3dfier automated release version $(appveyor_build_version)
+  description: 'This is an automated 3dfier release'
+  provider: GitHub
+  auth_token:
+    secure: obYcLBaTyGg2mTaei6/3a0kGupsMQDxB9IJY3fM+Kj99r9TsP6BYczD8pGuQbsek
+  artifact: 3dfier-windows-x64-v$(appveyor_build_version).zip
+  draft: true
+  prerelease: false
+  on:
+    branch: master
