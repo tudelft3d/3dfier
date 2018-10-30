@@ -42,13 +42,13 @@ install:
   - set PATH=C:\deps\yaml-cpp-yaml-cpp-0.5.3;%PATH%
   - SET YAML-CPP_DIR=C:\deps\yaml-cpp-yaml-cpp-0.5.3
   - if not exist C:\deps\yaml-cpp-yaml-cpp-0.5.3\vs_build
-      - cd C:\deps\yaml-cpp-yaml-cpp-0.5.3
-      - mkdir vs_build
-      - CMake -G "Visual Studio 14 2015 Win64" -H.\ -B.\vs_build
+      cd C:\deps\yaml-cpp-yaml-cpp-0.5.3
+      mkdir vs_build
+      CMake -G "Visual Studio 14 2015 Win64" -H.\ -B.\vs_build
   - if not exist %YAML-CPP_DIR%\vs_build\lib\libyaml-cppmd.lib"
-      - msbuild "%YAML-CPP_DIR%\vs_build\yaml-cpp.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-      - mkdir "%YAML-CPP_DIR%\vs_build\lib\"
-      - copy /Y "%YAML-CPP_DIR%\vs_build\Release\libyaml-cppmd.lib" "%YAML-CPP_DIR%\vs_build\lib"
+      msbuild "%YAML-CPP_DIR%\vs_build\yaml-cpp.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+      mkdir "%YAML-CPP_DIR%\vs_build\lib\"
+      copy /Y "%YAML-CPP_DIR%\vs_build\Release\libyaml-cppmd.lib" "%YAML-CPP_DIR%\vs_build\lib"
   
   ############################################################################
   # Install OSGeo4W
@@ -72,21 +72,22 @@ install:
       appveyor DownloadFile https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.8/CGAL-4.8.zip -FileName CGAL-4.8.zip
   - if not exist %CGAL_DIR%
       7z x CGAL-4.8.zip -oC:\deps > nul
+  
   - if not exist gmp.zip
       appveyor DownloadFile https://www.dropbox.com/s/okbl2nvdj36y31i/gmp.zip?dl=1 -FileName gmp.zip
   - if not exist C:\deps\CGAL-4.8\auxiliary\gmp\
       7z x gmp.zip -aoa -oC:\deps\CGAL-4.8\auxiliary > nul
   
   - if not exist C:\deps\CGAL-4.8\Makefile
-      - cd C:\deps\CGAL-4.8
-      - cmake -G "Visual Studio 14 2015 Win64" -H.\ -B.\ -DBUILD_SHARED_LIBS=OFF -DBoost_USE_STATIC_LIBS=ON
+      cd C:\deps\CGAL-4.8
+      cmake -G "Visual Studio 14 2015 Win64" -H.\ -B.\ -DBUILD_SHARED_LIBS=OFF -DBoost_USE_STATIC_LIBS=ON
 
   - if not exist %CGAL_DIR%\lib\libCGAL_Core-vc140-mt-4.8.lib
-      - msbuild "%CGAL_DIR%\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=$(configuration) /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-      - copy /Y "%CGAL_DIR%\lib\$(configuration)\libCGAL_Core-vc140-mt-4.8.lib" "%CGAL_DIR%\lib"
+      msbuild "%CGAL_DIR%\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=$(configuration) /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+      copy /Y "%CGAL_DIR%\lib\$(configuration)\libCGAL_Core-vc140-mt-4.8.lib" "%CGAL_DIR%\lib"
   - if not exist %CGAL_DIR%\lib\libCGAL-vc140-mt-4.8.lib
-      - msbuild "%CGAL_DIR%\src\CGAL\CGAL.vcxproj" /property:Configuration=$(configuration) /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-      - copy /Y "%CGAL_DIR%\lib\$(configuration)\libCGAL-vc140-mt-4.8.lib" "%CGAL_DIR%\lib"  
+      msbuild "%CGAL_DIR%\src\CGAL\CGAL.vcxproj" /property:Configuration=$(configuration) /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+      copy /Y "%CGAL_DIR%\lib\$(configuration)\libCGAL-vc140-mt-4.8.lib" "%CGAL_DIR%\lib"  
 build:
   project: vs_build\3dfier.sln
   verbosity: minimal
