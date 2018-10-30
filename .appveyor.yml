@@ -113,3 +113,4 @@ deploy:
   prerelease: false
   on:
     branch: master
+    configuration: release
