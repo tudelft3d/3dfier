@@ -73,3 +73,14 @@ install:
 build:
   project: vs_build\3dfier.sln
   verbosity: minimal
+artifacts:
+  - path: vs_build\x64\Release\3dfier.exe
+    name: 3dfier-v$(appveyor_build_version)
+    type: zip
+deploy:
+    provider: GitHub
+    auth_token:
+      secure: obYcLBaTyGg2mTaei6/3a0kGupsMQDxB9IJY3fM+Kj99r9TsP6BYczD8pGuQbsek
+    artifact: release
+    draft: true
+    prerelease: false
