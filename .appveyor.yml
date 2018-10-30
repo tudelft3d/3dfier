@@ -75,7 +75,7 @@ install:
   
   - if not exist gmp.zip
       appveyor DownloadFile https://www.dropbox.com/s/okbl2nvdj36y31i/gmp.zip?dl=1 -FileName gmp.zip
-  - if not exist C:\deps\CGAL-4.8\auxiliary\gmp\
+  - if not exist C:\deps\CGAL-4.8\auxiliary\gmp\lib\
       7z x gmp.zip -aoa -oC:\deps\CGAL-4.8\auxiliary > nul
   
   - if not exist C:\deps\CGAL-4.8\Makefile (
