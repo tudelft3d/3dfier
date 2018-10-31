@@ -12,6 +12,7 @@ platform: x64
 
 cache:
   - C:\deps\yaml-cpp-0.5.3.zip
+  - C:\deps\yaml-cpp-yaml-cpp-0.5.3
   - C:\deps\osgeo4w-setup-x86_64.exe
   - C:\deps\OSGeo4W
   - C:\deps\CGAL-4.8.zip
@@ -78,7 +79,7 @@ install:
       appveyor DownloadFile https://www.dropbox.com/s/okbl2nvdj36y31i/gmp.zip?dl=1 -FileName gmp.zip
   - if not exist %CGAL_DIR%\auxiliary\gmp\lib\
       7z x gmp.zip -aoa -o%CGAL_DIR%\auxiliary > nul
-  - if not exist %CGAL_DIR%\Makefile (
+  - if not exist %CGAL_DIR%\CGAL.sln (
       cd %CGAL_DIR% &&
       cmake -G "Visual Studio 14 2015 Win64" -H.\ -B.\ -DBUILD_SHARED_LIBS=OFF -DBoost_USE_STATIC_LIBS=ON)
   - if not exist %CGAL_DIR%\lib\libCGAL_Core-vc140-mt-4.8.lib (
@@ -99,10 +100,9 @@ build:
   verbosity: minimal
 after_build:
   - if exist %APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe
-    7z a "3dfier-windows-x64-v$($env:APPVEYOR_BUILD_VERSION).zip" "%APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe"
+    7z a "3dfier-windows-x64-v%APPVEYOR_BUILD_VERSION%.zip" "%APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe"
 artifacts:
   - path: 3dfier-windows-x64-v$(appveyor_build_version).zip
-    name: 3dfier-v$(appveyor_build_version)
 deploy:
   release: 3dfier automated release version $(appveyor_build_version)
   description: 'This is an automated 3dfier release'
