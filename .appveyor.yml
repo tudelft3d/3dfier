@@ -11,12 +11,12 @@ configuration:
 platform: x64
 
 cache:
-  - yaml-cpp-0.5.3.zip -> appveyor.yml
-  - osgeo4w-setup-x86_64.exe -> appveyor.yml
-  - C:\OSGeo4W -> appveyor.yml
-  - CGAL-4.8.zip -> appveyor.yml
-  - C:\deps\CGAL -> appveyor.yml
-  - gmp.zip -> appveyor.yml
+  - C:\deps\yaml-cpp-0.5.3.zip -> appveyor.yml
+  - C:\deps\osgeo4w-setup-x86_64.exe -> appveyor.yml
+  - C:\deps\OSGeo4W -> appveyor.yml
+  - C:\deps\CGAL-4.8.zip -> appveyor.yml
+  - C:\deps\CGAL-4.8 -> appveyor.yml
+  - C:\deps\gmp.zip -> appveyor.yml
   
 install:
   ############################################################################
@@ -53,14 +53,15 @@ install:
   ############################################################################
   # Install OSGeo4W
   ############################################################################
-  - set OSGEO4W_ROOT=C:\OSGeo4W
+  - cd C:\deps
+  - set OSGEO4W_ROOT=C:\deps\OSGeo4W
   - if not exist osgeo4w-setup-x86_64.exe
       appveyor DownloadFile http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe -FileName osgeo4w-setup-x86_64.exe
   - if not exist %OSGEO4W_ROOT%
       osgeo4w-setup-x86_64.exe -q -k -r -A -s http://download.osgeo.org/osgeo4w/ -a x86_64 -P liblas-devel,liblas,laszip,gdal -R %OSGEO4W_ROOT% > NUL
-  - set LIBLAS_ROOT=C:\OSGeo4W
-  - set LASZIP_ROOT=C:\OSGeo4W
-  - set PATH=C:\OSGeo4W\bin;%PATH%
+  - set LIBLAS_ROOT=%OSGEO4W_ROOT%
+  - set LASZIP_ROOT=%OSGEO4W_ROOT%
+  - set PATH=%OSGEO4W_ROOT%\bin;%PATH%
   
   ############################################################################
   # Install CGAL 4.8
@@ -99,7 +100,7 @@ build:
   verbosity: minimal
 after_build:
   - if exist %APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe
-    7z a 3dfier-windows-x64-v$(appveyor_build_version).zip %APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe
+    7z a "3dfier-windows-x64-v$(appveyor_build_version).zip" "%APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe"
 artifacts:
   - path: 3dfier-windows-x64-v$(appveyor_build_version).zip
     name: 3dfier-v$(appveyor_build_version)
