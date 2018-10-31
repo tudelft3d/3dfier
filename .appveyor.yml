@@ -11,13 +11,13 @@ configuration:
 platform: x64
 
 cache:
-  - C:\deps\yaml-cpp-0.5.3.zip
+  #- C:\deps\yaml-cpp-0.5.3.zip
   - C:\deps\yaml-cpp-yaml-cpp-0.5.3
-  - C:\deps\osgeo4w-setup-x86_64.exe
+  #- C:\deps\osgeo4w-setup-x86_64.exe
   - C:\deps\OSGeo4W
-  - C:\deps\CGAL-4.8.zip
+  #- C:\deps\CGAL-4.8.zip
   - C:\deps\CGAL-4.8
-  - C:\deps\gmp.zip
+  #- C:\deps\gmp.zip
   
 install:
   ############################################################################
@@ -39,10 +39,9 @@ install:
   ############################################################################
   - cd %DEPS_DIR%
   - SET YAML-CPP_DIR=%DEPS_DIR%\yaml-cpp-yaml-cpp-0.5.3
-  - if not exist yaml-cpp-0.5.3.zip
+  - if not exist %YAML-CPP_DIR% (
       appveyor DownloadFile https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.5.3.zip -FileName yaml-cpp-0.5.3.zip
-  - if not exist %YAML-CPP_DIR%
-      7z x yaml-cpp-0.5.3.zip -o%DEPS_DIR% > nul
+      7z x yaml-cpp-0.5.3.zip -o%DEPS_DIR% > nul)
   - if not exist %YAML-CPP_DIR%\vs_build (
       cd %YAML-CPP_DIR% &&
       mkdir vs_build &&
@@ -60,10 +59,9 @@ install:
   - set OSGEO4W_ROOT=%DEPS_DIR%\OSGeo4W
   - set LIBLAS_ROOT=%OSGEO4W_ROOT%
   - set LASZIP_ROOT=%OSGEO4W_ROOT%
-  - if not exist osgeo4w-setup-x86_64.exe
+  - if not exist %OSGEO4W_ROOT% (
       appveyor DownloadFile http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe -FileName osgeo4w-setup-x86_64.exe
-  - if not exist %OSGEO4W_ROOT%
-      osgeo4w-setup-x86_64.exe -q -k -r -A -s http://download.osgeo.org/osgeo4w/ -a x86_64 -P liblas-devel,liblas,laszip,gdal -R %OSGEO4W_ROOT% > NUL
+      osgeo4w-setup-x86_64.exe -q -k -r -A -s http://download.osgeo.org/osgeo4w/ -a x86_64 -P liblas-devel,liblas,laszip,gdal -R %OSGEO4W_ROOT% > NUL)
   - set PATH=%OSGEO4W_ROOT%\bin;%PATH%
   
   ############################################################################
@@ -71,14 +69,12 @@ install:
   ############################################################################
   - cd %DEPS_DIR%
   - set CGAL_DIR=%DEPS_DIR%\CGAL-4.8
-  - if not exist CGAL-4.8.zip
+  - if not exist %CGAL_DIR% (
       appveyor DownloadFile https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.8/CGAL-4.8.zip -FileName CGAL-4.8.zip
-  - if not exist %CGAL_DIR%
-      7z x CGAL-4.8.zip -o%DEPS_DIR% > nul
-  - if not exist gmp.zip
+      7z x CGAL-4.8.zip -o%DEPS_DIR% > nul)
+  - if not exist %CGAL_DIR%\auxiliary\gmp\lib\ (
       appveyor DownloadFile https://www.dropbox.com/s/okbl2nvdj36y31i/gmp.zip?dl=1 -FileName gmp.zip
-  - if not exist %CGAL_DIR%\auxiliary\gmp\lib\
-      7z x gmp.zip -aoa -o%CGAL_DIR%\auxiliary > nul
+      7z x gmp.zip -aoa -o%CGAL_DIR%\auxiliary > nul)
   - if not exist %CGAL_DIR%\CGAL.sln (
       cd %CGAL_DIR% &&
       cmake -G "Visual Studio 14 2015 Win64" -H.\ -B.\ -DBUILD_SHARED_LIBS=OFF -DBoost_USE_STATIC_LIBS=ON)
@@ -100,9 +96,9 @@ build:
   verbosity: minimal
 after_build:
   - if exist %APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe
-    7z a "3dfier-windows-x64-v%APPVEYOR_BUILD_VERSION%.zip" "%APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe"
+    7z a "%APPVEYOR_BUILD_FOLDER%\3dfier-windows-x64-v%APPVEYOR_BUILD_VERSION%.zip" "%APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe"
 artifacts:
-  - path: 3dfier-windows-x64-v$(appveyor_build_version).zip
+  - path: %APPVEYOR_BUILD_FOLDER%\3dfier-windows-x64-v$(appveyor_build_version).zip
 deploy:
   release: 3dfier automated release version $(appveyor_build_version)
   description: 'This is an automated 3dfier release'
