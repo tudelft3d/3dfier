@@ -6,8 +6,8 @@ branches:
 skip_tags: true
 image: Visual Studio 2015
 configuration:
-- Debug
-- Release
+  - Debug
+  - Release
 platform: x64
 
 cache:
@@ -109,4 +109,5 @@ deploy:
   draft: true
   prerelease: false
   on:
+    branch: master
     configuration: release
