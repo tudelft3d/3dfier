@@ -23,7 +23,8 @@ install:
   # All external dependencies are installed in C:\deps
   ############################################################################
   - set DEPS_DIR=C:\deps
-  - mkdir %DEPS_DIR%
+  - if not exist %DEPS_DIR%
+      mkdir %DEPS_DIR%
   
   ############################################################################
   # Set boost variables
