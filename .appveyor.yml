@@ -109,5 +109,4 @@ deploy:
   draft: true
   prerelease: false
   on:
-    branch: master
     configuration: release
