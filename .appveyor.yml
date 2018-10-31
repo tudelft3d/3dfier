@@ -98,7 +98,7 @@ after_build:
   - if exist %APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe
     7z a "%APPVEYOR_BUILD_FOLDER%\3dfier-windows-x64-v%APPVEYOR_BUILD_VERSION%.zip" "%APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe"
 artifacts:
-  - path: $(appveyor_build_folder)\3dfier-windows-x64-v$(appveyor_build_version).zip
+  - path: 3dfier-windows-x64-v$(appveyor_build_version).zip
 deploy:
   release: 3dfier automated release version $(appveyor_build_version)
   description: 'This is an automated 3dfier release'
