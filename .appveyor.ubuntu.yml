@@ -22,12 +22,15 @@ install:
   - sh: sudo apt-get -y --allow-downgrades install -qq libpq5=9.5.14-0ubuntu0.16.04 libgdal-dev
   - sh: sudo apt-get -y install -qq libgmp-dev libmpfr-dev
   
-  - sh: if not exist /home/appveyor/laszip-src-2.2.0/build/lib resources/build_ubuntu/build_deps.sh /home/appveyor/
-  - sh: if not exist /home/appveyor/libLAS-1.8.1/build/lib resources/build_ubuntu/build_deps.sh /home/appveyor/
-  - sh: if not exist /home/appveyor/cgal-releases-CGAL-4.10/build/lib resources/build_ubuntu/build_cgal.sh /home/appveyor/
+  - if not exist /home/appveyor/laszip-src-2.2.0/build/lib
+    - sh: resources/build_ubuntu/build_deps.sh /home/appveyor
+  - if not exist /home/appveyor/libLAS-1.8.1/build/lib
+    - sh: resources/build_ubuntu/build_deps.sh /home/appveyor
+  - if not exist /home/appveyor/cgal-releases-CGAL-4.10/build/lib
+    - sh: resources/build_ubuntu/build_cgal.sh /home/appveyor
 
 build_script:
-  - sh: resources/build_ubuntu/build_3dfier.sh /home/appveyor/
+  - sh: resources/build_ubuntu/build_3dfier.sh /home/appveyor
 
 test_script:
   - sh: cd /home/appveyor/3dfier/example_data
