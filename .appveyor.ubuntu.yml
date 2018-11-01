@@ -9,6 +9,11 @@ configuration:
   - Debug
   - Release
   
+cache:
+  - /home/appveyor/laszip-src-2.2.0/build
+  - /home/appveyor/libLAS-1.8.1/build
+  - /home/appveyor/cgal-releases-CGAL-4.10/build
+
 install:
   - sh: sudo add-apt-repository ppa:ubuntugis/ppa
   - sh: sudo apt-get update -qq && sudo apt-get install -qq
@@ -18,8 +23,9 @@ install:
   - sh: sudo apt-get -y install -qq libgmp-dev libmpfr-dev
 
 build_script:
-  - sh: resources/build_ubuntu/build_deps.sh /home/appveyor/
-  - sh: resources/build_ubuntu/build_cgal.sh /home/appveyor/
+  - sh: if not exist /home/appveyor/laszip-src-2.2.0/build/lib resources/build_ubuntu/build_deps.sh /home/appveyor/
+  - sh: if not exist /home/appveyor/libLAS-1.8.1/build/lib resources/build_ubuntu/build_deps.sh /home/appveyor/
+  - sh: if not exist /home/appveyor/cgal-releases-CGAL-4.10/build/lib resources/build_ubuntu/build_cgal.sh /home/appveyor/
   - sh: resources/build_ubuntu/build_3dfier.sh /home/appveyor/
 
 build: off
