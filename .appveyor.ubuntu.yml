@@ -8,29 +8,27 @@ image: Ubuntu
 configuration:
   - Debug
   - Release
-  
+
 cache:
   - /home/appveyor/laszip-src-2.2.0/build
   - /home/appveyor/libLAS-1.8.1/build
   - /home/appveyor/cgal-releases-CGAL-4.10/build
 
 install:
-- sh: >-
-  sudo add-apt-repository ppa:ubuntugis/ppa
-  sudo apt-get update -qq && sudo apt-get install -qq
-  sudo apt-get -y install -qq gcc g++ cmake
-  sudo apt-get -y install -qq libyaml-cpp-dev libboost-dev libboost-filesystem-dev libboost-locale-dev libboost-thread-dev libboost-iostreams-dev libboost-program-options-dev
-  sudo apt-get -y --allow-downgrades install -qq libpq5=9.5.14-0ubuntu0.16.04 libgdal-dev
-  sudo apt-get -y install -qq libgmp-dev libmpfr-dev
+  - sh: sudo add-apt-repository ppa:ubuntugis/ppa
+  - sh: sudo apt-get update -qq && sudo apt-get install -qq
+  - sh: sudo apt-get -y install -qq gcc g++ cmake
+  - sh: sudo apt-get -y install -qq libyaml-cpp-dev libboost-dev libboost-filesystem-dev libboost-locale-dev libboost-thread-dev libboost-iostreams-dev libboost-program-options-dev
+  - sh: sudo apt-get -y --allow-downgrades install -qq libpq5=9.5.14-0ubuntu0.16.04 libgdal-dev
+  - sh: sudo apt-get -y install -qq libgmp-dev libmpfr-dev
   
-  if not exist /home/appveyor/laszip-src-2.2.0/build/lib resources/build_ubuntu/build_deps.sh /home/appveyor/
-  if not exist /home/appveyor/libLAS-1.8.1/build/lib resources/build_ubuntu/build_deps.sh /home/appveyor/
-  if not exist /home/appveyor/cgal-releases-CGAL-4.10/build/lib resources/build_ubuntu/build_cgal.sh /home/appveyor/
+  - sh: if not exist /home/appveyor/laszip-src-2.2.0/build/lib resources/build_ubuntu/build_deps.sh /home/appveyor/
+  - sh: if not exist /home/appveyor/libLAS-1.8.1/build/lib resources/build_ubuntu/build_deps.sh /home/appveyor/
+  - sh: if not exist /home/appveyor/cgal-releases-CGAL-4.10/build/lib resources/build_ubuntu/build_cgal.sh /home/appveyor/
 
 build_script:
-- sh: resources/build_ubuntu/build_3dfier.sh /home/appveyor/
+  - sh: resources/build_ubuntu/build_3dfier.sh /home/appveyor/
 
 test_script:
-- sh: >-
-  cd /home/appveyor/3dfier/example_data
-  ../build/3dfier testarea_config.yml -o output/testarea.obj | grep -iq "Successfully terminated"
+  - sh: cd /home/appveyor/3dfier/example_data
+  - sh: ../build/3dfier testarea_config.yml -o output/testarea.obj | grep -iq "Successfully terminated"
