@@ -91,8 +91,13 @@ install:
       msbuild "%CGAL_DIR%\src\CGAL\CGAL.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" &&
       copy /Y "%CGAL_DIR%\lib\Debug\libCGAL-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\lib" )
   - set PATH=%CGAL_DIR%;%PATH%
+
+  ############################################################################
+  # Build 3dfier
+  ############################################################################
+  - msbuild %APPVEYOR_BUILD_FOLDER%\vs_build\3dfier.sln
+  
 build:
-  project: vs_build\3dfier.sln
   verbosity: minimal
 after_build:
   - if exist %APPVEYOR_BUILD_FOLDER%\vs_build\x64\Release\3dfier.exe
