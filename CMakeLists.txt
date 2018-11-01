@@ -58,22 +58,17 @@ include_directories( ${CMAKE_SOURCE_DIR}/thirdparty )
 include_directories( ${CGAL_INCLUDE_DIR} ${CGAL_3RD_PARTY_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${LIBLAS_INCLUDE_DIR} ${LASZIP_INCLUDE_DIR} ${YAMLCPP_INCLUDE_DIR} ${GDAL_INCLUDE_DIR})
 link_directories(${YamlCpp_LIBRARY_DIRS})
 
+# build ptinpoly as static lib
+add_library(ptinpoly STATIC thirdparty/ptinpoly.c)
+set_target_properties(
+  ptinpoly
+  PROPERTIES C_STANDARD 11
+)
+
 # Creating entries for target: 3dfier
-set(SRC_FILES src/main.cpp
-              src/Bridge.cpp
-			  src/Building.cpp
-			  src/Forest.cpp
-			  src/geomtools.cpp
-			  src/io.cpp
-			  src/Map3d.cpp
-			  src/Road.cpp
-			  src/Separation.cpp
-			  src/Terrain.cpp
-			  src/TopoFeature.cpp
-			  src/Water.cpp
-              thirdparty/ptinpoly.c)
+FILE(GLOB SRC_FILES src/*.cpp)
 add_executable(3dfier ${SRC_FILES})
 
-target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY} Boost::program_options Boost::filesystem Boost::locale)
+target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY} Boost::program_options Boost::filesystem Boost::locale ptinpoly)
 
 install(TARGETS 3dfier DESTINATION bin)
