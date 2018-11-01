@@ -14,7 +14,7 @@ install:
   - sh: sudo apt-get update -qq && sudo apt-get install -qq
   - sh: sudo apt-get -y install -qq gcc g++ cmake
   - sh: sudo apt-get -y install -qq libyaml-cpp-dev libboost-dev libboost-filesystem-dev libboost-locale-dev libboost-thread-dev libboost-iostreams-dev libboost-program-options-dev 
-  - sh: sudo apt-get -y --allow-downgrades install libpq5=9.5.14-0ubuntu0.16.04 libgdal-dev
+  - sh: sudo apt-get -y --allow-downgrades install -qq libpq5=9.5.14-0ubuntu0.16.04 libgdal-dev
   - sh: sudo apt-get -y install -qq libgmp-dev libmpfr-dev
 
 build_script:

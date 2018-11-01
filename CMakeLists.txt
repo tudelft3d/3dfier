@@ -59,7 +59,19 @@ include_directories( ${CGAL_INCLUDE_DIR} ${CGAL_3RD_PARTY_INCLUDE_DIR} ${Boost_I
 link_directories(${YamlCpp_LIBRARY_DIRS})
 
 # Creating entries for target: 3dfier
-FILE(GLOB SRC_FILES src/*.cpp)
+set(SRC_FILES src/main.cpp
+              src/Bridge.cpp
+			  src/Building.cpp
+			  src/Forest.cpp
+			  src/geomtools.cpp
+			  src/io.cpp
+			  src/Map3d.cpp
+			  src/Road.cpp
+			  src/Separation.cpp
+			  src/Terrain.cpp
+			  src/TopoFeature.cpp
+			  src/Water.cpp
+              thirdparty/ptinpoly.c)
 add_executable(3dfier ${SRC_FILES})
 
 target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${GDAL_LIBRARY} ${LIBLAS_LIBRARY} ${LASZIP_LIBRARY} ${YAMLCPP_LIBRARY} Boost::program_options Boost::filesystem Boost::locale)
