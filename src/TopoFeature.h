@@ -131,6 +131,7 @@ public:
   virtual void        cleanup_elevations() = 0;
 protected:
   std::vector<int>    _zvaluesinside;
+  int                  _height_top;
   bool                lift_percentile(float percentile);
 };
 

@@ -390,7 +390,7 @@ void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, u
   float hbase = z_to_float(this->get_height_base());
   float h = z_to_float(this->get_height());
   b["attributes"]["min-height-surface"] = hbase;
-  b["attributes"]["measuredHeight"] = h;
+  b["attributes"]["measuredHeight"] = h - hbase;
   nlohmann::json g;
   this->get_cityjson_geom(g, dPts, "Solid");
 
@@ -441,7 +441,7 @@ void Building::get_citygml(std::wostream& of) {
   of << "<gen:measureAttribute name=\"min height surface\">";
   of << "<gen:value uom=\"#m\">" << std::setprecision(2) << hbase << std::setprecision(3) << "</gen:value>";
   of << "</gen:measureAttribute>";
-  of << "<bui:measuredHeight uom=\"#m\">" << std::setprecision(2) << h << std::setprecision(3) << "</bui:measuredHeight>";
+  of << "<bui:measuredHeight uom=\"#m\">" << std::setprecision(2) << h - hbase << std::setprecision(3) << "</bui:measuredHeight>";
   //-- LOD0 footprint
   of << "<bui:lod0FootPrint>";
   of << "<gml:MultiSurface>";
@@ -676,13 +676,14 @@ bool Building::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeM
     std::cerr << "Failed to write attribute " << "baseheight" << ".\n";
     return false;
   }
-  feature->SetField(fi, z_to_float(this->get_height_base()));
+  float hbase = z_to_float(this->get_height_base());
+  feature->SetField(fi, hbase);
   fi = featureDefn->GetFieldIndex("roofheight");
   if (fi == -1) {
     std::cerr << "Failed to write attribute " << "roofheight" << ".\n";
     return false;
   }
-  feature->SetField(fi, z_to_float(this->get_height()));
+  feature->SetField(fi, z_to_float(this->get_height()) - hbase);
   if (writeAttributes) {
     for (auto attr : _attributes) {
       if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
