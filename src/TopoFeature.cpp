@@ -36,7 +36,6 @@ TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attribut
   bg::read_wkt(wkt, *_p2);
   bg::unique(*_p2); //-- remove duplicate vertices
   bg::correct(*_p2); //-- correct the orientation of the polygons!
-  prepare_grid();
 
   _adjFeatures = new std::vector<TopoFeature*>;
   _p2z.resize(bg::num_interior_rings(*_p2) + 1);
@@ -847,7 +846,7 @@ bool TopoFeature::assign_elevation_to_vertex(const Point2& p, double z, float ra
 }
 
 bool TopoFeature::within_range(const Point2& p, double radius) {
-  if (point_in_polygon_grid(p)) {
+  if (point_in_polygon(p)) {
     return true;
   }  
   
@@ -871,9 +870,9 @@ bool TopoFeature::within_range(const Point2& p, double radius) {
 }
 
 // based on http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon/2922778#2922778
-bool TopoFeature::point_in_polygon(const Point2& p, const Polygon2& poly) {
+bool TopoFeature::point_in_polygon(const Point2& p) {
   //test outer ring
-  const Ring2& oring = poly.outer();
+  const Ring2& oring = _p2->outer();
   int nvert = oring.size();
   int i, j = 0;
   bool insideOuter = false;
@@ -885,7 +884,7 @@ bool TopoFeature::point_in_polygon(const Point2& p, const Polygon2& poly) {
   }
   if (insideOuter) {
     //test inner rings
-    auto irings = poly.inners();
+    auto irings = _p2->inners();
     for (Ring2& iring : irings) {
       bool insideInner = false;
       int nvert = iring.size();
@@ -904,78 +903,11 @@ bool TopoFeature::point_in_polygon(const Point2& p, const Polygon2& poly) {
   return insideOuter;
 }
 
-void TopoFeature::prepare_grid() {
-  try {
-    int Grid_Resolution = 20;
-
-    int size = _p2->outer().size();
-    std::vector<pPipoint> pgon;
-    for (int i = 0; i < size; i++) {
-      pgon.push_back(new Pipoint{ _p2->outer()[i].x(), _p2->outer()[i].y() });
-    }
-    pGridSet grid_set = new GridSet();
-    GridSetup(&pgon[0], pgon.size(), Grid_Resolution, grid_set);
-    _grids.push_back(grid_set);
-    for (int i = 0; i < size; i++) {
-      delete pgon[i];
-    }
-
-    for (int r = 0; r < _p2->inners().size(); r++) {
-      int size = _p2->inners()[r].size();
-      std::vector<pPipoint> pgon;
-      for (int i = 0; i < size; i++) {
-        pgon.push_back(new Pipoint{ _p2->inners()[r][i].x(), _p2->inners()[r][i].y() });
-      }
-      pGridSet grid_set = new GridSet();
-      GridSetup(&pgon[0], pgon.size(), Grid_Resolution, grid_set);
-      _grids.push_back(grid_set);
-      for (int i = 0; i < size; i++) {
-        delete pgon[i];
-      }
-    }
-  }
-  catch (std::exception e) {
-    std::cerr << "ERROR: Point-in-polygon grid creation failed.\n";
-    throw e;
-  }
-}
-
-void TopoFeature::cleanup_grid() {
-  for (pGridSet grid : _grids) {
-    GridCleanup(grid);
-  }
-}
-
 void TopoFeature::cleanup_elevations() {
   _lidarelevs.clear();
   _lidarelevs.shrink_to_fit();
   _p2z.clear();
   _p2z.shrink_to_fit();
-}
-
-bool TopoFeature::point_in_polygon_grid(const Point2& p) {
-  try {  
-    pPipoint point = new Pipoint{ p.x(), p.y() };
-    int insideouter = GridTest(_grids[0], point);
-    if (insideouter) {
-      for (int i = 1; i < _grids.size(); i++) {
-        if (GridTest(_grids[i], point)) {
-          delete point;
-          return false;
-        }
-      }
-    }
-    else {
-      delete point;
-      return false;
-    }
-    delete point;
-    return true;
-  }
-  catch (std::exception e) {
-    std::cerr << "ERROR: Point-in-polygon error, ignoring point.\n";
-    return false;
-  }
 }
 
 void TopoFeature::get_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, bool verticalwall) {
@@ -1165,7 +1097,7 @@ int Flat::get_number_vertices() {
 
 bool Flat::add_elevation_point(Point2& p, double z, float radius, int lasclass, bool within) {
   // if within then a point must lay within the polygon, otherwise add
-  if (!within || (within && point_in_polygon_grid(p))) {
+  if (!within || (within && point_in_polygon(p))) {
     if (within_range(p, radius)) {
       int zcm = int(z * 100);
       //-- 1. assign to polygon since within the threshold value (buffering of polygon)
@@ -1209,7 +1141,7 @@ int Boundary3D::get_number_vertices() {
 
 bool Boundary3D::add_elevation_point(Point2& p, double z, float radius, int lasclass, bool within) {
   // if within then a point must lay within the polygon, otherwise add
-  if (!within || (within && point_in_polygon_grid(p))) {
+  if (!within || (within && point_in_polygon(p))) {
     assign_elevation_to_vertex(p, z, radius);
   }
   return true;
@@ -1344,7 +1276,7 @@ int TIN::get_number_vertices() {
 bool TIN::add_elevation_point(Point2& p, double z, float radius, int lasclass, bool within) {
   bool toadd = false;
   // if within then a point must lay within the polygon, otherwise add
-  if (!within || (within && point_in_polygon_grid(p))) {
+  if (!within || (within && point_in_polygon(p))) {
     assign_elevation_to_vertex(p, z, radius);
   }
   if (_simplification <= 1)
@@ -1357,7 +1289,7 @@ bool TIN::add_elevation_point(Point2& p, double z, float radius, int lasclass, b
       toadd = true;
   }
   // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
-  if (toadd && point_in_polygon_grid(p) && (_innerbuffer == 0.0 || this->get_distance_to_boundaries(p) > _innerbuffer)) {
+  if (toadd && point_in_polygon(p) && (_innerbuffer == 0.0 || this->get_distance_to_boundaries(p) > _innerbuffer)) {
     _lidarpts.push_back(Point3(p.x(), p.y(), z));
   }
   return toadd;

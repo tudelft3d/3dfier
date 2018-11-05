@@ -57,7 +57,6 @@ public:
   bool threeDfy(bool stitching = true);
   bool construct_CDT();
   void add_elevation_point(liblas::Point const& laspt);
-  void cleanup_grids();
   void cleanup_elevations();
 
   unsigned long get_num_polygons();
