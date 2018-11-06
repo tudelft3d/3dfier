@@ -45,10 +45,9 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$1/laszip-src-2.2.0/build/lib
 
 cd $1
 wget http://download.osgeo.org/liblas/libLAS-1.8.1.tar.bz2
-# for some reason the md5 file was not accessible on osgeo when I checked it
-# wget http://download2.osgeo.org/liblas/libLAS-1.8.1.tar.bz2.md5
-# md5sum -c libLAS-1.8.1.tar.bz2.md5
-# rm libLAS-1.8.1.tar.bz2.md5
+wget http://download.osgeo.org/liblas/libLAS-1.8.1.tar.bz2.md5
+md5sum -c libLAS-1.8.1.tar.bz2.md5
+rm libLAS-1.8.1.tar.bz2.md5
 tar -xf libLAS-1.8.1.tar.bz2
 rm libLAS-1.8.1.tar.bz2
 cd libLAS-1.8.1

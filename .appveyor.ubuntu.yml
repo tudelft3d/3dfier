@@ -1,0 +1,32 @@
+version: 1.0.{build}
+branches:
+  only:
+  - master
+  - gitflow
+skip_tags: true
+image: Ubuntu
+configuration:
+  - Debug
+  - Release
+
+cache:
+  - /home/appveyor/laszip-src-2.2.0/build
+  - /home/appveyor/libLAS-1.8.1/build
+  - /home/appveyor/cgal-releases-CGAL-4.10/build
+
+install:
+  - sh: sudo add-apt-repository ppa:ubuntugis/ppa
+  - sh: sudo apt-get update -qq && sudo apt-get install -qq
+  - sh: sudo apt-get -y install -qq gcc g++ cmake
+  - sh: sudo apt-get -y install -qq libyaml-cpp-dev libboost-dev libboost-filesystem-dev libboost-locale-dev libboost-thread-dev libboost-iostreams-dev libboost-program-options-dev
+  - sh: sudo apt-get -y --allow-downgrades install -qq libpq5=9.5.14-0ubuntu0.16.04 libgdal-dev
+  - sh: sudo apt-get -y install -qq libgmp-dev libmpfr-dev
+  - sh: "[[ ! -d /home/appveyor/laszip-src-2.2.0/build/lib || ! -d /home/appveyor/libLAS-1.8.1/build/lib ]] && $APPVEYOR_BUILD_FOLDER/resources/build_ubuntu/build_deps.sh /home/appveyor"
+  - sh: "[[ ! -d  /home/appveyor/cgal-releases-CGAL-4.10/build/lib ]] && $APPVEYOR_BUILD_FOLDER/resources/build_ubuntu/build_cgal.sh /home/appveyor"
+
+build_script:
+  - sh: $APPVEYOR_BUILD_FOLDER/resources/build_ubuntu/build_3dfier.sh /home/appveyor
+
+test_script:
+  - sh: cd /home/appveyor/3dfier/example_data
+  - sh: ../build/3dfier testarea_config.yml -o output/testarea.obj | grep -iq "Successfully terminated"

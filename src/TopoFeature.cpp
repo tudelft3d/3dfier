@@ -1176,7 +1176,7 @@ bool Flat::add_elevation_point(Point2& p, double z, float radius, int lasclass, 
 }
 
 int Flat::get_height() {
-  return get_vertex_elevation(0, 0);
+  return _height_top;
 }
 
 bool Flat::lift_percentile(float percentile) {
@@ -1185,6 +1185,7 @@ if (_zvaluesinside.empty() == false) {
   std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
   z = _zvaluesinside[_zvaluesinside.size() * percentile];
 }
+this->_height_top = z;
 this->lift_all_boundary_vertices_same_height(z);
 return true;
 }

@@ -73,6 +73,7 @@ int main(int argc, const char * argv[]) {
   outputs["PostGIS"] = "";
   outputs["PostGIS-Multi"] = "";
   outputs["PostGIS-PDOK"] = "";
+  outputs["PostGIS-PDOK-CityGML"] = "";
   outputs["GDAL"] = "";
   std::string f_yaml;
   try {
@@ -97,6 +98,7 @@ int main(int argc, const char * argv[]) {
       ("PostGIS", po::value<std::string>(&outputs["PostGIS"]), "Output ")
       ("PostGIS-Multi", po::value<std::string>(&outputs["PostGIS-Multi"]), "Output ")
       ("PostGIS-PDOK", po::value<std::string>(&outputs["PostGIS-PDOK"]), "Output ")
+      ("PostGIS-PDOK-CityGML", po::value<std::string>(&outputs["PostGIS-PDOK-CityGML"]), "Output ")
       ("GDAL", po::value<std::string>(&outputs["GDAL"]), "Output ")
       ;
     po::options_description pohidden("Hidden options");
@@ -608,7 +610,7 @@ int main(int argc, const char * argv[]) {
     std::string ofname = output.second;
     if (format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "CityJSON" &&
       format != "Shapefile" && format != "Shapefile-Multifile" &&
-      format != "PostGIS" && format != "PostGIS-Multi" && format != "PostGIS-PDOK" &&
+      format != "PostGIS" && format != "PostGIS-Multi" && format != "PostGIS-PDOK" && format != "PostGIS-PDOK-CityGML" &&
       format != "GDAL") {
       of.open(ofname);
     }
@@ -671,6 +673,10 @@ int main(int argc, const char * argv[]) {
     else if (format == "PostGIS-PDOK") {
       std::clog << "PostGIS with IMGeo GML string output\n";
       fileWritten = map3d.get_pdok_output(ofname);
+    }
+    else if (format == "PostGIS-PDOK-CityGML") {
+      std::clog << "PostGIS with CityGML string output\n";
+      fileWritten = map3d.get_pdok_citygml_output(ofname);
     }
     else if (format == "GDAL") { //-- TODO: what is this? a path? how to use?
       if (nodes["output"] && nodes["output"]["gdal_driver"]) {

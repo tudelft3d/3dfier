@@ -1,7 +1,7 @@
 #!/bin/bash
 
-mkdir build
 mkdir $1/3dfier
+mkdir $1/3dfier/build
 cp -rp . $1/3dfier
 cd $1/3dfier/build
 
