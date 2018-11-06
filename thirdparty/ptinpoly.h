@@ -7,8 +7,8 @@
 extern "C"
 {
 #endif
-/* =========================== System Related ============================= */
-/* SRAN initializes random number generator, if needed */
+  /* =========================== System Related ============================= */
+  /* SRAN initializes random number generator, if needed */
 #define SRAN()		srand(1)
 /* RAN01 returns a double from [0..1) */
 #define RAN01()		((double)rand() / 32768.0)
@@ -18,12 +18,12 @@ extern "C"
 #define GR_FULL_VERT	0x01	/* line crosses vertically */
 #define GR_FULL_HORZ	0x02	/* line crosses horizontally */
 
-typedef struct {
-    double	xa,ya ;
-    double	minx, maxx, miny, maxy ;
-    double	ax, ay ;
-    double	slope, inv_slope ;
-} GridRec, *pGridRec;
+  typedef struct {
+    double	xa, ya;
+    double	minx, maxx, miny, maxy;
+    double	ax, ay;
+    double	slope, inv_slope;
+  } GridRec, *pGridRec;
 
 #define GC_BL_IN	0x0001	/* bottom left corner is in (else out) */
 #define GC_BR_IN	0x0002	/* bottom right corner is in (else out) */
@@ -52,42 +52,42 @@ typedef struct {
 				 GC_B_EDGE_HIT | \
 				 GC_T_EDGE_HIT )
 
-typedef struct {
-    short		tot_edges ;
-    unsigned short	gc_flags ;
-    GridRec		*gr ;
-} GridCell, *pGridCell;
+  typedef struct {
+    short		tot_edges;
+    unsigned short	gc_flags;
+    GridRec		*gr;
+  } GridCell, *pGridCell;
 
-typedef struct {
-    int		xres, yres ;	/* grid size */
-    int		tot_cells ;	/* xres * yres */
-    double	minx, maxx, miny, maxy ;	/* bounding box */
-    double	xdelta, ydelta ;
-    double	inv_xdelta, inv_ydelta ;
-    double	*glx, *gly ;
-    GridCell	*gc ;
-} GridSet, *pGridSet ;
+  typedef struct {
+    int		xres, yres;	/* grid size */
+    int		tot_cells;	/* xres * yres */
+    double	minx, maxx, miny, maxy;	/* bounding box */
+    double	xdelta, ydelta;
+    double	inv_xdelta, inv_ydelta;
+    double	*glx, *gly;
+    GridCell	*gc;
+  } GridSet, *pGridSet;
 
-typedef struct {
-  double x, y;
-} Pipoint, *pPipoint;
+  typedef struct {
+    double x, y;
+  } Pipoint, *pPipoint;
 
-/* add a little to the limits of the polygon bounding box to avoid precision
-* problems.
-*/
+  /* add a little to the limits of the polygon bounding box to avoid precision
+  * problems.
+  */
 #define EPSILON		0.00001
 
-/* The following structure is associated with a polygon */
-typedef struct {
-    int		id ;		/* vertex number of edge */
-    int		full_cross ;	/* 1 if extends from top to bottom */
-    double	minx, maxx ;	/* X bounds for bin */
-} Edge, *pEdge ;
+  /* The following structure is associated with a polygon */
+  typedef struct {
+    int		id;		/* vertex number of edge */
+    int		full_cross;	/* 1 if extends from top to bottom */
+    double	minx, maxx;	/* X bounds for bin */
+  } Edge, *pEdge;
 
-void GridSetup(pPipoint pgon[], int	numverts, int	resolution, pGridSet p_gs);
-int AddGridRecAlloc(pGridCell p_gc, double xa, double ya, double xb, double yb, double eps);
-void GridCleanup(pGridSet	p_gs);
-int GridTest(pGridSet p_gs, pPipoint point);
+  void GridSetup(pPipoint pgon[], int	numverts, int	resolution, pGridSet p_gs);
+  int AddGridRecAlloc(pGridCell p_gc, double xa, double ya, double xb, double yb, double eps);
+  void GridCleanup(pGridSet	p_gs);
+  int GridTest(pGridSet p_gs, pPipoint point);
 
 #ifdef __cplusplus
 }
