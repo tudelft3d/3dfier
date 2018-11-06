@@ -68,6 +68,6 @@ set_target_properties(
 FILE(GLOB SRC_FILES src/*.cpp)
 add_executable(3dfier ${SRC_FILES})
 
-target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${GDAL_LIBRARY} ${LASLIB_LIBRARY} ${YAMLCPP_LIBRARY} Boost::program_options Boost::filesystem Boost::locale Boost::chrono)
+target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${GDAL_LIBRARY} ${LASLIB_LIBRARY} ${YAMLCPP_LIBRARY} Boost::program_options Boost::filesystem Boost::locale Boost::chrono ptinpoly)
 
 install(TARGETS 3dfier DESTINATION bin)
