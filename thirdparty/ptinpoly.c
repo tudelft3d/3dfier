@@ -138,9 +138,11 @@ int	y_flag, io_state ;
     }
 
     /* loop through edges and insert into grid structure */
-    vtx0 = pgon[numverts-1] ;
+    double pt[2] = { pgon[numverts - 1]->x,pgon[numverts - 1]->y } ;
+    vtx0 = &pt[0] ;
     for ( i = 0 ; i < numverts ; i++ ) {
-	vtx1 = pgon[i] ;
+      double pt1[2] = { pgon[i]->x, pgon[i]->y } ;
+      vtx1 = &pt1[0] ;
 
 	if ( vtx0[Y] < vtx1[Y] ) {
 	    vtxa = vtx0 ;
