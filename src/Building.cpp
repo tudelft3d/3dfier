@@ -136,7 +136,7 @@ std::vector<double> Building::get_RMSE() {
   for (int i = 0; i < _distancesinside.size(); i++) {
     auto& distinside = _distancesinside[i];
     if (distinside.empty()) {
-      rmse.push_back(-9999);
+      rmse.push_back(-99.99);
     }
     else {
       double sum = 0.0;
