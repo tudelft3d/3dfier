@@ -1143,45 +1143,47 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
 bool Map3d::add_las_file(PointFile pointFile) {
   std::clog << "Reading LAS/LAZ file: " << pointFile.filename << std::endl;
   std::ifstream ifs;
-  ifs.open(pointFile.filename.c_str(), std::ios::in | std::ios::binary);
-  if (ifs.is_open() == false) {
-    std::cerr << "\tERROR: could not open file: " << pointFile.filename << std::endl;
-    return false;
-  }
-  //-- LAS classes to omit
-  std::vector<liblas::Classification> liblasomits;
-  for (int i : pointFile.lasomits) {
-    liblasomits.push_back(liblas::Classification(i));
-  }
 
-  //-- read each point 1-by-1
-  liblas::ReaderFactory f;
-  liblas::Reader reader = f.CreateWithStream(ifs);
-  liblas::Header const& header = reader.GetHeader();
-
-  //-- check if the file overlaps the polygons
-  liblas::Bounds<double> bounds = header.GetExtent();
-  liblas::Bounds<double> polygonBounds = get_bounds();
-  uint32_t pointCount = header.GetPointRecordsCount();
-  if (polygonBounds.intersects(bounds)) {
-    std::clog << "\t(" << boost::locale::as::number << pointCount << " points in the file)\n";
-    if ((pointFile.thinning > 1)) {
-      std::clog << "\t(skipping every " << pointFile.thinning << "th points, thus ";
-      std::clog << boost::locale::as::number << (pointCount / pointFile.thinning) << " are used)\n";
+  try {
+    ifs.open(pointFile.filename.c_str(), std::ios::in | std::ios::binary);
+    if (ifs.is_open() == false) {
+      std::cerr << "\tERROR: could not open file: " << pointFile.filename << std::endl;
+      return false;
     }
-    else
-      std::clog << "\t(all points used, no skipping)\n";
-
-    if (pointFile.lasomits.empty() == false) {
-      std::clog << "\t(omitting LAS classes: ";
-      for (int i : pointFile.lasomits)
-        std::clog << i << " ";
-      std::clog << ")\n";
+    //-- LAS classes to omit
+    std::vector<liblas::Classification> liblasomits;
+    for (int i : pointFile.lasomits) {
+      liblasomits.push_back(liblas::Classification(i));
     }
-    printProgressBar(0);
-    int i = 0;
-    
-    try {
+
+    //-- read each point 1-by-1
+    liblas::ReaderFactory f;
+    liblas::Reader reader = f.CreateWithStream(ifs);
+    liblas::Header const& header = reader.GetHeader();
+
+    //-- check if the file overlaps the polygons
+    liblas::Bounds<double> bounds = header.GetExtent();
+    liblas::Bounds<double> polygonBounds = get_bounds();
+    uint32_t pointCount = header.GetPointRecordsCount();
+
+    if (polygonBounds.intersects(bounds)) {
+      std::clog << "\t(" << boost::locale::as::number << pointCount << " points in the file)\n";
+      if ((pointFile.thinning > 1)) {
+        std::clog << "\t(skipping every " << pointFile.thinning << "th points, thus ";
+        std::clog << boost::locale::as::number << (pointCount / pointFile.thinning) << " are used)\n";
+      }
+      else
+        std::clog << "\t(all points used, no skipping)\n";
+
+      if (pointFile.lasomits.empty() == false) {
+        std::clog << "\t(omitting LAS classes: ";
+        for (int i : pointFile.lasomits)
+          std::clog << i << " ";
+        std::clog << ")\n";
+      }
+      printProgressBar(0);
+      int i = 0;
+
       while (reader.ReadNextPoint()) {
         liblas::Point const& p = reader.GetPoint();
         //-- set the thinning filter
@@ -1201,16 +1203,16 @@ bool Map3d::add_las_file(PointFile pointFile) {
       printProgressBar(100);
       std::clog << std::endl;
     }
-    catch (std::exception e) {
-      std::cerr << std::endl << e.what() << std::endl;
-      ifs.close();
-      return false;
+    else {
+      std::clog << "\tskipping file, bounds do not intersect polygon extent\n";
     }
+    ifs.close();
   }
-  else {
-    std::clog << "\tskipping file, bounds do not intersect polygon extent\n";
+  catch (std::exception e) {
+    std::cerr << std::endl << e.what() << std::endl;
+    ifs.close();
+    return false;
   }
-  ifs.close();
   return true;
 }
 
