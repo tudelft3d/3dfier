@@ -460,6 +460,7 @@ bool Map3d::get_pdok_output(std::string filename) {
     //Add additional attribute describing CityGML of feature
     std::wstring_convert<codecvt<wchar_t, char, std::mbstate_t>>converter;
     std::wstringstream ss;
+    ss << std::fixed << std::setprecision(3);
     f->get_citygml_imgeo(ss);
     std::string gmlAttribute = converter.to_bytes(ss.str());
     ss.clear();
@@ -544,6 +545,7 @@ bool Map3d::get_pdok_citygml_output(std::string filename) {
     //Add additional attribute describing CityGML of feature
     std::wstring_convert<codecvt<wchar_t, char, std::mbstate_t>>converter;
     std::wstringstream ss;
+    ss << std::fixed << std::setprecision(3);
     f->get_citygml(ss);
     std::string gmlAttribute = converter.to_bytes(ss.str());
     ss.clear();
@@ -1157,48 +1159,47 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
 //-- http://www.liblas.org/tutorial/cpp.html#applying-filters-to-a-reader-to-extract-specified-classes
 bool Map3d::add_las_file(PointFile pointFile) {
   std::clog << "Reading LAS/LAZ file: " << pointFile.filename << std::endl;
-  
+
   LASreadOpener lasreadopener;
   lasreadopener.set_file_name(pointFile.filename.c_str());
   //-- set to compute bounding box
   lasreadopener.set_populate_header(true);
   LASreader* lasreader = lasreadopener.open();
 
-  //-- check if file is open
-  if (lasreader == 0) {
-    std::cerr << "\tERROR: could not open file: " << pointFile.filename << std::endl;
-    return false;
-  }
-  LASheader header = lasreader->header;
-
-  if (check_bounds(header.min_x, header.max_x, header.min_y, header.max_y)) {
-    //-- LAS classes to omit
-    std::vector<int> lasomits;
-    for (int i : pointFile.lasomits) {
-      lasomits.push_back(i);
+  try {
+    //-- check if file is open
+    if (lasreader == 0) {
+      std::cerr << "\tERROR: could not open file: " << pointFile.filename << std::endl;
+      return false;
     }
+    LASheader header = lasreader->header;
 
-    //-- read each point 1-by-1
-    uint32_t pointCount = header.number_of_point_records;
+    if (check_bounds(header.min_x, header.max_x, header.min_y, header.max_y)) {
+      //-- LAS classes to omit
+      std::vector<int> lasomits;
+      for (int i : pointFile.lasomits) {
+        lasomits.push_back(i);
+      }
 
-    std::clog << "\t(" << boost::locale::as::number << pointCount << " points in the file)\n";
-    if ((pointFile.thinning > 1)) {
-      std::clog << "\t(skipping every " << pointFile.thinning << "th points, thus ";
-      std::clog << boost::locale::as::number << (pointCount / pointFile.thinning) << " are used)\n";
-    }
-    else
-      std::clog << "\t(all points used, no skipping)\n";
+      //-- read each point 1-by-1
+      uint32_t pointCount = header.number_of_point_records;
 
-    if (pointFile.lasomits.empty() == false) {
-      std::clog << "\t(omitting LAS classes: ";
-      for (int i : pointFile.lasomits)
-        std::clog << i << " ";
-      std::clog << ")\n";
-    }
-    printProgressBar(0);
-    int i = 0;
-    
-    try {
+      std::clog << "\t(" << boost::locale::as::number << pointCount << " points in the file)\n";
+      if ((pointFile.thinning > 1)) {
+        std::clog << "\t(skipping every " << pointFile.thinning << "th points, thus ";
+        std::clog << boost::locale::as::number << (pointCount / pointFile.thinning) << " are used)\n";
+      }
+      else
+        std::clog << "\t(all points used, no skipping)\n";
+
+      if (pointFile.lasomits.empty() == false) {
+        std::clog << "\t(omitting LAS classes: ";
+        for (int i : pointFile.lasomits)
+          std::clog << i << " ";
+        std::clog << ")\n";
+      }
+      printProgressBar(0);
+      int i = 0;
       while (lasreader->read_point()) {
         LASpoint const& p = lasreader->point;
         //-- set the thinning filter
@@ -1218,18 +1219,16 @@ bool Map3d::add_las_file(PointFile pointFile) {
       printProgressBar(100);
       std::clog << std::endl;
     }
-    catch (std::exception e) {
-      std::cerr << std::endl << e.what() << std::endl;
-      lasreader->close();
-      delete lasreader;
-      return false;
+    else {
+      std::clog << "\tskipping file, bounds do not intersect polygon extent\n";
     }
+    lasreader->close();
   }
-  else {
-    std::clog << "\tskipping file, bounds do not intersect polygon extent\n";
+  catch (std::exception e) {
+    std::cerr << std::endl << e.what() << std::endl;
+    lasreader->close();
+    return false;
   }
-  lasreader->close();
-  //delete lasreader;
   return true;
 }
 
