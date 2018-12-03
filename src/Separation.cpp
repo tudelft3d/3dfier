@@ -43,6 +43,10 @@ bool Separation::is_hard() {
   return true;
 }
 
+void Separation::cleanup_elevations() {
+  TopoFeature::cleanup_elevations();
+}
+
 std::string Separation::get_mtl() {
   return "usemtl Separation";
 }
@@ -155,6 +159,6 @@ void Separation::get_citygml_imgeo(std::wostream& of) {
   of << "</cityObjectMember>";
 }
 
-bool Separation::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+bool Separation::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes) {
   return TopoFeature::get_multipolygon_features(layer, "Separation", writeAttributes, extraAttributes);
 }

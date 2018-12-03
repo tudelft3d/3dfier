@@ -140,7 +140,7 @@ void mark_domains(CDT& cdt) {
   }
 }
 
-bool getCDT(const Polygon2* pgn,
+bool getCDT(Polygon2* pgn,
   const std::vector< std::vector<int> > &z,
   std::vector< std::pair<Point3, std::string> > &vertices,
   std::vector<Triangle> &triangles,
@@ -151,12 +151,12 @@ bool getCDT(const Polygon2* pgn,
   //-- gather all rings
   std::vector<Ring2> rings;
   rings.push_back(pgn->outer());
-  for (Ring2 iring : pgn->inners())
+  for (Ring2& iring : pgn->inners())
     rings.push_back(iring);
 
   Polygon_2 poly;
   int ringi = -1;
-  for (auto ring : rings) {
+  for (Ring2& ring : rings) {
     ringi++;
     for (int i = 0; i < ring.size(); i++) {
       poly.push_back(Point(bg::get<0>(ring[i]), bg::get<1>(ring[i]), z_to_float(z[ringi][i])));
@@ -214,22 +214,26 @@ std::string gen_key_bucket(const Point2* p) {
 
 std::string gen_key_bucket(const Point3* p) {
   std::stringstream ss;
-  ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>() << " " << p->get<2>();
+  ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>() << " " << std::setprecision(2) << p->get<2>();
   return ss.str();
 }
 
 std::string gen_key_bucket(const Point3* p, float z) {
   std::stringstream ss;
-  ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>() << " " << z;
+  ss << std::fixed << std::setprecision(3) << p->get<0>() << " " << p->get<1>() << " " << std::setprecision(2) << z;
   return ss.str();
 }
 
 double distance(const Point2 &p1, const Point2 &p2) {
-  return sqrt((p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y()));
+  double dx = p1.x() - p2.x();
+  double dy = p1.y() - p2.y();
+  return sqrt(dx * dx + dy * dy);
 }
 
 double sqr_distance(const Point2 &p1, const Point2 &p2) {
-  return (p1.x() - p2.x())*(p1.x() - p2.x()) + (p1.y() - p2.y())*(p1.y() - p2.y());
+  double dx = p1.x() - p2.x();
+  double dy = p1.y() - p2.y();
+  return dx * dx + dy * dy;
 }
 
 //--- TIN Simplification

@@ -41,9 +41,10 @@ public:
   void                get_citygml_imgeo(std::wostream& of);
   void                get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts);
   std::string         get_mtl();
-  bool                get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes = AttributeMap());
+  bool                get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap());
   TopoClass           get_class();
   bool                is_hard();
+  void                cleanup_elevations();
 private:
   static float _heightref;
   static bool  _filter_outliers;

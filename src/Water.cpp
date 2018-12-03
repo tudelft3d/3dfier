@@ -47,6 +47,10 @@ bool Water::is_hard() {
   return true;
 }
 
+void Water::cleanup_elevations() {
+  Flat::cleanup_elevations();
+}
+
 bool Water::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
   return Flat::add_elevation_point(p, z, radius, lasclass, within);
 }
@@ -135,6 +139,6 @@ void Water::get_citygml_imgeo(std::wostream& of) {
   of << "</cityObjectMember>";
 }
 
-bool Water::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+bool Water::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes) {
   return TopoFeature::get_multipolygon_features(layer, "Water", writeAttributes, extraAttributes);
 }

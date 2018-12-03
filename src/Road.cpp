@@ -47,6 +47,10 @@ bool Road::is_hard() {
   return true;
 }
 
+void Road::cleanup_elevations() {
+  TopoFeature::cleanup_elevations();
+}
+
 std::string Road::get_mtl() {
   return "usemtl Road";
 }
@@ -193,6 +197,6 @@ void Road::get_citygml_imgeo(std::wostream& of) {
   of << "</cityObjectMember>";
 }
 
-bool Road::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+bool Road::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes) {
   return TopoFeature::get_multipolygon_features(layer, "Road", writeAttributes, extraAttributes);
 }

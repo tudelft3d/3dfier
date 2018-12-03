@@ -57,6 +57,7 @@ public:
   bool threeDfy(bool stitching = true);
   bool construct_CDT();
   void add_elevation_point(liblas::Point const& laspt);
+  void cleanup_elevations();
 
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>&  get_polygons3d();
@@ -71,6 +72,7 @@ public:
   void get_citygml_imgeo_multifile(std::string ofname);
   void create_citygml_imgeo_header(std::wostream& of);
   bool get_pdok_output(std::string filename);
+  bool get_pdok_citygml_output(std::string filename);
   bool get_gdal_output(std::string filename, std::string drivername, bool multi);
   void get_csv_buildings(std::wostream& of);
   void get_csv_buildings_multiple_heights(std::wostream& of);

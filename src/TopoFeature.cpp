@@ -211,7 +211,7 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
   }
 }
 
-AttributeMap TopoFeature::get_attributes() {
+AttributeMap &TopoFeature::get_attributes() {
   return _attributes;
 }
 
@@ -336,32 +336,50 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
     multipolygon.addGeometry(&polygon);
   }
 
-  feature->SetGeometry(&multipolygon);
-  // perform extra character encoding for gdal.
-  const char* idcpl = CPLRecode(this->get_id().c_str(), "", CPL_ENC_UTF8);
-  feature->SetField("3df_id", idcpl);
-  // perform extra character encoding for gdal.
-  const char* classcpl = CPLRecode(className.c_str(), "", CPL_ENC_UTF8);
-  feature->SetField("3df_class", classcpl);
+  if (feature->SetGeometry(&multipolygon) != OGRERR_NONE) {
+    std::cerr << "Creating feature geometry failed.\n";
+    OGRFeature::DestroyFeature(feature);
+    return false;
+  }
+  if (!writeAttribute(feature, featureDefn, "3df_id", this->get_id())) {
+    return false;
+  }
+  if (!writeAttribute(feature, featureDefn, "3df_class", className)) {
+    return false;
+  }
   if (writeAttributes) {
     for (auto attr : _attributes) {
       if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
-        // perform extra character encoding for gdal.
-        const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
-        feature->SetField(attr.first.c_str(), attrcpl);
+        if (!writeAttribute(feature, featureDefn, attr.first, attr.second.second)) {
+          return false;
+        }
       }
     }
     for (auto attr : extraAttributes) {
-      // perform extra character encoding for gdal.
-      const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
-      feature->SetField(attr.first.c_str(), attrcpl);
+      if (!writeAttribute(feature, featureDefn, attr.first, attr.second.second)) {
+        return false;
+      }
     }
   }
   if (layer->CreateFeature(feature) != OGRERR_NONE) {
     std::cerr << "Failed to create feature " << this->get_id() << ".\n";
+    OGRFeature::DestroyFeature(feature);
     return false;
   }
   OGRFeature::DestroyFeature(feature);
+  return true;
+}
+
+bool TopoFeature::writeAttribute(OGRFeature* feature, OGRFeatureDefn* featureDefn, std::string name, std::string value) {
+  int fi = featureDefn->GetFieldIndex(name.c_str());
+  if (fi == -1) {
+    std::cerr << "Failed to write attribute " << name << ".\n";
+    return false;
+  }
+  // perform extra character encoding for gdal.
+  char* attrcpl = CPLRecode(value.c_str(), "", CPL_ENC_UTF8);
+  feature->SetField(fi, attrcpl);
+  CPLFree(attrcpl);
   return true;
 }
 
@@ -658,15 +676,13 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
 }
 
 bool TopoFeature::has_segment(const Point2& a, const Point2& b, int& aringi, int& api, int& bringi, int& bpi) {
-  double threshold = 0.001;
-  double sqr_threshold = threshold * threshold;
   std::vector<int> ringis, pis;
   Point2 tmp;
   if (this->has_point2(a, ringis, pis) == true) {
     for (int k = 0; k < ringis.size(); k++) {
       int nextpi;
       tmp = this->get_next_point2_in_ring(ringis[k], pis[k], nextpi);
-      if (sqr_distance(b, tmp) <= sqr_threshold) {
+      if (sqr_distance(b, tmp) <= SQTOPODIST) {
         aringi = ringis[k];
         api = pis[k];
         bringi = ringis[k];
@@ -712,11 +728,9 @@ float TopoFeature::get_distance_to_boundaries(const Point2& p) {
 }
 
 bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis) {
-  double threshold = 0.001;
-  double sqr_threshold = threshold * threshold;
   std::vector<Ring2> rings;
   rings.push_back(_p2->outer());
-  for (auto iring : _p2->inners())
+  for (Ring2& iring : _p2->inners())
     rings.push_back(iring);
 
   bool re = false;
@@ -724,7 +738,7 @@ bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vec
   for (Ring2& ring : rings) {
     ringi++;
     for (int i = 0; i < ring.size(); i++) {
-      if (sqr_distance(p, ring[i]) <= sqr_threshold) {
+      if (sqr_distance(p, ring[i]) <= SQTOPODIST) {
         ringis.push_back(ringi);
         pis.push_back(i);
         re = true;
@@ -735,10 +749,7 @@ bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vec
   return re;
 }
 
-bool TopoFeature::adjacent(const Polygon2& poly) {
-  double threshold = 0.001;
-  double sqr_threshold = threshold * threshold;
-
+bool TopoFeature::adjacent(Polygon2& poly) {
   std::vector<Ring2> rings1;
   rings1.push_back(_p2->outer());
   for (Ring2& iring : _p2->inners())
@@ -746,14 +757,14 @@ bool TopoFeature::adjacent(const Polygon2& poly) {
 
   std::vector<Ring2> rings2;
   rings2.push_back(poly.outer());
-  for (Ring2 iring : poly.inners())
+  for (Ring2& iring : poly.inners())
     rings2.push_back(iring);
 
   for (Ring2& ring1 : rings1) {
     for (int pi1 = 0; pi1 < ring1.size(); pi1++) {
       for (Ring2& ring2 : rings2) {
         for (int pi2 = 0; pi2 < ring2.size(); pi2++) {
-          if (sqr_distance(ring1[pi1], ring2[pi2]) <= sqr_threshold) {
+          if (sqr_distance(ring1[pi1], ring2[pi2]) <= SQTOPODIST) {
             return true;
           }
         }
@@ -764,12 +775,10 @@ bool TopoFeature::adjacent(const Polygon2& poly) {
 }
 
 Point2 TopoFeature::get_point2(int ringi, int pi) {
-  Ring2 ring;
   if (ringi == 0)
-    ring = _p2->outer();
+    return _p2->outer()[pi];
   else
-    ring = _p2->inners()[ringi - 1];
-  return ring[pi];
+    return _p2->inners()[ringi - 1][pi];
 }
 
 Point2 TopoFeature::get_next_point2_in_ring(int ringi, int i, int& pi) {
@@ -813,17 +822,18 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
 
 //-- used to collect all points linked to the polygon
 //-- later all these values are used to lift the polygon (and put values in _p2z)
-bool TopoFeature::assign_elevation_to_vertex(const Point2 &p, double z, float radius) {
-  float sqr_radius = radius * radius;
+bool TopoFeature::assign_elevation_to_vertex(const Point2& p, double z, float radius) {
+  double sqr_radius = radius * radius;
   int zcm = int(z * 100);
+
   int ringi = 0;
-  Ring2 oring = _p2->outer();
+  Ring2& oring = _p2->outer();
   for (int i = 0; i < oring.size(); i++) {
     if (sqr_distance(p, oring[i]) <= sqr_radius)
       _lidarelevs[ringi][i].push_back(zcm);
   }
   ringi++;
-  auto irings = _p2->inners();
+  std::vector<Ring2>& irings = _p2->inners();
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
       if (sqr_distance(p, iring[i]) <= sqr_radius) {
@@ -835,16 +845,20 @@ bool TopoFeature::assign_elevation_to_vertex(const Point2 &p, double z, float ra
   return true;
 }
 
-bool TopoFeature::within_range(const Point2 &p, const Polygon2 &poly, double radius) {
+bool TopoFeature::within_range(const Point2& p, double radius) {
+  if (point_in_polygon(p)) {
+    return true;
+  }  
+  
   double sqr_radius = radius * radius;
-  const Ring2& oring = poly.outer();
+  const Ring2& oring = _p2->outer();
   //-- point is within range of the polygon rings
   for (int i = 0; i < oring.size(); i++) {
     if (sqr_distance(p, oring[i]) <= sqr_radius) {
       return true;
     }
   }
-  auto irings = _p2->inners();
+  std::vector<Ring2>& irings = _p2->inners();
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++) {
       if (sqr_distance(p, iring[i]) <= sqr_radius) {
@@ -852,17 +866,13 @@ bool TopoFeature::within_range(const Point2 &p, const Polygon2 &poly, double rad
       }
     }
   }
-  //-- point is within the polygon
-  if (point_in_polygon(p, poly)) {
-    return true;
-  }
   return false;
 }
 
 // based on http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon/2922778#2922778
-bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
+bool TopoFeature::point_in_polygon(const Point2& p) {
   //test outer ring
-  const Ring2& oring = poly.outer();
+  const Ring2& oring = _p2->outer();
   int nvert = oring.size();
   int i, j = 0;
   bool insideOuter = false;
@@ -874,7 +884,7 @@ bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
   }
   if (insideOuter) {
     //test inner rings
-    auto irings = poly.inners();
+    auto irings = _p2->inners();
     for (Ring2& iring : irings) {
       bool insideInner = false;
       int nvert = iring.size();
@@ -891,6 +901,13 @@ bool TopoFeature::point_in_polygon(const Point2 &p, const Polygon2 &poly) {
     }
   }
   return insideOuter;
+}
+
+void TopoFeature::cleanup_elevations() {
+  _lidarelevs.clear();
+  _lidarelevs.shrink_to_fit();
+  _p2z.clear();
+  _p2z.shrink_to_fit();
 }
 
 void TopoFeature::get_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, bool verticalwall) {
@@ -928,10 +945,10 @@ void TopoFeature::get_floor_triangle_as_gml_surfacemember(std::wostream& of, Tri
   ss << std::fixed << std::setprecision(3);
   // replace z of the vertices with baseheight
   ss << "<gml:posList>"
-    << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
-    << _vertices[t.v2].second.substr(0, _vertices[t.v2].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
-    << _vertices[t.v1].second.substr(0, _vertices[t.v1].second.find_last_of(" ") + 1) << z_to_float(baseheight) << " "
-    << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << z_to_float(baseheight) << "</gml:posList>";
+    << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << std::setprecision(2) << z_to_float(baseheight) << std::setprecision(3) << " "
+    << _vertices[t.v2].second.substr(0, _vertices[t.v2].second.find_last_of(" ") + 1) << std::setprecision(2) << z_to_float(baseheight) << std::setprecision(3) << " "
+    << _vertices[t.v1].second.substr(0, _vertices[t.v1].second.find_last_of(" ") + 1) << std::setprecision(2) << z_to_float(baseheight) << std::setprecision(3) << " "
+    << _vertices[t.v0].second.substr(0, _vertices[t.v0].second.find_last_of(" ") + 1) << std::setprecision(2) << z_to_float(baseheight) << std::setprecision(3) << "</gml:posList>";
 
   of << ss.str();
   of << "</gml:LinearRing>";
@@ -962,7 +979,7 @@ void TopoFeature::get_triangle_as_gml_triangle(std::wostream& of, Triangle& t, b
   of << "</gml:Triangle>";
 }
 
-bool TopoFeature::get_attribute(std::string attributeName, std::string &attribute, std::string defaultValue)
+bool TopoFeature::get_attribute(std::string attributeName, std::string& attribute, std::string defaultValue)
 {
   auto it = _attributes.find(attributeName);
   if (it != _attributes.end()) {
@@ -983,11 +1000,11 @@ bool TopoFeature::get_attribute(std::string attributeName, std::string &attribut
 
 void TopoFeature::lift_all_boundary_vertices_same_height(int height) {
   int ringi = 0;
-  Ring2 oring = _p2->outer();
+  Ring2& oring = _p2->outer();
   for (int i = 0; i < oring.size(); i++)
     _p2z[ringi][i] = height;
   ringi++;
-  auto irings = _p2->inners();
+  std::vector<Ring2>& irings = _p2->inners();
   for (Ring2& iring : irings) {
     for (int i = 0; i < iring.size(); i++)
       _p2z[ringi][i] = height;
@@ -1070,7 +1087,7 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
 //-------------------------------
 //-------------------------------
 
-Flat::Flat(char *wkt, std::string layername, AttributeMap attributes, std::string pid)
+Flat::Flat(char* wkt, std::string layername, AttributeMap attributes, std::string pid)
   : TopoFeature(wkt, layername, attributes, pid) {}
 
 int Flat::get_number_vertices() {
@@ -1078,10 +1095,10 @@ int Flat::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool Flat::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+bool Flat::add_elevation_point(Point2& p, double z, float radius, int lasclass, bool within) {
   // if within then a point must lay within the polygon, otherwise add
-  if (!within || (within && point_in_polygon(p, *(_p2)))) {
-    if (within_range(p, *(_p2), radius)) {
+  if (!within || (within && point_in_polygon(p))) {
+    if (within_range(p, radius)) {
       int zcm = int(z * 100);
       //-- 1. assign to polygon since within the threshold value (buffering of polygon)
       _zvaluesinside.push_back(zcm);
@@ -1091,7 +1108,7 @@ bool Flat::add_elevation_point(Point2 &p, double z, float radius, int lasclass, 
 }
 
 int Flat::get_height() {
-  return get_vertex_elevation(0, 0);
+  return _height_top;
 }
 
 bool Flat::lift_percentile(float percentile) {
@@ -1100,14 +1117,21 @@ if (_zvaluesinside.empty() == false) {
   std::nth_element(_zvaluesinside.begin(), _zvaluesinside.begin() + (_zvaluesinside.size() * percentile), _zvaluesinside.end());
   z = _zvaluesinside[_zvaluesinside.size() * percentile];
 }
+this->_height_top = z;
 this->lift_all_boundary_vertices_same_height(z);
 return true;
+}
+
+void Flat::cleanup_elevations() {
+  _zvaluesinside.clear();
+  _zvaluesinside.shrink_to_fit();
+  TopoFeature::cleanup_elevations();
 }
 
 //-------------------------------
 //-------------------------------
 
-Boundary3D::Boundary3D(char *wkt, std::string layername, AttributeMap attributes, std::string pid)
+Boundary3D::Boundary3D(char* wkt, std::string layername, AttributeMap attributes, std::string pid)
   : TopoFeature(wkt, layername, attributes, pid) {
 }
 
@@ -1115,9 +1139,9 @@ int Boundary3D::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool Boundary3D::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+bool Boundary3D::add_elevation_point(Point2& p, double z, float radius, int lasclass, bool within) {
   // if within then a point must lay within the polygon, otherwise add
-  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+  if (!within || (within && point_in_polygon(p))) {
     assign_elevation_to_vertex(p, z, radius);
   }
   return true;
@@ -1238,7 +1262,7 @@ void Boundary3D::detect_outliers(bool flatten){
 //-------------------------------
 //-------------------------------
 
-TIN::TIN(char *wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer)
+TIN::TIN(char* wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer)
   : TopoFeature(wkt, layername, attributes, pid) {
   _simplification = simplification;
   _simplification_tinsimp = simplification_tinsimp;
@@ -1249,10 +1273,10 @@ int TIN::get_number_vertices() {
   return (int(_vertices.size()) + int(_vertices_vw.size()));
 }
 
-bool TIN::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
+bool TIN::add_elevation_point(Point2& p, double z, float radius, int lasclass, bool within) {
   bool toadd = false;
   // if within then a point must lay within the polygon, otherwise add
-  if (!within || (within && point_in_polygon(p, *(_p2)))) {
+  if (!within || (within && point_in_polygon(p))) {
     assign_elevation_to_vertex(p, z, radius);
   }
   if (_simplification <= 1)
@@ -1265,10 +1289,16 @@ bool TIN::add_elevation_point(Point2 &p, double z, float radius, int lasclass, b
       toadd = true;
   }
   // Add the point to the lidar points if it is within the polygon and respecting the inner buffer size
-  if (toadd && point_in_polygon(p, *(_p2)) && (_innerbuffer == 0.0 || (within_range(p, *(_p2), _innerbuffer) && this->get_distance_to_boundaries(p) > _innerbuffer))) {
+  if (toadd && point_in_polygon(p) && (_innerbuffer == 0.0 || this->get_distance_to_boundaries(p) > _innerbuffer)) {
     _lidarpts.push_back(Point3(p.x(), p.y(), z));
   }
   return toadd;
+}
+
+void TIN::cleanup_elevations() {
+  _lidarpts.clear();
+  _lidarpts.shrink_to_fit();
+  TopoFeature::cleanup_elevations();
 }
 
 bool TIN::buildCDT() {

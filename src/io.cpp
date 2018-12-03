@@ -102,20 +102,20 @@ void get_polygon_lifted_gml(std::wostream& of, Polygon2* p2, double height, bool
   of << "<gml:LinearRing>";
   of << "<gml:posList>";
   for (int i = 0; i < r.size(); i++)
-    of << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << " ";
-  of << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << height;
+    of << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << std::setprecision(2) << height << std::setprecision(3) << " ";
+  of << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << std::setprecision(2) << height << std::setprecision(3);
   of << "</gml:posList>";
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
   //-- irings
-  auto irings = p2->inners();
+  std::vector<Ring2>& irings = p2->inners();
   for (Ring2& r : irings) {
     of << "<gml:interior>";
     of << "<gml:LinearRing>";
     of << "<gml:posList>";
     for (int i = 0; i < r.size(); i++)
-      of << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << height << " ";
-    of << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << height;
+      of << bg::get<0>(r[i]) << " " << bg::get<1>(r[i]) << " " << std::setprecision(2) << height << std::setprecision(3) << " ";
+    of << bg::get<0>(r[0]) << " " << bg::get<1>(r[0]) << " " << std::setprecision(2) << height << std::setprecision(3);
     of << "</gml:posList>";
     of << "</gml:LinearRing>";
     of << "</gml:interior>";
@@ -132,11 +132,11 @@ void get_extruded_line_gml(std::wostream& of, Point2* a, Point2* b, double high,
   of << "<gml:exterior>";
   of << "<gml:LinearRing>";
   of << "<gml:posList>";
-  of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low << " ";
-  of << bg::get<0>(a) << " " << bg::get<1>(a) << " " << low << " ";
-  of << bg::get<0>(a) << " " << bg::get<1>(a) << " " << high << " ";
-  of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << high << " ";
-  of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << low;
+  of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << std::setprecision(2) << low << std::setprecision(3) << " ";
+  of << bg::get<0>(a) << " " << bg::get<1>(a) << " " << std::setprecision(2) << low << std::setprecision(3) << " ";
+  of << bg::get<0>(a) << " " << bg::get<1>(a) << " " << std::setprecision(2) << high << std::setprecision(3) << " ";
+  of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << std::setprecision(2) << high << std::setprecision(3) << " ";
+  of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << std::setprecision(2) << low << std::setprecision(3);
   of << "</gml:posList>";
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
@@ -158,7 +158,7 @@ void get_extruded_lod1_block_gml(std::wostream& of, Polygon2* p2, double high, d
     get_extruded_line_gml(of, &r[i], &r[i + 1], high, low, false);
   get_extruded_line_gml(of, &r[i], &r[0], high, low, false);
   //-- irings
-  auto irings = p2->inners();
+  std::vector<Ring2>& irings = p2->inners();
   for (Ring2& r : irings) {
     for (i = 0; i < (r.size() - 1); i++)
       get_extruded_line_gml(of, &r[i], &r[i + 1], high, low, false);

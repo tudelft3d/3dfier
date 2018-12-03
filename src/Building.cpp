@@ -111,8 +111,8 @@ bool Building::lift() {
 
 bool Building::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
   // if within then a point must lay within the polygon, otherwise add
-  if (!within || (within && point_in_polygon(p, *(_p2)))) {
-    if (within_range(p, *(_p2), radius)) {
+  if (!within || (within && point_in_polygon(p))) {
+    if (within_range(p, radius)) {
       int zcm = int(z * 100);
       if ((_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0)) {
         _zvaluesinside.push_back(zcm);
@@ -289,6 +289,12 @@ bool Building::is_hard() {
   return true;
 }
 
+void Building::cleanup_elevations() {
+  _zvaluesground.clear();
+  _zvaluesground.shrink_to_fit();
+  Flat::cleanup_elevations();
+}
+
 void Building::get_csv(std::wostream& of) {
   of << this->get_id() << ";" <<
     std::setprecision(2) << std::fixed <<
@@ -307,9 +313,9 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   else if (lod == 0) {
     fs += mtl;
     fs += "\n";
+    float z = z_to_float(this->get_height_base());
     for (auto& t : _triangles) {
       unsigned long a, b, c;
-      float z = z_to_float(this->get_height_base());
       auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
       if (it == dPts.end()) {
         a = dPts.size() + 1;
@@ -341,9 +347,9 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   }
   if (_building_include_floor) {
     fs += "usemtl BuildingFloor\n";
+    float z = z_to_float(this->get_height_base());
     for (auto& t : _triangles) {
       unsigned long a, b, c;
-      float z = z_to_float(this->get_height_base());
       auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
       if (it == dPts.end()) {
         a = dPts.size() + 1;
@@ -384,34 +390,33 @@ void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, u
   float hbase = z_to_float(this->get_height_base());
   float h = z_to_float(this->get_height());
   b["attributes"]["min-height-surface"] = hbase;
-  b["attributes"]["measuredHeight"] = h;
+  b["attributes"]["measuredHeight"] = h - hbase;
   nlohmann::json g;
   this->get_cityjson_geom(g, dPts, "Solid");
 
   if (_building_include_floor) {
     for (auto& t : _triangles) {
       unsigned long a, b, c;
-      float z = z_to_float(this->get_height_base());
-      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
+      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, hbase));
       if (it == dPts.end()) {
         a = dPts.size();
-        dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
+        dPts[gen_key_bucket(&_vertices[t.v0].first, hbase)] = a;
       }
       else {
         a = it->second;
       }
-      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
+      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, hbase));
       if (it == dPts.end()) {
         b = dPts.size();
-        dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
+        dPts[gen_key_bucket(&_vertices[t.v1].first, hbase)] = b;
       }
       else {
         b = it->second;
       }
-      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
+      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, hbase));
       if (it == dPts.end()) {
         c = dPts.size();
-        dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
+        dPts[gen_key_bucket(&_vertices[t.v2].first, hbase)] = c;
       }
       else {
         c = it->second;
@@ -434,9 +439,9 @@ void Building::get_citygml(std::wostream& of) {
   of << "<bui:Building gml:id=\"" << this->get_id() << "\">";
   get_citygml_attributes(of, _attributes);
   of << "<gen:measureAttribute name=\"min height surface\">";
-  of << "<gen:value uom=\"#m\">" << hbase << "</gen:value>";
+  of << "<gen:value uom=\"#m\">" << std::setprecision(2) << hbase << std::setprecision(3) << "</gen:value>";
   of << "</gen:measureAttribute>";
-  of << "<bui:measuredHeight uom=\"#m\">" << h << "</bui:measuredHeight>";
+  of << "<bui:measuredHeight uom=\"#m\">" << std::setprecision(2) << h - hbase << std::setprecision(3) << "</bui:measuredHeight>";
   //-- LOD0 footprint
   of << "<bui:lod0FootPrint>";
   of << "<gml:MultiSurface>";
@@ -515,7 +520,7 @@ void Building::get_citygml_imgeo(std::wostream& of) {
       get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
     get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
     //-- irings
-    auto irings = _p2->inners();
+    std::vector<Ring2>& irings = _p2->inners();
     for (Ring2& r : irings) {
       for (i = 0; i < (r.size() - 1); i++)
         get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
@@ -594,7 +599,7 @@ void Building::get_imgeo_nummeraanduiding(std::wostream& of) {
   }
 }
 
-bool Building::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes) {
+bool Building::get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes) {
   OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
   OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
   OGRMultiPolygon multipolygon = OGRMultiPolygon();
@@ -655,31 +660,47 @@ bool Building::get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap ext
     }
   }
 
-  feature->SetGeometry(&multipolygon);
-  // perform extra character encoding for gdal.
-  const char* idcpl = CPLRecode(this->get_id().c_str(), "", CPL_ENC_UTF8);
-  feature->SetField("3df_id", idcpl);
-  // perform extra character encoding for gdal.
-  const char* classcpl = CPLRecode("Building", "", CPL_ENC_UTF8);
-  feature->SetField("3df_class", classcpl);
-  feature->SetField("baseheight", z_to_float(this->get_height_base()));
-  feature->SetField("roofheight", z_to_float(this->get_height()));
+  if (feature->SetGeometry(&multipolygon) != OGRERR_NONE) {
+    std::cerr << "Creating feature geometry failed.\n";
+    OGRFeature::DestroyFeature(feature);
+    return false;
+  }
+  if (!writeAttribute(feature, featureDefn, "3df_id", this->get_id())) {
+    return false;
+  }
+  if (!writeAttribute(feature, featureDefn, "3df_class", "Building")) {
+    return false;
+  }
+  int fi = featureDefn->GetFieldIndex("baseheight");
+  if (fi == -1) {
+    std::cerr << "Failed to write attribute " << "baseheight" << ".\n";
+    return false;
+  }
+  float hbase = z_to_float(this->get_height_base());
+  feature->SetField(fi, hbase);
+  fi = featureDefn->GetFieldIndex("roofheight");
+  if (fi == -1) {
+    std::cerr << "Failed to write attribute " << "roofheight" << ".\n";
+    return false;
+  }
+  feature->SetField(fi, z_to_float(this->get_height()) - hbase);
   if (writeAttributes) {
     for (auto attr : _attributes) {
       if (!(attr.second.first == OFTDateTime && attr.second.second == "0000/00/00 00:00:00")) {
-        // perform extra character encoding for gdal.
-        const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
-        feature->SetField(attr.first.c_str(), attrcpl);
+        if (!writeAttribute(feature, featureDefn, attr.first, attr.second.second)) {
+          return false;
+        }
       }
     }
     for (auto attr : extraAttributes) {
-      // perform extra character encoding for gdal.
-      const char* attrcpl = CPLRecode(attr.second.second.c_str(), "", CPL_ENC_UTF8);
-      feature->SetField(attr.first.c_str(), attrcpl);
+      if (!writeAttribute(feature, featureDefn, attr.first, attr.second.second)) {
+        return false;
+      }
     }
   }
   if (layer->CreateFeature(feature) != OGRERR_NONE) {
     std::cerr << "Failed to create feature " << this->get_id() << ".\n";
+    OGRFeature::DestroyFeature(feature);
     return false;
   }
   OGRFeature::DestroyFeature(feature);

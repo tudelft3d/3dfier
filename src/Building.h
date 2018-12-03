@@ -47,9 +47,10 @@ public:
   void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts);
   std::string   get_all_z_values();
   std::string   get_mtl();
-  bool          get_shape(OGRLayer* layer, bool writeAttributes, AttributeMap extraAttributes = AttributeMap());
+  bool          get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap());
   TopoClass     get_class();
   bool          is_hard();
+  void          cleanup_elevations();
   int           get_height_base();
   int           get_height_ground_at_percentile(float percentile);
   int           get_height_roof_at_percentile(float percentile);
