@@ -337,5 +337,210 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         fit->info().points_inside = nullptr;
       }
     }
+}
 
+//--- Point-in-polygon grid
+// Implementation of the grid center point algorithm by Li and Wang 2013
+
+void prepareGrid(Polygon2* poly) {
+  Grid g = Grid(poly);
+  g.prepare();
+}
+
+void Grid::prepare() {
+  calculateBbox();
+  calculateSize();
+  constructListOfEdges();
+
+  rasterize();
+  MarkCells();
+}
+
+void Grid::calculateBbox() {
+  double	vx0, vy0;
+  // Determine bbox
+  for (int i = 1; i < this->polygon->outer().size(); i++) {
+    vx0 = this->polygon->outer()[i].x();
+    if (this->xmin > vx0) {
+      this->xmin = vx0;
+    }
+    else if (this->xmax < vx0) {
+      this->xmax = vx0;
+    }
+
+    vy0 = this->polygon->outer()[i].y();
+    if (this->ymin > vy0) {
+      this->ymin = vy0;
+    }
+    else if (this->ymax < vy0) {
+      this->ymax = vy0;
+    }
+  }
+
+  // add 1 percent to bbox to overcome finite arithmetics
+  double a = 0.01 * (this->xmax - this->xmin);
+  double b = 0.01 * (this->ymax - this->ymin);
+  this->xmin -= a;
+  this->xmax += a;
+  this->ymin -= b;
+  this->ymax += b;
+}
+
+void Grid::calculateSize() {
+  int CellLimit = 20;
+  double deltax = (this->xmax - this->xmin);
+  double deltay = (this->ymax - this->ymin);
+  double ratio = deltax / deltay;
+
+  double SqrNr = sqrt(bg::num_points(this->polygon));
+  this->xres = 2 * (1 + (int)(ratio * SqrNr));
+  if (this->xres > CellLimit) {
+    this->xres = CellLimit;
+  }
+  this->sizex = (xmax - xmin) / this->xres;
+
+  this->sizey = 2 * (1 + (int)(SqrNr / ratio));
+  if (this->sizey > CellLimit) {
+    this->sizey = CellLimit;
+  }
+  this->yres = (ymax - ymin) / this->sizey;
+
+  int i, j;
+  this->cells = new GridCell**[this->sizex];
+  for (i = 0; i < this->sizex; i++)
+    this->cells[i] = new GridCell*[this->sizey];
+
+  for (i = 0; i < this->sizex; i++)
+    for (j = 0; j < this->sizey; j++)
+      this->cells[i][j] = new GridCell();
+}
+
+void Grid::constructListOfEdges() {
+  Polygon2* poly = polygon;
+  Point* p;
+  int i, n;
+  EdgeList* elst;
+
+  for (int ringi = 0; ringi <= poly->inners().size(); ringi++) {
+    Ring2 r;
+    if (ringi == 0) {
+      r = poly->outer();
+    }
+    else {
+      r = poly->inners()[ringi - 1];
+    }
+
+    n = r.size();
+    for (i = 1; i <= n; i++) {
+      elst = new EdgeList(gpoint{ r[i - 1].x(),r[i - 1].y() }, gpoint{ r[i].x(), r[i].y() });
+      elst->Next = edges;
+      edges = elst;
+    }
+    elst = new EdgeList(gpoint{ r[n].x(),r[n].y() }, gpoint{ r[0].x(), r[0].y() });
+    elst->Next = edges;
+    edges = elst;
+  }
+}
+
+void Grid::rasterize() {
+  double diagonal = (sqrt((xmax - xmin)*(xmax - xmin) + (ymax - ymin)*(ymax - ymin)));
+  CWLineTraversal* r = new CWLineTraversal(xmin, ymin, xres, yres, diagonal);
+
+  int xp, yp;
+  gpoint p1, p2;
+
+  EdgeList* elst = edges;
+  while (elst != NULL) {
+    elst->ReturnEdge(p1, p2);
+    r->setEdge(&p1, &p2);
+    while (r->returnNextCellPosition(xp, yp))
+      if ((xp >= 0) && (xp < xres) &&
+        (yp >= 0) && (yp < yres)) {
+        cells[xp][yp]->addEdge(elst);
+      }
+    elst = elst->Next;
+  }
+
+  delete r;
+}
+
+template <typename T> int sgn(T val) {
+  return (T(0) < val) - (val < T(0));
+}
+
+void CWLineTraversal::setEdge(gpoint* q1, gpoint* q2)
+// Initialization of the Cleary and Wyvill algorithm
+{
+  double a = q2->x - q1->x;
+  double b = q2->y - q1->y;
+
+  PixelNo = 0;
+  direction.x = a;  direction.y = b;
+  startp.x = q1->x; startp.y = q1->y;
+  endp.x = q2->x;   endp.y = q2->y;
+
+  // calculate the ray lenght between x, y and calculate initial distances of the ray
+
+  double norm = sqrt((a*a) + (b*b));
+  direction.x = direction.x / norm;
+  direction.y = direction.y / norm;
+
+  signx = sgn(direction.x);
+  signy = sgn(direction.y);
+
+  startxp = (int)((startp.x - xmin) / stepx);
+  startyp = (int)((startp.y - ymin) / stepy);
+
+  endxp = (int)((endp.x - xmax) / stepx);
+  endyp = (int)((endp.y - ymax) / stepy);
+
+  firstcell = false;
+
+  if (signx == 0) deltax = std::numeric_limits<double>::max();
+  else deltax = stepx / abs(direction.x);
+
+  if (signy == 0) deltay = std::numeric_limits<double>::max();
+  else deltay = stepy / abs(direction.y);
+
+  double k = q1->x - (startxp * stepx + xmin);
+  dx = k * deltax / stepx;
+  if (signx != -1) dx = deltax - dx;
+
+  k = q1->y - (startyp * stepy + ymin;
+  dy = k * deltay / stepy;
+  if (signy != -1) dy = deltay - dy;
+}
+
+bool CWLineTraversal::returnNextCellPosition(int& xp, int& yp) {
+  if (PixelNo++ > diagonal) return false;  // just in case the traversel goes wrong
+
+  if (firstcell == false) {
+    xp = startxp; yp = startyp;
+    firstcell = true;
+    return true;
+  }
+
+  if ((xp == endxp) && (yp == endyp)) {
+    firstcell = false;
+    return false;
+  }
+
+  // core of Cleary-Wyvill algorithm
+  if (dx <= dy) {
+    dx += deltax;
+    xp += signx;
+    return true;
+  }
+  if (dy <= dx) {
+    dy += deltay;
+    yp += signy;
+    return true;
+  }
+  return false;
+}
+
+void GridCell::addEdge(EdgeList* e) {
+  e->Next = edges;
+  edges = e;
+  BWGS = GRAY;
 }

@@ -34,7 +34,6 @@
 #include "io.h"
 #include "polyfit.hpp"
 #include "nlohmann-json/json.hpp"
-#include "ptinpoly.h"
 
 class TopoFeature {
 public:
