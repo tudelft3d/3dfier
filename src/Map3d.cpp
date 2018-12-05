@@ -825,7 +825,6 @@ void Map3d::add_elevation_point(LASpoint const& laspt) {
         bWithin = true;
       }
     }
-
     if (bInsert == true) { //-- only insert if in the allowed LAS classes
       Point2 p(x, y);
       f->add_elevation_point(p, laspt.get_z(), radius, c, bWithin);
@@ -943,6 +942,7 @@ bool Map3d::construct_rtree() {
       std::min(bg::get<bg::min_corner, 1>(_rtree.bounds()), bg::get<bg::min_corner, 1>(_rtree_buildings.bounds()))),
     Point2(std::max(bg::get<bg::max_corner, 0>(_rtree.bounds()), bg::get<bg::max_corner, 0>(_rtree_buildings.bounds())),
       std::max(bg::get<bg::max_corner, 1>(_rtree.bounds()), bg::get<bg::max_corner, 1>(_rtree_buildings.bounds()))));
+  
   double radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
   _minxradius = std::min(bg::get<bg::min_corner, 0>(_rtree.bounds()), bg::get<bg::min_corner, 0>(_rtree_buildings.bounds())) - radius;
   _maxxradius = std::min(bg::get<bg::min_corner, 1>(_rtree.bounds()), bg::get<bg::min_corner, 1>(_rtree_buildings.bounds())) + radius;

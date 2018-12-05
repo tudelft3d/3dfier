@@ -56,7 +56,7 @@ public:
   bool construct_rtree();
   bool threeDfy(bool stitching = true);
   bool construct_CDT();
-  void add_elevation_point(LASpoint  const& laspt);
+  void add_elevation_point(LASpoint const& laspt);
   void cleanup_elevations();
 
   unsigned long get_num_polygons();
@@ -148,7 +148,6 @@ private:
   NodeColumn                                          _nc_building_walls;
   std::unordered_map<std::string, int>                _bridge_stitches;
   std::vector<TopoFeature*>                           _lsFeatures;
-  std::vector<std::string>                            _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree_buildings;
 
