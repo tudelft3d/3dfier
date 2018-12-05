@@ -195,8 +195,8 @@ bool Map3d::get_cityjson(std::string filename) {
     boost::split(c, p, boost::is_any_of(" "));
     j["vertices"].push_back({std::stod(c[0], NULL), std::stod(c[1], NULL), std::stod(c[2], NULL) });
   }
-  std::ofstream o(filename);    
-  o << j.dump() << std::endl;      
+  std::ofstream o(filename);
+  o << j.dump() << std::endl;
   return true;
 }
 
