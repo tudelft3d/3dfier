@@ -36,7 +36,7 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
-std::string VERSION = "1.1";
+std::string VERSION = "1.1.1";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
@@ -129,7 +129,7 @@ int main(int argc, const char * argv[]) {
     }
     if (vm.count("version")) {
       std::cout << "3dfier " << VERSION << std::endl;
-      std::cout << liblas::GetFullVersion() << std::endl;
+      std::cout << "LASlib " << LAS_TOOLS_VERSION << std::endl;
       std::cout << "GDAL " << GDALVersionInfo("--version") << std::endl;
       //-- TODO : put here the date and/or the git-commit?
       return EXIT_SUCCESS;

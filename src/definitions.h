@@ -6,7 +6,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include <liblas/liblas.hpp>
+#include <lasreader.hpp>
 #include <ogrsf_frmts.h>
 
 #include <boost/geometry.hpp>
