@@ -540,7 +540,9 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
         }
         layers.emplace(layername, layer);
       }
-      f->get_shape(layers[layername], true);
+      if (!f->get_shape(layers[layername], true)) {
+        return false;
+      }
     }
     close_gdal_resources(driver, layers);
   }

@@ -373,8 +373,13 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
 bool TopoFeature::writeAttribute(OGRFeature* feature, OGRFeatureDefn* featureDefn, std::string name, std::string value) {
   int fi = featureDefn->GetFieldIndex(name.c_str());
   if (fi == -1) {
-    std::cerr << "Failed to write attribute " << name << ".\n";
-    return false;
+    // try replace '-' with '_' for postgresql column names
+    std::replace(name.begin(), name.end(), '-', '_');
+    fi = featureDefn->GetFieldIndex(name.c_str());
+    if (fi == -1) {
+      std::cerr << "Failed to write attribute " << name << ".\n";
+      return false;
+    }
   }
   // perform extra character encoding for gdal.
   char* attrcpl = CPLRecode(value.c_str(), "", CPL_ENC_UTF8);

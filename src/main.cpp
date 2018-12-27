@@ -661,7 +661,7 @@ int main(int argc, const char * argv[]) {
     }
     else if (format == "PostGIS") {
       std::clog << "PostGIS output\n";
-      fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", true);
+      fileWritten = map3d.get_postgis_output(ofname, false, false);
     }
     else if (format == "PostGIS-PDOK") {
       std::clog << "PostGIS with IMGeo GML string output\n";
