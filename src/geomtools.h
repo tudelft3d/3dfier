@@ -45,4 +45,67 @@ bool   getCDT(Polygon2* pgn,
             const std::vector<Point3> &lidarpts = std::vector<Point3>(),
             double tinsimp_threshold=0);
 
+#define ND -1  // not determined
+#define BLACK 0
+#define WHITE 1
+#define GRAY 2
+#define SINGULAR 3
+
+class EdgeList {
+  gpoint p1, p2;
+public:
+  EdgeList* Next;
+  EdgeList(gpoint& a, gpoint& b) {p1 = a; p2 = b; Next = NULL;}
+  void ReturnEdge(gpoint& a, gpoint& b) {a = p1; b = p2;}
+};
+
+typedef struct {
+  double x, y;
+} gpoint;
+
+class Grid {
+  Polygon2* polygon;
+  EdgeList* edges;
+  int xres, yres;	// gridcell size
+  int tot_cells;	// xres * yres
+  double xmin, ymin, xmax, ymax;  // bounding box
+  double sizex, sizey; // number of cells in x and y
+  GridCell ***cells;
+
+public:
+  Grid(Polygon2* poly) {this->polygon = poly;}
+  void prepare();
+  void calculateBbox();
+  void calculateSize();
+  void constructListOfEdges();
+  void rasterize();
+  bool returnNextCellPosition(gpoint p1, gpoint p2, int& xp, int& yp);
+};
+
+class GridCell {
+  int BWGS; // black white gray singular
+  EdgeList* edges;
+public:
+  GridCell() {edges = NULL; BWGS = ND;};
+  void addEdge(EdgeList* e);
+};
+
+class CWLineTraversal {
+protected:
+  double stepy, stepx; // dimension of one cell
+  double xmin, ymin;   // origin of the grid
+  int PixelNo;         // number of "pixels" obtain by rasterization 
+private:
+  gpoint direction, startp, endp;
+  int signx, signy, signz;
+  double deltax, deltay, deltaz, dx, dy, dz, norma;
+  int firstcell;
+  double diagonal;
+  unsigned short startxp, startyp, endxp, endyp;
+public:
+  CWLineTraversal(double xmin, double ymin, double sx, double sy, double d) {xmin = xmin, ymin = ymin, stepx = sx, stepy = sy, diagonal = d};
+  void setEdge(gpoint*, gpoint*);
+  bool returnNextCellPosition(int&, int&);
+};
+
 #endif /* geomtools_h */
