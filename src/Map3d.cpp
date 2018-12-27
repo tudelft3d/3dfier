@@ -430,8 +430,10 @@ bool Map3d::get_postgis_output(std::string connstr, bool pdok, bool citygml) {
     std::string layername = f->get_layername();
     if (layers.find(layername) == layers.end()) {
       AttributeMap &attributes = f->get_attributes();
-      //Add additional attribute to list for layer creation
-      attributes["xml"] = std::make_pair(OFTString, "");
+      if (pdok) {
+        //Add additional attribute to list for layer creation
+        attributes["xml"] = std::make_pair(OFTString, "");
+      }
       OGRLayer *layer = create_gdal_layer(driver, dataSource, connstr, layername, attributes, f->get_class() == BUILDING);
       if (layer == NULL) {
         std::cerr << "ERROR: Cannot open database '" + connstr + "' for writing" << std::endl;
