@@ -71,7 +71,6 @@ int main(int argc, const char * argv[]) {
   outputs["Shapefile"] = "";
   outputs["Shapefile-Multifile"] = "";
   outputs["PostGIS"] = "";
-  outputs["PostGIS-Multi"] = "";
   outputs["PostGIS-PDOK"] = "";
   outputs["PostGIS-PDOK-CityGML"] = "";
   outputs["GDAL"] = "";
@@ -96,7 +95,6 @@ int main(int argc, const char * argv[]) {
       ("Shapefile", po::value<std::string>(&outputs["Shapefile"]), "Output ")
       ("Shapefile-Multifile", po::value<std::string>(&outputs["Shapefile-Multifile"]), "Output ")
       ("PostGIS", po::value<std::string>(&outputs["PostGIS"]), "Output ")
-      ("PostGIS-Multi", po::value<std::string>(&outputs["PostGIS-Multi"]), "Output ")
       ("PostGIS-PDOK", po::value<std::string>(&outputs["PostGIS-PDOK"]), "Output ")
       ("PostGIS-PDOK-CityGML", po::value<std::string>(&outputs["PostGIS-PDOK-CityGML"]), "Output ")
       ("GDAL", po::value<std::string>(&outputs["GDAL"]), "Output ")
@@ -609,7 +607,7 @@ int main(int argc, const char * argv[]) {
     std::string ofname = output.second;
     if (format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "CityJSON" &&
       format != "Shapefile" && format != "Shapefile-Multifile" &&
-      format != "PostGIS" && format != "PostGIS-Multi" && format != "PostGIS-PDOK" && format != "PostGIS-PDOK-CityGML" &&
+      format != "PostGIS" && format != "PostGIS-PDOK" && format != "PostGIS-PDOK-CityGML" &&
       format != "GDAL") {
       of.open(ofname);
     }
@@ -663,19 +661,15 @@ int main(int argc, const char * argv[]) {
     }
     else if (format == "PostGIS") {
       std::clog << "PostGIS output\n";
-      fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", false);
-    }
-    else if (format == "PostGIS-Multi") {
-      std::clog << "PostGIS multiple table output\n";
-      fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", true);
+      fileWritten = map3d.get_postgis_output(ofname, false, false);
     }
     else if (format == "PostGIS-PDOK") {
       std::clog << "PostGIS with IMGeo GML string output\n";
-      fileWritten = map3d.get_pdok_output(ofname);
+      fileWritten = map3d.get_postgis_output(ofname, true,  false);
     }
     else if (format == "PostGIS-PDOK-CityGML") {
       std::clog << "PostGIS with CityGML string output\n";
-      fileWritten = map3d.get_pdok_citygml_output(ofname);
+      fileWritten = map3d.get_postgis_output(ofname, true, true);
     }
     else if (format == "GDAL") { //-- TODO: what is this? a path? how to use?
       if (nodes["output"] && nodes["output"]["gdal_driver"]) {

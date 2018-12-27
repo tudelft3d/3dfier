@@ -71,8 +71,7 @@ public:
   bool get_cityjson(std::string filename);
   void get_citygml_imgeo_multifile(std::string ofname);
   void create_citygml_imgeo_header(std::wostream& of);
-  bool get_pdok_output(std::string filename);
-  bool get_pdok_citygml_output(std::string filename);
+  bool get_postgis_output(std::string filename, bool pdok = false, bool citygml = false);
   bool get_gdal_output(std::string filename, std::string drivername, bool multi);
   void get_csv_buildings(std::wostream& of);
   void get_csv_buildings_multiple_heights(std::wostream& of);
