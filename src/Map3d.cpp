@@ -406,7 +406,7 @@ void Map3d::get_obj_per_class(std::wostream& of) {
   of << fs << std::endl;
 }
 
-bool Map3d::get_postgis_output(std::string connstr, bool pdok = false, bool citygml = false) {
+bool Map3d::get_postgis_output(std::string connstr, bool pdok, bool citygml) {
 #if GDAL_VERSION_MAJOR < 2
   std::cerr << "ERROR: cannot write MultiPolygonZ files with GDAL < 2.0.\n";
   return false;
@@ -1733,4 +1733,3 @@ void Map3d::add_allowed_las_class(AllowedLASTopo c, int i) {
 void Map3d::add_allowed_las_class_within(AllowedLASTopo c, int i) {
   _las_classes_allowed_within[c].insert(i);
 }
-
