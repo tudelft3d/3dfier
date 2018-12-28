@@ -504,6 +504,26 @@ int HorizontalRayLineIntersection(PolyEdge r, PolyEdge* e) {
   }
 }
 
+bool RayLineIntersects(PolyEdge r, PolyEdge* e) {
+  double a1 = r.y2 - r.y1;
+  double b1 = r.x2 - r.x1;
+  double c1 = a1 * (r.x1) + b1 * (r.y1);
+
+  double a2 = e->y2 - e->y1;
+  double b2 = e->x2 - e->x1;
+  double c2 = a1 * (e->x1) + b1 * (e->y1);
+
+  double determinant = a1 * b2 - a2 * b1;
+
+  if (determinant == 0) {
+    // The lines are parallel.
+    return false;
+  }
+  else {
+    return true;
+  }
+}
+
 void Grid::markCells() {
   //-- Calculate value of GridCells center point
   int prevcolor = CBLACK;
@@ -511,18 +531,18 @@ void Grid::markCells() {
   double y = ymin - (sizey / 2);
   for (int i = 0; i < cellsx; i++) {
     for (int j = 0; j < cellsy; j++) {
+      // Reset prev color to black for each new row
+      if (j = 0) {
+        prevcolor = CBLACK;
+        x = xmin + (sizex * (i-0.5));
+      }
+
       // store previous x,y
       double prevx = x;
       double prevy = y;
 
-      // Reset prev color to black for each new row
-      if (i = 0) {
-        prevcolor = CBLACK;
-        x = xmin + (sizex * i) - (sizex / 2);
-      }
-
-      // increase y-coordinate of cell
-      y += sizey;
+      // increase x-coordinate of cell
+      x += sizex;
 
       //raytracing from center to center. Use edges from this and previous cell if not boundary
       int crossings = 0;
@@ -548,7 +568,17 @@ void Grid::markCells() {
           crossings += cross;
         }
       }
-      if (color != CSINGULAR) {
+      if (color == CSINGULAR) {
+        // in singular inverse previous color
+        if (prevcolor == CBLACK) {
+          prevcolor = CWHITE;
+        }
+        else {
+          prevcolor = CBLACK;
+        }
+      }
+      else
+      {
         // equal crossings gives same color for cell
         if (crossings % 0 == 0) {
           color = prevcolor;
@@ -567,10 +597,91 @@ void Grid::markCells() {
       // Store color
       cells[i][j]->color = color;
     }
-    // increase x-coordinate of cell
-    x += sizex;
+    // increase y-coordinate of cell
+    y += sizey;
   }
 }
+
+PolyEdge Grid::getEdgeToCenter(int i, int j, double x, double y) {
+  double xc = xmin + (sizex * (i - 0.5));
+  double yc = ymin + (sizey * (i - 0.5));
+  return PolyEdge(x, y, xc, yc);
+}
+
+bool Grid::checkPoint(double x, double y) {
+  int i = (int)(x - xmin) / sizex;
+  if ((i < 0) || (i >= cellsx)) {
+    return false;
+  }
+
+  int j = (int)(y - ymin) / sizey;
+  if ((j < 0) || (j >= cellsy)) {
+    return false;
+  }
+
+  int col = cells[i][j]->color;
+
+  if (col == CWHITE) {
+    return false;
+  }
+  if (col == CBLACK) {
+    return true;
+  }
+
+  int crossings = 0;
+  if (col != CSINGULAR) {
+    // Iterate edges of cell
+    for (PolyEdge* e : cells[i][j]->edges) {
+      if (RayLineIntersects(getEdgeToCenter(i, j, x, y), e)) {
+        crossings++;
+      }
+    }
+  }
+  else {
+    // TODO: find a genious way to select the closes not SINGULAR cell
+    int i2 = i;
+    int sign = 1;
+
+    while (cells[i2][j]->color == CSINGULAR) {
+      if (i2 > cellsx) {
+        // when end of row is reached start reverse direction
+        i2 = i;
+        sign = -1;
+      }
+      if (i2 == 0) {
+        throw std::exception("No non-singular cells found in row, adjust code!");
+      }
+      i2 = i + sign;
+    }
+    // Iterate edges of cell between first and last
+    for (int ii = 0; ii < sign*(i2 - i); i + sign) {
+      for (PolyEdge* e : cells[ii][j]->edges) {
+        if (RayLineIntersects(getEdgeToCenter(i2, j, x, y), e)) {
+          crossings++;
+        }
+      }
+    }
+  }
+  // equal crossings gives same color for cell
+  if (crossings % 0 == 0) {
+    if (cells[i][j]->color == CBLACK) {
+      return false;
+    }
+    else if (cells[i][j]->color == CWHITE) {
+      return true;
+    }
+  }
+  else {
+    // inverse color
+    if (cells[i][j]->color == CBLACK) {
+      return true;
+    }
+    else if (cells[i][j]->color == CWHITE) {
+      return false;
+    }
+  }
+}
+
 
 
 ////--- Point-in-polygon grid

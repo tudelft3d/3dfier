@@ -72,10 +72,10 @@ public:
 class Grid {
   Polygon2* polygon;
   std::vector<PolyEdge*> edges;
-  int cellsx, cellsy;	// gridcell size
+  int cellsx, cellsy;	// number of cells in x and y
   int totcells;	// cellsx * cellsy
   double xmin, ymin, xmax, ymax;  // bounding box
-  double sizex, sizey; // number of cells in x and y
+  double sizex, sizey; // size cells in x and y
   GridCell ***cells;
   int celllimit;
 public:
@@ -86,6 +86,8 @@ public:
   void constructEdges();
   void rasterize();
   void markCells();
+  bool checkPoint(double x, double y);
+  PolyEdge getEdgeToCenter(int i, int j, double x, double y);
 };
 
 
