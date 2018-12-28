@@ -353,7 +353,7 @@ void Grid::prepare() {
   constructListOfEdges();
 
   rasterize();
-  MarkCells();
+  markCells();
 }
 
 void Grid::calculateBbox() {
@@ -463,6 +463,49 @@ void Grid::rasterize() {
 
   delete r;
 }
+
+void Grid::markCells()   {
+ int i, j;
+
+    flood = new MyFloodFill(NoOfCellsX, NoOfCellsY, Lattice, WHITE);
+
+    // beginning of filling outher cells
+    for (i = 0; i < NoOfCellsY; i++)       {
+ if (Lattice[0][i]->ReturnBWG() == ND)
+        flood->DoFlood(0, i);
+      }
+
+      for (i = NoOfCellsY - 1; i >= 0; i--)         {
+ if (Lattice[NoOfCellsX-1][i]->ReturnBWG() == ND)
+          flood->DoFlood(NoOfCellsX - 1, i);
+        }
+
+        for (i = 0; i < NoOfCellsX; i++)           {
+ if (Lattice[i][0]->ReturnBWG() == ND)
+            flood->DoFlood(i, 0);
+          }
+
+          for (i = NoOfCellsX - 1; i >= 0; i--)             {
+ if (Lattice[i][NoOfCellsY-1]->ReturnBWG() == ND)
+              flood->DoFlood(i, NoOfCellsY - 1);
+            }
+            // end filling outher cells
+
+            for (i = 1; i < NoOfCellsX - 1; i++)               {
+ for (j = 1; j < NoOfCellsY-1; j++)
+                if (Lattice[i][j]->ReturnBWG() == ND) { // first cell to the left is for sure gray. Let us determine if
+                                                        // we are inside the loop or the hole. For this purposes the shortest distance 
+                                                        // to the line segment to the left cell is detrmine. If it belongs to loop
+                                                        // we are inside loop otherwise inside ring;
+                  if (InsideLoop(i, j) == 1)
+                    flood->SetFillColor(BLACK);
+                  else
+                    flood->SetFillColor(WHITE);
+                  flood->DoFlood(i, j);
+                }
+              }
+
+            }
 
 template <typename T> int sgn(T val) {
   return (T(0) < val) - (val < T(0));

@@ -46,9 +46,9 @@ bool   getCDT(Polygon2* pgn,
             double tinsimp_threshold=0);
 
 #define ND -1  // not determined
-#define BLACK 0
-#define WHITE 1
-#define GRAY 2
+//#define BLACK 0
+//#define WHITE 1
+//#define GRAY 2
 #define SINGULAR 3
 
 class EdgeList {
@@ -79,7 +79,7 @@ public:
   void calculateSize();
   void constructListOfEdges();
   void rasterize();
-  bool returnNextCellPosition(gpoint p1, gpoint p2, int& xp, int& yp);
+  void markCells();
 };
 
 class GridCell {
