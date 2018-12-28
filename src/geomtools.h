@@ -45,67 +45,111 @@ bool   getCDT(Polygon2* pgn,
             const std::vector<Point3> &lidarpts = std::vector<Point3>(),
             double tinsimp_threshold=0);
 
+//--- Point-in-polygon grid
+// Implementation of the grid center point algorithm by Li and Wang 2013
 #define ND -1  // not determined
-//#define BLACK 0
-//#define WHITE 1
-//#define GRAY 2
-#define SINGULAR 3
+#define CBLACK 0
+#define CWHITE 1
+#define CSINGULAR 2
 
-class EdgeList {
-  gpoint p1, p2;
+class PolyEdge {
 public:
-  EdgeList* Next;
-  EdgeList(gpoint& a, gpoint& b) {p1 = a; p2 = b; Next = NULL;}
-  void ReturnEdge(gpoint& a, gpoint& b) {a = p1; b = p2;}
+  double x1, y1, x2, y2;
+  PolyEdge(double x1, double y1, double x2, double y2) {
+    x1 = x1; y1 = y1; x2 = x2; y2 = y2;
+  }
 };
 
-typedef struct {
-  double x, y;
-} gpoint;
+class GridCell {
+public:
+  int color;
+  std::vector<PolyEdge*> edges;
+  GridCell() {
+    color = ND;
+  }
+};
 
 class Grid {
   Polygon2* polygon;
-  EdgeList* edges;
-  int xres, yres;	// gridcell size
-  int tot_cells;	// xres * yres
+  std::vector<PolyEdge*> edges;
+  int cellsx, cellsy;	// gridcell size
+  int totcells;	// cellsx * cellsy
   double xmin, ymin, xmax, ymax;  // bounding box
   double sizex, sizey; // number of cells in x and y
   GridCell ***cells;
-
+  int celllimit;
 public:
-  Grid(Polygon2* poly) {this->polygon = poly;}
+  Grid(Polygon2* poly) {
+    polygon = poly; celllimit = 100;
+  }
   void prepare();
-  void calculateBbox();
-  void calculateSize();
-  void constructListOfEdges();
+  void constructEdges();
   void rasterize();
   void markCells();
 };
 
-class GridCell {
-  int BWGS; // black white gray singular
-  EdgeList* edges;
-public:
-  GridCell() {edges = NULL; BWGS = ND;};
-  void addEdge(EdgeList* e);
-};
 
-class CWLineTraversal {
-protected:
-  double stepy, stepx; // dimension of one cell
-  double xmin, ymin;   // origin of the grid
-  int PixelNo;         // number of "pixels" obtain by rasterization 
-private:
-  gpoint direction, startp, endp;
-  int signx, signy, signz;
-  double deltax, deltay, deltaz, dx, dy, dz, norma;
-  int firstcell;
-  double diagonal;
-  unsigned short startxp, startyp, endxp, endyp;
-public:
-  CWLineTraversal(double xmin, double ymin, double sx, double sy, double d) {xmin = xmin, ymin = ymin, stepx = sx, stepy = sy, diagonal = d};
-  void setEdge(gpoint*, gpoint*);
-  bool returnNextCellPosition(int&, int&);
-};
+//#define ND -1  // not determined
+//#define BLACK 0
+//#define WHITE 1
+//#define GRAY 2
+//#define SINGULAR 3
+//
+//class EdgeList {
+//  gpoint p1, p2;
+//public:
+//  EdgeList* Next;
+//  EdgeList(gpoint& a, gpoint& b) {p1 = a; p2 = b; Next = NULL;}
+//  void ReturnEdge(gpoint& a, gpoint& b) {a = p1; b = p2;}
+//};
+//
+//typedef struct {
+//  double x, y;
+//} gpoint;
+//
+//class Grid {
+//  Polygon2* polygon;
+//  EdgeList* edges;
+//  int cellsx, cellsy;	// gridcell size
+//  int totcells;	// cellsx * cellsy
+//  double xmin, ymin, xmax, ymax;  // bounding box
+//  double sizex, sizey; // number of cells in x and y
+//  GridCell ***cells;
+//
+//public:
+//  Grid(Polygon2* poly) {this->polygon = poly;}
+//  void prepare();
+//  void calculateBbox();
+//  void calculateSize();
+//  void constructListOfEdges();
+//  void rasterize();
+//  void markCells();
+//};
+//
+//class GridCell {
+//  int BWGS; // black white gray singular
+//  EdgeList* edges;
+//public:
+//  GridCell() {edges = NULL; BWGS = ND;};
+//  void addEdge(EdgeList* e);
+//};
+//
+//class CWLineTraversal {
+//protected:
+//  double stepy, stepx; // dimension of one cell
+//  double xmin, ymin;   // origin of the grid
+//  int PixelNo;         // number of "pixels" obtain by rasterization 
+//private:
+//  gpoint direction, startp, endp;
+//  int signx, signy, signz;
+//  double deltax, deltay, deltaz, dx, dy, dz, norma;
+//  int firstcell;
+//  double diagonal;
+//  unsigned short startxp, startyp, endxp, endyp;
+//public:
+//  CWLineTraversal(double xmin, double ymin, double sx, double sy, double d) {xmin = xmin, ymin = ymin, stepx = sx, stepy = sy, diagonal = d};
+//  void setEdge(gpoint*, gpoint*);
+//  bool returnNextCellPosition(int&, int&);
+//};
 
 #endif /* geomtools_h */
