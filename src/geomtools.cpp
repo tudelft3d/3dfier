@@ -535,7 +535,7 @@ void Grid::markCells() {
   for (int iy = 0; iy < cellsy; iy++) {
     for (int ix = 0; ix < cellsx; ix++) {
       // Reset prev color to black for each new row
-      if (ix = 0) {
+      if (ix == 0) {
         prevcolor = CBLACK;
         x = xmin + (sizex * (ix-0.5));
       }
