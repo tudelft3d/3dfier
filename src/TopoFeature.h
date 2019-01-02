@@ -89,6 +89,7 @@ protected:
   bool                              _toplevel;
   std::string                       _layername;
   AttributeMap                      _attributes;
+  Grid*                             _grid;
 
   std::vector< std::vector< std::vector<int> > >  _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
   std::vector< std::pair<Point3, std::string> >   _vertices;

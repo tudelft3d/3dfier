@@ -385,6 +385,7 @@ void Grid::prepare() {
     for (j = 0; j < cellsy; j++)
       cells[i][j] = new GridCell();
 
+  constructEdges();
   rasterize();
   markCells();
 }
@@ -399,7 +400,7 @@ void Grid::constructEdges() {
       r = polygon->inners()[ringi - 1];
     }
   
-    int n = r.size();
+    int n = r.size() - 1;
     for (int i = 1; i <= n; i++) {
       this->edges.push_back(new PolyEdge(r[i - 1].x(), r[i - 1].y(), r[i].x(), r[i].y()));
     }
@@ -410,8 +411,8 @@ void Grid::constructEdges() {
 void Grid::rasterize(){
   for (PolyEdge* e : edges) {
     // Get direction vector
-    double xlen = abs(e->x2 - e->x1);
-    double ylen = abs(e->y2 - e->y1);
+    double xlen = e->x2 - e->x1;
+    double ylen = e->y2 - e->y1;
 
     // Normalize vector
     double normal = std::sqrt(xlen * xlen + ylen * ylen);
@@ -422,9 +423,15 @@ void Grid::rasterize(){
     int stepx = sgn(dirx);
     int stepy = sgn(diry);
 
-    // Get starting cell grid location
+    // Get start cell grid location
     int xp = (int)((e->x1 - xmin) / sizex);
     int yp = (int)((e->y1 - ymin) / sizey);
+    // Add edge to start cell
+    cells[xp][yp]->edges.push_back(e);
+
+    // Get end cell grid location
+    int lastxp = (int)((e->x2 - xmin) / sizex);
+    int lastyp = (int)((e->y2 - ymin) / sizey);
 
     // Calculate length to next grid edge crossing
     double deltax, deltay;
@@ -443,33 +450,28 @@ void Grid::rasterize(){
     }
 
     double k = e->x1 - (xp * sizex + xmin);
-    double dx = k * deltax / sizex;
+    double dx = k * (deltax / sizex);
     if (stepx != -1) {
       dx = deltax - dx;
     }
 
     k = e->y1 - (yp * sizey + ymin);
-    double dy = k * deltay / sizey;
+    double dy = k * (deltay / sizey);
     if (stepy != -1) {
       dy = deltay - dy;
     }
 
     // Loop through cells untill the end of edge is reached
-    int lastxp = -1;
-    int lastyp = -1;
-    while (lastxp != xp && lastyp != yp) {
-      lastxp = xp;
-      lastyp = yp;
+    while (lastxp != xp || lastyp != yp) {
       if (dx <= dy) {
         dx += deltax;
         xp += stepx;
-        cells[xp][yp]->edges.push_back(e);
       }
       if (dy <= dx) {
         dy += deltay;
         yp += stepy;
-        cells[xp][yp]->edges.push_back(e);
       }
+      cells[xp][yp]->edges.push_back(e);
     }
   }
 }
@@ -527,14 +529,15 @@ bool RayLineIntersects(PolyEdge r, PolyEdge* e) {
 void Grid::markCells() {
   //-- Calculate value of GridCells center point
   int prevcolor = CBLACK;
+  // start at x = -1/2 cell and y = 1/2 cell
   double x = xmin - (sizex / 2);
-  double y = ymin - (sizey / 2);
-  for (int i = 0; i < cellsx; i++) {
-    for (int j = 0; j < cellsy; j++) {
+  double y = ymin + (sizey / 2);
+  for (int iy = 0; iy < cellsy; iy++) {
+    for (int ix = 0; ix < cellsx; ix++) {
       // Reset prev color to black for each new row
-      if (j = 0) {
+      if (ix = 0) {
         prevcolor = CBLACK;
-        x = xmin + (sizex * (i-0.5));
+        x = xmin + (sizex * (ix-0.5));
       }
 
       // store previous x,y
@@ -549,7 +552,7 @@ void Grid::markCells() {
       int color = CBLACK;
       PolyEdge r = PolyEdge(prevx, prevy, x, y);
       // Iterate edges of current cell
-      for (PolyEdge* e : cells[i][j]->edges) {
+      for (PolyEdge* e : cells[ix][iy]->edges) {
         int cross = HorizontalRayLineIntersection(r, e);
         if (cross == -1) {
           color = CSINGULAR;
@@ -558,8 +561,8 @@ void Grid::markCells() {
         crossings += cross;
       }
       // Iterate edges of previous cell
-      if (color != CSINGULAR && j > 0) {
-        for (PolyEdge* e : cells[i][j - 1]->edges) {
+      if (color != CSINGULAR && ix > 0) {
+        for (PolyEdge* e : cells[ix - 1][iy]->edges) {
           int cross = HorizontalRayLineIntersection(r, e);
           if (cross == -1) {
             color = CSINGULAR;
@@ -580,7 +583,7 @@ void Grid::markCells() {
       else
       {
         // equal crossings gives same color for cell
-        if (crossings % 0 == 0) {
+        if (crossings % 2 == 0) {
           color = prevcolor;
         }
         else {
@@ -595,7 +598,7 @@ void Grid::markCells() {
         prevcolor = color;
       }
       // Store color
-      cells[i][j]->color = color;
+      cells[ix][iy]->color = color;
     }
     // increase y-coordinate of cell
     y += sizey;
@@ -663,7 +666,7 @@ bool Grid::checkPoint(double x, double y) {
     }
   }
   // equal crossings gives same color for cell
-  if (crossings % 0 == 0) {
+  if (crossings % 2 == 0) {
     if (cells[i][j]->color == CBLACK) {
       return false;
     }
@@ -680,255 +683,5 @@ bool Grid::checkPoint(double x, double y) {
       return false;
     }
   }
+  return false;
 }
-
-
-
-////--- Point-in-polygon grid
-//// Implementation of the grid center point algorithm by Zalik and Kolingerova
-//
-//void prepareGrid(Polygon2* poly) {
-//  Grid g = Grid(poly);
-//  g.prepare();
-//}
-//
-//void Grid::prepare() {
-//  calculateBbox();
-//  calculateSize();
-//  constructListOfEdges();
-//
-//  rasterize();
-//  markCells();
-//}
-//
-//void Grid::calculateBbox() {
-//  double	vx0, vy0;
-//  // Determine bbox
-//  for (int i = 1; i < this->polygon->outer().size(); i++) {
-//    vx0 = this->polygon->outer()[i].x();
-//    if (this->xmin > vx0) {
-//      this->xmin = vx0;
-//    }
-//    else if (this->xmax < vx0) {
-//      this->xmax = vx0;
-//    }
-//
-//    vy0 = this->polygon->outer()[i].y();
-//    if (this->ymin > vy0) {
-//      this->ymin = vy0;
-//    }
-//    else if (this->ymax < vy0) {
-//      this->ymax = vy0;
-//    }
-//  }
-//
-//  // add 1 percent to bbox to overcome finite arithmetics
-//  double a = 0.01 * (this->xmax - this->xmin);
-//  double b = 0.01 * (this->ymax - this->ymin);
-//  this->xmin -= a;
-//  this->xmax += a;
-//  this->ymin -= b;
-//  this->ymax += b;
-//}
-//
-//void Grid::calculateSize() {
-//  int CellLimit = 20;
-//  double deltax = (this->xmax - this->xmin);
-//  double deltay = (this->ymax - this->ymin);
-//  double ratio = deltax / deltay;
-//
-//  double SqrNr = sqrt(bg::num_points(this->polygon));
-//  this->cellsx = 2 * (1 + (int)(ratio * SqrNr));
-//  if (this->cellsx > CellLimit) {
-//    this->cellsx = CellLimit;
-//  }
-//  this->sizex = (xmax - xmin) / this->cellsx;
-//
-//  this->sizey = 2 * (1 + (int)(SqrNr / ratio));
-//  if (this->sizey > CellLimit) {
-//    this->sizey = CellLimit;
-//  }
-//  this->cellsy = (ymax - ymin) / this->sizey;
-//
-//  int i, j;
-//  this->cells = new GridCell**[this->sizex];
-//  for (i = 0; i < this->sizex; i++)
-//    this->cells[i] = new GridCell*[this->sizey];
-//
-//  for (i = 0; i < this->sizex; i++)
-//    for (j = 0; j < this->sizey; j++)
-//      this->cells[i][j] = new GridCell();
-//}
-//
-//void Grid::constructListOfEdges() {
-//  Polygon2* poly = polygon;
-//  Point* p;
-//  int i, n;
-//  EdgeList* elst;
-//
-//  for (int ringi = 0; ringi <= poly->inners().size(); ringi++) {
-//    Ring2 r;
-//    if (ringi == 0) {
-//      r = poly->outer();
-//    }
-//    else {
-//      r = poly->inners()[ringi - 1];
-//    }
-//
-//    n = r.size();
-//    for (i = 1; i <= n; i++) {
-//      elst = new EdgeList(gpoint{ r[i - 1].x(),r[i - 1].y() }, gpoint{ r[i].x(), r[i].y() });
-//      elst->Next = edges;
-//      edges = elst;
-//    }
-//    elst = new EdgeList(gpoint{ r[n].x(),r[n].y() }, gpoint{ r[0].x(), r[0].y() });
-//    elst->Next = edges;
-//    edges = elst;
-//  }
-//}
-//
-//void Grid::rasterize() {
-//  double diagonal = (sqrt((xmax - xmin)*(xmax - xmin) + (ymax - ymin)*(ymax - ymin)));
-//  CWLineTraversal* r = new CWLineTraversal(xmin, ymin, cellsx, cellsy, diagonal);
-//
-//  int xp, yp;
-//  gpoint p1, p2;
-//
-//  EdgeList* elst = edges;
-//  while (elst != NULL) {
-//    elst->ReturnEdge(p1, p2);
-//    r->setEdge(&p1, &p2);
-//    while (r->returnNextCellPosition(xp, yp))
-//      if ((xp >= 0) && (xp < cellsx) &&
-//        (yp >= 0) && (yp < cellsy)) {
-//        cells[xp][yp]->addEdge(elst);
-//      }
-//    elst = elst->Next;
-//  }
-//
-//  delete r;
-//}
-//
-//void Grid::markCells()   {
-// int i, j;
-//
-//    flood = new MyFloodFill(NoOfCellsX, NoOfCellsY, Lattice, WHITE);
-//
-//    // beginning of filling outher cells
-//    for (i = 0; i < NoOfCellsY; i++)       {
-// if (Lattice[0][i]->ReturnBWG() == ND)
-//        flood->DoFlood(0, i);
-//      }
-//
-//      for (i = NoOfCellsY - 1; i >= 0; i--)         {
-// if (Lattice[NoOfCellsX-1][i]->ReturnBWG() == ND)
-//          flood->DoFlood(NoOfCellsX - 1, i);
-//        }
-//
-//        for (i = 0; i < NoOfCellsX; i++)           {
-// if (Lattice[i][0]->ReturnBWG() == ND)
-//            flood->DoFlood(i, 0);
-//          }
-//
-//          for (i = NoOfCellsX - 1; i >= 0; i--)             {
-// if (Lattice[i][NoOfCellsY-1]->ReturnBWG() == ND)
-//              flood->DoFlood(i, NoOfCellsY - 1);
-//            }
-//            // end filling outher cells
-//
-//            for (i = 1; i < NoOfCellsX - 1; i++)               {
-// for (j = 1; j < NoOfCellsY-1; j++)
-//                if (Lattice[i][j]->ReturnBWG() == ND) { // first cell to the left is for sure gray. Let us determine if
-//                                                        // we are inside the loop or the hole. For this purposes the shortest distance 
-//                                                        // to the line segment to the left cell is detrmine. If it belongs to loop
-//                                                        // we are inside loop otherwise inside ring;
-//                  if (InsideLoop(i, j) == 1)
-//                    flood->SetFillColor(BLACK);
-//                  else
-//                    flood->SetFillColor(WHITE);
-//                  flood->DoFlood(i, j);
-//                }
-//              }
-//
-//            }
-//
-//template <typename T> int sgn(T val) {
-//  return (T(0) < val) - (val < T(0));
-//}
-//
-//void CWLineTraversal::setEdge(gpoint* q1, gpoint* q2)
-//// Initialization of the Cleary and Wyvill algorithm
-//{
-//  double a = q2->x - q1->x;
-//  double b = q2->y - q1->y;
-//
-//  PixelNo = 0;
-//  direction.x = a;  direction.y = b;
-//  startp.x = q1->x; startp.y = q1->y;
-//  endp.x = q2->x;   endp.y = q2->y;
-//
-//  // calculate the ray lenght between x, y and calculate initial distances of the ray
-//
-//  double norm = sqrt((a*a) + (b*b));
-//  direction.x = direction.x / norm;
-//  direction.y = direction.y / norm;
-//
-//  stepx = sgn(direction.x);
-//  stepy = sgn(direction.y);
-//
-//  startxp = (int)((startp.x - xmin) / stepx);
-//  startyp = (int)((startp.y - ymin) / stepy);
-//
-//  endxp = (int)((endp.x - xmax) / stepx);
-//  endyp = (int)((endp.y - ymax) / stepy);
-//
-//  firstcell = false;
-//
-//  if (stepx == 0) deltax = std::numeric_limits<double>::max();
-//  else deltax = stepx / abs(direction.x);
-//
-//  if (stepy == 0) deltay = std::numeric_limits<double>::max();
-//  else deltay = stepy / abs(direction.y);
-//
-//  double k = q1->x - (startxp * stepx + xmin);
-//  dx = k * deltax / stepx;
-//  if (stepx != -1) dx = deltax - dx;
-//
-//  k = q1->y - (startyp * stepy + ymin;
-//  dy = k * deltay / stepy;
-//  if (stepy != -1) dy = deltay - dy;
-//}
-//
-//bool CWLineTraversal::returnNextCellPosition(int& xp, int& yp) {
-//  if (PixelNo++ > diagonal) return false;  // just in case the traversel goes wrong
-//
-//  if (firstcell == false) {
-//    xp = startxp; yp = startyp;
-//    firstcell = true;
-//    return true;
-//  }
-//
-//  if ((xp == endxp) && (yp == endyp)) {
-//    firstcell = false;
-//    return false;
-//  }
-//
-//  // core of Cleary-Wyvill algorithm
-//  if (dx <= dy) {
-//    dx += deltax;
-//    xp += stepx;
-//    return true;
-//  }
-//  if (dy <= dx) {
-//    dy += deltay;
-//    yp += stepy;
-//    return true;
-//  }
-//  return false;
-//}
-//
-//void GridCell::addEdge(EdgeList* e) {
-//  e->Next = edges;
-//  edges = e;
-//  BWGS = GRAY;
-//}
