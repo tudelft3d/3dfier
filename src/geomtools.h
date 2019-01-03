@@ -52,6 +52,10 @@ bool   getCDT(Polygon2* pgn,
 #define CWHITE 1
 #define CSINGULAR 2
 
+#define DONT_INTERSECT 0
+#define DO_INTERSECT   1
+#define BOUNDARY 2
+
 class PolyEdge {
 public:
   double x1, y1, x2, y2;
@@ -72,17 +76,16 @@ public:
 class Grid {
   Polygon2* polygon;
   std::vector<PolyEdge*> edges;
-  int cellsx, cellsy;	// number of cells in x and y
-  int totcells;	// cellsx * cellsy
   double xmin, ymin, xmax, ymax;  // bounding box
   double sizex, sizey; // size cells in x and y
   GridCell ***cells;
   void constructEdges();
   void rasterize();
   void markCells();
-  PolyEdge getEdgeToCenter(int i, int j, double x, double y);
+  PolyEdge* getEdgeToCenter(int i, int j, double x, double y);
 public:
   int celllimit;
+  int cellsx, cellsy;	// number of cells in x and y
   Grid(Polygon2* poly) {
     polygon = poly; celllimit = 30;
   }
@@ -90,6 +93,6 @@ public:
   bool checkPoint(double x, double y);
 };
 
-int HorizontalRayLineIntersection(PolyEdge r, PolyEdge* e);
+int RayLineIntersection(PolyEdge* r, PolyEdge* e);
 
 #endif /* geomtools_h */
