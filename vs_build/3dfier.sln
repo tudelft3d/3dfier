@@ -1,8 +1,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.9
+VisualStudioVersion = 15.0.27130.2020
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "3dfier", "3dfier.vcxproj", "{1B42089A-84AD-3A0E-B9AA-67E4F75795D6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "3dfier-UnitTesting", "3dfier-UnitTesting.vcxproj", "{FE9B5205-BB56-4A69-9C78-63A7A465CF5F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,8 +20,17 @@ Global
 		{1B42089A-84AD-3A0E-B9AA-67E4F75795D6}.Release|x64.ActiveCfg = Release|x64
 		{1B42089A-84AD-3A0E-B9AA-67E4F75795D6}.Release|x64.Build.0 = Release|x64
 		{1B42089A-84AD-3A0E-B9AA-67E4F75795D6}.Release|x86.ActiveCfg = Release|x64
+		{FE9B5205-BB56-4A69-9C78-63A7A465CF5F}.Debug|x64.ActiveCfg = Debug|x64
+		{FE9B5205-BB56-4A69-9C78-63A7A465CF5F}.Debug|x64.Build.0 = Debug|x64
+		{FE9B5205-BB56-4A69-9C78-63A7A465CF5F}.Debug|x86.ActiveCfg = Debug|x64
+		{FE9B5205-BB56-4A69-9C78-63A7A465CF5F}.Release|x64.ActiveCfg = Release|x64
+		{FE9B5205-BB56-4A69-9C78-63A7A465CF5F}.Release|x64.Build.0 = Release|x64
+		{FE9B5205-BB56-4A69-9C78-63A7A465CF5F}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {34CF34DC-5824-4129-9BC2-EC4A3AB51A37}
 	EndGlobalSection
 EndGlobal
