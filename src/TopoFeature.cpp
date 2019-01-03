@@ -37,6 +37,9 @@ TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attribut
   bg::unique(*_p2); //-- remove duplicate vertices
   bg::correct(*_p2); //-- correct the orientation of the polygons!
 
+  _grid = new Grid(_p2); //-- create grid for point-in-polygon
+  _grid->prepare();
+
   _adjFeatures = new std::vector<TopoFeature*>;
   _p2z.resize(bg::num_interior_rings(*_p2) + 1);
   _p2z[0].resize(bg::num_points(_p2->outer()));

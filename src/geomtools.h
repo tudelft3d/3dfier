@@ -59,8 +59,10 @@ bool   getCDT(Polygon2* pgn,
 class PolyEdge {
 public:
   double x1, y1, x2, y2;
+  std::string wkt;
   PolyEdge(double x1, double y1, double x2, double y2) {
     this->x1 = x1; this->y1 = y1; this->x2 = x2; this->y2 = y2;
+    this->wkt = "LINESTRING(" + std::to_string(x1) + " " + std::to_string(y1) + ", " + std::to_string(x2) + " " + std::to_string(y2) + ")";
   }
 };
 
@@ -82,7 +84,7 @@ class Grid {
   void constructEdges();
   void rasterize();
   void markCells();
-  PolyEdge* getEdgeToCenter(int i, int j, double x, double y);
+  PolyEdge* getEdgeToCenter(int ix, int iy, double x, double y);
 public:
   int celllimit;
   int cellsx, cellsy;	// number of cells in x and y

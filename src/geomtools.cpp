@@ -346,6 +346,9 @@ int sgn(double val) {
 };
 
 void Grid::prepare() {
+  //-- Add edges to the grid
+  constructEdges();
+  
   //-- Calculate Bbox
   Box2 bbox = bg::return_envelope<Box2>(*polygon);
   this->xmin = bg::get<bg::min_corner, 0>(bbox);
@@ -367,11 +370,11 @@ void Grid::prepare() {
   double ration = deltax / deltay;
 
   double sqrtnr = std::sqrt(edges.size());
-  cellsx = 2 * (1 + (int)(ration * sqrtnr));
+  cellsx = 2 * (1 + std::floor(ration * sqrtnr));
   if (cellsx > celllimit) cellsx = celllimit;
   sizex = (xmax - xmin) / cellsx;
 
-  cellsy = 2 * (1 + (int)(sqrtnr / ration));
+  cellsy = 2 * (1 + std::floor(sqrtnr / ration));
   if (cellsy > celllimit) cellsy = celllimit;
   sizey = (ymax - ymin) / cellsy;
 
@@ -385,7 +388,6 @@ void Grid::prepare() {
     for (j = 0; j < cellsy; j++)
       cells[i][j] = new GridCell();
 
-  constructEdges();
   rasterize();
   markCells();
 }
@@ -467,7 +469,7 @@ void Grid::rasterize(){
         dx += deltax;
         xp += stepx;
       }
-      if (dy <= dx) {
+      else if (dy <= dx) {
         dy += deltay;
         yp += stepy;
       }
@@ -476,18 +478,16 @@ void Grid::rasterize(){
   }
 }
 
-/* Faster Line Segment Intersection   */
-/* Franklin Antonio*/
-/* Code from Graphic Gems III */
+/* The SAME_SIGNS macro assumes arithmetic where the exclusive-or
+   operation will work on sign bits.  This works for twos-complement,
+   and most other machine arithmetic.*/
+#define SAME_SIGNS( a, b ) (((long) ((unsigned long) a ^ (unsigned long) b)) >= 0 )
 
-/* The SAME_SIGNS macro assumes arithmetic where the exclusive-or    */
-/* operation will work on sign bits.  This works for twos-complement,*/
-/* and most other machine arithmetic.                                */
-#define SAME_SIGNS( a, b ) \
-	(((long) ((unsigned long) a ^ (unsigned long) b)) >= 0 )
-
+/* Faster Line Segment Intersection
+   Franklin Antonio
+   Code from Graphic Gems III */
 int RayLineIntersection(PolyEdge* r, PolyEdge* e) {
-  long Ax, Bx, Cx, Ay, By, Cy, d, ee, f, num, offset, x1lo, x1hi, y1lo, y1hi;
+  double Ax, Bx, Cx, Ay, By, Cy, d, ee, f, num, offset, x1lo, x1hi, y1lo, y1hi;
 
   Ax = r->x2 - r->x1;
   Bx = e->x1 - e->x2;
@@ -586,8 +586,15 @@ void Grid::markCells() {
       int crossings = 0;
       int color = CBLACK;
       PolyEdge* r = new PolyEdge(prevx, prevy, x, y);
+      // create a set with unique edges
+      std::set<PolyEdge*> edges(cells[ix][iy]->edges.begin(), cells[ix][iy]->edges.end());
+      if (color != CSINGULAR && ix > 0) {
+        for (PolyEdge* e : cells[ix - 1][iy]->edges) {
+          edges.insert(e);
+        }
+      }
       // Iterate edges of current cell
-      for (PolyEdge* e : cells[ix][iy]->edges) {
+      for (PolyEdge* e : edges) {
         int cross = RayLineIntersection(r, e);
         if (cross == -1) {
           color = CSINGULAR;
@@ -595,17 +602,27 @@ void Grid::markCells() {
         }
         crossings += cross;
       }
-      // Iterate edges of previous cell
-      if (color != CSINGULAR && ix > 0) {
-        for (PolyEdge* e : cells[ix - 1][iy]->edges) {
-          int cross = RayLineIntersection(r, e);
-          if (cross == -1) {
-            color = CSINGULAR;
-            break;
-          }
-          crossings += cross;
-        }
-      }
+
+      //// Iterate edges of current cell
+      //for (PolyEdge* e : cells[ix][iy]->edges) {
+      //  int cross = RayLineIntersection(r, e);
+      //  if (cross == -1) {
+      //    color = CSINGULAR;
+      //    break;
+      //  }
+      //  crossings += cross;
+      //}
+      //// Iterate edges of previous cell
+      //if (color != CSINGULAR && ix > 0) {
+      //  for (PolyEdge* e : cells[ix - 1][iy]->edges) {
+      //    int cross = RayLineIntersection(r, e);
+      //    if (cross == -1) {
+      //      color = CSINGULAR;
+      //      break;
+      //    }
+      //    crossings += cross;
+      //  }
+      //}
       delete r;
       if (color == CSINGULAR) {
         // in singular inverse previous color
@@ -641,9 +658,9 @@ void Grid::markCells() {
   }
 }
 
-PolyEdge* Grid::getEdgeToCenter(int i, int j, double x, double y) {
-  double xc = xmin + (sizex * (i - 0.5));
-  double yc = ymin + (sizey * (i - 0.5));
+PolyEdge* Grid::getEdgeToCenter(int ix, int iy, double x, double y) {
+  double xc = xmin + (sizex * (ix + 0.5));
+  double yc = ymin + (sizey * (iy + 0.5));
   return new PolyEdge(x, y, xc, yc);
 }
 
@@ -666,6 +683,21 @@ bool Grid::checkPoint(double x, double y) {
   if (col != CSINGULAR) {
     // calculate crossings
     for (PolyEdge* e : cells[ix][iy]->edges) {
+      double x1 = xmin + (sizex * (ix));
+      double y1 = ymin + (sizey * (iy));
+      double x2 = xmin + (sizex * (ix + 1));
+      double y2 = ymin + (sizey * (iy + 1));
+      std::string wkt = "POLYGON((" 
+        + std::to_string(x1) + " " + std::to_string(y1) 
+        + ", " 
+        + std::to_string(x1) + " " + std::to_string(y2) 
+        + ", "
+        + std::to_string(x2) + " " + std::to_string(y2)
+        + ", "
+        + std::to_string(x2) + " " + std::to_string(y1)
+        + ", "
+        + std::to_string(x1) + " " + std::to_string(y1)
+        + "))";
       PolyEdge* r = getEdgeToCenter(ix, iy, x, y);
       if (RayLineIntersection(r, e) == DO_INTERSECT) {
         crossings++;
