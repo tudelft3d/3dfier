@@ -877,8 +877,25 @@ bool TopoFeature::within_range(const Point2& p, double radius) {
   return false;
 }
 
-// based on http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon/2922778#2922778
 bool TopoFeature::point_in_polygon(const Point2& p) {
+  ////// TESTING
+  //bool gridcheck = _grid->checkPoint(p.x(), p.y());
+  //bool raycheck = point_in_polygon2(p);
+  //if (gridcheck != raycheck) {
+  //  std::cout << "Point-in-polygon different. Grid: " << gridcheck << " Raycasting: " << raycheck << " POINT(" << p.x() << " " << p.y() << ")" << std::endl;
+  //}
+  //else {
+  //  //std::cout << "Point-in-polygon same." << std::endl;
+  //}
+  ////// TESTING
+
+  return point_in_polygon2(p);
+
+  //return _grid->checkPoint(p.x(), p.y());
+}
+
+// based on http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon/2922778#2922778
+bool TopoFeature::point_in_polygon2(const Point2& p) {
   //test outer ring
   const Ring2& oring = _p2->outer();
   int nvert = oring.size();
@@ -909,6 +926,10 @@ bool TopoFeature::point_in_polygon(const Point2& p) {
     }
   }
   return insideOuter;
+}
+
+void TopoFeature::cleanup_grid() {
+  delete _grid;
 }
 
 void TopoFeature::cleanup_elevations() {

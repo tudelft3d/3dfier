@@ -59,10 +59,10 @@ bool   getCDT(Polygon2* pgn,
 class PolyEdge {
 public:
   double x1, y1, x2, y2;
-  std::string wkt;
+  //std::string wkt;
   PolyEdge(double x1, double y1, double x2, double y2) {
     this->x1 = x1; this->y1 = y1; this->x2 = x2; this->y2 = y2;
-    this->wkt = "LINESTRING(" + std::to_string(x1) + " " + std::to_string(y1) + ", " + std::to_string(x2) + " " + std::to_string(y2) + ")";
+    //this->wkt = "LINESTRING(" + std::to_string(x1) + " " + std::to_string(y1) + ", " + std::to_string(x2) + " " + std::to_string(y2) + ")";
   }
 };
 
@@ -91,10 +91,12 @@ public:
   Grid(Polygon2* poly) {
     polygon = poly; celllimit = 30;
   }
+  ~Grid();
   void prepare();
   bool checkPoint(double x, double y);
 };
 
 int RayLineIntersection(PolyEdge* r, PolyEdge* e);
+int HorizontalRayLineIntersection(PolyEdge* r, PolyEdge* e);
 
 #endif /* geomtools_h */

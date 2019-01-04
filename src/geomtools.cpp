@@ -452,15 +452,21 @@ void Grid::rasterize(){
     }
 
     double k = e->x1 - (xp * sizex + xmin);
-    double dx = k * (deltax / sizex);
+    double dx = k * deltax / sizex;
     if (stepx != -1) {
       dx = deltax - dx;
     }
+    if (stepx == 0) {
+      dx = DBL_MAX;
+    }
 
     k = e->y1 - (yp * sizey + ymin);
-    double dy = k * (deltay / sizey);
+    double dy = k * deltay / sizey;
     if (stepy != -1) {
       dy = deltay - dy;
+    }
+    if (stepy == 0) {
+      dy = DBL_MAX;
     }
 
     // Loop through cells untill the end of edge is reached
@@ -477,11 +483,6 @@ void Grid::rasterize(){
     }
   }
 }
-
-/* The SAME_SIGNS macro assumes arithmetic where the exclusive-or
-   operation will work on sign bits.  This works for twos-complement,
-   and most other machine arithmetic.*/
-#define SAME_SIGNS( a, b ) (((long) ((unsigned long) a ^ (unsigned long) b)) >= 0 )
 
 /* Faster Line Segment Intersection
    Franklin Antonio
@@ -521,12 +522,11 @@ int RayLineIntersection(PolyEdge* r, PolyEdge* e) {
     if (y1hi < e->y1 || e->y2 < y1lo) return DONT_INTERSECT;
   }
 
+  f = Ay * Bx - Ax * By;					/* both denominator*/
+  if (f == 0) return DONT_INTERSECT;
+
   Cx = r->x1 - e->x1;
   Cy = r->y1 - e->y1;
-
-  f = Ay * Bx - Ax * By;					/* both denominator*/
-
-  if (f == 0) return DONT_INTERSECT;
 
   d = By * Cx - Bx * Cy;					/* alpha numerator*/
   if (f > 0) {						/* alpha tests*/
@@ -544,17 +544,67 @@ int RayLineIntersection(PolyEdge* r, PolyEdge* e) {
     if (ee > 0 || ee < f) return DONT_INTERSECT;
   }
 
-  /*compute intersection coordinates*/
-  num = d * Ax;						/* numerator */
-  offset = SAME_SIGNS(num, f) ? f / 2 : -f / 2;		/* round direction*/
-  double x = r->x1 + (num + offset) / f;				/* intersection x */
+  ///*compute intersection coordinates*/
+  //num = d * Ax;						/* numerator */
+  //double x = r->x1 + num / f;		    /* intersection x */
 
-  num = d * Ay;
-  offset = SAME_SIGNS(num, f) ? f / 2 : -f / 2;
-  double y = r->y1 + (num + offset) / f;				/* intersection y */
+  //num = d * Ay;
+  //double y = r->y1 + num / f;				/* intersection y */
 
-  // Check if the ray end (center of cell) is on intersection, in that case cell is GRAY
-  if (x == r->x2 && y == r->y2) {
+  //// Check if the ray end (center of cell) is on intersection, in that case cell is GRAY
+  //if (x == r->x2 && y == r->y2) {
+  //  return BOUNDARY;
+  //}
+
+  return DO_INTERSECT;
+}
+
+int HorizontalRayLineIntersection(PolyEdge* r, PolyEdge* e) {
+  double Ax, Bx, Cx, By, Cy, d, ee, f, num, offset, x1lo, x1hi;
+
+  /* Y bound box test*/
+  By = e->y1 - e->y2;
+  if (r->y1 < e->y1 == r->y1 < e->y2) return DONT_INTERSECT;
+
+  /* X bound box test*/
+  Bx = e->x1 - e->x2;
+  x1lo = r->x1; x1hi = r->x2; /* X bound box test*/
+  if (Bx > 0) {
+    if (x1hi < e->x2 || e->x1 < x1lo) return DONT_INTERSECT;
+  }
+  else {
+    if (x1hi < e->x1 || e->x2 < x1lo) return DONT_INTERSECT;
+  }
+
+  // Ax is allways positive, ray goes from left to right
+  Ax = r->x2 - r->x1;
+
+  f = -Ax * By;					  /* both denominator*/
+  Cx = r->x1 - e->x1;
+  Cy = r->y1 - e->y1;
+
+  d = By * Cx - Bx * Cy;	/* alpha numerator*/
+  if (f > 0) {						/* alpha tests*/
+    if (d<0 || d>f) return DONT_INTERSECT;
+  }
+  else {
+    if (d > 0 || d < f) return DONT_INTERSECT;
+  }
+
+  ee = Ax * Cy;					  /* beta numerator*/
+  if (f > 0) {						/* beta tests*/
+    if (ee<0 || ee>f) return DONT_INTERSECT;
+  }
+  else {
+    if (ee > 0 || ee < f) return DONT_INTERSECT;
+  }
+
+  /* intersection x */
+  double x = r->x1 + d * Ax / f;
+
+  // Check if the ray end (center of cell) is on intersection using epsilon
+  // only test for x since ray is horizontal
+  if (std::abs(x - r->x2) < 0.000000001) {
     return BOUNDARY;
   }
 
@@ -582,48 +632,36 @@ void Grid::markCells() {
       // increase x-coordinate of cell
       x += sizex;
 
-      //raytracing from center to center. Use edges from this and previous cell if not boundary
+      // raytracing from center to center. Use edges from this and previous cell if not boundary
       int crossings = 0;
       int color = CBLACK;
       PolyEdge* r = new PolyEdge(prevx, prevy, x, y);
-      // create a set with unique edges
+      
+      // create a set with unique edges add edges of current cell and previous cell
+      // skip previous if cell is first in row
       std::set<PolyEdge*> edges(cells[ix][iy]->edges.begin(), cells[ix][iy]->edges.end());
-      if (color != CSINGULAR && ix > 0) {
-        for (PolyEdge* e : cells[ix - 1][iy]->edges) {
-          edges.insert(e);
-        }
+      if (ix > 0) {
+        edges.insert(cells[ix - 1][iy]->edges.begin(), cells[ix - 1][iy]->edges.end());
       }
-      // Iterate edges of current cell
+
+      // iterate edges and do ray-line intersection
       for (PolyEdge* e : edges) {
-        int cross = RayLineIntersection(r, e);
-        if (cross == -1) {
+        int cross = HorizontalRayLineIntersection(r, e);
+        ///// TESTING
+        //if (cross != RayLineIntersection(r, e)) {
+        //  std::cout << "RayLineIntersection different" << std::endl;
+        //}
+        ///// TESTING
+        if (cross == BOUNDARY) {
           color = CSINGULAR;
           break;
         }
         crossings += cross;
       }
-
-      //// Iterate edges of current cell
-      //for (PolyEdge* e : cells[ix][iy]->edges) {
-      //  int cross = RayLineIntersection(r, e);
-      //  if (cross == -1) {
-      //    color = CSINGULAR;
-      //    break;
-      //  }
-      //  crossings += cross;
-      //}
-      //// Iterate edges of previous cell
-      //if (color != CSINGULAR && ix > 0) {
-      //  for (PolyEdge* e : cells[ix - 1][iy]->edges) {
-      //    int cross = RayLineIntersection(r, e);
-      //    if (cross == -1) {
-      //      color = CSINGULAR;
-      //      break;
-      //    }
-      //    crossings += cross;
-      //  }
-      //}
       delete r;
+
+      // calculate color of cell using crossing
+      // and handle singular case (inverse previous color for next iteration)
       if (color == CSINGULAR) {
         // in singular inverse previous color
         if (prevcolor == CBLACK) {
@@ -635,12 +673,12 @@ void Grid::markCells() {
       }
       else
       {
-        // equal crossings gives same color for cell
+        // even crossings gives same color for cell
         if (crossings % 2 == 0) {
           color = prevcolor;
         }
         else {
-          // inverse color
+          // inverse color if uneven crossings
           if (prevcolor == CBLACK) {
             color = CWHITE;
           }
@@ -648,12 +686,13 @@ void Grid::markCells() {
             color = CBLACK;
           }
         }
+        // store color for next pass
         prevcolor = color;
       }
-      // Store color
+      // Store color in cell
       cells[ix][iy]->color = color;
     }
-    // increase y-coordinate of cell
+    // increase y-coordinate of cell after full row
     y += sizey;
   }
 }
@@ -668,13 +707,17 @@ bool Grid::checkPoint(double x, double y) {
   // Do grid boundary check, first do double check to solve for negative numbers
   double i = (x - xmin) / sizex;
   if (i < 0) return false;
-  int ix = (int)i;
-  if (ix >= cellsx) return false;
-
   double j = (y - ymin) / sizey;
   if (j < 0) return false;
+
+  int ix = (int)i;
+  if (ix >= cellsx) return false;
   int iy = (int)j;
   if (iy >= cellsy) return false;
+
+  //// get cell indices
+  //int ix = (int)((x - xmin) / sizex);
+  //int iy = (int)((y - ymin) / sizey);
 
   // get cell color
   int col = cells[ix][iy]->color;
@@ -683,21 +726,23 @@ bool Grid::checkPoint(double x, double y) {
   if (col != CSINGULAR) {
     // calculate crossings
     for (PolyEdge* e : cells[ix][iy]->edges) {
-      double x1 = xmin + (sizex * (ix));
-      double y1 = ymin + (sizey * (iy));
-      double x2 = xmin + (sizex * (ix + 1));
-      double y2 = ymin + (sizey * (iy + 1));
-      std::string wkt = "POLYGON((" 
-        + std::to_string(x1) + " " + std::to_string(y1) 
-        + ", " 
-        + std::to_string(x1) + " " + std::to_string(y2) 
-        + ", "
-        + std::to_string(x2) + " " + std::to_string(y2)
-        + ", "
-        + std::to_string(x2) + " " + std::to_string(y1)
-        + ", "
-        + std::to_string(x1) + " " + std::to_string(y1)
-        + "))";
+      /// TESTING
+      //double x1 = xmin + (sizex * (ix));
+      //double y1 = ymin + (sizey * (iy));
+      //double x2 = xmin + (sizex * (ix + 1));
+      //double y2 = ymin + (sizey * (iy + 1));
+      //std::string wkt = "POLYGON((" 
+      //  + std::to_string(x1) + " " + std::to_string(y1) 
+      //  + ", " 
+      //  + std::to_string(x1) + " " + std::to_string(y2) 
+      //  + ", "
+      //  + std::to_string(x2) + " " + std::to_string(y2)
+      //  + ", "
+      //  + std::to_string(x2) + " " + std::to_string(y1)
+      //  + ", "
+      //  + std::to_string(x1) + " " + std::to_string(y1)
+      //  + "))";
+      /// TESTING
       PolyEdge* r = getEdgeToCenter(ix, iy, x, y);
       if (RayLineIntersection(r, e) == DO_INTERSECT) {
         crossings++;
@@ -711,44 +756,75 @@ bool Grid::checkPoint(double x, double y) {
     int sign = 1;
 
     while (cells[i2][iy]->color == CSINGULAR) {
-      if (i2 > cellsx) {
+      if (i2 >= cellsx) {
         // when end of row is reached start reverse direction
         i2 = ix;
         sign = -1;
+        if (ix == 0) {
+          throw std::exception("No non-singular cells found in row, adjust code!");
+        }
       }
-      if (i2 == 0) {
+      if (ix != 0 && i2 == 0) {
         throw std::exception("No non-singular cells found in row, adjust code!");
       }
       i2 = ix + sign;
     }
+
+    // set color to first non-singular cell
+    col = cells[i2][iy]->color;
+
+    // create a set with unique edges add edges of current cell and previous cell
+    // skip previous if cell is first in row
+    std::set<PolyEdge*> edges;
+    for (int ii = 0; ii <= sign*(i2 - ix); ii+=sign) {
+      edges.insert(cells[ix + ii * sign][iy]->edges.begin(), cells[ix + ii * sign][iy]->edges.end());
+    }
+
     // Iterate edges of cell between first and last
-    for (int ii = 0; ii < sign*(i2 - ix); ix + sign) {
-      for (PolyEdge* e : cells[ii][iy]->edges) {
-        PolyEdge* r = getEdgeToCenter(i2, iy, x, y);
-        if (RayLineIntersection(r, e) == DO_INTERSECT) {
-          crossings++;
-        }
-        delete r;
+    for (PolyEdge* e : edges) {
+      PolyEdge* r = getEdgeToCenter(i2, iy, x, y);
+      if (RayLineIntersection(r, e) == DO_INTERSECT) {
+        crossings++;
       }
+      delete r;
     }
   }
   // equal crossings gives same color for cell
   if (crossings % 2 == 0) {
-    if (cells[ix][iy]->color == CBLACK) {
+    if (col == CBLACK) {
       return false;
     }
-    else if (cells[ix][iy]->color == CWHITE) {
+    else if (col == CWHITE) {
       return true;
     }
   }
   else {
     // inverse color
-    if (cells[ix][iy]->color == CBLACK) {
+    if (col == CBLACK) {
       return true;
     }
-    else if (cells[ix][iy]->color == CWHITE) {
+    else if (col == CWHITE) {
       return false;
     }
   }
   return false;
+}
+
+Grid::~Grid() {
+  // delete edges
+  for (int i = 0; i < edges.size(); i++) {
+    delete edges[i];
+  }
+
+  // delete cells
+  for (int ix = 0; ix < cellsx; ix++) {
+    for (int iy = 0; iy < cellsy; iy++) {
+      delete cells[ix][iy];
+    }
+  }
+
+  for (int i = 0; i < cellsx; i++)
+    delete[] cells[i];
+
+  delete[] cells;
 }

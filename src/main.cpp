@@ -549,6 +549,7 @@ int main(int argc, const char * argv[]) {
     }
   }
   print_duration("All points read in %lld seconds || %02d:%02d:%02d\n", startPoints);
+  map3d.cleanup_grids();
 
   std::clog << "3dfying all input polygons...\n";
   bool threedfy = true;

@@ -758,6 +758,12 @@ void Map3d::add_elevation_point(LASpoint const& laspt) {
   }
 }
 
+void Map3d::cleanup_grids() {
+  for (auto& f : _lsFeatures) {
+    f->cleanup_grid();
+  }
+}
+
 void Map3d::cleanup_elevations() {
   for (auto& f : _lsFeatures) {
     f->cleanup_elevations();
