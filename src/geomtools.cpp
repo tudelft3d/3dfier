@@ -270,7 +270,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     for(int i=0; i<cpts.size(); i++){
       auto p = cpts[i];
       // detect and skip duplicate points
-      auto not_duplicate = set.insert(p).second;
+      bool not_duplicate = set.insert(p).second;
       if(not_duplicate){
         auto face = T.locate(p);
         auto e = compute_error(p, face);
@@ -290,8 +290,38 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     std::vector<CDT::Face_handle> faces;
     T.get_conflicts ( max_p, std::back_inserter(faces) );
 
+    // handle case where max_p somehow coincides with a polygon vertex
+    if (faces.size()==0) {
+        // remove this points from the heap
+        heap.pop();
+        
+        // this should return the already existing vertex
+        auto v = T.insert(max_p);
+
+        // check the incident faces and erase any references to max_p
+        auto face_circulator = T.incident_faces(v);
+        auto start = face_circulator;
+        do {
+          auto face = *face_circulator;
+
+          if (face->info().points_inside) {
+            for (auto it =*face->info().points_inside.begin(); it != *face->info().points_inside.end(); ){
+              auto h = *it;
+              if( maxelement.index == (*h).index)
+                *face->info().points_inside.erase(it);
+            }
+            face->info().points_inside->clear();
+          }
+          face_circulator++;
+        } while (face_circulator != start)
+
+        // skip to next iteration
+        continue;
+    }
+
     // insert max_p in triangulation
     auto face_hint = faces[0];
+
     auto v = T.insert(max_p, face_hint);
     face_hint = v->face();
     
