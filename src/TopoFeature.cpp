@@ -831,6 +831,11 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
 //-- used to collect all points linked to the polygon
 //-- later all these values are used to lift the polygon (and put values in _p2z)
 bool TopoFeature::assign_elevation_to_vertex(const Point2& p, double z, float radius) {
+  //return assign_elevation_to_vertex_polygon(p, z, radius);
+  return assign_elevation_to_vertex_grid(p, z, radius);
+}
+
+bool TopoFeature::assign_elevation_to_vertex_polygon(const Point2& p, double z, float radius) {
   double sqr_radius = radius * radius;
   int zcm = int(z * 100);
 
@@ -853,11 +858,46 @@ bool TopoFeature::assign_elevation_to_vertex(const Point2& p, double z, float ra
   return true;
 }
 
+bool TopoFeature::assign_elevation_to_vertex_grid(const Point2& p, double z, float radius) {
+  double sqr_radius = radius * radius;
+  int zcm = int(z * 100);
+
+  //std::set<Point2*> vertices = _grid->getVertices(p.x(), p.y(), radius);
+  //for (Point2* v : vertices) {
+  //  if (sqr_distance(p, *v) <= sqr_radius)
+  //    _lidarelevs[ringi][i].push_back(zcm);
+  //}
+
+
+  int ringi = 0;
+  Ring2& oring = _p2->outer();
+  for (int i = 0; i < oring.size(); i++) {
+    if (sqr_distance(p, oring[i]) <= sqr_radius)
+      _lidarelevs[ringi][i].push_back(zcm);
+  }
+  ringi++;
+  std::vector<Ring2>& irings = _p2->inners();
+  for (Ring2& iring : irings) {
+    for (int i = 0; i < iring.size(); i++) {
+      if (sqr_distance(p, iring[i]) <= sqr_radius) {
+        _lidarelevs[ringi][i].push_back(zcm);
+      }
+    }
+    ringi++;
+  }
+  return true;
+}
+
 bool TopoFeature::within_range(const Point2& p, double radius) {
+  //return within_range_polygon(p, radius);
+  return within_range_grid(p, radius);
+}
+
+bool TopoFeature::within_range_polygon(const Point2& p, double radius) {
   if (point_in_polygon(p)) {
     return true;
-  }  
-  
+  }
+
   double sqr_radius = radius * radius;
   const Ring2& oring = _p2->outer();
   //-- point is within range of the polygon rings
@@ -877,6 +917,16 @@ bool TopoFeature::within_range(const Point2& p, double radius) {
   return false;
 }
 
+bool TopoFeature::within_range_grid(const Point2& p, double radius) {
+  if (point_in_polygon(p)) {
+    return true;
+  }
+  
+  //-- point is within range of the polygon rings
+  double sqr_radius = radius * radius;
+  return _grid->sqr_distance(p.x(), p.y(), sqr_radius);
+}
+
 bool TopoFeature::point_in_polygon(const Point2& p) {
   ////// TESTING
   //bool gridcheck = _grid->checkPoint(p.x(), p.y());
@@ -889,9 +939,9 @@ bool TopoFeature::point_in_polygon(const Point2& p) {
   //}
   ////// TESTING
 
-  return point_in_polygon2(p);
+  //return point_in_polygon2(p);
 
-  //return _grid->checkPoint(p.x(), p.y());
+  return _grid->checkPoint(p.x(), p.y());
 }
 
 // based on http://stackoverflow.com/questions/217578/how-can-i-determine-whether-a-2d-point-is-within-a-polygon/2922778#2922778
@@ -1125,13 +1175,18 @@ int Flat::get_number_vertices() {
 }
 
 bool Flat::add_elevation_point(Point2& p, double z, float radius, int lasclass, bool within) {
-  // if within then a point must lay within the polygon, otherwise add
-  if (!within || (within && point_in_polygon(p))) {
+  // if within then a point must only lay within the polygon, otherwise add
+  if (!within) {
     if (within_range(p, radius)) {
       int zcm = int(z * 100);
       //-- 1. assign to polygon since within the threshold value (buffering of polygon)
       _zvaluesinside.push_back(zcm);
     }
+  }
+  else if (point_in_polygon(p)) {
+    int zcm = int(z * 100);
+    //-- 1. assign to polygon since within the threshold value (buffering of polygon)
+    _zvaluesinside.push_back(zcm);
   }
   return true;
 }

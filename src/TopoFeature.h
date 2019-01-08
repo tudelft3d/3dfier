@@ -100,7 +100,11 @@ protected:
 
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(const Point2& p, double z, float radius);
+  bool    assign_elevation_to_vertex_polygon(const Point2& p, double z, float radius);
+  bool    assign_elevation_to_vertex_grid(const Point2& p, double z, float radius);
   bool    within_range(const Point2& p, double radius);
+  bool    within_range_polygon(const Point2& p, double radius);
+  bool    within_range_grid(const Point2& p, double radius);
   bool    point_in_polygon(const Point2& p);
   bool    point_in_polygon2(const Point2& p);
   void    lift_each_boundary_vertices(float percentile);

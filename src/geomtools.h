@@ -38,6 +38,7 @@ std::string gen_key_bucket(const Point3* p, float z);
 
 double distance(const Point2 &p1, const Point2 &p2);
 double sqr_distance(const Point2 &p1, const Point2 &p2);
+double sqr_distance(const Point2 &p1, double x, double y);
 bool   getCDT(Polygon2* pgn,
             const std::vector< std::vector<int> > &z, 
             std::vector< std::pair<Point3, std::string> > &vertices, 
@@ -56,35 +57,58 @@ bool   getCDT(Polygon2* pgn,
 #define DO_INTERSECT   1
 #define BOUNDARY 2
 
-class PolyEdge {
+class PolyEdge0 {
 public:
   double x1, y1, x2, y2;
   //std::string wkt;
-  PolyEdge(double x1, double y1, double x2, double y2) {
+  PolyEdge0(double x1, double y1, double x2, double y2) {
     this->x1 = x1; this->y1 = y1; this->x2 = x2; this->y2 = y2;
     //this->wkt = "LINESTRING(" + std::to_string(x1) + " " + std::to_string(y1) + ", " + std::to_string(x2) + " " + std::to_string(y2) + ")";
   }
 };
 
+class Vertex {
+public:
+  double x;
+  double y;
+};
+
+class PolyEdge {
+public:
+  int ring;
+  int idx1;
+  int idx2;
+  Point2* v1;
+  Point2* v2;
+  //std::string wkt;
+  PolyEdge(Point2* v1, Point2* v2, int ring, int idx1, int idx2) {
+    this->v1 = v1, this->v2 = v2, this->ring = ring, this->idx1 = idx1, this->idx2 = idx2;
+    //this->wkt = "LINESTRING(" + std::to_string(v1->x) + " " + std::to_string(v1->y) + ", " + std::to_string(v2->x) + " " + std::to_string(v2->y) + ")";
+  }
+};
+
 class GridCell {
 public:
-  int color;
+  unsigned char color;
   std::vector<PolyEdge*> edges;
+  std::vector<std::vector<Point2*>> vertices;
   GridCell() {
     color = ND;
   }
 };
 
 class Grid {
-  Polygon2* polygon;
   std::vector<PolyEdge*> edges;
+  Vertex*** vertices;
   double xmin, ymin, xmax, ymax;  // bounding box
   double sizex, sizey; // size cells in x and y
-  GridCell ***cells;
+  GridCell*** cells;
   void constructEdges();
   void rasterize();
   void markCells();
   PolyEdge* getEdgeToCenter(int ix, int iy, double x, double y);
+protected:
+  Polygon2 * polygon;
 public:
   int celllimit;
   int cellsx, cellsy;	// number of cells in x and y
@@ -94,9 +118,12 @@ public:
   ~Grid();
   void prepare();
   bool checkPoint(double x, double y);
+  std::set<PolyEdge*> getEdges(double x, double y, double radius);
+  std::set<Point2*> getVertices(double x, double y, double radius);
+  bool sqr_distance(double x, double y, double radius);
 };
 
-int RayLineIntersection(PolyEdge* r, PolyEdge* e);
-int HorizontalRayLineIntersection(PolyEdge* r, PolyEdge* e);
+int RayLineIntersection(Point2* r1, Point2* r2, PolyEdge* e);
+int HorizontalRayLineIntersection(Point2* r1, Point2* r2, PolyEdge* e);
 
 #endif /* geomtools_h */

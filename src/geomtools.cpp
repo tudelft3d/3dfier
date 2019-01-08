@@ -236,6 +236,12 @@ double sqr_distance(const Point2 &p1, const Point2 &p2) {
   return dx * dx + dy * dy;
 }
 
+double sqr_distance(const Point2 &p1, double x, double y) {
+  double dx = p1.x() - x;
+  double dy = p1.y() - y;
+  return dx * dx + dy * dy;
+}
+
 //--- TIN Simplification
 // Greedy insertion/incremental refinement algorithm adapted from "Fast polygonal approximation of terrain and height fields" by Garland, Michael and Heckbert, Paul S.
 inline double compute_error(Point &p, CDT::Face_handle &face) {
@@ -404,17 +410,20 @@ void Grid::constructEdges() {
   
     int n = r.size() - 1;
     for (int i = 1; i <= n; i++) {
-      this->edges.push_back(new PolyEdge(r[i - 1].x(), r[i - 1].y(), r[i].x(), r[i].y()));
+      Point2* p = &r[i - 1];
+      this->edges.push_back(new PolyEdge(&r[i-1],  &r[i], ringi, i-1, i));
+      //this->edges.push_back(new PolyEdge(r[i - 1].x(), r[i - 1].y(), r[i].x(), r[i].y()));
     }
-    this->edges.push_back(new PolyEdge(r[n].x(), r[n].y(), r[0].x(), r[0].y()));
+    this->edges.push_back(new PolyEdge(&r[n], &r[0], ringi, n, 0));
+    //this->edges.push_back(new PolyEdge(r[n].x(), r[n].y(), r[0].x(), r[0].y()));
   }
 };
 
 void Grid::rasterize(){
   for (PolyEdge* e : edges) {
     // Get direction vector
-    double xlen = e->x2 - e->x1;
-    double ylen = e->y2 - e->y1;
+    double xlen = e->v2->x() - e->v1->x();
+    double ylen = e->v2->y() - e->v1->y();
 
     // Normalize vector
     double normal = std::sqrt(xlen * xlen + ylen * ylen);
@@ -426,14 +435,14 @@ void Grid::rasterize(){
     int stepy = sgn(diry);
 
     // Get start cell grid location
-    int xp = (int)((e->x1 - xmin) / sizex);
-    int yp = (int)((e->y1 - ymin) / sizey);
+    int xp = (int)((e->v1->x() - xmin) / sizex);
+    int yp = (int)((e->v1->y() - ymin) / sizey);
     // Add edge to start cell
     cells[xp][yp]->edges.push_back(e);
 
     // Get end cell grid location
-    int lastxp = (int)((e->x2 - xmin) / sizex);
-    int lastyp = (int)((e->y2 - ymin) / sizey);
+    int lastxp = (int)((e->v2->x() - xmin) / sizex);
+    int lastyp = (int)((e->v2->y() - ymin) / sizey);
 
     // Calculate length to next grid edge crossing
     double deltax, deltay;
@@ -451,7 +460,7 @@ void Grid::rasterize(){
       deltay = sizey / std::abs(diry);
     }
 
-    double k = e->x1 - (xp * sizex + xmin);
+    double k = e->v1->x() - (xp * sizex + xmin);
     double dx = k * deltax / sizex;
     if (stepx != -1) {
       dx = deltax - dx;
@@ -460,7 +469,7 @@ void Grid::rasterize(){
       dx = DBL_MAX;
     }
 
-    k = e->y1 - (yp * sizey + ymin);
+    k = e->v1->y() - (yp * sizey + ymin);
     double dy = k * deltay / sizey;
     if (stepy != -1) {
       dy = deltay - dy;
@@ -487,46 +496,46 @@ void Grid::rasterize(){
 /* Faster Line Segment Intersection
    Franklin Antonio
    Code from Graphic Gems III */
-int RayLineIntersection(PolyEdge* r, PolyEdge* e) {
+int RayLineIntersection(Point2* r1, Point2* r2, PolyEdge* e) {
   double Ax, Bx, Cx, Ay, By, Cy, d, ee, f, num, offset, x1lo, x1hi, y1lo, y1hi;
 
-  Ax = r->x2 - r->x1;
-  Bx = e->x1 - e->x2;
+  Ax = r2->x() - r1->x();
+  Bx = e->v1->x() - e->v2->x();
 
   if (Ax < 0) {						/* X bound box test*/
-    x1lo = r->x2; x1hi = r->x1;
+    x1lo = r2->x(); x1hi = r1->x();
   }
   else {
-    x1hi = r->x2; x1lo = r->x1;
+    x1hi = r2->x(); x1lo = r1->x();
   }
   if (Bx > 0) {
-    if (x1hi < e->x2 || e->x1 < x1lo) return DONT_INTERSECT;
+    if (x1hi < e->v2->x() || e->v1->x() < x1lo) return DONT_INTERSECT;
   }
   else {
-    if (x1hi < e->x1 || e->x2 < x1lo) return DONT_INTERSECT;
+    if (x1hi < e->v1->x() || e->v2->x() < x1lo) return DONT_INTERSECT;
   }
 
-  Ay = r->y2 - r->y1;
-  By = e->y1 - e->y2;
+  Ay = r2->y() - r1->y();
+  By = e->v1->y() - e->v2->y();
 
   if (Ay < 0) {						/* Y bound box test*/
-    y1lo = r->y2; y1hi = r->y1;
+    y1lo = r2->y(); y1hi = r1->y();
   }
   else {
-    y1hi = r->y2; y1lo = r->y1;
+    y1hi = r2->y(); y1lo = r1->y();
   }
   if (By > 0) {
-    if (y1hi < e->y2 || e->y1 < y1lo) return DONT_INTERSECT;
+    if (y1hi < e->v2->y() || e->v1->y() < y1lo) return DONT_INTERSECT;
   }
   else {
-    if (y1hi < e->y1 || e->y2 < y1lo) return DONT_INTERSECT;
+    if (y1hi < e->v1->y() || e->v2->y() < y1lo) return DONT_INTERSECT;
   }
 
   f = Ay * Bx - Ax * By;					/* both denominator*/
   if (f == 0) return DONT_INTERSECT;
 
-  Cx = r->x1 - e->x1;
-  Cy = r->y1 - e->y1;
+  Cx = r1->x() - e->v1->x();
+  Cy = r1->y() - e->v1->y();
 
   d = By * Cx - Bx * Cy;					/* alpha numerator*/
   if (f > 0) {						/* alpha tests*/
@@ -546,42 +555,43 @@ int RayLineIntersection(PolyEdge* r, PolyEdge* e) {
 
   ///*compute intersection coordinates*/
   //num = d * Ax;						/* numerator */
-  //double x = r->x1 + num / f;		    /* intersection x */
+  //double x = r1->x() + num / f;		    /* intersection x */
 
   //num = d * Ay;
-  //double y = r->y1 + num / f;				/* intersection y */
+  //double y = r1->y() + num / f;				/* intersection y */
 
   //// Check if the ray end (center of cell) is on intersection, in that case cell is GRAY
-  //if (x == r->x2 && y == r->y2) {
+  //if (x == r2->x() && y == r2->y()) {
   //  return BOUNDARY;
   //}
 
   return DO_INTERSECT;
 }
 
-int HorizontalRayLineIntersection(PolyEdge* r, PolyEdge* e) {
+int HorizontalRayLineIntersection(Point2* r1, Point2* r2, PolyEdge* e) {
   double Ax, Bx, Cx, By, Cy, d, ee, f, num, offset, x1lo, x1hi;
 
   /* Y bound box test*/
-  By = e->y1 - e->y2;
-  if (r->y1 < e->y1 == r->y1 < e->y2) return DONT_INTERSECT;
-
+  By = e->v1->y() - e->v2->y();
+  if (r1->y() < e->v1->y() && r1->y() < e->v2->y()) return DONT_INTERSECT;
+  if (r1->y() > e->v1->y() && r1->y() > e->v2->y()) return DONT_INTERSECT;
+  
   /* X bound box test*/
-  Bx = e->x1 - e->x2;
-  x1lo = r->x1; x1hi = r->x2; /* X bound box test*/
+  Bx = e->v1->x() - e->v2->x();
+  x1lo = r1->x(); x1hi = r2->x(); /* X bound box test*/
   if (Bx > 0) {
-    if (x1hi < e->x2 || e->x1 < x1lo) return DONT_INTERSECT;
+    if (x1hi < e->v2->x() || e->v1->x() < x1lo) return DONT_INTERSECT;
   }
   else {
-    if (x1hi < e->x1 || e->x2 < x1lo) return DONT_INTERSECT;
+    if (x1hi < e->v1->x() || e->v2->x() < x1lo) return DONT_INTERSECT;
   }
 
   // Ax is allways positive, ray goes from left to right
-  Ax = r->x2 - r->x1;
+  Ax = r2->x() - r1->x();
 
   f = -Ax * By;					  /* both denominator*/
-  Cx = r->x1 - e->x1;
-  Cy = r->y1 - e->y1;
+  Cx = r1->x() - e->v1->x();
+  Cy = r1->y() - e->v1->y();
 
   d = By * Cx - Bx * Cy;	/* alpha numerator*/
   if (f > 0) {						/* alpha tests*/
@@ -600,11 +610,11 @@ int HorizontalRayLineIntersection(PolyEdge* r, PolyEdge* e) {
   }
 
   /* intersection x */
-  double x = r->x1 + d * Ax / f;
+  double x = r1->x() + d * Ax / f;
 
   // Check if the ray end (center of cell) is on intersection using epsilon
   // only test for x since ray is horizontal
-  if (std::abs(x - r->x2) < 0.000000001) {
+  if (std::abs(x - r2->x()) < 0.000000001) {
     return BOUNDARY;
   }
 
@@ -635,7 +645,8 @@ void Grid::markCells() {
       // raytracing from center to center. Use edges from this and previous cell if not boundary
       int crossings = 0;
       int color = CBLACK;
-      PolyEdge* r = new PolyEdge(prevx, prevy, x, y);
+      Point2* r1 = new Point2(prevx, prevy);
+      Point2* r2 = new Point2(x, y);
       
       // create a set with unique edges add edges of current cell and previous cell
       // skip previous if cell is first in row
@@ -646,7 +657,7 @@ void Grid::markCells() {
 
       // iterate edges and do ray-line intersection
       for (PolyEdge* e : edges) {
-        int cross = HorizontalRayLineIntersection(r, e);
+        int cross = HorizontalRayLineIntersection(r1, r2, e);
         ///// TESTING
         //if (cross != RayLineIntersection(r, e)) {
         //  std::cout << "RayLineIntersection different" << std::endl;
@@ -658,7 +669,7 @@ void Grid::markCells() {
         }
         crossings += cross;
       }
-      delete r;
+      delete r1, r2;
 
       // calculate color of cell using crossing
       // and handle singular case (inverse previous color for next iteration)
@@ -695,12 +706,6 @@ void Grid::markCells() {
     // increase y-coordinate of cell after full row
     y += sizey;
   }
-}
-
-PolyEdge* Grid::getEdgeToCenter(int ix, int iy, double x, double y) {
-  double xc = xmin + (sizex * (ix + 0.5));
-  double yc = ymin + (sizey * (iy + 0.5));
-  return new PolyEdge(x, y, xc, yc);
 }
 
 bool Grid::checkPoint(double x, double y) {
@@ -743,11 +748,12 @@ bool Grid::checkPoint(double x, double y) {
       //  + std::to_string(x1) + " " + std::to_string(y1)
       //  + "))";
       /// TESTING
-      PolyEdge* r = getEdgeToCenter(ix, iy, x, y);
-      if (RayLineIntersection(r, e) == DO_INTERSECT) {
+      Point2* r1 = new Point2(ix, iy);
+      Point2* r2 = new Point2(x, y);
+      if (RayLineIntersection(r1, r2, e) == DO_INTERSECT) {
         crossings++;
       }
-      delete r;
+      delete r1, r2;
     }
   }
   else {
@@ -780,13 +786,19 @@ bool Grid::checkPoint(double x, double y) {
       edges.insert(cells[ix + ii * sign][iy]->edges.begin(), cells[ix + ii * sign][iy]->edges.end());
     }
 
+    double xc, yc;
+    Point2 *r1, *r2;
     // Iterate edges of cell between first and last
     for (PolyEdge* e : edges) {
-      PolyEdge* r = getEdgeToCenter(i2, iy, x, y);
-      if (RayLineIntersection(r, e) == DO_INTERSECT) {
+      //getEdgeToCenter
+      xc = xmin + (sizex * (ix + 0.5));
+      yc = ymin + (sizey * (iy + 0.5));
+      r1 = new Point2(x, y);
+      r2 = new Point2(xc, yc);
+      if (RayLineIntersection(r1, r2, e) == DO_INTERSECT) {
         crossings++;
       }
-      delete r;
+      delete r1, r2;
     }
   }
   // equal crossings gives same color for cell
@@ -805,6 +817,84 @@ bool Grid::checkPoint(double x, double y) {
     }
     else if (col == CWHITE) {
       return false;
+    }
+  }
+  return false;
+}
+
+std::set<PolyEdge*> Grid::getEdges(double x, double y, double radius) {
+  std::set<PolyEdge*> edges = std::set<PolyEdge*>();
+  
+  // calculate box for point radius
+  double rxmin = x - radius;
+  double rxmax = x + radius;
+  double rymin = y - radius;
+  double rymax = y + radius;
+
+  // get cells that are within radius of the point
+  int xstart = rxmin > xmin ? (rxmin - xmin) / sizex : 0;
+  int xend = rxmax < xmax ? (rxmax - xmin) / sizex : cellsx - 1;
+  int ystart = y > ymin ? (rymin - ymin) / sizey : 0;
+  int yend = y < ymax ? (rymax - ymin) / sizey : cellsy - 1;
+
+  for (int ix = xstart; ix <= xend; ix++) {
+    for (int iy = ystart; iy <= yend; iy++) {
+      edges.insert(cells[ix][iy]->edges.begin(), cells[ix][iy]->edges.end());
+    }
+  }
+  return edges;
+}
+
+std::set<Point2*> Grid::getVertices(double x, double y, double radius) {
+  std::set<Point2*> vertices = std::set<Point2*>();
+
+  // calculate box for point radius
+  double rxmin = x - radius;
+  double rxmax = x + radius;
+  double rymin = y - radius;
+  double rymax = y + radius;
+
+  // get cells that are within radius of the point
+  int xstart = rxmin > xmin ? (rxmin - xmin) / sizex : 0;
+  int xend = rxmax < xmax ? (rxmax - xmin) / sizex : cellsx - 1;
+  int ystart = y > ymin ? (rymin - ymin) / sizey : 0;
+  int yend = y < ymax ? (rymax - ymin) / sizey : cellsy - 1;
+
+  for (int ix = xstart; ix <= xend; ix++) {
+    for (int iy = ystart; iy <= yend; iy++) {
+      for (PolyEdge* e : edges) {
+        vertices.insert(new Point2(e->v1->x(), e->v1->y()));
+        vertices.insert(new Point2(e->v2->x(), e->v2->y()));
+      }
+    }
+  }
+  return vertices;
+}
+
+bool Grid::sqr_distance(double x, double y, double radius) {
+  // calculate box for point radius
+  double rxmin = x - radius;
+  double rxmax = x + radius;
+  double rymin = y - radius;
+  double rymax = y + radius;
+
+  // get cells that are within radius of the point
+  int xstart = rxmin > xmin ? (rxmin - xmin) / sizex : 0;
+  int xend = rxmax < xmax ? (rxmax - xmin) / sizex : cellsx - 1;
+  int ystart = rymin > ymin ? (rymin - ymin) / sizey : 0;
+  int yend = rymax < ymax ? (rymax - ymin) / sizey : cellsy - 1;
+
+  // TODO: now we do not take into account the vertices are double
+  // maybe add the edges to a set and test?
+  for (int ix = xstart; ix <= xend; ix++) {
+    for (int iy = ystart; iy <= yend; iy++) {
+      for (PolyEdge* e : cells[ix][iy]->edges) {
+        double dx = x - e->v1->x();
+        double dy = y - e->v1->y();
+        if (dx * dx + dy * dy <= radius) {
+          return true;
+        }
+      }
     }
   }
   return false;
