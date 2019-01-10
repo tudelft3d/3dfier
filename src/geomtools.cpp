@@ -292,9 +292,6 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
 
     // handle case where max_p somehow coincides with a polygon vertex
     if (faces.size()==0) {
-        // remove this points from the heap
-        heap.pop();
-        
         // this should return the already existing vertex
         auto v = T.insert(max_p);
 
@@ -304,17 +301,19 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         do {
           auto face = *face_circulator;
 
-          if (face->info().points_inside) {
-            for (auto it =*face->info().points_inside.begin(); it != *face->info().points_inside.end(); ){
+          if (face.info().points_inside) {
+            for (auto it = face.info().points_inside->begin(); it != face.info().points_inside->end(); it++){
               auto h = *it;
               if( maxelement.index == (*h).index)
-                *face->info().points_inside.erase(it);
+                face.info().points_inside->erase(it);
             }
-            face->info().points_inside->clear();
           }
           face_circulator++;
-        } while (face_circulator != start)
-
+        } while (face_circulator != start);
+        
+        // remove this points from the heap
+        heap.pop();
+        
         // skip to next iteration
         continue;
     }
