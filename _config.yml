@@ -6,9 +6,10 @@ url: http://tudelft3d.github.io/3dfier
 show_downloads: true
 github_username:  tudelft3d
 twitter username: tudelft3d
-logo: /img/3dfierLogo.png
+logo: docs/img/3dfierLogo.png
 
-baseurl: "/docs/"
+source              : ./docs
+destination         : ./_site
 
 # Build settings
 markdown: kramdown
