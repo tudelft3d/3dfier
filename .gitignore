@@ -41,6 +41,9 @@ vs_build/.vs
 *.pdb
 *.vcxproj.user
 *.lib
+
+# Folders
+/vendor
 x64/
 x86/
 /resources/convert-to-simulation/simulatorready
