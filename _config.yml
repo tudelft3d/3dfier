@@ -8,7 +8,7 @@ github_username:  tudelft3d
 twitter username: tudelft3d
 logo: /img/3dfierLogo.png
 
-source: docs
+source: ./docs
 
 # Build settings
 markdown: kramdown
