@@ -1,1 +1,13 @@
-theme: jekyll-theme-tactile
+---
+version: 1.1
+title: 3dfier
+description: Create 3D models from 2D GIS datasets by lifting each polygon to its height obtained from 3D point clouds
+url: http://tudelft3d.github.io/3dfier
+show_downloads: true
+github_username:  tudelft3d
+twitter username: tudelft3d
+logo: img/3dfierLogo.png
+
+# Build settings
+markdown: kramdown
+theme: jekyll-theme-minimal

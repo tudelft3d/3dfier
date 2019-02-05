@@ -41,6 +41,10 @@ vs_build/.vs
 *.pdb
 *.vcxproj.user
 *.lib
+
+# Folders
+/vendor
+/_site
 x64/
 x86/
 
