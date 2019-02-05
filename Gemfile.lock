@@ -243,7 +243,6 @@ PLATFORMS
 
 DEPENDENCIES
   github-pages
-  jekyll-theme-tactile
 
 BUNDLED WITH
    2.0.1

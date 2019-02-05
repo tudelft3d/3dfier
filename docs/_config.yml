@@ -6,8 +6,8 @@ url: http://tudelft3d.github.io/3dfier
 show_downloads: true
 github_username:  tudelft3d
 twitter username: tudelft3d
-logo: "/img/3dfierLogo.png"
+logo: /img/3dfierLogo.png
 
 # Build settings
 markdown: kramdown
-theme: jekyll-theme-tactile
+theme: jekyll-theme-minimal
