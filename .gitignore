@@ -44,6 +44,7 @@ vs_build/.vs
 
 # Folders
 /vendor
+/_site
 x64/
 x86/
 /resources/convert-to-simulation/simulatorready
