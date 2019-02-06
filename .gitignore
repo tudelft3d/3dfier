@@ -47,6 +47,10 @@ vs_build/.vs
 /_site
 x64/
 x86/
+
+#Folders
+/vendor
+/_site
 /resources/convert-to-simulation/simulatorready
 /resources/convert-to-simulation/out.off
 /resources/convert-to-simulation/bin/
