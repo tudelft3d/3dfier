@@ -10,6 +10,9 @@
     <!--[if lt IE 9]>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
     <![endif]-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link href="{{ site.baseurl }}/assets/css/docs.min.css" rel="stylesheet">
+
   </head>
   <body>
     <div class="wrapper">
@@ -37,18 +40,15 @@
           <li><a href="{{ site.github.repository_url }}">View On <strong>GitHub</strong></a></li>
         </ul>
         {% endif %}
+        
+        <div class="bd-sidebar">
+          {% include sidebar.html %}
+        </div>
 
-        <ul class="menu">
-          <li><a href="./installation.html">Installation</a></li>
-          <li><a href="./data_preparation.html">Data preparation</a></li>
-          <li><a href="./formats.html">Output formats</a></li>
-          <li><a href="./examples.html">Examples</a></li>
-        </ul>
       </header>
       <section>
-
-      {{ content }}
-
+        <h1>{{ page.title }}</h1>
+        {{ content }}
       </section>
       <footer>
         {% if site.github.is_project_page %}
@@ -68,5 +68,8 @@
       ga('send', 'pageview');
     </script>
     {% endif %}
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   </body>
 </html>
