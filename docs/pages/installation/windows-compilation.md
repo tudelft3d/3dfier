@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Windows compilation
-group: getting-started
+group: installation
 ---
 
 This guide will talk you through the compilation of 3dfier on Windows 10 64-bit using Visual Studio 2017 (steps are identical for Visual Studio 2015).

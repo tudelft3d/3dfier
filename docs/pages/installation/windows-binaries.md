@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Windows binaries
-group: getting-started
+group: installation
 ---
 
 There exists a ready-to-use version of [3dfier for Windows 64-bit]({{site.github.repository_url}}/releases/latest). Download and extract the files to any given folder and [execute 3dfier]({{site.baseurl}}/pages/getting-started/how-to-run).
