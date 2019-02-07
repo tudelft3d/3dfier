@@ -3,22 +3,27 @@
     - title: Introduction
     - title: Contents
     - title: How to run
+    - title: Settings
     - title: Known issues
+
+- title: Installation
+  pages:
     - title: Windows binaries
+    - title: Docker image
     - title: Windows compilation
-    - title: Ubuntu 14.04
     - title: Ubuntu 16.04
     - title: MacOS
 
 - title: Data preparation
   pages:
     - title: Overview
-
+    - title: Generate terrain
+    - title: Building footprints from OpenStreetMap
 - title: Examples
   pages:
     - title: Example data
-    - title: BGT with AHN3
     - title: Buildings without terrain
+    - title: Building statistics as CSV
     - title: Buildings with terrain
 
 - title: Output formats

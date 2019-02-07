@@ -4,11 +4,17 @@ title: Example data
 group: examples
 ---
 
+## Prepare example data
+For this example we use [BGT_Delft_Example.zip]({{site.github.repository_url}}/raw/master/resources/Example_data/BGT_Delft_Example.zip) from the GitHub repository located in `3dfier/resources/Example_data/`. Create a folder with 3dfier and the depencency dll's and add the `example_data folder`.
+
+![Folder layout](/img/example_folder.png)
+
 ## Running with the example data
-Start by opening the Command Prompt (press windows button+R, type cmd and press enter) and navigate to the folder where 3dfier is located.
+Opening the Command Prompt (press windows button+R, type cmd and press enter) and navigate to the folder where 3dfier is located.
 
+Now go into the example data folder using `cd example_data` and run `..\3dfier.exe testarea_config.yml --OBJ output\myfirstmodel.obj`. Now 3dfier will start processing and when finished it produced its first 3D model!
 
-Now go into the example data folder using `cd example_data` and run `..\3dfier.exe testarea_config.yml --OBJ output\myfirstmodel.obj`. Now 3dfier will start processing and when finished it produced its first 3d model! The file can be found here `example_data\output\testarea.obj` and console output should be as follows.
+The output file can be found here `example_data\output\testarea.obj` and console output should be as follows.
 
 ```
 3dfier Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
