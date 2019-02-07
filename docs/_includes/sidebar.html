@@ -11,7 +11,7 @@
   {%- endif -%}
 
   <div class="bd-toc-item{% unless active == nil %} {{ active }}{% endunless %}">
-      <a class="bd-toc-link" href="{{ site.baseurl }}/pages/{{ group_slug }}{{ link_slug }}{% if link_slug %}/{% endif %}">
+      <a class="bd-toc-link" href="{{ site.baseurl }}/pages/{{ group_slug }}/{{ link_slug }}{% if link_slug %}{% endif %}">
         {{ group.title }}
       </a>
 
