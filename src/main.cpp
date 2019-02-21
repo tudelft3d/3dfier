@@ -594,7 +594,7 @@ int main(int argc, const char * argv[]) {
       std::clog << "\nPerforming 3D reconstruction in order to compute quality metrics" << std::endl;
   }
   if (stats == 1 && multi_rmse) {
-    std::vector<float> rpercentiles = {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
+    std::vector<float> rpercentiles = {0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
     distance = true;
     for (int i = 0; i < rpercentiles.size(); i++) {
       float pctile = rpercentiles[i];

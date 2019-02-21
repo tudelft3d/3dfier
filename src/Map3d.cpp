@@ -335,7 +335,7 @@ void Map3d::get_csv_buildings_all_elevation_points(std::wostream& of) {
 void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, int stats) {
   //-- ground heights
   std::vector<float> gpercentiles = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
-  std::vector<float> rpercentiles = {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
+  std::vector<float> rpercentiles = {0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
   of << std::setprecision(2) << std::fixed;
   of << "id,";
   for (auto& each : gpercentiles)
