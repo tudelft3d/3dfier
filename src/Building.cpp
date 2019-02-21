@@ -46,14 +46,12 @@ Building::Building(char *wkt, std::string layername, AttributeMap attributes, st
   _building_triangulate = building_triangulate;
   _building_include_floor = building_include_floor;
   _building_inner_walls = building_inner_walls;
-  _rpctile_map[0] = 0;
-  _rpctile_map[10] = 1;
-  _rpctile_map[25] = 2;
-  _rpctile_map[50] = 3;
-  _rpctile_map[75] = 4;
-  _rpctile_map[90] = 5;
-  _rpctile_map[95] = 6;
-  _rpctile_map[99] = 7;
+  _rpctile_map[25] = 0;
+  _rpctile_map[50] = 1;
+  _rpctile_map[75] = 2;
+  _rpctile_map[90] = 3;
+  _rpctile_map[95] = 4;
+  _rpctile_map[99] = 5;
 }
 
 void Building::set_las_classes_roof(std::set<int> theset)
