@@ -75,21 +75,6 @@ typedef CGAL::Constrained_Delaunay_triangulation_2<Gt, Tds, Itag>	CDT;
 typedef CDT::Point													Point;
 typedef CGAL::Polygon_2<Gt>											Polygon_2;
 
-struct PointXYHash {
-  std::size_t operator()(Point const& p) const noexcept {
-    std::size_t h1 = std::hash<double>{}(p.x());
-    std::size_t h2 = std::hash<double>{}(p.y());
-    return h1 ^ (h2 << 1);
-  }
-};
-struct PointXYEqual {
-  bool operator()(Point const& p1, Point const& p2) const noexcept {
-    auto ex = p1.x() == p2.x();
-    auto ey = p1.y() == p2.y();
-    return ex && ey;
-  }
-};
-
 inline double compute_error(Point &p, CDT::Face_handle &face);
 void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold);
 
@@ -267,16 +252,28 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
 
   // compute initial point errors, build heap, store point indices in triangles
   {
-    std::unordered_set<Point, PointXYHash, PointXYEqual> set;
-    for(int i=0; i<cpts.size(); i++){
+    for (int i = 0; i < cpts.size(); i++) {
       auto p = cpts[i];
-      // detect and skip duplicate points
-      bool not_duplicate = set.insert(p).second;
-      if(not_duplicate){
-        auto face = T.locate(p);
+      CDT::Locate_type lt;
+      int li;
+      CDT::Face_handle face = T.locate(p, lt, li);
+      if (lt == CDT::EDGE || lt == CDT::FACE) {
         auto e = compute_error(p, face);
-        auto handle = heap.push(point_error(i,e));
+        auto handle = heap.push(point_error(i, e));
         face->info().points_inside->push_back(handle);
+      }
+      else {
+        std::cout << "CDT insert; point location not in face but ";
+        if (lt == CDT::VERTEX) {
+          std::cout << "on vertex.";
+        }
+        else if (lt == CDT::OUTSIDE_CONVEX_HULL) {
+          std::cout << "outside convex hull.";
+        }
+        else if (lt == CDT::OUTSIDE_AFFINE_HULL) {
+          std::cout << "outside affine hull.";
+        }
+        std::cout << " Point; " << std::fixed << std::setprecision(3) << p << std::endl;
       }
     }
   }
@@ -289,7 +286,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
 
     // get triangles that will change after inserting this max_p
     std::vector<CDT::Face_handle> faces;
-    T.get_conflicts ( max_p, std::back_inserter(faces) );
+    T.get_conflicts(max_p, std::back_inserter(faces));
 
     // handle case where max_p somehow coincides with a polygon vertex
     if (faces.size()==0) {
@@ -351,11 +348,29 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     // update the errors of affected elevation points
     for (auto curelement : points_to_update){
       auto p = cpts[(*curelement).index];
-      auto containing_face = T.locate(p, face_hint);
-      const double e = compute_error(p, containing_face);
-      const point_error new_pe = point_error((*curelement).index, e);
-      heap.update(curelement, new_pe);
-      containing_face->info().points_inside->push_back(curelement);
+      //auto containing_face = T.locate(p, face_hint);
+      CDT::Locate_type lt;
+      int li;
+      CDT::Face_handle containing_face = T.locate(p, lt, li, face_hint);
+      if (lt == CDT::EDGE || lt == CDT::FACE) {
+        const double e = compute_error(p, containing_face);
+        const point_error new_pe = point_error((*curelement).index, e);
+        heap.update(curelement, new_pe);
+        containing_face->info().points_inside->push_back(curelement);
+      }
+      else {
+        std::cout << "CDT update; point location not in face but ";
+        if (lt == CDT::VERTEX) {
+          std::cout << "on vertex.";
+        }
+        else if (lt == CDT::OUTSIDE_CONVEX_HULL) {
+          std::cout << "outside convex hull.";
+        }
+        else if (lt == CDT::OUTSIDE_AFFINE_HULL) {
+          std::cout << "outside affine hull.";
+        }
+        std::cout << " Point; " << std::fixed << std::setprecision(3) << p << std::endl;
+      }
     }
   }
 
