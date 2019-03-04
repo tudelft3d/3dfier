@@ -13,16 +13,10 @@
     <ClCompile Include="..\src\Forest.cpp" />
     <ClCompile Include="..\src\Water.cpp" />
     <ClCompile Include="..\src\geomtools.cpp" />
-    <ClCompile Include="..\thirdparty\ptinpoly.c">
-      <Filter>thirdparty</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
       <UniqueIdentifier>{6bab34b8-d2c1-4389-843c-f8e08273d93c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="thirdparty">
-      <UniqueIdentifier>{8d4f40f4-562a-4dee-81e3-87f0b641dbe2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

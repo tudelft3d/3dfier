@@ -34,7 +34,6 @@
 #include "io.h"
 #include "polyfit.hpp"
 #include "nlohmann-json/json.hpp"
-#include "ptinpoly.h"
 
 class TopoFeature {
 public:
@@ -81,7 +80,6 @@ public:
   void         get_imgeo_object_info(std::wostream& of, std::string id);
   void         get_citygml_attributes(std::wostream& of, const AttributeMap& attributes);
   void         get_cityjson_attributes(nlohmann::json& f, const AttributeMap& attributes);
-  void         cleanup_grid();
 protected:
   Polygon2*                         _p2;
   std::vector< std::vector<int> >   _p2z;
@@ -91,7 +89,6 @@ protected:
   bool                              _toplevel;
   std::string                       _layername;
   AttributeMap                      _attributes;
-  std::vector<pGridSet>             _grids;
 
   std::vector< std::vector< std::vector<int> > >  _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
   std::vector< std::pair<Point3, std::string> >   _vertices;
@@ -99,12 +96,10 @@ protected:
   std::vector< std::pair<Point3, std::string> >   _vertices_vw;
   std::vector<Triangle>                           _triangles_vw;
 
-  void    prepare_grid();
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(const Point2& p, double z, float radius);
   bool    within_range(const Point2& p, double radius);
-  bool    point_in_polygon(const Point2& p, const Polygon2& poly);
-  bool    point_in_polygon_grid(const Point2& p);
+  bool    point_in_polygon(const Point2& p);
   void    lift_each_boundary_vertices(float percentile);
   void    lift_all_boundary_vertices_same_height(int height);
 
