@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2019  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -36,7 +36,7 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
-std::string VERSION = "1.1.1";
+std::string VERSION = "1.1.2";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
@@ -52,7 +52,7 @@ int main(int argc, const char * argv[]) {
   std::cout.imbue(loc);
 
   std::string licensewarning =
-    "3dfier Copyright (C) 2015-2018  3D geoinformation research group, TU Delft\n"
+    "3dfier Copyright (C) 2015-2019  3D geoinformation research group, TU Delft\n"
     "This program comes with ABSOLUTELY NO WARRANTY.\n"
     "This is free software, and you are welcome to redistribute it\n"
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
@@ -698,7 +698,7 @@ std::string print_license() {
   std::string thelicense =
     "======================================================================\n"
     "\n3dfier: takes 2D GIS datasets and '3dfies' to create 3D city models.\n\n"
-    "Copyright (C) 2015-2018  3D geoinformation research group, TU Delft\n\n"
+    "Copyright (C) 2015-2019  3D geoinformation research group, TU Delft\n\n"
     "3dfier is free software: you can redistribute it and/or modify\n"
     "it under the terms of the GNU General Public License as published by\n"
     "the Free Software Foundation, either version 3 of the License, or\n"
