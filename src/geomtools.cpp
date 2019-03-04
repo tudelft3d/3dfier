@@ -67,13 +67,13 @@ struct FaceInfo2
   heap_handle_vec* points_inside = nullptr;
   CGAL::Plane_3<K>* plane = nullptr;
 };
-typedef CGAL::Triangulation_face_base_with_info_2<FaceInfo2, Gt>	Fbb;
-typedef CGAL::Constrained_triangulation_face_base_2<Gt, Fbb>		Fb;
-typedef CGAL::Triangulation_data_structure_2<Vb, Fb>				Tds;
-typedef CGAL::Exact_predicates_tag									Itag;
-typedef CGAL::Constrained_Delaunay_triangulation_2<Gt, Tds, Itag>	CDT;
-typedef CDT::Point													Point;
-typedef CGAL::Polygon_2<Gt>											Polygon_2;
+typedef CGAL::Triangulation_face_base_with_info_2<FaceInfo2, Gt>  Fbb;
+typedef CGAL::Constrained_triangulation_face_base_2<Gt, Fbb>      Fb;
+typedef CGAL::Triangulation_data_structure_2<Vb, Fb>              Tds;
+typedef CGAL::Exact_predicates_tag                                Itag;
+typedef CGAL::Constrained_Delaunay_triangulation_2<Gt, Tds, Itag> CDT;
+typedef CDT::Point                                                Point;
+typedef CGAL::Polygon_2<Gt>                                       Polygon_2;
 
 inline double compute_error(Point &p, CDT::Face_handle &face);
 void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold);
