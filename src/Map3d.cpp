@@ -458,13 +458,6 @@ bool Map3d::get_postgis_output(std::string connstr, bool pdok, bool citygml) {
   int i = 1;
   for (auto& f : _lsFeatures) {
     std::string layername = f->get_layername();
-    //Add additional attribute describing CityGML of feature
-    std::wstring_convert<codecvt<wchar_t, char, std::mbstate_t>>converter;
-    std::wstringstream ss;
-    ss << std::fixed << std::setprecision(3);
-    f->get_citygml_imgeo(ss);
-    std::string gmlAttribute = converter.to_bytes(ss.str());
-    ss.clear();
     AttributeMap extraAttribute = AttributeMap();
     
     if (pdok) {
@@ -482,30 +475,6 @@ bool Map3d::get_postgis_output(std::string connstr, bool pdok, bool citygml) {
       ss.clear();
       extraAttribute["xml"] = std::make_pair(OFTString, gmlAttribute);
     }
-  }
-  if (dataSource->CommitTransaction() != OGRERR_NONE) {
-    std::cerr << "Writing to database failed.\n";
-    return false;
-  }
-  if (dataSource->StartTransaction() != OGRERR_NONE) {
-    std::cerr << "Starting database transaction failed.\n";
-    return false;
-  }
-
-  // create and write features to layers
-  int i = 1;
-  for (auto& f : _lsFeatures) {
-    std::string layername = f->get_layername();
-    //Add additional attribute describing CityGML of feature
-    std::wstring_convert<codecvt<wchar_t, char, std::mbstate_t>>converter;
-    std::wstringstream ss;
-    ss << std::fixed << std::setprecision(3);
-    f->get_citygml(ss);
-    std::string gmlAttribute = converter.to_bytes(ss.str());
-    ss.clear();
-    AttributeMap extraAttribute = AttributeMap();
-    extraAttribute["xml"] = std::make_pair(OFTString, gmlAttribute);
-
     if (!f->get_shape(layers[layername], true, extraAttribute)) {
       return false;
     }
@@ -1107,31 +1076,31 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
 
 bool Map3d::add_las_file(PointFile pointFile) {
   std::clog << "Reading LAS/LAZ file: " << pointFile.filename << std::endl;
-  std::ifstream ifs;
+
+  LASreadOpener lasreadopener;
+  lasreadopener.set_file_name(pointFile.filename.c_str());
+  //-- set to compute bounding box
+  lasreadopener.set_populate_header(true);
+  LASreader* lasreader = lasreadopener.open();
 
   try {
-    ifs.open(pointFile.filename.c_str(), std::ios::in | std::ios::binary);
-    if (ifs.is_open() == false) {
+    //-- check if file is open
+    if (lasreader == 0) {
       std::cerr << "\tERROR: could not open file: " << pointFile.filename << std::endl;
       return false;
     }
-    //-- LAS classes to omit
-    std::vector<liblas::Classification> liblasomits;
-    for (int i : pointFile.lasomits) {
-      liblasomits.push_back(liblas::Classification(i));
-    }
+    LASheader header = lasreader->header;
 
-    //-- read each point 1-by-1
-    liblas::ReaderFactory f;
-    liblas::Reader reader = f.CreateWithStream(ifs);
-    liblas::Header const& header = reader.GetHeader();
+    if (check_bounds(header.min_x, header.max_x, header.min_y, header.max_y)) {
+      //-- LAS classes to omit
+      std::vector<int> lasomits;
+      for (int i : pointFile.lasomits) {
+        lasomits.push_back(i);
+      }
 
-    //-- check if the file overlaps the polygons
-    liblas::Bounds<double> bounds = header.GetExtent();
-    liblas::Bounds<double> polygonBounds = get_bounds();
-    uint32_t pointCount = header.GetPointRecordsCount();
+      //-- read each point 1-by-1
+      uint32_t pointCount = header.number_of_point_records;
 
-    if (polygonBounds.intersects(bounds)) {
       std::clog << "\t(" << boost::locale::as::number << pointCount << " points in the file)\n";
       if ((pointFile.thinning > 1)) {
         std::clog << "\t(skipping every " << pointFile.thinning << "th points, thus ";
@@ -1148,9 +1117,8 @@ bool Map3d::add_las_file(PointFile pointFile) {
       }
       printProgressBar(0);
       int i = 0;
-
-      while (reader.ReadNextPoint()) {
-        liblas::Point const& p = reader.GetPoint();
+      while (lasreader->read_point()) {
+        LASpoint const& p = lasreader->point;
         //-- set the thinning filter
         if (i % pointFile.thinning == 0) {
           //-- set the classification filter
@@ -1171,11 +1139,11 @@ bool Map3d::add_las_file(PointFile pointFile) {
     else {
       std::clog << "\tskipping file, bounds do not intersect polygon extent\n";
     }
-    ifs.close();
+    lasreader->close();
   }
   catch (std::exception e) {
     std::cerr << std::endl << e.what() << std::endl;
-    ifs.close();
+    lasreader->close();
     return false;
   }
   return true;
