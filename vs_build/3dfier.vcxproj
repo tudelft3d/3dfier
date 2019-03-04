@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -58,7 +58,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(LIBLAS_ROOT)\include;$(LASZIP_ROOT)\include;$(BOOST_ROOT);$(OSGEO4W_ROOT)\include;$(YAML-CPP_DIR)\include;$(CGAL_DIR)\include;$(CGAL_DIR)\auxiliary\gmp\include;..\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LASLIB_ROOT)\inc;$(LASZIP_ROOT)\src;$(BOOST_ROOT);$(OSGEO4W_ROOT)\include;$(YAML-CPP_DIR)\include;$(CGAL_DIR)\include;$(CGAL_DIR)\auxiliary\gmp\include;..\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <CompileAs>Default</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -89,8 +89,8 @@
     </Midl>
     <Link>
       <AdditionalOptions> /machine:x64 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>gdal_i.lib;liblas.lib;laszip.lib;libCGAL_Core-vc140-mt-4.8.lib;libCGAL-vc140-mt-4.8.lib;libgmp-10.lib;libyaml-cppmd.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(LIBLAS_ROOT)\bin;$(LIBLAS_ROOT)\lib;$(LASZIP_ROOT)\lib;$(BOOST_LIBRARYDIR);$(OSGEO4W_ROOT)\lib;$(CGAL_DIR)\lib\;$(CGAL_DIR)\auxiliary\gmp\lib\;$(YAML-CPP_DIR)\vs_build\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>gdal_i.lib;LASlib.lib;libCGAL_Core-vc140-mt-4.12.lib;libCGAL-vc140-mt-4.12.lib;libgmp-10.lib;libyaml-cppmd.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(LASLIB_ROOT)\lib\Release;$(BOOST_LIBRARYDIR);$(OSGEO4W_ROOT)\lib;$(CGAL_DIR)\lib\;$(CGAL_DIR)\auxiliary\gmp\lib\;$(YAML-CPP_DIR)\vs_build\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImportLibrary>
@@ -106,7 +106,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(LIBLAS_ROOT)\include;$(LASZIP_ROOT)\include;$(BOOST_ROOT);$(OSGEO4W_ROOT)\include;$(YAML-CPP_DIR)\include;$(CGAL_DIR)\include;$(CGAL_DIR)\auxiliary\gmp\include;..\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LASLIB_ROOT)\inc;$(LASZIP_ROOT)\src;$(BOOST_ROOT);$(OSGEO4W_ROOT)\include;$(YAML-CPP_DIR)\include;$(CGAL_DIR)\include;$(CGAL_DIR)\auxiliary\gmp\include;..\thirdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <CompileAs>Default</CompileAs>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -137,8 +137,8 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>gdal_i.lib;liblas.lib;laszip.lib;libCGAL_Core-vc140-mt-4.8.lib;libCGAL-vc140-mt-4.8.lib;libgmp-10.lib;libyaml-cppmd.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(LIBLAS_ROOT)\bin;$(LIBLAS_ROOT)\lib;$(LASZIP_ROOT)\lib;$(BOOST_LIBRARYDIR);$(OSGEO4W_ROOT)\lib;$(CGAL_DIR)\lib\;$(CGAL_DIR)\auxiliary\gmp\lib\;$(YAML-CPP_DIR)\vs_build\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>gdal_i.lib;LASlib.lib;libCGAL_Core-vc140-mt-4.12.lib;libCGAL-vc140-mt-4.12.lib;libgmp-10.lib;libyaml-cppmd.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(LASLIB_ROOT)\lib\Release;$(BOOST_LIBRARYDIR);$(OSGEO4W_ROOT)\lib;$(CGAL_DIR)\lib\;$(CGAL_DIR)\auxiliary\gmp\lib\;$(YAML-CPP_DIR)\vs_build\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImportLibrary>
@@ -165,7 +165,6 @@
     <ClCompile Include="..\src\geomtools.cpp" />
     <ClCompile Include="..\src\Bridge.cpp" />
     <ClCompile Include="..\src\Separation.cpp" />
-    <ClCompile Include="..\thirdparty\ptinpoly.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Bridge.h" />

@@ -53,6 +53,10 @@ Map3d::Map3d() {
   _threshold_jump_edges = 50;
   _requestedExtent = Box2(Point2(0, 0), Point2(0, 0));
   _bbox = Box2(Point2(999999, 999999), Point2(-999999, -999999));
+  _minxradius = 999999;
+  _maxxradius = 999999;
+  _minyradius = -999999;
+  _maxyradius = -999999;
 }
 
 Map3d::~Map3d() {
@@ -155,10 +159,12 @@ Box2 Map3d::get_bbox() {
   return _bbox;
 }
 
-liblas::Bounds<double> Map3d::get_bounds() {
-  double radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
-  liblas::Bounds<double> bounds(_bbox.min_corner().x() - radius, _bbox.min_corner().y() - radius, _bbox.max_corner().x() + radius, _bbox.max_corner().y() + radius);
-  return bounds;
+bool Map3d::check_bounds(const double xmin, const double xmax, const double ymin, const double ymax) {
+  if ((xmin < _maxxradius || xmax > _minxradius) &&
+    (ymin < _maxyradius || ymax > _minyradius)) {
+    return true;
+  }
+  return false;
 }
 
 bool Map3d::get_cityjson(std::string filename) {
@@ -190,8 +196,7 @@ bool Map3d::get_cityjson(std::string filename) {
     j["vertices"].push_back({std::stod(c[0], NULL), std::stod(c[1], NULL), std::stod(c[2], NULL) });
   }
   std::ofstream o(filename);
-  // o << j.dump(2) << std::endl;      
-  o << j.dump() << std::endl;      
+  o << j.dump() << std::endl;
   return true;
 }
 
@@ -401,7 +406,7 @@ void Map3d::get_obj_per_class(std::wostream& of) {
   of << fs << std::endl;
 }
 
-bool Map3d::get_pdok_output(std::string filename) {
+bool Map3d::get_postgis_output(std::string connstr, bool pdok, bool citygml) {
 #if GDAL_VERSION_MAJOR < 2
   std::cerr << "ERROR: cannot write MultiPolygonZ files with GDAL < 2.0.\n";
   return false;
@@ -409,7 +414,7 @@ bool Map3d::get_pdok_output(std::string filename) {
   if (GDALGetDriverCount() == 0)
     GDALAllRegister();
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("PostgreSQL");
-  GDALDataset* dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+  GDALDataset* dataSource = driver->Create(connstr.c_str(), 0, 0, 0, GDT_Unknown, NULL);
   if (dataSource == NULL) {
     std::cerr << "Starting database connection failed.\n";
     return false;
@@ -425,11 +430,13 @@ bool Map3d::get_pdok_output(std::string filename) {
     std::string layername = f->get_layername();
     if (layers.find(layername) == layers.end()) {
       AttributeMap &attributes = f->get_attributes();
-      //Add additional attribute to list for layer creation
-      attributes["xml"] = std::make_pair(OFTString, "");
-      OGRLayer *layer = create_gdal_layer(driver, dataSource, filename, layername, attributes, f->get_class() == BUILDING);
+      if (pdok) {
+        //Add additional attribute to list for layer creation
+        attributes["xml"] = std::make_pair(OFTString, "");
+      }
+      OGRLayer *layer = create_gdal_layer(driver, dataSource, connstr, layername, attributes, f->get_class() == BUILDING);
       if (layer == NULL) {
-        std::cerr << "ERROR: Cannot open database '" + filename + "' for writing" << std::endl;
+        std::cerr << "ERROR: Cannot open database '" + connstr + "' for writing" << std::endl;
         dataSource->RollbackTransaction();
         GDALClose(dataSource);
         GDALClose(driver);
@@ -451,16 +458,23 @@ bool Map3d::get_pdok_output(std::string filename) {
   int i = 1;
   for (auto& f : _lsFeatures) {
     std::string layername = f->get_layername();
-    //Add additional attribute describing CityGML of feature
-    std::wstring_convert<codecvt<wchar_t, char, std::mbstate_t>>converter;
-    std::wstringstream ss;
-    ss << std::fixed << std::setprecision(3);
-    f->get_citygml_imgeo(ss);
-    std::string gmlAttribute = converter.to_bytes(ss.str());
-    ss.clear();
     AttributeMap extraAttribute = AttributeMap();
-    extraAttribute["xml"] = std::make_pair(OFTString, gmlAttribute);
-
+    
+    if (pdok) {
+      //Add additional attribute describing CityGML of feature
+      std::wstring_convert<codecvt<wchar_t, char, std::mbstate_t>>converter;
+      std::wstringstream ss;
+      ss << std::fixed << std::setprecision(3);
+      if (citygml) {
+        f->get_citygml(ss);
+      }
+      else {
+        f->get_citygml_imgeo(ss);
+      }
+      std::string gmlAttribute = converter.to_bytes(ss.str());
+      ss.clear();
+      extraAttribute["xml"] = std::make_pair(OFTString, gmlAttribute);
+    }
     if (!f->get_shape(layers[layername], true, extraAttribute)) {
       return false;
     }
@@ -468,92 +482,7 @@ bool Map3d::get_pdok_output(std::string filename) {
       if (dataSource->CommitTransaction() != OGRERR_NONE) {
         std::cerr << "Writing to database failed.\n";
         return false;
-      }  
-      if (dataSource->StartTransaction() != OGRERR_NONE) {
-        std::cerr << "Starting database transaction failed.\n";
-        return false;
       }
-    }
-    i++;
-  }
-  if (dataSource->CommitTransaction() != OGRERR_NONE) {
-    std::cerr << "Writing to database failed.\n";
-    return false;
-  }
-  GDALClose(dataSource);
-  GDALClose(driver);
-  return true;
-#endif
-}
-
-bool Map3d::get_pdok_citygml_output(std::string filename) {
-#if GDAL_VERSION_MAJOR < 2
-  std::cerr << "ERROR: cannot write MultiPolygonZ files with GDAL < 2.0.\n";
-  return false;
-#else
-  if (GDALGetDriverCount() == 0)
-    GDALAllRegister();
-  GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("PostgreSQL");
-  GDALDataset* dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
-  if (dataSource == NULL) {
-    std::cerr << "Starting database connection failed.\n";
-    return false;
-  }
-  if (dataSource->StartTransaction() != OGRERR_NONE) {
-    std::cerr << "Starting database transaction failed.\n";
-    return false;
-  }
-
-  std::unordered_map<std::string, OGRLayer*> layers;
-  // create and write layers first
-  for (auto& f : _lsFeatures) {
-    std::string layername = f->get_layername();
-    if (layers.find(layername) == layers.end()) {
-      AttributeMap &attributes = f->get_attributes();
-      //Add additional attribute to list for layer creation
-      attributes["xml"] = std::make_pair(OFTString, "");
-      OGRLayer *layer = create_gdal_layer(driver, dataSource, filename, layername, attributes, f->get_class() == BUILDING);
-      if (layer == NULL) {
-        std::cerr << "ERROR: Cannot open database '" + filename + "' for writing" << std::endl;
-        dataSource->RollbackTransaction();
-        GDALClose(dataSource);
-        GDALClose(driver);
-        return false;
-      }
-      layers.emplace(layername, layer);
-    }
-  }
-  if (dataSource->CommitTransaction() != OGRERR_NONE) {
-    std::cerr << "Writing to database failed.\n";
-    return false;
-  }
-  if (dataSource->StartTransaction() != OGRERR_NONE) {
-    std::cerr << "Starting database transaction failed.\n";
-    return false;
-  }
-
-  // create and write features to layers
-  int i = 1;
-  for (auto& f : _lsFeatures) {
-    std::string layername = f->get_layername();
-    //Add additional attribute describing CityGML of feature
-    std::wstring_convert<codecvt<wchar_t, char, std::mbstate_t>>converter;
-    std::wstringstream ss;
-    ss << std::fixed << std::setprecision(3);
-    f->get_citygml(ss);
-    std::string gmlAttribute = converter.to_bytes(ss.str());
-    ss.clear();
-    AttributeMap extraAttribute = AttributeMap();
-    extraAttribute["xml"] = std::make_pair(OFTString, gmlAttribute);
-
-    if (!f->get_shape(layers[layername], true, extraAttribute)) {
-      return false;
-    }
-    if (i % 1000 == 0) {
-      if (dataSource->CommitTransaction() != OGRERR_NONE) {
-        std::cerr << "Writing to database failed.\n";
-        return false;
-      }  
       if (dataSource->StartTransaction() != OGRERR_NONE) {
         std::cerr << "Starting database transaction failed.\n";
         return false;
@@ -611,7 +540,9 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
         }
         layers.emplace(layername, layer);
       }
-      f->get_shape(layers[layername], true);
+      if (!f->get_shape(layers[layername], true)) {
+        return false;
+      }
     }
     close_gdal_resources(driver, layers);
   }
@@ -736,27 +667,30 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
   return _lsFeatures;
 }
 
-void Map3d::add_elevation_point(liblas::Point const& laspt) {
+void Map3d::add_elevation_point(LASpoint const& laspt) {
+  //-- only process last returns; 
+  //-- although perhaps not smart for vegetation/forest in the future
+  //-- TODO: always ignore the non-last-return points?
+  if (laspt.return_number != laspt.number_of_returns)
+    return;
+
   std::vector<PairIndexed> re;
-  Point2 minp(laspt.GetX() - _radius_vertex_elevation, laspt.GetY() - _radius_vertex_elevation);
-  Point2 maxp(laspt.GetX() + _radius_vertex_elevation, laspt.GetY() + _radius_vertex_elevation);
+  float x = laspt.get_x();
+  float y = laspt.get_y();
+  Point2 minp(x - _radius_vertex_elevation, y - _radius_vertex_elevation);
+  Point2 maxp(x + _radius_vertex_elevation, y + _radius_vertex_elevation);
   Box2 querybox(minp, maxp);
   _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
-  minp = Point2(laspt.GetX() - _building_radius_vertex_elevation, laspt.GetY() - _building_radius_vertex_elevation);
-  maxp = Point2(laspt.GetX() + _building_radius_vertex_elevation, laspt.GetY() + _building_radius_vertex_elevation);
+  minp = Point2(x - _building_radius_vertex_elevation, y - _building_radius_vertex_elevation);
+  maxp = Point2(x + _building_radius_vertex_elevation, y + _building_radius_vertex_elevation);
   querybox = Box2(minp, maxp);
   _rtree_buildings.query(bgi::intersects(querybox), std::back_inserter(re));
 
   for (auto& v : re) {
     TopoFeature* f = v.second;
     float radius = _radius_vertex_elevation;
-    //-- only process last returns; 
-    //-- although perhaps not smart for vegetation/forest in the future
-    //-- TODO: always ignore the non-last-return points?
-    if (laspt.GetReturnNumber() != laspt.GetNumberOfReturns()) 
-      continue;
 
-    int c = laspt.GetClassification().GetClass();
+    int c = (int)laspt.classification;
     bool bInsert = false;
     bool bWithin = false;
     if (f->get_class() == BUILDING) {
@@ -817,17 +751,10 @@ void Map3d::add_elevation_point(liblas::Point const& laspt) {
         bWithin = true;
       }
     }
- 
     if (bInsert == true) { //-- only insert if in the allowed LAS classes
-      Point2 p(laspt.GetX(), laspt.GetY());
-      f->add_elevation_point(p, laspt.GetZ(), radius, c, bWithin); 
+      Point2 p(x, y);
+      f->add_elevation_point(p, laspt.get_z(), radius, c, bWithin);
     }
-  }
-}
-
-void Map3d::cleanup_grids() {
-  for (auto& f : _lsFeatures) {
-    f->cleanup_grid();
   }
 }
 
@@ -941,6 +868,12 @@ bool Map3d::construct_rtree() {
       std::min(bg::get<bg::min_corner, 1>(_rtree.bounds()), bg::get<bg::min_corner, 1>(_rtree_buildings.bounds()))),
     Point2(std::max(bg::get<bg::max_corner, 0>(_rtree.bounds()), bg::get<bg::max_corner, 0>(_rtree_buildings.bounds())),
       std::max(bg::get<bg::max_corner, 1>(_rtree.bounds()), bg::get<bg::max_corner, 1>(_rtree_buildings.bounds()))));
+  
+  double radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
+  _minxradius = std::min(bg::get<bg::min_corner, 0>(_rtree.bounds()), bg::get<bg::min_corner, 0>(_rtree_buildings.bounds())) - radius;
+  _maxxradius = std::min(bg::get<bg::min_corner, 1>(_rtree.bounds()), bg::get<bg::min_corner, 1>(_rtree_buildings.bounds())) + radius;
+  _minyradius = std::max(bg::get<bg::max_corner, 0>(_rtree.bounds()), bg::get<bg::max_corner, 0>(_rtree_buildings.bounds())) - radius;
+  _maxyradius = std::max(bg::get<bg::max_corner, 1>(_rtree.bounds()), bg::get<bg::max_corner, 1>(_rtree_buildings.bounds())) + radius;
   return true;
 }
 
@@ -1141,34 +1074,33 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
   }
 }
 
-//-- http://www.liblas.org/tutorial/cpp.html#applying-filters-to-a-reader-to-extract-specified-classes
 bool Map3d::add_las_file(PointFile pointFile) {
   std::clog << "Reading LAS/LAZ file: " << pointFile.filename << std::endl;
-  std::ifstream ifs;
+
+  LASreadOpener lasreadopener;
+  lasreadopener.set_file_name(pointFile.filename.c_str());
+  //-- set to compute bounding box
+  lasreadopener.set_populate_header(true);
+  LASreader* lasreader = lasreadopener.open();
 
   try {
-    ifs.open(pointFile.filename.c_str(), std::ios::in | std::ios::binary);
-    if (ifs.is_open() == false) {
+    //-- check if file is open
+    if (lasreader == 0) {
       std::cerr << "\tERROR: could not open file: " << pointFile.filename << std::endl;
       return false;
     }
-    //-- LAS classes to omit
-    std::vector<liblas::Classification> liblasomits;
-    for (int i : pointFile.lasomits) {
-      liblasomits.push_back(liblas::Classification(i));
-    }
+    LASheader header = lasreader->header;
 
-    //-- read each point 1-by-1
-    liblas::ReaderFactory f;
-    liblas::Reader reader = f.CreateWithStream(ifs);
-    liblas::Header const& header = reader.GetHeader();
+    if (check_bounds(header.min_x, header.max_x, header.min_y, header.max_y)) {
+      //-- LAS classes to omit
+      std::vector<int> lasomits;
+      for (int i : pointFile.lasomits) {
+        lasomits.push_back(i);
+      }
 
-    //-- check if the file overlaps the polygons
-    liblas::Bounds<double> bounds = header.GetExtent();
-    liblas::Bounds<double> polygonBounds = get_bounds();
-    uint32_t pointCount = header.GetPointRecordsCount();
+      //-- read each point 1-by-1
+      uint32_t pointCount = header.number_of_point_records;
 
-    if (polygonBounds.intersects(bounds)) {
       std::clog << "\t(" << boost::locale::as::number << pointCount << " points in the file)\n";
       if ((pointFile.thinning > 1)) {
         std::clog << "\t(skipping every " << pointFile.thinning << "th points, thus ";
@@ -1185,15 +1117,14 @@ bool Map3d::add_las_file(PointFile pointFile) {
       }
       printProgressBar(0);
       int i = 0;
-
-      while (reader.ReadNextPoint()) {
-        liblas::Point const& p = reader.GetPoint();
+      while (lasreader->read_point()) {
+        LASpoint const& p = lasreader->point;
         //-- set the thinning filter
         if (i % pointFile.thinning == 0) {
           //-- set the classification filter
-          if (std::find(liblasomits.begin(), liblasomits.end(), p.GetClassification()) == liblasomits.end()) {
+          if (std::find(lasomits.begin(), lasomits.end(), (int)p.classification) == lasomits.end()) {
             //-- set the bounds filter
-            if (polygonBounds.contains(p)) {
+            if (check_bounds(p.X, p.X, p.Y, p.Y)) {
               this->add_elevation_point(p);
             }
           }
@@ -1208,11 +1139,11 @@ bool Map3d::add_las_file(PointFile pointFile) {
     else {
       std::clog << "\tskipping file, bounds do not intersect polygon extent\n";
     }
-    ifs.close();
+    lasreader->close();
   }
   catch (std::exception e) {
     std::cerr << std::endl << e.what() << std::endl;
-    ifs.close();
+    lasreader->close();
     return false;
   }
   return true;
@@ -1806,4 +1737,3 @@ void Map3d::add_allowed_las_class(AllowedLASTopo c, int i) {
 void Map3d::add_allowed_las_class_within(AllowedLASTopo c, int i) {
   _las_classes_allowed_within[c].insert(i);
 }
-

@@ -111,7 +111,7 @@ bool Building::lift() {
 
 bool Building::add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within) {
   // if within then a point must lay within the polygon, otherwise add
-  if (!within || (within && point_in_polygon_grid(p))) {
+  if (!within || (within && point_in_polygon(p))) {
     if (within_range(p, radius)) {
       int zcm = int(z * 100);
       if ((_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0)) {

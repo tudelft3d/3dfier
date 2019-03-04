@@ -136,7 +136,7 @@ void get_extruded_line_gml(std::wostream& of, Point2* a, Point2* b, double high,
   of << bg::get<0>(a) << " " << bg::get<1>(a) << " " << std::setprecision(2) << low << std::setprecision(3) << " ";
   of << bg::get<0>(a) << " " << bg::get<1>(a) << " " << std::setprecision(2) << high << std::setprecision(3) << " ";
   of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << std::setprecision(2) << high << std::setprecision(3) << " ";
-  of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << std::setprecision(2) << low << std::setprecision(3);
+  of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << std::setprecision(2) << low << std::setprecision(3); 
   of << "</gml:posList>";
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";
