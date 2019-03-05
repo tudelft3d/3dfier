@@ -299,9 +299,17 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         do {
           auto face = *fcirculator;
           if (face.info().points_inside) {
-            // remove the maxelement heap_handles
-            auto it = std::find(face.info().points_inside->begin(), face.info().points_inside->end(), maxelement);
-            face.info().points_inside->erase(it);
+            // collect the heap_handles that need to be removed
+            std::vector<heap_handle_vec::iterator> to_erase;
+            for (auto it = face.info().points_inside->begin(); it != face.info().points_inside->end(); ++it) {
+              if (maxelement.index == (**it).index) {
+                to_erase.push_back(it);
+              }
+            }
+            // remove the collected heap_handles
+            for (auto it : to_erase) {
+              face.info().points_inside->erase(it);
+            }
           }
         } while (++fcirculator != done);
         
@@ -330,7 +338,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
           if( maxelement.index != (*h).index)
             points_to_update.push_back(h);
         }
-        face->info().points_inside->clear();
+        heap_handle_vec().swap((*face->info().points_inside));
       }
     }
     
