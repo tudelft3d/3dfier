@@ -102,6 +102,7 @@ public:
   void set_radius_vertex_elevation(float radius);
   void set_building_radius_vertex_elevation(float radius);
   void set_threshold_jump_edges(float threshold);
+  void set_threshold_bridge_jump_edges(float threshold);
   void set_requested_extent(double xmin, double ymin, double xmax, double ymax);
 
   void add_allowed_las_class(AllowedLASTopo c, int i);
@@ -132,6 +133,7 @@ private:
   float       _radius_vertex_elevation;
   float       _building_radius_vertex_elevation;
   int         _threshold_jump_edges; //-- in cm/integer
+  int         _threshold_bridge_jump_edges; //-- in cm/integer
   Box2        _bbox;
   double      _minxradius;
   double      _maxxradius;
