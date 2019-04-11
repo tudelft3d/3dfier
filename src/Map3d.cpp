@@ -51,6 +51,7 @@ Map3d::Map3d() {
   _radius_vertex_elevation = 1.0;
   _building_radius_vertex_elevation = 3.0;
   _threshold_jump_edges = 50;
+  _threshold_bridge_jump_edges = 50;
   _requestedExtent = Box2(Point2(0, 0), Point2(0, 0));
   _bbox = Box2(Point2(999999, 999999), Point2(-999999, -999999));
   _minxradius = 999999;
@@ -81,6 +82,10 @@ void Map3d::set_building_radius_vertex_elevation(float radius) {
 
 void Map3d::set_threshold_jump_edges(float threshold) {
   _threshold_jump_edges = int(threshold * 100);
+}
+
+void Map3d::set_threshold_bridge_jump_edges(float threshold) {
+  _threshold_bridge_jump_edges = int(threshold * 100);
 }
 
 void Map3d::set_building_include_floor(bool include) {
@@ -1533,7 +1538,7 @@ void Map3d::stitch_bridges() {
             pis.clear();
             if (!(fadj->get_class() == BRIDGE && fadj->get_top_level()) && fadj->has_point2(ring[i], ringis, pis)) {
               int z = fadj->get_vertex_elevation(ringis[0], pis[0]);
-              if (abs(f->get_vertex_elevation(ringi, i) - z) < _threshold_jump_edges) {
+              if (abs(f->get_vertex_elevation(ringi, i) - z) < _threshold_bridge_jump_edges) {
                 f->set_vertex_elevation(ringi, i, z);
                 if (!(fadj->get_class() == BRIDGE && fadj->get_top_level() == f->get_top_level())) {
                   // Add height to NC
@@ -1705,7 +1710,7 @@ void Map3d::stitch_bridges() {
               int interz = interpolate_height(f, p, ringi, previ, ringi, endCorner.first);
               int prevz = f->get_vertex_elevation(ringi, previ);
               //Allways stich to lower object or if interpolated between corners within threshold or previous within threshold
-              if (stitchz < interz || abs(stitchz - interz) < _threshold_jump_edges || abs(stitchz - prevz) < _threshold_jump_edges) {
+              if (stitchz < interz || abs(stitchz - interz) < _threshold_bridge_jump_edges || abs(stitchz - prevz) < _threshold_bridge_jump_edges) {
                 f->set_vertex_elevation(ringi, pi, stitchz);
               }
               else {

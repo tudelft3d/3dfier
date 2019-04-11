@@ -351,6 +351,10 @@ int main(int argc, const char * argv[]) {
       map3d.set_building_radius_vertex_elevation(n["building_radius_vertex_elevation"].as<float>());
     if (n["threshold_jump_edges"])
       map3d.set_threshold_jump_edges(n["threshold_jump_edges"].as<float>());
+    if (n["threshold_bridge_jump_edges"])
+      map3d.set_threshold_bridge_jump_edges(n["threshold_bridge_jump_edges"].as<float>());
+    else if (n["threshold_jump_edges"])
+      map3d.set_threshold_bridge_jump_edges(n["threshold_jump_edges"].as<float>());
     if (n["stitching"] && n["stitching"].as<std::string>() == "false")
       bStitching = false;
 
