@@ -355,7 +355,6 @@ int main(int argc, const char * argv[]) {
       map3d.set_threshold_bridge_jump_edges(n["threshold_bridge_jump_edges"].as<float>());
     else if (n["threshold_jump_edges"]) // set threshold_jump_edges same for bridge
       map3d.set_threshold_bridge_jump_edges(n["threshold_jump_edges"].as<float>());
-
     if (n["stitching"] && n["stitching"].as<std::string>() == "false")
       bStitching = false;
 
