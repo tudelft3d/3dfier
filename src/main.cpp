@@ -36,7 +36,7 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
-std::string VERSION = "1.1.2";
+std::string VERSION = "1.2";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
@@ -353,8 +353,9 @@ int main(int argc, const char * argv[]) {
       map3d.set_threshold_jump_edges(n["threshold_jump_edges"].as<float>());
     if (n["threshold_bridge_jump_edges"])
       map3d.set_threshold_bridge_jump_edges(n["threshold_bridge_jump_edges"].as<float>());
-    else if (n["threshold_jump_edges"])
+    else if (n["threshold_jump_edges"]) // set threshold_jump_edges same for bridge
       map3d.set_threshold_bridge_jump_edges(n["threshold_jump_edges"].as<float>());
+
     if (n["stitching"] && n["stitching"].as<std::string>() == "false")
       bStitching = false;
 
@@ -1145,6 +1146,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       catch (boost::bad_lexical_cast& e) {
         wentgood = false;
         std::cerr << "\tOption 'options.threshold_jump_edges' invalid.\n";
+      }
+    }
+    if (n["threshold_bridge_jump_edges"]) {
+      try {
+        boost::lexical_cast<float>(n["threshold_bridge_jump_edges"].as<std::string>());
+      }
+      catch (boost::bad_lexical_cast& e) {
+        wentgood = false;
+        std::cerr << "\tOption 'options.threshold_bridge_jump_edges' invalid.\n";
       }
     }
     if (n["stitching"]) {
