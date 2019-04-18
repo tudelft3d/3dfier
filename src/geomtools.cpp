@@ -75,6 +75,21 @@ typedef CGAL::Constrained_Delaunay_triangulation_2<Gt, Tds, Itag> CDT;
 typedef CDT::Point                                                Point;
 typedef CGAL::Polygon_2<Gt>                                       Polygon_2;
 
+struct PointXYHash {
+  std::size_t operator()(Point const& p) const noexcept {
+    std::size_t h1 = std::hash<double>{}(p.x());
+    std::size_t h2 = std::hash<double>{}(p.y());
+    return h1 ^ (h2 << 1);
+  }
+};
+struct PointXYEqual {
+  bool operator()(Point const& p1, Point const& p2) const noexcept {
+    auto ex = p1.x() == p2.x();
+    auto ey = p1.y() == p2.y();
+    return ex && ey;
+  }
+};
+
 inline double compute_error(Point &p, CDT::Face_handle &face);
 void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold);
 
@@ -244,11 +259,14 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   Heap heap;
 
   // Convert all elevation points to CGAL points
+  std::unordered_set<Point, PointXYHash, PointXYEqual> cpts_set;
   std::vector<Point> cpts;
   cpts.reserve(pts.size());
   for (auto& p : pts) {
-    cpts.push_back(Point(bg::get<0>(p), bg::get<1>(p), bg::get<2>(p)));
+    if(cpts_set.insert(Point(bg::get<0>(p), bg::get<1>(p), bg::get<2>(p))).second);
   }
+  cpts.assign(cpts_set.begin(), cpts_set.end());
+  std::unordered_set<Point, PointXYHash, PointXYEqual>().swap(cpts_set);
 
   // compute initial point errors, build heap, store point indices in triangles
   {
@@ -325,36 +343,91 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
 
     auto v = T.insert(max_p, face_hint);
     face_hint = v->face();
+    bool maxe = false;
     
     // update clear info of triangles that just changed, collect points that were inside these triangles
     heap_handle_vec points_to_update;
     for (auto face : faces) {
-      if (face->info().plane){
+      if (face->info().points_inside) {
+        for (auto h : *face->info().points_inside) {
+          if (maxelement.index == (*h).index) {
+            std::cout << "maxelement " << maxelement.index << " found " << std::endl;
+            std::cout << std::fixed << std::setprecision(3) << cpts[maxelement.index] << std::endl;
+            maxe = true;
+          }
+        }
+      }
+    }
+    if (!maxe) {
+      std::cout << "maxelement " << maxelement.index << " not found " << std::endl;
+    }
+
+    for (auto face : faces) {
+      if (face->info().plane) {
         delete face->info().plane;
         face->info().plane = nullptr;
       }
       if (face->info().points_inside) {
-        for (auto h :*face->info().points_inside){
-          if( maxelement.index != (*h).index)
+        for (auto h : *face->info().points_inside) {
+          if (maxelement.index != (*h).index) {
             points_to_update.push_back(h);
+
+
+            //TESTING
+            std::cout << "pushed: " << (*h).index << std::endl;
+
+            int index = (*h).index;
+            if (index < 0 || index >= cpts.size()) {
+              std::cout << "looking for index: " << maxelement.index << std::endl;
+              std::cout << "index out of range: " << index << std::endl;
+              if (!maxe) {
+                // Locate the face where
+                CDT::Locate_type lt;
+                int li;
+                CDT::Face_handle containing_face = T.locate(cpts[maxelement.index], lt, li, face_hint);
+                std::cout << "CDT update; point location: ";
+                if (lt == CDT::EDGE) {
+                  std::cout << "on edge.";
+                }
+                else if (lt == CDT::FACE) {
+                  std::cout << "in face.";
+                }
+                else if (lt == CDT::VERTEX) {
+                  std::cout << "on vertex.";
+                }
+                else if (lt == CDT::OUTSIDE_CONVEX_HULL) {
+                  std::cout << "outside convex hull.";
+                }
+                else if (lt == CDT::OUTSIDE_AFFINE_HULL) {
+                  std::cout << "outside affine hull.";
+                }
+                std::cout << " Point; " << std::fixed << std::setprecision(3) << cpts[maxelement.index] << std::endl;
+              }
+            }
+          }
         }
         heap_handle_vec().swap((*face->info().points_inside));
       }
     }
-    
-    // remove the point we just inserted in the triangulation from the heap
+
+    // remove this points from the heap
     heap.pop();
 
     // update the errors of affected elevation points
     for (auto curelement : points_to_update){
-      auto p = cpts[(*curelement).index];
+      int index = (*curelement).index;
+      std::cout << "pulled: " << (*curelement).index << std::endl;
+      if (index > cpts.size()) {
+        std::cout << "index out of range: " << index << std::endl;
+      }
+      auto p = cpts[index];
       //auto containing_face = T.locate(p, face_hint);
       CDT::Locate_type lt;
       int li;
       CDT::Face_handle containing_face = T.locate(p, lt, li, face_hint);
       if (lt == CDT::EDGE || lt == CDT::FACE) {
         const double e = compute_error(p, containing_face);
-        const point_error new_pe = point_error((*curelement).index, e);
+        const point_error new_pe = point_error(index, e);
         heap.update(curelement, new_pe);
         containing_face->info().points_inside->push_back(curelement);
       }
