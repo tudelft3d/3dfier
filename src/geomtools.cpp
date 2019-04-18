@@ -75,6 +75,21 @@ typedef CGAL::Constrained_Delaunay_triangulation_2<Gt, Tds, Itag> CDT;
 typedef CDT::Point                                                Point;
 typedef CGAL::Polygon_2<Gt>                                       Polygon_2;
 
+struct PointXYHash {
+  std::size_t operator()(Point const& p) const noexcept {
+    std::size_t h1 = std::hash<double>{}(p.x());
+    std::size_t h2 = std::hash<double>{}(p.y());
+    return h1 ^ (h2 << 1);
+  }
+};
+struct PointXYEqual {
+  bool operator()(Point const& p1, Point const& p2) const noexcept {
+    auto ex = p1.x() == p2.x();
+    auto ey = p1.y() == p2.y();
+    return ex && ey;
+  }
+};
+
 inline double compute_error(Point &p, CDT::Face_handle &face);
 void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold);
 
@@ -243,15 +258,22 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   // assumes all lidar points are inside a triangle
   Heap heap;
 
-  // Convert all elevation points to CGAL points
   std::vector<Point> cpts;
   cpts.reserve(pts.size());
-  for (auto& p : pts) {
-    cpts.push_back(Point(bg::get<0>(p), bg::get<1>(p), bg::get<2>(p)));
-  }
 
   // compute initial point errors, build heap, store point indices in triangles
   {
+    // Convert all elevation points to CGAL points
+    std::unordered_set<Point, PointXYHash, PointXYEqual> cpts_set;
+
+    for (auto& p : pts) {
+      cpts_set.insert(Point(bg::get<0>(p), bg::get<1>(p), bg::get<2>(p)));
+    }
+    cpts.assign(cpts_set.begin(), cpts_set.end());
+    if (cpts_set.size() != cpts.size()) {
+      std::cout << "size differs; " << cpts_set.size() << "&" << cpts.size();
+    }
+
     for (int i = 0; i < cpts.size(); i++) {
       auto p = cpts[i];
       CDT::Locate_type lt;
@@ -347,14 +369,15 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
 
     // update the errors of affected elevation points
     for (auto curelement : points_to_update){
-      auto p = cpts[(*curelement).index];
+      int idx = (*curelement).index;
+      auto p = cpts[idx];
       //auto containing_face = T.locate(p, face_hint);
       CDT::Locate_type lt;
       int li;
       CDT::Face_handle containing_face = T.locate(p, lt, li, face_hint);
       if (lt == CDT::EDGE || lt == CDT::FACE) {
         const double e = compute_error(p, containing_face);
-        const point_error new_pe = point_error((*curelement).index, e);
+        const point_error new_pe = point_error(idx, e);
         heap.update(curelement, new_pe);
         containing_face->info().points_inside->push_back(curelement);
       }
