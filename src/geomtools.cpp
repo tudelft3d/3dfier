@@ -362,63 +362,62 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
             //TESTING
             //std::cout << "pushed: " << (*h).index << std::endl;
 
-            int index = (*h).index;
-            if (index < 0 || index >= cpts.size()) {
-              std::cout << "looking for index: " << maxelement.index << std::endl;
-              std::cout << "index out of range: " << index << std::endl;
-            }
+            //int index = (*h).index;
+            //if (index < 0 || index >= cpts.size()) {
+            //  std::cout << "looking for index: " << maxelement.index << std::endl;
+            //  std::cout << "index out of range: " << index << std::endl;
+            //}
           }
-          else {
-            maxe = true;
-          }
+          //else {
+          //  maxe = true;
+          //}
         }
         heap_handle_vec().swap((*face->info().points_inside));
       }
-      else {
-        pointless++;
-      }
+      //else {
+      //  pointless++;
+      //}
     }
-    std::cout << "Pointsless faces: " << pointless << std::endl;
-    if (!maxe) {
-      std::cout << "maxelement " << maxelement.index << " not found";
+    //std::cout << "Pointsless faces: " << pointless << std::endl;
+    //if (!maxe) {
+    //  std::cout << "maxelement " << maxelement.index << " not found";
 
-      // Locate the face where
-      CDT::Locate_type lt;
-      int li;
-      CDT::Face_handle containing_face = T.locate(cpts[maxelement.index], lt, li, faces[0]);
-      std::cout << "; point location: ";
-      if (lt == CDT::EDGE) {
-        std::cout << "on edge.";
-      }
-      else if (lt == CDT::FACE) {
-        std::cout << "in face.";
-      }
-      else if (lt == CDT::VERTEX) {
-        std::cout << "on vertex.";
-      }
-      else if (lt == CDT::OUTSIDE_CONVEX_HULL) {
-        std::cout << "outside convex hull.";
-      }
-      else if (lt == CDT::OUTSIDE_AFFINE_HULL) {
-        std::cout << "outside affine hull.";
-      }
-      std::cout << " Point; " << std::fixed << std::setprecision(3) << cpts[maxelement.index] << std::endl;
-      std::cout << " Vertex; " << std::fixed << std::setprecision(3) << containing_face->vertex(li)->point() << std::endl;
+    //  // Locate the face where
+    //  CDT::Locate_type lt;
+    //  int li;
+    //  CDT::Face_handle containing_face = T.locate(cpts[maxelement.index], lt, li, faces[0]);
+    //  std::cout << "; point location: ";
+    //  if (lt == CDT::EDGE) {
+    //    std::cout << "on edge.";
+    //  }
+    //  else if (lt == CDT::FACE) {
+    //    std::cout << "in face.";
+    //  }
+    //  else if (lt == CDT::VERTEX) {
+    //    std::cout << "on vertex.";
+    //  }
+    //  else if (lt == CDT::OUTSIDE_CONVEX_HULL) {
+    //    std::cout << "outside convex hull.";
+    //  }
+    //  else if (lt == CDT::OUTSIDE_AFFINE_HULL) {
+    //    std::cout << "outside affine hull.";
+    //  }
+    //  std::cout << " Point; " << std::fixed << std::setprecision(3) << cpts[maxelement.index] << std::endl;
+    //  std::cout << " Vertex; " << std::fixed << std::setprecision(3) << containing_face->vertex(li)->point() << std::endl;
 
-      heap_handle_vec* pi = containing_face->info().points_inside;
-      // Delete stray handle
-      for (auto h = pi->begin(); h != pi->end(); h++) {
-        //for (auto h : pi) {
-        if (maxelement.index == (**h).index) {
-          containing_face->info().points_inside->erase(h);
-          break;
-        }
-      }
-    }
+    //  heap_handle_vec* pi = containing_face->info().points_inside;
+    //  // Delete stray handle
+    //  for (auto h = pi->begin(); h != pi->end(); h++) {
+    //    //for (auto h : pi) {
+    //    if (maxelement.index == (**h).index) {
+    //      containing_face->info().points_inside->erase(h);
+    //      break;
+    //    }
+    //  }
+    //}
 
     // insert max_p in triangulation
     auto face_hint = faces[0];
-
     auto v = T.insert(max_p, face_hint);
     face_hint = v->face();
 
@@ -429,9 +428,9 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     for (auto curelement : points_to_update){
       int index = (*curelement).index;
       //std::cout << "pulled: " << (*curelement).index << std::endl;
-      if (index > cpts.size()) {
-        std::cout << "index out of range: " << index << std::endl;
-      }
+      //if (index > cpts.size()) {
+      //  std::cout << "index out of range: " << index << std::endl;
+      //}
       auto p = cpts[index];
       //auto containing_face = T.locate(p, face_hint);
       CDT::Locate_type lt;
