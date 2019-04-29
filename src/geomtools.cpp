@@ -280,7 +280,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
       CDT::Locate_type lt;
       int li;
       CDT::Face_handle face = T.locate(p, lt, li);
-      if (lt == CDT::EDGE || lt == CDT::FACE) {
+      if (lt == CDT::FACE) {
         auto e = compute_error(p, face);
         auto handle = heap.push(point_error(i, e));
         face->info().points_inside->push_back(handle);
@@ -289,6 +289,9 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         std::cout << "CDT insert; point location not in face but ";
         if (lt == CDT::VERTEX) {
           std::cout << "on vertex.";
+        }
+        else if (lt == CDT::EDGE) {
+          std::cout << "on edge.";
         }
         else if (lt == CDT::OUTSIDE_CONVEX_HULL) {
           std::cout << "outside convex hull.";
