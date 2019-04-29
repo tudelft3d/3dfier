@@ -304,8 +304,8 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   // insert points, update errors of affected triangles until threshold error is reached
   while (!heap.empty() && heap.top().error > threshold){
     // get top element (with largest error) from heap
-    auto maxelement = heap.top();
-    auto max_p = cpts[maxelement.index];
+    auto maxelementindex = heap.top().index;
+    auto max_p = cpts[maxelementindex];
 
     // get triangles that will change after inserting this max_p
     std::vector<CDT::Face_handle> faces;
@@ -325,7 +325,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
             // collect the heap_handles that need to be removed
             std::vector<heap_handle_vec::iterator> to_erase;
             for (auto it = face.info().points_inside->begin(); it != face.info().points_inside->end(); ++it) {
-              if (maxelement.index == (**it).index) {
+              if (maxelementindex == (**it).index) {
                 to_erase.push_back(it);
               }
             }
@@ -355,7 +355,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
       }
       if (face->info().points_inside) {
         for (auto h : *face->info().points_inside) {
-          if (maxelement.index != (*h).index) {
+          if (maxelementindex != (*h).index) {
             points_to_update.push_back(h);
 
 
@@ -364,7 +364,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
 
             //int index = (*h).index;
             //if (index < 0 || index >= cpts.size()) {
-            //  std::cout << "looking for index: " << maxelement.index << std::endl;
+            //  std::cout << "looking for index: " << maxelementindex << std::endl;
             //  std::cout << "index out of range: " << index << std::endl;
             //}
           }
@@ -380,12 +380,12 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     }
     //std::cout << "Pointsless faces: " << pointless << std::endl;
     //if (!maxe) {
-    //  std::cout << "maxelement " << maxelement.index << " not found";
+    //  std::cout << "maxelement " << maxelementindex << " not found";
 
     //  // Locate the face where
     //  CDT::Locate_type lt;
     //  int li;
-    //  CDT::Face_handle containing_face = T.locate(cpts[maxelement.index], lt, li, faces[0]);
+    //  CDT::Face_handle containing_face = T.locate(cpts[maxelementindex], lt, li, faces[0]);
     //  std::cout << "; point location: ";
     //  if (lt == CDT::EDGE) {
     //    std::cout << "on edge.";
@@ -402,14 +402,14 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     //  else if (lt == CDT::OUTSIDE_AFFINE_HULL) {
     //    std::cout << "outside affine hull.";
     //  }
-    //  std::cout << " Point; " << std::fixed << std::setprecision(3) << cpts[maxelement.index] << std::endl;
+    //  std::cout << " Point; " << std::fixed << std::setprecision(3) << cpts[maxelementindex] << std::endl;
     //  std::cout << " Vertex; " << std::fixed << std::setprecision(3) << containing_face->vertex(li)->point() << std::endl;
 
     //  heap_handle_vec* pi = containing_face->info().points_inside;
     //  // Delete stray handle
     //  for (auto h = pi->begin(); h != pi->end(); h++) {
     //    //for (auto h : pi) {
-    //    if (maxelement.index == (**h).index) {
+    //    if (maxelementindex == (**h).index) {
     //      containing_face->info().points_inside->erase(h);
     //      break;
     //    }
