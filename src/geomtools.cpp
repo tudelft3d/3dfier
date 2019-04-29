@@ -261,17 +261,11 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   Heap heap;
 
   // Convert all elevation points to CGAL points
-  std::unordered_set<Point, PointXYHash, PointXYEqual> cpts_set;
   std::vector<Point> cpts;
   cpts.reserve(pts.size());
   for (auto& p : pts) {
-    auto r = cpts_set.insert(Point(bg::get<0>(p), bg::get<1>(p), bg::get<2>(p)));
-    if (!r.second) {
-      std::cout << "Duplicate point: " << *(r.first) << " && " << Point(bg::get<0>(p), bg::get<1>(p), bg::get<2>(p)) << std::endl;
-    }
+    cpts.push_back(Point(bg::get<0>(p), bg::get<1>(p), bg::get<2>(p)));
   }
-  cpts.assign(cpts_set.begin(), cpts_set.end());
-  std::unordered_set<Point, PointXYHash, PointXYEqual>().swap(cpts_set);
 
   // compute initial point errors, build heap, store point indices in triangles
   {
@@ -307,7 +301,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   // insert points, update errors of affected triangles until threshold error is reached
   while (!heap.empty() && heap.top().error > threshold){
     // get top element (with largest error) from heap
-    auto maxelementindex = heap.top().index;
+    int maxelementindex = heap.top().index;
     auto max_p = cpts.at(maxelementindex);
 
     // get triangles that will change after inserting this max_p
@@ -349,14 +343,14 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     // update clear info of triangles that just changed, collect points that were inside these triangles
     heap_handle_vec points_to_update;
 
-    bool maxe = false;
-    int pointless = 0;
+    //bool maxe = false;
+    //int pointless = 0;
     for (auto face : faces) {
       if (face->info().plane) {
         delete face->info().plane;
         face->info().plane = nullptr;
       }
-      if (face->info().points_inside) {
+      if (face->info().points_inside && face->info().points_inside->size() > 0) {
         for (auto h : *face->info().points_inside) {
           if (maxelementindex != (*h).index) {
             points_to_update.push_back(h);
@@ -382,6 +376,10 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
       //}
     }
     //std::cout << "Pointsless faces: " << pointless << std::endl;
+    //if (pointless == faces.size()) {
+    //  std::cout << "Non of the located faces contain any points, index: " << maxelementindex << std::endl;
+    //}
+
     //if (!maxe) {
     //  std::cout << "maxelement " << maxelementindex << " not found";
 
@@ -407,16 +405,6 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     //  }
     //  std::cout << " Point; " << std::fixed << std::setprecision(3) << cpts.at(maxelementindex) << std::endl;
     //  std::cout << " Vertex; " << std::fixed << std::setprecision(3) << containing_face->vertex(li)->point() << std::endl;
-
-    //  heap_handle_vec* pi = containing_face->info().points_inside;
-    //  // Delete stray handle
-    //  for (auto h = pi->begin(); h != pi->end(); h++) {
-    //    //for (auto h : pi) {
-    //    if (maxelementindex == (**h).index) {
-    //      containing_face->info().points_inside->erase(h);
-    //      break;
-    //    }
-    //  }
     //}
 
     // insert max_p in triangulation
@@ -449,6 +437,8 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         std::cout << "CDT update; point location not in face but ";
         if (lt == CDT::VERTEX) {
           std::cout << "on vertex.";
+          // update error to 0.0 to disable point
+          heap.update(curelement, point_error(index, 0.0));
         }
         else if (lt == CDT::OUTSIDE_CONVEX_HULL) {
           std::cout << "outside convex hull.";
