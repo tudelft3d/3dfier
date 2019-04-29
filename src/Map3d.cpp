@@ -841,7 +841,7 @@ bool Map3d::construct_CDT() {
       p->buildCDT();
     }
     catch (std::exception e) {
-      std::cerr << std::endl << "CDT failed for " << p->get_id() << " (" << p->get_class() << ") with error: " << e.what() << std::endl;
+      std::cerr << std::endl << "CDT failed for object \'" << p->get_id() << "\' (class " << p->get_class() << ") with error: " << e.what() << std::endl;
       return false;
     }
   }
