@@ -453,7 +453,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         else if (lt == CDT::OUTSIDE_AFFINE_HULL) {
           std::cout << "outside affine hull.";
         }
-        std::cout << " Point; " << std::fixed << std::setprecision(3) << p << std::endl;
+        std::cout << " Point (index " << index << "); " << std::fixed << std::setprecision(3) << p << std::endl;
       }
     }
   }
