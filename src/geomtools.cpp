@@ -75,23 +75,6 @@ typedef CGAL::Constrained_Delaunay_triangulation_2<Gt, Tds, Itag> CDT;
 typedef CDT::Point                                                Point;
 typedef CGAL::Polygon_2<Gt>                                       Polygon_2;
 
-struct PointXYHash {
-  std::size_t operator()(Point const& p) const noexcept {
-    std::size_t h1 = std::hash<double>{}(p.x());
-    std::size_t h2 = std::hash<double>{}(p.y());
-    return h1 ^ (h2 << 1);
-  }
-};
-struct PointXYEqual {
-  bool operator()(Point const& p1, Point const& p2) const noexcept {
-    return CGAL::compare_xy(p1, p2) == CGAL::Comparison_result::EQUAL;
-
-    //auto ex = p1.x() == p2.x();
-    //auto ey = p1.y() == p2.y();
-    //return ex && ey;
-  }
-};
-
 inline double compute_error(Point &p, CDT::Face_handle &face);
 void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold);
 
