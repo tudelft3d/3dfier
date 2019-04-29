@@ -276,7 +276,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   // compute initial point errors, build heap, store point indices in triangles
   {
     for (int i = 0; i < cpts.size(); i++) {
-      auto p = cpts[i];
+      auto p = cpts.at(i);
       CDT::Locate_type lt;
       int li;
       CDT::Face_handle face = T.locate(p, lt, li);
@@ -305,7 +305,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   while (!heap.empty() && heap.top().error > threshold){
     // get top element (with largest error) from heap
     auto maxelementindex = heap.top().index;
-    auto max_p = cpts[maxelementindex];
+    auto max_p = cpts.at(maxelementindex);
 
     // get triangles that will change after inserting this max_p
     std::vector<CDT::Face_handle> faces;
@@ -385,7 +385,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     //  // Locate the face where
     //  CDT::Locate_type lt;
     //  int li;
-    //  CDT::Face_handle containing_face = T.locate(cpts[maxelementindex], lt, li, faces[0]);
+    //  CDT::Face_handle containing_face = T.locate(cpts.at(maxelementindex), lt, li, faces[0]);
     //  std::cout << "; point location: ";
     //  if (lt == CDT::EDGE) {
     //    std::cout << "on edge.";
@@ -402,7 +402,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     //  else if (lt == CDT::OUTSIDE_AFFINE_HULL) {
     //    std::cout << "outside affine hull.";
     //  }
-    //  std::cout << " Point; " << std::fixed << std::setprecision(3) << cpts[maxelementindex] << std::endl;
+    //  std::cout << " Point; " << std::fixed << std::setprecision(3) << cpts.at(maxelementindex) << std::endl;
     //  std::cout << " Vertex; " << std::fixed << std::setprecision(3) << containing_face->vertex(li)->point() << std::endl;
 
     //  heap_handle_vec* pi = containing_face->info().points_inside;
@@ -431,7 +431,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
       //if (index > cpts.size()) {
       //  std::cout << "index out of range: " << index << std::endl;
       //}
-      auto p = cpts[index];
+      auto p = cpts.at(index);
       //auto containing_face = T.locate(p, face_hint);
       CDT::Locate_type lt;
       int li;
