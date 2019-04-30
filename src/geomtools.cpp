@@ -245,22 +245,15 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   // assumes all lidar points are inside a triangle
   Heap heap;
 
-  //// Convert all elevation points to CGAL points
-  //std::vector<Point> cpts;
-  //cpts.reserve(pts.size());
-  //for (auto& p : pts) {
-  //  cpts.push_back(Point(bg::get<0>(p), bg::get<1>(p), bg::get<2>(p)));
-  //}
-
   // compute initial point errors, build heap, store point indices in triangles
   {
     for (int i = 0; i < pts.size(); i++) {
-      auto p = Point(bg::get<0>(pts[i]), bg::get<1>(pts[i]), bg::get<2>(pts[i]));
+      Point p = Point(bg::get<0>(pts[i]), bg::get<1>(pts[i]), bg::get<2>(pts[i]));
       CDT::Locate_type lt;
       int li;
       CDT::Face_handle face = T.locate(p, lt, li);
       if (lt == CDT::FACE) {
-        auto e = compute_error(p, face);
+        double e = compute_error(p, face);
         auto handle = heap.push(point_error(i, e, p));
         face->info().points_inside->push_back(handle);
       }
@@ -325,7 +318,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         continue;
     }
 
-    // update clear info of triangles that just changed, collect points that were inside these triangles
+    // clear info of triangles that just changed, collect points that were inside these triangles
     heap_handle_vec points_to_update;
 
     //bool maxe = false;
@@ -408,9 +401,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
       int li;
       CDT::Face_handle containing_face = T.locate(p, lt, li, face_hint);
       if (lt == CDT::EDGE || lt == CDT::FACE) {
-        const double e = compute_error(p, containing_face);
-        //const point_error new_pe = point_error(element.index, e, element.point);
-        element.error = e;
+        element.error = compute_error(p, containing_face);
         heap.update(curelement, element);
         containing_face->info().points_inside->push_back(curelement);
       }
@@ -418,7 +409,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         std::cout << "CDT update; point location not in face but ";
         if (lt == CDT::VERTEX) {
           std::cout << "on vertex.";
-          // update error to 0.0 to disable point
+          // update error to 0.0 to disable adding point to CDT
           element.error = 0.0;
           heap.update(curelement, element);
         }
