@@ -321,8 +321,6 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     // clear info of triangles that just changed, collect points that were inside these triangles
     heap_handle_vec points_to_update;
 
-    //bool maxe = false;
-    //int pointless = 0;
     for (auto face : faces) {
       if (face->info().plane) {
         delete face->info().plane;
@@ -332,58 +330,11 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         for (auto h : *face->info().points_inside) {
           if (maxelement.index != (*h).index) {
             points_to_update.push_back(h);
-
-
-            //TESTING
-            //std::cout << "pushed: " << (*h).index << std::endl;
-
-            //int index = (*h).index;
-            //if (index < 0 || index >= pts.size()) {
-            //  std::cout << "looking for index: " << maxelementindex << std::endl;
-            //  std::cout << "index out of range: " << index << std::endl;
-            //}
           }
-          //else {
-          //  maxe = true;
-          //}
         }
         heap_handle_vec().swap((*face->info().points_inside));
       }
-      //else {
-      //  pointless++;
-      //}
     }
-    //std::cout << "Pointsless faces: " << pointless << std::endl;
-    //if (pointless == faces.size()) {
-    //  std::cout << "Non of the located faces contain any points, index: " << maxelementindex << std::endl;
-    //}
-
-    //if (!maxe) {
-    //  std::cout << "maxelement " << maxelementindex << " not found";
-
-    //  // Locate the face where
-    //  CDT::Locate_type lt;
-    //  int li;
-    //  CDT::Face_handle containing_face = T.locate(max_p, lt, li, faces[0]);
-    //  std::cout << "; point location: ";
-    //  if (lt == CDT::EDGE) {
-    //    std::cout << "on edge.";
-    //  }
-    //  else if (lt == CDT::FACE) {
-    //    std::cout << "in face.";
-    //  }
-    //  else if (lt == CDT::VERTEX) {
-    //    std::cout << "on vertex.";
-    //  }
-    //  else if (lt == CDT::OUTSIDE_CONVEX_HULL) {
-    //    std::cout << "outside convex hull.";
-    //  }
-    //  else if (lt == CDT::OUTSIDE_AFFINE_HULL) {
-    //    std::cout << "outside affine hull.";
-    //  }
-    //  std::cout << " Point; " << std::fixed << std::setprecision(3) << max_p << std::endl;
-    //  std::cout << " Vertex; " << std::fixed << std::setprecision(3) << containing_face->vertex(li)->point() << std::endl;
-    //}
 
     // insert max_p in triangulation
     auto face_hint = faces[0];
