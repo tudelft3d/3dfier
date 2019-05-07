@@ -39,11 +39,14 @@
 #include <unordered_set>
 #include <boost/heap/fibonacci_heap.hpp>
 
+typedef CGAL::Exact_predicates_inexact_constructions_kernel			K;
+
 // fibonacci heap for greedy insertion code
 struct point_error {
-  point_error(int i, double e) : index(i), error(e){}
+  point_error(int i, double e, CGAL::Point_3<K> p) : index(i), error(e), point(p){}
   int index;
   double error;
+  CGAL::Point_3<K> point;
   
   bool operator<(point_error const & rhs) const
   {
@@ -54,7 +57,6 @@ typedef boost::heap::fibonacci_heap<point_error> Heap;
 typedef Heap::handle_type heap_handle;
 typedef std::vector<heap_handle> heap_handle_vec;
 
-typedef CGAL::Exact_predicates_inexact_constructions_kernel			K;
 typedef CGAL::Projection_traits_xy_3<K>								Gt;
 typedef CGAL::Triangulation_vertex_base_with_id_2<Gt>				Vb;
 struct FaceInfo2
@@ -258,36 +260,25 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   // assumes all lidar points are inside a triangle
   Heap heap;
 
-  std::vector<Point> cpts;
-  cpts.reserve(pts.size());
-
   // compute initial point errors, build heap, store point indices in triangles
   {
-    // Convert all elevation points to CGAL points
-    std::unordered_set<Point, PointXYHash, PointXYEqual> cpts_set;
-
-    for (auto& p : pts) {
-      cpts_set.insert(Point(bg::get<0>(p), bg::get<1>(p), bg::get<2>(p)));
-    }
-    cpts.assign(cpts_set.begin(), cpts_set.end());
-    if (cpts_set.size() != cpts.size()) {
-      std::cout << "size differs; " << cpts_set.size() << "&" << cpts.size();
-    }
-
-    for (int i = 0; i < cpts.size(); i++) {
-      auto p = cpts[i];
+    for (int i = 0; i < pts.size(); i++) {
+      Point p = Point(bg::get<0>(pts[i]), bg::get<1>(pts[i]), bg::get<2>(pts[i]));
       CDT::Locate_type lt;
       int li;
       CDT::Face_handle face = T.locate(p, lt, li);
-      if (lt == CDT::EDGE || lt == CDT::FACE) {
-        auto e = compute_error(p, face);
-        auto handle = heap.push(point_error(i, e));
+      if (lt == CDT::FACE) {
+        double e = compute_error(p, face);
+        auto handle = heap.push(point_error(i, e, p));
         face->info().points_inside->push_back(handle);
       }
       else {
         std::cout << "CDT insert; point location not in face but ";
         if (lt == CDT::VERTEX) {
           std::cout << "on vertex.";
+        }
+        else if (lt == CDT::EDGE) {
+          std::cout << "on edge.";
         }
         else if (lt == CDT::OUTSIDE_CONVEX_HULL) {
           std::cout << "outside convex hull.";
@@ -303,8 +294,8 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   // insert points, update errors of affected triangles until threshold error is reached
   while (!heap.empty() && heap.top().error > threshold){
     // get top element (with largest error) from heap
-    auto maxelement = heap.top();
-    auto max_p = cpts[maxelement.index];
+    point_error maxelement = heap.top();
+    auto max_p = maxelement.point;
 
     // get triangles that will change after inserting this max_p
     std::vector<CDT::Face_handle> faces;
@@ -342,49 +333,51 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         continue;
     }
 
-    // insert max_p in triangulation
-    auto face_hint = faces[0];
-
-    auto v = T.insert(max_p, face_hint);
-    face_hint = v->face();
-    
-    // update clear info of triangles that just changed, collect points that were inside these triangles
+    // clear info of triangles that just changed, collect points that were inside these triangles
     heap_handle_vec points_to_update;
+
     for (auto face : faces) {
-      if (face->info().plane){
+      if (face->info().plane) {
         delete face->info().plane;
         face->info().plane = nullptr;
       }
-      if (face->info().points_inside) {
-        for (auto h :*face->info().points_inside){
-          if( maxelement.index != (*h).index)
+      if (face->info().points_inside && face->info().points_inside->size() > 0) {
+        for (auto h : *face->info().points_inside) {
+          if (maxelement.index != (*h).index) {
             points_to_update.push_back(h);
+          }
         }
         heap_handle_vec().swap((*face->info().points_inside));
       }
     }
-    
-    // remove the point we just inserted in the triangulation from the heap
+
+    // insert max_p in triangulation
+    auto face_hint = faces[0];
+    auto v = T.insert(max_p, face_hint);
+    face_hint = v->face();
+
+    // remove this points from the heap
     heap.pop();
 
     // update the errors of affected elevation points
-    for (auto curelement : points_to_update){
-      int idx = (*curelement).index;
-      auto p = cpts[idx];
-      //auto containing_face = T.locate(p, face_hint);
+    for (heap_handle curelement : points_to_update){
+      point_error element = *curelement;
+      auto p = element.point;
       CDT::Locate_type lt;
       int li;
       CDT::Face_handle containing_face = T.locate(p, lt, li, face_hint);
       if (lt == CDT::EDGE || lt == CDT::FACE) {
-        const double e = compute_error(p, containing_face);
-        const point_error new_pe = point_error(idx, e);
-        heap.update(curelement, new_pe);
+        element.error = compute_error(p, containing_face);
+        heap.update(curelement, element);
         containing_face->info().points_inside->push_back(curelement);
       }
       else {
         std::cout << "CDT update; point location not in face but ";
         if (lt == CDT::VERTEX) {
           std::cout << "on vertex.";
+          // update error to 0.0 to disable adding point to CDT
+          element.error = 0.0;
+          heap.update(curelement, element);
         }
         else if (lt == CDT::OUTSIDE_CONVEX_HULL) {
           std::cout << "outside convex hull.";
@@ -392,7 +385,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         else if (lt == CDT::OUTSIDE_AFFINE_HULL) {
           std::cout << "outside affine hull.";
         }
-        std::cout << " Point; " << std::fixed << std::setprecision(3) << p << std::endl;
+        std::cout << " Point (index " << element.index << "); " << std::fixed << std::setprecision(3) << p << std::endl;
       }
     }
   }
