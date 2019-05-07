@@ -1185,6 +1185,8 @@ void Boundary3D::detect_outliers(bool flatten){
       // find spikes in roads (due to misclassified lidar points) and fix by averaging between previous and next vertex.
       std::vector<int> idx;
       std::vector<double> x, y, z, coeffs;
+      double x0 = ring[0].x();
+      double y0 = ring[0].y();
       for (int i = 0; i < ring.size(); i++) {
         idx.push_back(i);
         x.push_back(ring[i].x());
@@ -1200,7 +1202,7 @@ void Boundary3D::detect_outliers(bool flatten){
       for (int i = 0; i < niter; i++) {
         // Fit the model
         std::vector<double> correctedvalues;
-        polyfit3d<double>(xtmp, ytmp, ztmp, coeffs, correctedvalues);
+        polyfit3d<double>(xtmp, ytmp, ztmp, x0, y0, coeffs, correctedvalues);
         std::vector<double> residuals, absResiduals;
 
         double sum = 0;
@@ -1249,7 +1251,7 @@ void Boundary3D::detect_outliers(bool flatten){
 
       // get the new values based on the coeffs of the lase equation
       std::vector<double> correctedvalues;
-      polyval3d<double>(x, y, coeffs, correctedvalues);
+      polyval3d<double>(x, y, x0, y0, coeffs, correctedvalues);
       if (flatten) {
         for (int i = 0; i < ring.size(); i++) {
           _p2z[ringi][i] = correctedvalues[i];
