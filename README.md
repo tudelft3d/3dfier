@@ -2,6 +2,7 @@
 | Build server | Platform | Build status |
 | :---- | :------ | :---- |
 | AppVeyor | Windows | [![AppVeyor build status][1]][2]
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Ftudelft3d%2F3dfier.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Ftudelft3d%2F3dfier?ref=badge_shield)
 | Travis | Ubuntu | [![Travis build status][3]][4]
 
 [1]: https://ci.appveyor.com/api/projects/status/github/tudelft3d/3dfier?branch=master&svg=true
@@ -133,3 +134,7 @@ Detailed instructions can be found on our [wiki](https://github.com/tudelft3d/3d
     - `YAML-CPP_DIR` (root of the Yaml-cpp directory)
     - `CGAL_DIR` (root of the CGAL directory)
 1. Build solution using Visual Studio
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Ftudelft3d%2F3dfier.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Ftudelft3d%2F3dfier?ref=badge_large)
