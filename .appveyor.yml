@@ -12,13 +12,10 @@ configuration:
 platform: x64
 
 cache:
-  #- C:\deps\yaml-cpp-0.5.3.zip
   - C:\deps\yaml-cpp-yaml-cpp-0.5.3
-  #- C:\deps\osgeo4w-setup-x86_64.exe
   - C:\deps\OSGeo4W
-  #- C:\deps\CGAL-4.12.zip
+  - C:\deps\LAStools-master
   - C:\deps\CGAL-4.12
-  #- C:\deps\gmp.zip
   
 install:
   ############################################################################
