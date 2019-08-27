@@ -41,7 +41,7 @@ install:
   - cd %DEPS_DIR%
   - set YAML-CPP_DIR=%DEPS_DIR%\yaml-cpp-yaml-cpp-0.5.3
   - if not exist %YAML-CPP_DIR% (
-      appveyor DownloadFile https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.5.3.zip -FileName yaml-cpp-0.5.3.zip
+      appveyor DownloadFile https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.5.3.zip -FileName yaml-cpp-0.5.3.zip &&
       7z x yaml-cpp-0.5.3.zip -o%DEPS_DIR% > nul)
   - if not exist %YAML-CPP_DIR%\vs_build (
       cd %YAML-CPP_DIR% &&
@@ -59,7 +59,7 @@ install:
   - cd %DEPS_DIR%
   - set OSGEO4W_ROOT=%DEPS_DIR%\OSGeo4W
   - if not exist %OSGEO4W_ROOT% (
-      appveyor DownloadFile http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe -FileName osgeo4w-setup-x86_64.exe
+      appveyor DownloadFile http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe -FileName osgeo4w-setup-x86_64.exe &&
       osgeo4w-setup-x86_64.exe -q -k -r -A -s http://download.osgeo.org/osgeo4w/ -a x86_64 -P gdal -R %OSGEO4W_ROOT% > NUL)
   - set PATH=%OSGEO4W_ROOT%\bin;%PATH%
   
@@ -72,7 +72,7 @@ install:
   
   - if not exist %LASTOOLS_DIR% (
       appveyor DownloadFile https://github.com/LAStools/LAStools/archive/master.zip -FileName lastools-master.zip &&
-      7z x lastools-master.zip -o%DEPS_DIR%)
+      7z x lastools-master.zip -o%DEPS_DIR% > nul)
   - if not exist %LASTOOLS_DIR%\vs_build (
       cd %LASTOOLS_DIR% &&
       mkdir vs_build &&
@@ -89,10 +89,10 @@ install:
   - cd %DEPS_DIR%
   - set CGAL_DIR=%DEPS_DIR%\CGAL-4.12
   - if not exist %CGAL_DIR% (
-      appveyor DownloadFile https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.12/CGAL-4.12.zip -FileName CGAL-4.12.zip
+      appveyor DownloadFile https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.12/CGAL-4.12.zip -FileName CGAL-4.12.zip &&
       7z x CGAL-4.12.zip -o%DEPS_DIR% > nul)
   - if not exist %CGAL_DIR%\auxiliary\gmp\lib\ (
-      appveyor DownloadFile https://www.dropbox.com/s/okbl2nvdj36y31i/gmp.zip?dl=1 -FileName gmp.zip
+      appveyor DownloadFile https://www.dropbox.com/s/okbl2nvdj36y31i/gmp.zip?dl=1 -FileName gmp.zip &&
       7z x gmp.zip -aoa -o%CGAL_DIR%\auxiliary > nul)
   - if not exist %CGAL_DIR%\CGAL.sln (
       cd %CGAL_DIR% &&
@@ -102,13 +102,13 @@ install:
       copy /Y "%CGAL_DIR%\lib\Release\libCGAL_Core-vc140-mt-4.12.lib" "%CGAL_DIR%\lib")
   - if not exist %CGAL_DIR%\lib\libCGAL-vc140-mt-4.12.lib (
       msbuild "%CGAL_DIR%\src\CGAL\CGAL.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" &&
-      copy /Y "%CGAL_DIR%\lib\Release\libCGAL-vc140-mt-4.12.lib" "%CGAL_DIR%\lib" )
+      copy /Y "%CGAL_DIR%\lib\Release\libCGAL-vc140-mt-4.12.lib" "%CGAL_DIR%\lib")
   - if not exist %CGAL_DIR%\lib\libCGAL_Core-vc140-mt-gd-4.12.lib (
       msbuild "%CGAL_DIR%\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" &&
       copy /Y "%CGAL_DIR%\lib\Debug\libCGAL_Core-vc140-mt-gd-4.12.lib" "%CGAL_DIR%\lib")
   - if not exist %CGAL_DIR%\lib\libCGAL-vc140-mt-gd-4.12.lib (
       msbuild "%CGAL_DIR%\src\CGAL\CGAL.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" &&
-      copy /Y "%CGAL_DIR%\lib\Debug\libCGAL-vc140-mt-gd-4.12.lib" "%CGAL_DIR%\lib" )
+      copy /Y "%CGAL_DIR%\lib\Debug\libCGAL-vc140-mt-gd-4.12.lib" "%CGAL_DIR%\lib")
   - set PATH=%CGAL_DIR%;%PATH%
 
 build_script:
