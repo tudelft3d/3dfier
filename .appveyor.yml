@@ -24,7 +24,7 @@ install:
   ############################################################################
   # All external dependencies are installed in C:\deps
   ############################################################################
-  - set DEPS_DIR=C:\deps
+  - set DEPS_DIR=C:\deps\
   - if not exist %DEPS_DIR%
       mkdir %DEPS_DIR%
   
