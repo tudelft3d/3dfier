@@ -72,7 +72,7 @@ install:
   
   - if not exist %LASTOOLS_DIR% (
       appveyor DownloadFile https://github.com/LAStools/LAStools/archive/master.zip -FileName lastools-master.zip
-      7z x lastools-master.zip -o%DEPS_DIR% > nul)
+      7z x lastools-master.zip -o%DEPS_DIR%)
   - if not exist %LASTOOLS_DIR%\vs_build (
       cd %LASTOOLS_DIR% &&
       mkdir vs_build &&
