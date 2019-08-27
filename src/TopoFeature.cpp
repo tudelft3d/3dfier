@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2019  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -373,8 +373,13 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
 bool TopoFeature::writeAttribute(OGRFeature* feature, OGRFeatureDefn* featureDefn, std::string name, std::string value) {
   int fi = featureDefn->GetFieldIndex(name.c_str());
   if (fi == -1) {
-    std::cerr << "Failed to write attribute " << name << ".\n";
-    return false;
+    // try replace '-' with '_' for postgresql column names
+    std::replace(name.begin(), name.end(), '-', '_');
+    fi = featureDefn->GetFieldIndex(name.c_str());
+    if (fi == -1) {
+      std::cerr << "Failed to write attribute " << name << ".\n";
+      return false;
+    }
   }
   // perform extra character encoding for gdal.
   char* attrcpl = CPLRecode(value.c_str(), "", CPL_ENC_UTF8);
@@ -1180,6 +1185,8 @@ void Boundary3D::detect_outliers(bool flatten){
       // find spikes in roads (due to misclassified lidar points) and fix by averaging between previous and next vertex.
       std::vector<int> idx;
       std::vector<double> x, y, z, coeffs;
+      double x0 = ring[0].x();
+      double y0 = ring[0].y();
       for (int i = 0; i < ring.size(); i++) {
         idx.push_back(i);
         x.push_back(ring[i].x());
@@ -1195,7 +1202,7 @@ void Boundary3D::detect_outliers(bool flatten){
       for (int i = 0; i < niter; i++) {
         // Fit the model
         std::vector<double> correctedvalues;
-        polyfit3d<double>(xtmp, ytmp, ztmp, coeffs, correctedvalues);
+        polyfit3d<double>(xtmp, ytmp, ztmp, x0, y0, coeffs, correctedvalues);
         std::vector<double> residuals, absResiduals;
 
         double sum = 0;
@@ -1244,7 +1251,7 @@ void Boundary3D::detect_outliers(bool flatten){
 
       // get the new values based on the coeffs of the lase equation
       std::vector<double> correctedvalues;
-      polyval3d<double>(x, y, coeffs, correctedvalues);
+      polyval3d<double>(x, y, x0, y0, coeffs, correctedvalues);
       if (flatten) {
         for (int i = 0; i < ring.size(); i++) {
           _p2z[ringi][i] = correctedvalues[i];

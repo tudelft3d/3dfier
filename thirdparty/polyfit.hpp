@@ -94,39 +94,37 @@ std::vector<T> polyvalqr(const std::vector<T>& oCoeff, const std::vector<T>& oX)
 }
 
 template<typename T>
-void combineXY(std::vector<T>& oX, std::vector<T>& oY, mathalgo::matrix<T>& oXY) {
+void combineXY(std::vector<T>& oX, std::vector<T>& oY, T x0, T y0, mathalgo::matrix<T>& oXY) {
   size_t nCount = oX.size();
   size_t nCols = 3 * 2; // 3 unknowns in 2 dimensions
   oXY = mathalgo::matrix<T>(nCount, nCols);
-  
-  // normalize x and y matrix
-  for (size_t i = 1; i < nCount; i++) {
-    oX[i] = oX[i] - oX[0];
-    oY[i] = oY[i] - oY[0];
-  }
-  oX[0] = 0;
-  oY[0] = 0;
 
   // create the XY matrix
   for (size_t nRow = 0; nRow < nCount; nRow++) {
+    T x = oX[nRow] - x0;
+    T y = oY[nRow] - y0;
+    if (nRow == 0) {
+      x = 0;
+      y = 0;
+    }
     oXY(nRow, 0) = 1;
-    oXY(nRow, 1) = oX[nRow];
-    oXY(nRow, 2) = oY[nRow];
-    oXY(nRow, 3) = oX[nRow] * oY[nRow];
-    oXY(nRow, 4) = std::pow(oX[nRow], 2);
-    oXY(nRow, 5) = std::pow(oY[nRow], 2);
+    oXY(nRow, 1) = x;
+    oXY(nRow, 2) = y;
+    oXY(nRow, 3) = x * y;
+    oXY(nRow, 4) = x * x;
+    oXY(nRow, 5) = y * y;
   }
 }
 
 // 3D plane fitting
 template<typename T>
-void polyfit3d(std::vector<T>& oX, std::vector<T>& oY, std::vector<T>& oZ, std::vector<T>& coeffs, std::vector<T>& calculated) {
+void polyfit3d(std::vector<T>& oX, std::vector<T>& oY, std::vector<T>& oZ, T x0, T y0, std::vector<T>& coeffs, std::vector<T>& calculated) {
   if (oX.size() != oY.size() || oX.size() != oZ.size())
     throw std::invalid_argument("X and Y or X and Z vector sizes do not match");
 
   size_t nCount = oX.size();
   mathalgo::matrix<T> A;
-  combineXY(oX, oY, A);
+  combineXY(oX, oY, x0, y0, A);
   mathalgo::matrix<T> X(nCount, 1);
 
   // copy z matrix
@@ -161,16 +159,16 @@ void polyfit3d(std::vector<T>& oX, std::vector<T>& oY, std::vector<T>& oZ, std::
 }
 
 template<typename T>
-void polyval3d(std::vector<T>& x, std::vector<T>& y, std::vector<T>& coeff, std::vector<T>& calculated) {
+void polyval3d(std::vector<T>& x, std::vector<T>& y, T x0, T y0, std::vector<T>& coeff, std::vector<T>& calculated) {
   mathalgo::matrix<T> A;
-  combineXY(x, y, A);
-  mathalgo::matrix<double> Y(coeff.size(), 1);
+  combineXY(x, y, x0, y0, A);
+  mathalgo::matrix<T> YT(coeff.size(), 1);
   // build coeff matrix
   for (size_t i = 0; i < coeff.size(); i++) {
-    Y(i, 0) = coeff[i];
+    YT(i, 0) = coeff[i];
   }
   mathalgo::matrix<T> AY;
-  A.multiply(Y, AY);
+  A.multiply(YT, AY);
   calculated = AY.data();
 }
 #endif

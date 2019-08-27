@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2019  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -56,13 +56,13 @@ public:
   bool construct_rtree();
   bool threeDfy(bool stitching = true);
   bool construct_CDT();
-  void add_elevation_point(liblas::Point const& laspt);
+  void add_elevation_point(LASpoint const& laspt);
   void cleanup_elevations();
 
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>&  get_polygons3d();
   Box2 get_bbox();
-  liblas::Bounds<double> get_bounds();
+  bool check_bounds(const double xmin, const double xmax, const double ymin, const double ymax);
 
   void get_citygml(std::wostream& of);
   void get_citygml_multifile(std::string);
@@ -71,8 +71,7 @@ public:
   bool get_cityjson(std::string filename);
   void get_citygml_imgeo_multifile(std::string ofname);
   void create_citygml_imgeo_header(std::wostream& of);
-  bool get_pdok_output(std::string filename);
-  bool get_pdok_citygml_output(std::string filename);
+  bool get_postgis_output(std::string filename, bool pdok = false, bool citygml = false);
   bool get_gdal_output(std::string filename, std::string drivername, bool multi);
   void get_csv_buildings(std::wostream& of);
   void get_csv_buildings_multiple_heights(std::wostream& of);
@@ -103,6 +102,7 @@ public:
   void set_radius_vertex_elevation(float radius);
   void set_building_radius_vertex_elevation(float radius);
   void set_threshold_jump_edges(float threshold);
+  void set_threshold_bridge_jump_edges(float threshold);
   void set_requested_extent(double xmin, double ymin, double xmax, double ymax);
 
   void add_allowed_las_class(AllowedLASTopo c, int i);
@@ -133,7 +133,12 @@ private:
   float       _radius_vertex_elevation;
   float       _building_radius_vertex_elevation;
   int         _threshold_jump_edges; //-- in cm/integer
+  int         _threshold_bridge_jump_edges; //-- in cm/integer
   Box2        _bbox;
+  double      _minxradius;
+  double      _maxxradius;
+  double      _minyradius;
+  double      _maxyradius;
   Box2        _requestedExtent;
 
   //-- storing the LAS allowed for each TopoFeature
@@ -144,7 +149,6 @@ private:
   NodeColumn                                          _nc_building_walls;
   std::unordered_map<std::string, int>                _bridge_stitches;
   std::vector<TopoFeature*>                           _lsFeatures;
-  std::vector<std::string>                            _allowed_layers;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree;
   bgi::rtree< PairIndexed, bgi::rstar<16> >           _rtree_buildings;
 
