@@ -3,7 +3,6 @@ branches:
   only:
   - master
   - development
-  - appveyor-lastools
 skip_tags: true
 image: Visual Studio 2015
 configuration:
