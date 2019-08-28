@@ -66,6 +66,7 @@ install:
   - cd %DEPS_DIR%
   - set LASTOOLS_DIR=%DEPS_DIR%\LAStools-master
   - set LASLIB_ROOT=%LASTOOLS_DIR%\LASlib
+  - set LASZIP_ROOT=%LASTOOLS_DIR%\LASzip\src
   
   - if not exist %LASTOOLS_DIR% (
       appveyor DownloadFile https://github.com/LAStools/LAStools/archive/master.zip -FileName lastools-master.zip &&
@@ -78,7 +79,7 @@ install:
       msbuild "%LASTOOLS_DIR%\vs_build\LASlib\src\LASlib.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll")
   - if not exist %LASLIB_ROOT%\lib\Release\LASlib.lib (
       msbuild "%LASTOOLS_DIR%\vs_build\LASlib\src\LASlib.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll")
-  - set PATH=%LASLIB_ROOT%;%PATH%
+  - set PATH=%LASLIB_ROOT%;%LASZIP_ROOT%;%PATH%
   
   ############################################################################
   # Install CGAL 4.12
