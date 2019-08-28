@@ -69,7 +69,7 @@ install:
   - set LASZIP_ROOT=%LASTOOLS_DIR%\LASzip\src
   
   - if not exist %LASTOOLS_DIR% (
-      appveyor DownloadFile https://github.com/LAStools/LAStools/archive/master.zip -FileName lastools-master.zip &&
+      appveyor DownloadFile https://github.com/LAStools/LAStools/archive/9dfaef70640ea9eb556b81f35257f1b67832831a.zip -FileName lastools-master.zip &&
       7z x lastools-master.zip -o%DEPS_DIR% > nul)
   - if not exist %LASTOOLS_DIR%\vs_build (
       cd %LASTOOLS_DIR% &&
