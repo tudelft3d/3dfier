@@ -66,7 +66,7 @@ install:
   - cd %DEPS_DIR%
   - set LASTOOLS_DIR=%DEPS_DIR%\LAStools-9dfaef70640ea9eb556b81f35257f1b67832831a
   - set LASLIB_ROOT=%LASTOOLS_DIR%\LASlib
-  - set LASZIP_ROOT=%LASTOOLS_DIR%\LASzip\src
+  - set LASZIP_ROOT=%LASTOOLS_DIR%\LASzip
   
   - if not exist %LASTOOLS_DIR% (
       appveyor DownloadFile https://github.com/LAStools/LAStools/archive/9dfaef70640ea9eb556b81f35257f1b67832831a.zip -FileName lastools-9dfaef70640ea9eb556b81f35257f1b67832831a.zip &&
