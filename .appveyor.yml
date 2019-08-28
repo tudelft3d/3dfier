@@ -1,8 +1,8 @@
-version: 1.0.{build}
+version: 1.2.{build}
 branches:
   only:
   - master
-  - gitflow
+  - development
 skip_tags: true
 image: Visual Studio 2015
 configuration:
@@ -11,13 +11,10 @@ configuration:
 platform: x64
 
 cache:
-  #- C:\deps\yaml-cpp-0.5.3.zip
   - C:\deps\yaml-cpp-yaml-cpp-0.5.3
-  #- C:\deps\osgeo4w-setup-x86_64.exe
   - C:\deps\OSGeo4W
-  #- C:\deps\CGAL-4.8.zip
-  - C:\deps\CGAL-4.8
-  #- C:\deps\gmp.zip
+  - C:\deps\LAStools-master
+  - C:\deps\CGAL-4.12
   
 install:
   ############################################################################
@@ -30,17 +27,17 @@ install:
   ############################################################################
   # Set boost variables
   ############################################################################
-  - set BOOST_ROOT=C:\Libraries\boost_1_60_0
-  - set BOOST_INCLUDEDIR=C:\Libraries\boost_1_60_0
-  - set BOOST_LIBRARYDIR=C:\Libraries\boost_1_60_0\lib64-msvc-14.0
+  - set BOOST_ROOT=C:\Libraries\boost_1_69_0
+  - set BOOST_INCLUDEDIR=C:\Libraries\boost_1_69_0
+  - set BOOST_LIBRARYDIR=C:\Libraries\boost_1_69_0\lib64-msvc-14.0
 
   ############################################################################
   # Install YAML-cpp
   ############################################################################
   - cd %DEPS_DIR%
-  - SET YAML-CPP_DIR=%DEPS_DIR%\yaml-cpp-yaml-cpp-0.5.3
+  - set YAML-CPP_DIR=%DEPS_DIR%\yaml-cpp-yaml-cpp-0.5.3
   - if not exist %YAML-CPP_DIR% (
-      appveyor DownloadFile https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.5.3.zip -FileName yaml-cpp-0.5.3.zip
+      appveyor DownloadFile https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.5.3.zip -FileName yaml-cpp-0.5.3.zip &&
       7z x yaml-cpp-0.5.3.zip -o%DEPS_DIR% > nul)
   - if not exist %YAML-CPP_DIR%\vs_build (
       cd %YAML-CPP_DIR% &&
@@ -57,39 +54,58 @@ install:
   ############################################################################
   - cd %DEPS_DIR%
   - set OSGEO4W_ROOT=%DEPS_DIR%\OSGeo4W
-  - set LIBLAS_ROOT=%OSGEO4W_ROOT%
-  - set LASZIP_ROOT=%OSGEO4W_ROOT%
   - if not exist %OSGEO4W_ROOT% (
-      appveyor DownloadFile http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe -FileName osgeo4w-setup-x86_64.exe
-      osgeo4w-setup-x86_64.exe -q -k -r -A -s http://download.osgeo.org/osgeo4w/ -a x86_64 -P liblas-devel,liblas,laszip,gdal -R %OSGEO4W_ROOT% > NUL)
+      appveyor DownloadFile http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe -FileName osgeo4w-setup-x86_64.exe &&
+      osgeo4w-setup-x86_64.exe -q -k -r -A -s http://download.osgeo.org/osgeo4w/ -a x86_64 -P gdal -R %OSGEO4W_ROOT% > NUL)
   - set PATH=%OSGEO4W_ROOT%\bin;%PATH%
   
   ############################################################################
-  # Install CGAL 4.8
+  # Install LAStools
   ############################################################################
   - cd %DEPS_DIR%
-  - set CGAL_DIR=%DEPS_DIR%\CGAL-4.8
+  - set LASTOOLS_DIR=%DEPS_DIR%\LAStools-9dfaef70640ea9eb556b81f35257f1b67832831a
+  - set LASLIB_ROOT=%LASTOOLS_DIR%\LASlib
+  - set LASZIP_ROOT=%LASTOOLS_DIR%\LASzip
+  
+  - if not exist %LASTOOLS_DIR% (
+      appveyor DownloadFile https://github.com/LAStools/LAStools/archive/9dfaef70640ea9eb556b81f35257f1b67832831a.zip -FileName lastools-9dfaef70640ea9eb556b81f35257f1b67832831a.zip &&
+      7z x lastools-9dfaef70640ea9eb556b81f35257f1b67832831a.zip -o%DEPS_DIR% > nul)
+  - if not exist %LASTOOLS_DIR%\vs_build (
+      cd %LASTOOLS_DIR% &&
+      mkdir vs_build &&
+      CMake -G "Visual Studio 14 2015 Win64" -H.\ -B.\vs_build)
+  - if not exist %LASLIB_ROOT%\lib\Debug\LASlib.lib (
+      msbuild "%LASTOOLS_DIR%\vs_build\LASlib\src\LASlib.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll")
+  - if not exist %LASLIB_ROOT%\lib\Release\LASlib.lib (
+      msbuild "%LASTOOLS_DIR%\vs_build\LASlib\src\LASlib.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll")
+  - set PATH=%LASLIB_ROOT%;%LASZIP_ROOT%;%PATH%
+  
+  ############################################################################
+  # Install CGAL 4.12
+  ############################################################################
+  - cd %DEPS_DIR%
+  - set CGAL_DIR=%DEPS_DIR%\CGAL-4.12
   - if not exist %CGAL_DIR% (
-      appveyor DownloadFile https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.8/CGAL-4.8.zip -FileName CGAL-4.8.zip
-      7z x CGAL-4.8.zip -o%DEPS_DIR% > nul)
+      appveyor DownloadFile https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.12/CGAL-4.12.zip -FileName CGAL-4.12.zip &&
+      7z x CGAL-4.12.zip -o%DEPS_DIR% > nul)
   - if not exist %CGAL_DIR%\auxiliary\gmp\lib\ (
-      appveyor DownloadFile https://www.dropbox.com/s/okbl2nvdj36y31i/gmp.zip?dl=1 -FileName gmp.zip
+      appveyor DownloadFile https://www.dropbox.com/s/okbl2nvdj36y31i/gmp.zip?dl=1 -FileName gmp.zip &&
       7z x gmp.zip -aoa -o%CGAL_DIR%\auxiliary > nul)
   - if not exist %CGAL_DIR%\CGAL.sln (
       cd %CGAL_DIR% &&
       cmake -G "Visual Studio 14 2015 Win64" -H.\ -B.\ -DBUILD_SHARED_LIBS=OFF -DBoost_USE_STATIC_LIBS=ON)
-  - if not exist %CGAL_DIR%\lib\libCGAL_Core-vc140-mt-4.8.lib (
+  - if not exist %CGAL_DIR%\lib\libCGAL_Core-vc140-mt-4.12.lib (
       msbuild "%CGAL_DIR%\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" &&
-      copy /Y "%CGAL_DIR%\lib\Release\libCGAL_Core-vc140-mt-4.8.lib" "%CGAL_DIR%\lib")
-  - if not exist %CGAL_DIR%\lib\libCGAL-vc140-mt-4.8.lib (
+      copy /Y "%CGAL_DIR%\lib\Release\libCGAL_Core-vc140-mt-4.12.lib" "%CGAL_DIR%\lib")
+  - if not exist %CGAL_DIR%\lib\libCGAL-vc140-mt-4.12.lib (
       msbuild "%CGAL_DIR%\src\CGAL\CGAL.vcxproj" /property:Configuration=Release /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" &&
-      copy /Y "%CGAL_DIR%\lib\Release\libCGAL-vc140-mt-4.8.lib" "%CGAL_DIR%\lib" )
-  - if not exist %CGAL_DIR%\lib\libCGAL_Core-vc140-mt-gd-4.8.lib (
+      copy /Y "%CGAL_DIR%\lib\Release\libCGAL-vc140-mt-4.12.lib" "%CGAL_DIR%\lib")
+  - if not exist %CGAL_DIR%\lib\libCGAL_Core-vc140-mt-gd-4.12.lib (
       msbuild "%CGAL_DIR%\src\CGAL_Core\CGAL_Core.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" &&
-      copy /Y "%CGAL_DIR%\lib\Debug\libCGAL_Core-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\lib")
-  - if not exist %CGAL_DIR%\lib\libCGAL-vc140-mt-gd-4.8.lib (
+      copy /Y "%CGAL_DIR%\lib\Debug\libCGAL_Core-vc140-mt-gd-4.12.lib" "%CGAL_DIR%\lib")
+  - if not exist %CGAL_DIR%\lib\libCGAL-vc140-mt-gd-4.12.lib (
       msbuild "%CGAL_DIR%\src\CGAL\CGAL.vcxproj" /property:Configuration=Debug /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll" &&
-      copy /Y "%CGAL_DIR%\lib\Debug\libCGAL-vc140-mt-gd-4.8.lib" "%CGAL_DIR%\lib" )
+      copy /Y "%CGAL_DIR%\lib\Debug\libCGAL-vc140-mt-gd-4.12.lib" "%CGAL_DIR%\lib")
   - set PATH=%CGAL_DIR%;%PATH%
 
 build_script:
