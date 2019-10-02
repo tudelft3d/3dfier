@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2019  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -67,7 +67,7 @@ void get_citygml_namespaces(std::wostream& of) {
   of << "xmlns:app=\"http://www.opengis.net/citygml/appearance/2.0\"\n";
   of << "xmlns:tun=\"http://www.opengis.net/citygml/tunnel/2.0\"\n";
   of << "xmlns:cif=\"http://www.opengis.net/citygml/cityfurniture/2.0\"\n";
-  of << "xsi:schemaLocation=\"http://www.opengis.net/citygml/2.0 ./CityGML_2.0/CityGML.xsd\">\n";
+  of << "xsi:schemaLocation=\"http://www.opengis.net/citygml/2.0 http://schemas.opengis.net/citygml/profiles/base/2.0/CityGML.xsd\">\n";
 }
 
 void get_citygml_imgeo_namespaces(std::wostream& of) {
@@ -136,7 +136,7 @@ void get_extruded_line_gml(std::wostream& of, Point2* a, Point2* b, double high,
   of << bg::get<0>(a) << " " << bg::get<1>(a) << " " << std::setprecision(2) << low << std::setprecision(3) << " ";
   of << bg::get<0>(a) << " " << bg::get<1>(a) << " " << std::setprecision(2) << high << std::setprecision(3) << " ";
   of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << std::setprecision(2) << high << std::setprecision(3) << " ";
-  of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << std::setprecision(2) << low << std::setprecision(3);
+  of << bg::get<0>(b) << " " << bg::get<1>(b) << " " << std::setprecision(2) << low << std::setprecision(3); 
   of << "</gml:posList>";
   of << "</gml:LinearRing>";
   of << "</gml:exterior>";

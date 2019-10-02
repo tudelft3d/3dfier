@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2018  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2019  3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -36,7 +36,7 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
-std::string VERSION = "1.1";
+std::string VERSION = "1.2.2";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
@@ -52,7 +52,7 @@ int main(int argc, const char * argv[]) {
   std::cout.imbue(loc);
 
   std::string licensewarning =
-    "3dfier Copyright (C) 2015-2018  3D geoinformation research group, TU Delft\n"
+    "3dfier Copyright (C) 2015-2019  3D geoinformation research group, TU Delft\n"
     "This program comes with ABSOLUTELY NO WARRANTY.\n"
     "This is free software, and you are welcome to redistribute it\n"
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
@@ -71,7 +71,6 @@ int main(int argc, const char * argv[]) {
   outputs["Shapefile"] = "";
   outputs["Shapefile-Multifile"] = "";
   outputs["PostGIS"] = "";
-  outputs["PostGIS-Multi"] = "";
   outputs["PostGIS-PDOK"] = "";
   outputs["PostGIS-PDOK-CityGML"] = "";
   outputs["GDAL"] = "";
@@ -96,7 +95,6 @@ int main(int argc, const char * argv[]) {
       ("Shapefile", po::value<std::string>(&outputs["Shapefile"]), "Output ")
       ("Shapefile-Multifile", po::value<std::string>(&outputs["Shapefile-Multifile"]), "Output ")
       ("PostGIS", po::value<std::string>(&outputs["PostGIS"]), "Output ")
-      ("PostGIS-Multi", po::value<std::string>(&outputs["PostGIS-Multi"]), "Output ")
       ("PostGIS-PDOK", po::value<std::string>(&outputs["PostGIS-PDOK"]), "Output ")
       ("PostGIS-PDOK-CityGML", po::value<std::string>(&outputs["PostGIS-PDOK-CityGML"]), "Output ")
       ("GDAL", po::value<std::string>(&outputs["GDAL"]), "Output ")
@@ -129,7 +127,7 @@ int main(int argc, const char * argv[]) {
     }
     if (vm.count("version")) {
       std::cout << "3dfier " << VERSION << std::endl;
-      std::cout << liblas::GetFullVersion() << std::endl;
+      std::cout << "LASlib " << LAS_TOOLS_VERSION << std::endl;
       std::cout << "GDAL " << GDALVersionInfo("--version") << std::endl;
       //-- TODO : put here the date and/or the git-commit?
       return EXIT_SUCCESS;
@@ -353,6 +351,10 @@ int main(int argc, const char * argv[]) {
       map3d.set_building_radius_vertex_elevation(n["building_radius_vertex_elevation"].as<float>());
     if (n["threshold_jump_edges"])
       map3d.set_threshold_jump_edges(n["threshold_jump_edges"].as<float>());
+    if (n["threshold_bridge_jump_edges"])
+      map3d.set_threshold_bridge_jump_edges(n["threshold_bridge_jump_edges"].as<float>());
+    else if (n["threshold_jump_edges"]) // set threshold_jump_edges same for bridge
+      map3d.set_threshold_bridge_jump_edges(n["threshold_jump_edges"].as<float>());
     if (n["stitching"] && n["stitching"].as<std::string>() == "false")
       bStitching = false;
 
@@ -609,7 +611,7 @@ int main(int argc, const char * argv[]) {
     std::string ofname = output.second;
     if (format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "CityJSON" &&
       format != "Shapefile" && format != "Shapefile-Multifile" &&
-      format != "PostGIS" && format != "PostGIS-Multi" && format != "PostGIS-PDOK" && format != "PostGIS-PDOK-CityGML" &&
+      format != "PostGIS" && format != "PostGIS-PDOK" && format != "PostGIS-PDOK-CityGML" &&
       format != "GDAL") {
       of.open(ofname);
     }
@@ -663,19 +665,15 @@ int main(int argc, const char * argv[]) {
     }
     else if (format == "PostGIS") {
       std::clog << "PostGIS output\n";
-      fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", false);
-    }
-    else if (format == "PostGIS-Multi") {
-      std::clog << "PostGIS multiple table output\n";
-      fileWritten = map3d.get_gdal_output(ofname, "PostgreSQL", true);
+      fileWritten = map3d.get_postgis_output(ofname, false, false);
     }
     else if (format == "PostGIS-PDOK") {
       std::clog << "PostGIS with IMGeo GML string output\n";
-      fileWritten = map3d.get_pdok_output(ofname);
+      fileWritten = map3d.get_postgis_output(ofname, true,  false);
     }
     else if (format == "PostGIS-PDOK-CityGML") {
       std::clog << "PostGIS with CityGML string output\n";
-      fileWritten = map3d.get_pdok_citygml_output(ofname);
+      fileWritten = map3d.get_postgis_output(ofname, true, true);
     }
     else if (format == "GDAL") { //-- TODO: what is this? a path? how to use?
       if (nodes["output"] && nodes["output"]["gdal_driver"]) {
@@ -704,7 +702,7 @@ std::string print_license() {
   std::string thelicense =
     "======================================================================\n"
     "\n3dfier: takes 2D GIS datasets and '3dfies' to create 3D city models.\n\n"
-    "Copyright (C) 2015-2018  3D geoinformation research group, TU Delft\n\n"
+    "Copyright (C) 2015-2019  3D geoinformation research group, TU Delft\n\n"
     "3dfier is free software: you can redistribute it and/or modify\n"
     "it under the terms of the GNU General Public License as published by\n"
     "the Free Software Foundation, either version 3 of the License, or\n"
@@ -1147,6 +1145,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       catch (boost::bad_lexical_cast& e) {
         wentgood = false;
         std::cerr << "\tOption 'options.threshold_jump_edges' invalid.\n";
+      }
+    }
+    if (n["threshold_bridge_jump_edges"]) {
+      try {
+        boost::lexical_cast<float>(n["threshold_bridge_jump_edges"].as<std::string>());
+      }
+      catch (boost::bad_lexical_cast& e) {
+        wentgood = false;
+        std::cerr << "\tOption 'options.threshold_bridge_jump_edges' invalid.\n";
       }
     }
     if (n["stitching"]) {

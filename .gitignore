@@ -43,14 +43,11 @@ vs_build/.vs
 *.lib
 
 # Folders
-/vendor
-/_site
-x64/
-x86/
-
-#Folders
-/vendor
-/_site
+x64
+x86
+vendor
+_site
+.sass-cache
 /resources/convert-to-simulation/simulatorready
 /resources/convert-to-simulation/out.off
 /resources/convert-to-simulation/bin/
