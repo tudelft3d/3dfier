@@ -176,7 +176,7 @@ bool Map3d::get_cityjson(std::string filename) {
   std::cout << "CityJSON" << std::endl;
   nlohmann::json j;
   j["type"] = "CityJSON";
-  j["version"] = "0.8";
+  j["version"] = "1.0";
   j["metadata"] = {};
   double b[] = {bg::get<bg::min_corner, 0>(_bbox),
                 bg::get<bg::min_corner, 1>(_bbox), 
@@ -185,6 +185,7 @@ bool Map3d::get_cityjson(std::string filename) {
                 bg::get<bg::max_corner, 1>(_bbox), 
                 0};
   j["metadata"]["geographicalExtent"] = b;
+  j["metadata"]["referenceSystem"] = "urn:ogc:def:crs:EPSG::7415";
   std::unordered_map< std::string, unsigned long > dPts;
   for (auto& f : _lsFeatures) {
     f->get_cityjson(j, dPts);
