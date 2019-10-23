@@ -1,0 +1,89 @@
+# This is your sidebar TOC. The sidebar code loops through sections here and provides the appropriate formatting.
+
+entries:
+- title: sidebar
+  product: 3dfier
+  version: v1.2.2
+  logo: 3dfierLogo.png
+  folders:
+  - title:
+    output: pdf
+    type: frontmatter
+    folderitems:
+    - title:
+      url: /titlepage.html
+      output: pdf
+      type: frontmatter
+    - title:
+      url: /tocpage.html
+      output: pdf
+      type: frontmatter
+
+  - title: Overview
+    output: web, pdf
+    folderitems:
+    - title: Get started
+      url: /index.html
+      output: web, pdf
+      type: homepage
+    - title: Introduction
+      url: /introduction.html
+      output: web, pdf
+    - title: Supported file formats
+      url: /supported_file_formats.html
+      output: web, pdf
+    - title: Contents of a release
+      url: /release_contents.html
+      output: web, pdf
+    - title: Known issues
+      url: /known_issues.html
+      output: web, pdf
+
+  - title: Installation
+    output: web, pdf
+    folderitems:
+    - title: Install 3dfier on Windows
+      url: /install_windows.html
+      output: web, pdf
+    - title: Install 3dfier on Ubuntu
+      url: /install_ubuntu.html
+      output: web, pdf
+    - title: Install 3dfier using a Docker image
+      url: /install_docker.html
+      output: web, pdf
+
+  - title: Examples
+    output: web, pdf
+    folderitems:
+    - title: Example data
+      url: /example_data.html
+      output: web, pdf
+    - title: Data visualisation
+      url: /data_visualisation.html
+      output: web, pdf
+
+  - title: Data preparation
+    output: web, pdf
+    folderitems:
+    - title: Overview
+      url: /data_preparation_overview.html
+      output: web, pdf
+    - title: Generate terrain polygon
+      url: /generate_terrain.html
+      output: web, pdf
+    - title: Extract footprints from OSM
+      url: /building_footprints_from_openstreetmap.html
+      output: web, pdf
+
+  - title: Settings
+    output: web, pdf
+    folderitems:
+    - title: Input options
+      url: /input_options.html
+      output: web, pdf
+    - title: Lifting options
+      url: /lifting_options.html
+      output: web, pdf
+    - title: Output options
+      url: /output_options.html
+      output: web, pdf
