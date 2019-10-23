@@ -1,35 +1,61 @@
-<nav class="collapse bd-links" id="bd-docs-nav">
-  {%- assign page_slug = page.url | split: '/' | last -%}
-  {%- for group in site.data.nav -%}
-  {%- assign link = group.pages | first -%}
-  {%- assign link_slug = link.title | slugify -%}
-  {%- assign group_slug = group.title | slugify -%}
-  {%- assign active = nil -%}
+{% assign sidebar = site.data.sidebars[page.sidebar].entries %}
 
-  {%- if page.group == group_slug -%}
-    {%- assign active = 'active' -%}
-  {%- endif -%}
+<ul id="mysidebar" class="nav">
+  {% if sidebar[0].logo != null %}
+  <li class="sidebarLogo"><img src="images/{{sidebar[0].logo}}" style="max-height:100px"/></li>
+  {% endif %}
+  <li class="sidebarTitle">{{sidebar[0].product}} {{sidebar[0].version}}</li>
+  {% for entry in sidebar %}
+  {% for folder in entry.folders %}
+  {% if folder.output contains "web" %}
+  <li>
+      <a title="{{folder.title}}" href="#">{{folder.title}}</a>
+      <ul>
+          {% for folderitem in folder.folderitems %}
+          {% if folderitem.output contains "web" %}
+          {% if folderitem.external_url %}
+          <li><a title="{{folderitem.title}}" href="{{folderitem.external_url}}" target="_blank" rel="noopener">{{folderitem.title}}</a></li>
+          {% elsif page.url == folderitem.url %}
+          <li class="active"><a title="{{folderitem.title}}" href="{{folderitem.url | remove: "/"}}">{{folderitem.title}}</a></li>
+          {% elsif folderitem.type == "empty" %}
+          <li><a title="{{folderitem.title}}" href="{{folderitem.url | remove: "/"}}">{{folderitem.title}}</a></li>
 
-  <div class="bd-toc-item{% unless active == nil %} {{ active }}{% endunless %}">
-      <a class="bd-toc-link" href="{{ site.baseurl }}/pages/{{ group_slug }}/{{ link_slug }}{% if link_slug %}{% endif %}">
-        {{ group.title }}
-      </a>
-
-      <ul class="nav bd-sidenav">
-        {%- for doc in group.pages -%}
-          {%- assign doc_slug = doc.title | slugify -%}
-          {%- assign active = nil -%}
-          {%- if page.group == group_slug and page_slug == doc_slug -%}
-            {%- assign active = 'active bd-sidenav-active' -%}
-          {%- endif -%}
-
-          <li{% unless active == nil %} class="{{ active }}"{% endunless %}>
-            <a href="{{ site.baseurl }}/pages/{{ group_slug }}/{{ doc_slug }}">
-              {{ doc.title }}
-            </a>
+          {% else %}
+          <li><a title="{{folderitem.title}}" href="{{folderitem.url | remove: "/"}}">{{folderitem.title}}</a></li>
+          {% endif %}
+          {% for subfolders in folderitem.subfolders %}
+          {% if subfolders.output contains "web" %}
+          <li class="subfolders">
+              <a title="{{subfolders.title}}" href="#">{{ subfolders.title }}</a>
+              <ul>
+                  {% for subfolderitem in subfolders.subfolderitems %}
+                  {% if subfolderitem.output contains "web" %}
+                  {% if subfolderitem.external_url %}
+                  <li><a title="{{subfolderitem.title}}" href="{{subfolderitem.external_url}}" target="_blank" rel="noopener">{{subfolderitem.title}}</a></li>
+                  {% elsif page.url == subfolderitem.url %}
+                  <li class="active"><a title="{{subfolderitem.title}}" href="{{subfolderitem.url | remove: "/"}}">{{subfolderitem.title}}</a></li>
+                  {% else %}
+                  <li><a title="{{subfolderitem.title}}" href="{{subfolderitem.url | remove: "/"}}">{{subfolderitem.title}}</a></li>
+                  {% endif %}
+                  {% endif %}
+                  {% endfor %}
+              </ul>
           </li>
-        {%- endfor -%}
+          {% endif %}
+          {% endfor %}
+          {% endif %}
+          {% endfor %}
       </ul>
-    </div>
-  {%- endfor -%}
-</nav>
+   </li>
+     {% endif %}
+      {% endfor %}
+      {% endfor %}
+      <!-- if you aren't using the accordion, uncomment this block:
+         <p class="external">
+             <a href="#" id="collapseAll">Collapse All</a> | <a href="#" id="expandAll">Expand All</a>
+         </p>
+         -->
+</ul>
+
+<!-- this highlights the active parent class in the navgoco sidebar. this is critical so that the parent expands when you're viewing a page. This must appear below the sidebar code above. Otherwise, if placed inside customscripts.js, the script runs before the sidebar code runs and the class never gets inserted.-->
+<script>$("li.active").parents('li').toggleClass("active");</script>
