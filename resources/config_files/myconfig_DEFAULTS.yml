@@ -20,11 +20,11 @@ lifting_options:
   Terrain:                      # Terrain is percentile-50
     simplification: 0
     simplification_tinsimp: 0.0
-    inner_buffer: 0.0
+    innerbuffer: 0.0
   Forest:                       # Forest is percentile-50
     simplification: 0
     simplification_tinsimp: 0.0
-    inner_buffer: 0.0
+    innerbuffer: 0.0
 
 input_elevation:
   - datasets:

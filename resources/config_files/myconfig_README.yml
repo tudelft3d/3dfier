@@ -63,11 +63,11 @@ lifting_options:                                        # Group for class liftin
   Terrain:                                              # Class definition for Terrain
     simplification: 100                                 # Simplification factor for points added within terrain polygons, points are added random
     simplification_tinsimp: 0.1                         # Simplification threshold for points added within terrain polygons, points are removed from triangulation until specified error threshold value is reached
-    inner_buffer: 1.0                                   # Inner buffer in meters where no additional points will be added within boundary of the terrain polygon
+    innerbuffer: 1.0                                    # Inner buffer in meters where no additional points will be added within boundary of the terrain polygon
   Forest:                                               # Class definition for Forest
     simplification: 10                                  # Simplification factor for points added within forest polygons, points are added random
     simplification_tinsimp: 0.1                         # Simplification threshold for points added within forest polygons, points are removed from triangulation until specified error threshold value is reached
-    inner_buffer: 1.0                                   # Inner buffer in meters where no additional points will be added within boundary of the forest polygon
+    innerbuffer: 1.0                                    # Inner buffer in meters where no additional points will be added within boundary of the forest polygon
 
 input_elevation:                                        # Group for point clouds
   - datasets:                                           # List of data set with specific settings
