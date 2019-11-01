@@ -1,7 +1,7 @@
 FROM alpine:3.10
 
 #
-# Install proj4
+# Install proj
 #
 ARG PROJ_VERSION=6.1.1
 RUN apk --update add sqlite libstdc++ sqlite-libs libgcc && \
@@ -93,13 +93,83 @@ RUN apk --update add --virtual .geos-deps \
     rm -rf /tmp/* && \
     rm -rf /user/local/man
 
+# #
+# # Install FreeXL
+# #
+# ARG FREEXL_VERSION=1.0.5
+# RUN apk --update add --virtual .freexl-deps \
+#         make \
+#         gcc \
+#         g++ \
+#         wget \
+#         autoconf \
+#         automake \
+#         libtool && \
+#     cd /tmp && \
+#     wget http://www.gaia-gis.it/gaia-sins/freexl-${FREEXL_VERSION}.tar.gz && \
+#     tar xfz freexl-${FREEXL_VERSION}.tar.gz  && \
+#     cd freexl-${FREEXL_VERSION} && \
+#     ./configure && \
+#     make && \
+#     make install && \
+#     cd ~ && \
+#     apk del .freexl-deps && \
+#     rm -rf /tmp/* && \
+#     rm -rf /user/local/man
+
+# #
+# # Install Spatialite
+# #
+# ARG SPATIALITE_VERSION=4.3.0a
+# RUN apk --update add \
+#         gnu-libiconv \
+#         zlib \
+#         libxml2 \
+#         sqlite && \
+#     apk --update add --virtual .spatialite-deps \
+#         gnu-libiconv-dev \
+#         zlib-dev \
+#         libxml2-dev \
+#         sqlite-dev \
+#         make \
+#         gcc \
+#         g++ \
+#         wget \
+#         autoconf \
+#         automake \
+#         libtool && \
+#     cd /tmp && \
+#     wget http://www.gaia-gis.it/gaia-sins/libspatialite-sources/libspatialite-${SPATIALITE_VERSION}.tar.gz && \
+#     tar xfz libspatialite-${SPATIALITE_VERSION}.tar.gz  && \
+#     cd libspatialite-${SPATIALITE_VERSION} && \
+#     ./configure && \
+#     make && \
+#     make install && \
+#     cd ~ && \
+#     apk del .freexl-deps && \
+#     rm -rf /tmp/* && \
+#     rm -rf /user/local/man    
+
 #
 # Install GDAL
 #
-ARG GDAL_VERSION=3.0.0
+ARG GDAL_VERSION=3.0.1
 RUN apk --update add \
+        xz \
+        xz-libs \
+        zstd \
+        zstd-libs \
+        curl \
+        libxml2 \
+        sqlite \
+        sqlite-libs \
         tiff && \
     apk --update add --virtual .gdal-deps \
+        xz-dev \
+        zstd-dev \
+        curl-dev \
+        libxml2-dev \
+        sqlite-dev \
         make \
         gcc \
         g++ \
@@ -113,11 +183,16 @@ RUN apk --update add \
     rm -f gdal-${GDAL_VERSION}.tar.gz && \
     cd gdal-${GDAL_VERSION} && \
     ./configure \
-        --with-geotiff=/usr/local \
         --with-proj=/usr/local \
+        --with-liblzma=yes \
+        --with-zstd=yes \
         --with-pg=/usr/bin/pg_config \
+        --with-geotiff=/usr/local \
+        --with-curl=/usr/local \
+        --with-xml2=/usr/local \
+        --with-sqlite3=yes \
         --with-geos=/usr/local/bin/geos-config && \
-    make && \
+    make -j 4 && \
     make install && \
     cd ~ && \
     apk del .gdal-deps && \
@@ -125,38 +200,49 @@ RUN apk --update add \
     rm -rf /user/local/man
 
 #
-# Install PostGIS
+# Install Boost
 #
-ARG POSTGIS_VERSION=3.0.0
-RUN apk --update add \
-        perl \
-        json-c \
-        libxml2 \
-        sqlite \
-        postgresql && \
-    apk --update add --virtual .postgis-deps \
+ARG BOOST_VERSION=1_71_0
+RUN apk del boost boost-dev && \
+    apk --update add \
+        zlib \
+        zstd \
+        zstd-libs \
+        xz \
+        xz-libs \
+        icu \
+        icu-libs \
+        bzip2 \
+        mpfr3 \
+        eigen && \
+    apk --update add --virtual .boost-deps \
+        zlib-dev \
+        zstd-dev \
+        xz-dev \
+        icu-dev \
+        bzip2-dev \
         make \
-        wget \
         gcc \
         g++ \
-        file \
-        perl-dev \
-        json-c-dev \
-        libxml2-dev \
-        sqlite-dev \
-        postgresql-dev \
-        tiff-dev \
-        portablexdr-dev \
+        git \
+        cmake \
         linux-headers && \
     cd /tmp && \
-    wget http://download.osgeo.org/postgis/source/postgis-${POSTGIS_VERSION}.tar.gz && \
-    tar xzf postgis-${POSTGIS_VERSION}.tar.gz && \
-    cd postgis-${POSTGIS_VERSION} && \
-    ./configure && \
-    make && \
-    make install && \
+    wget https://dl.bintray.com/boostorg/release/1.71.0/source/boost_${BOOST_VERSION}.tar.gz && \
+    tar xzf boost_${BOOST_VERSION}.tar.gz && \
+    cd boost_${BOOST_VERSION} && \
+    ./bootstrap.sh \
+        --with-libraries=all \
+        --libdir=/usr/local/lib \
+        --includedir=/usr/local/include \
+        --exec-prefix=/usr/local && \
+    ./b2 \
+        --libdir=/usr/local/lib \
+        --includedir=/usr/local/include \
+        --exec-prefix=/usr/local \
+        install && \
     cd ~ && \
-    apk del .postgis-deps && \
+    apk del .boost-deps && \
     rm -rf /tmp/* && \
     rm -rf /user/local/man
 
@@ -210,37 +296,6 @@ RUN apk --update add --virtual .liblas-deps \
     rm -rf /user/local/man
 
 #
-# Install Boost
-#
-ARG BOOST_VERSION=1_71_0
-RUN apk del boost boost-dev && \
-    apk --update add --virtual .boost-deps \
-        make \
-        gcc \
-        g++ \
-        git \
-        cmake \
-        linux-headers && \
-    cd /tmp && \
-    wget https://dl.bintray.com/boostorg/release/1.71.0/source/boost_${BOOST_VERSION}.tar.gz && \
-    tar xzf boost_${BOOST_VERSION}.tar.gz && \
-    cd boost_${BOOST_VERSION} && \
-    ./bootstrap.sh \
-        --with-libraries=all \
-        --libdir=/usr/local/lib \
-        --includedir=/usr/local/include \
-        --exec-prefix=/usr/local && \
-    ./b2 \
-        --libdir=/usr/local/lib \
-        --includedir=/usr/local/include \
-        --exec-prefix=/usr/local \
-        install && \
-    cd ~ && \
-    apk del .boost-deps && \
-    rm -rf /tmp/* && \
-    rm -rf /user/local/man
-
-#
 # Install CGAL
 #
 ARG CGAL_VERSION=releases/CGAL-4.14.1
@@ -275,6 +330,100 @@ RUN apk --update add \
     make install && \
     cd ~ && \
     apk del .cgal-deps && \
+    rm -rf /tmp/* && \
+    rm -rf /user/local/man
+
+#
+# Install SFCGAL
+#
+ARG SFCGAL_VERSION=v1.3.7
+RUN apk --update add \
+        gmp \
+        mpfr3 \
+        zlib && \
+    apk --update add --virtual .sfcgal-deps \
+        make \
+        gcc \
+        gmp-dev \
+        mpfr-dev \
+        zlib-dev \
+        g++ \
+        git \
+        cmake \
+        linux-headers && \
+    cd /tmp && \
+    git clone https://github.com/Oslandia/SFCGAL.git && \
+    cd SFCGAL && \
+    git checkout tags/${SFCGAL_VERSION} && \
+    mkdir build && \
+    cd build && \
+    cmake \
+        -DBoost_NO_BOOST_CMAKE=TRUE \
+        -DBoost_NO_SYSTEM_PATHS=TRUE \
+        -DBOOST_ROOT=/usr/local \
+        .. && \
+    make && \
+    make install && \
+    cd ~ && \
+    apk del .sfcgal-deps && \
+    rm -rf /tmp/* && \
+    rm -rf /user/local/man
+
+#
+# Install PostGIS
+#
+ARG POSTGIS_VERSION=3.0.0
+RUN ln -s /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
+    apk --update add \
+        curl \
+        nghttp2 \
+        nghttp2-libs \
+        zlib \
+        zstd \
+        zstd-libs \
+        xz \
+        xz-libs \
+        icu \
+        icu-libs \
+        bzip2 \
+        mpfr3 \
+        perl \
+        json-c \
+        libxml2 \
+        sqlite \
+        postgresql && \
+    apk --update add --virtual .postgis-deps \
+        curl-dev \
+        nghttp2-dev \
+        zlib-dev \
+        zstd-dev \
+        xz-dev \
+        icu-dev \
+        bzip2-dev \
+        mpfr-dev \
+        git \
+        make \
+        wget \
+        gcc \
+        g++ \
+        file \
+        perl-dev \
+        json-c-dev \
+        libxml2-dev \
+        sqlite-dev \
+        postgresql-dev \
+        tiff-dev \
+        portablexdr-dev \
+        linux-headers && \
+    cd /tmp && \
+    wget http://download.osgeo.org/postgis/source/postgis-${POSTGIS_VERSION}.tar.gz && \
+    tar xzf postgis-${POSTGIS_VERSION}.tar.gz && \
+    cd postgis-${POSTGIS_VERSION} && \
+    ./configure && \
+    make && \
+    make install && \
+    cd ~ && \
+    apk del .postgis-deps && \
     rm -rf /tmp/* && \
     rm -rf /user/local/man
 
