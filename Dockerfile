@@ -1,6 +1,30 @@
 FROM alpine:3.10
 
 #
+# Install FreeXL
+#
+ARG FREEXL_VERSION=1.0.5
+RUN apk --update add --virtual .freexl-deps \
+        make \
+        gcc \
+        g++ \
+        wget \
+        autoconf \
+        automake \
+        libtool && \
+    cd /tmp && \
+    wget http://www.gaia-gis.it/gaia-sins/freexl-${FREEXL_VERSION}.tar.gz && \
+    tar xfz freexl-${FREEXL_VERSION}.tar.gz  && \
+    cd freexl-${FREEXL_VERSION} && \
+    ./configure && \
+    make && \
+    make install && \
+    cd ~ && \
+    apk del .freexl-deps && \
+    rm -rf /tmp/* && \
+    rm -rf /user/local/man
+
+#
 # Install proj
 #
 ARG PROJ_VERSION=6.1.1
@@ -40,6 +64,68 @@ RUN apk --update add sqlite libstdc++ sqlite-libs libgcc && \
     rm -rf /user/local/man && \
     proj
 
+# Install geos
+ARG GEOS_VERSION=3.7.1
+RUN apk --update add --virtual .geos-deps \
+        which \
+        make \
+        gcc \
+        g++ \
+        file \
+        git \
+        autoconf \
+        automake \
+        libtool && \
+    cd /tmp && \
+    git clone https://git.osgeo.org/gitea/geos/geos.git geos && \
+    cd geos && \
+    git checkout ${GEOS_VERSION} && \
+    ./autogen.sh && \
+    ./configure && \
+    make -j 4 && \
+    make install && \
+    cd ~ && \
+    apk del .geos-deps && \
+    rm -rf /tmp/* && \
+    rm -rf /user/local/man
+
+#
+# Install Spatialite
+# use straight actual version of repository because there was no release since august 2018
+#
+ARG SPATIALITE_VERSION=latest
+RUN apk --update add \
+        gnu-libiconv \
+        zlib \
+        libxml2 \
+        sqlite && \
+    apk --update add --virtual .spatialite-deps \
+        gnu-libiconv-dev \
+        zlib-dev \
+        libxml2-dev \
+        sqlite-libs \
+        fossil \
+        sqlite-dev \
+        make \
+        gcc \
+        g++ \
+        wget \
+        autoconf \
+        automake \
+        libtool && \
+    cd /tmp && \
+    fossil clone --admin-user docker-user https://www.gaia-gis.it/fossil/libspatialite libspatialite.fossil && \
+    mkdir libspatialite && \
+    cd libspatialite && \
+    fossil open ../libspatialite.fossil && \
+    ./configure && \
+    make && \
+    make install && \
+    cd ~ && \
+    apk del .spatialite-deps && \
+    rm -rf /tmp/* && \
+    rm -rf /user/local/man
+
 #
 # Install geotiff
 #
@@ -67,88 +153,6 @@ RUN apk --update add zlib tiff libjpeg && \
     apk del .geotiff-deps && \
     rm -rf /tmp/* && \
     rm -rf /user/local/man
-
-# Install geos
-ARG GEOS_VERSION=3.7.1
-RUN apk --update add --virtual .geos-deps \
-        which \
-        make \
-        gcc \
-        g++ \
-        file \
-        git \
-        autoconf \
-        automake \
-        libtool && \
-    cd /tmp && \
-    git clone https://git.osgeo.org/gitea/geos/geos.git geos && \
-    cd geos && \
-    git checkout ${GEOS_VERSION} && \
-    ./autogen.sh && \
-    ./configure && \
-    make -j 4 && \
-    make install && \
-    cd ~ && \
-    apk del .geos-deps && \
-    rm -rf /tmp/* && \
-    rm -rf /user/local/man
-
-# #
-# # Install FreeXL
-# #
-# ARG FREEXL_VERSION=1.0.5
-# RUN apk --update add --virtual .freexl-deps \
-#         make \
-#         gcc \
-#         g++ \
-#         wget \
-#         autoconf \
-#         automake \
-#         libtool && \
-#     cd /tmp && \
-#     wget http://www.gaia-gis.it/gaia-sins/freexl-${FREEXL_VERSION}.tar.gz && \
-#     tar xfz freexl-${FREEXL_VERSION}.tar.gz  && \
-#     cd freexl-${FREEXL_VERSION} && \
-#     ./configure && \
-#     make && \
-#     make install && \
-#     cd ~ && \
-#     apk del .freexl-deps && \
-#     rm -rf /tmp/* && \
-#     rm -rf /user/local/man
-
-# #
-# # Install Spatialite
-# #
-# ARG SPATIALITE_VERSION=4.3.0a
-# RUN apk --update add \
-#         gnu-libiconv \
-#         zlib \
-#         libxml2 \
-#         sqlite && \
-#     apk --update add --virtual .spatialite-deps \
-#         gnu-libiconv-dev \
-#         zlib-dev \
-#         libxml2-dev \
-#         sqlite-dev \
-#         make \
-#         gcc \
-#         g++ \
-#         wget \
-#         autoconf \
-#         automake \
-#         libtool && \
-#     cd /tmp && \
-#     wget http://www.gaia-gis.it/gaia-sins/libspatialite-sources/libspatialite-${SPATIALITE_VERSION}.tar.gz && \
-#     tar xfz libspatialite-${SPATIALITE_VERSION}.tar.gz  && \
-#     cd libspatialite-${SPATIALITE_VERSION} && \
-#     ./configure && \
-#     make && \
-#     make install && \
-#     cd ~ && \
-#     apk del .freexl-deps && \
-#     rm -rf /tmp/* && \
-#     rm -rf /user/local/man    
 
 #
 # Install GDAL
