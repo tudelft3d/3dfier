@@ -1,7 +1,7 @@
 FROM alpine:3.10
 
 #
-# Install FreeXL
+# 1 Install FreeXL
 #
 ARG FREEXL_VERSION=1.0.5
 RUN apk --update add --virtual .freexl-deps \
@@ -22,10 +22,11 @@ RUN apk --update add --virtual .freexl-deps \
     cd ~ && \
     apk del .freexl-deps && \
     rm -rf /tmp/* && \
-    rm -rf /user/local/man
+    rm -rf /user/local/man && \
+    for i in /usr/local/lib/libfreexl*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
-# Install proj
+# 2 Install proj
 #
 ARG PROJ_VERSION=6.1.1
 RUN apk --update add sqlite libstdc++ sqlite-libs libgcc && \
@@ -54,7 +55,7 @@ RUN apk --update add sqlite libstdc++ sqlite-libs libgcc && \
     rm -f proj-datumgrid-oceania-1.0.zip && \
     cd proj-${PROJ_VERSION} && \
     ./configure && \
-    make -j 4 && \
+    make && \
     make install && \
     echo "Entering root folder" && \
     cd / &&\
@@ -62,10 +63,13 @@ RUN apk --update add sqlite libstdc++ sqlite-libs libgcc && \
     apk del .proj4-deps && \
     rm -rf /tmp/* && \
     rm -rf /user/local/man && \
+    for i in /usr/local/lib/libproj*; do strip -s $i 2>/dev/null || /bin/true; done && \
+    for i in /usr/local/lib/geod*; do strip -s $i 2>/dev/null || /bin/true; done && \
+    for i in /usr/local/bin/proj*; do strip -s $i 2>/dev/null || /bin/true; done && \
     proj
 
-# Install geos
-ARG GEOS_VERSION=3.7.1
+# 3 Install geos
+ARG GEOS_VERSION=3.7.2
 RUN apk --update add --virtual .geos-deps \
         which \
         make \
@@ -82,16 +86,18 @@ RUN apk --update add --virtual .geos-deps \
     git checkout ${GEOS_VERSION} && \
     ./autogen.sh && \
     ./configure && \
-    make -j 4 && \
+    make && \
     make install && \
     cd ~ && \
     apk del .geos-deps && \
     rm -rf /tmp/* && \
-    rm -rf /user/local/man
+    rm -rf /user/local/man && \
+    for i in /usr/local/lib/libgeos*; do strip -s $i 2>/dev/null || /bin/true; done && \
+    for i in /usr/local/bin/geos-config*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
-# Install Spatialite
-# use straight actual version of repository because there was no release since august 2018
+# 4 Install Spatialite
+# use straight current version of repository because there was no release since august 2018
 #
 ARG SPATIALITE_VERSION=latest
 RUN apk --update add \
@@ -124,13 +130,18 @@ RUN apk --update add \
     cd ~ && \
     apk del .spatialite-deps && \
     rm -rf /tmp/* && \
-    rm -rf /user/local/man
+    rm -rf /user/local/man && \
+    for i in /usr/local/lib/libspatialite*; do strip -s $i 2>/dev/null || /bin/true; done && \
+    for i in /usr/local/lib/mod_spatialite*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
-# Install geotiff
+# 5 Install geotiff
 #
 ARG GEOTIFF_VERSION=1.5.1
-RUN apk --update add zlib tiff libjpeg && \
+RUN apk --update add \
+        zlib \
+        tiff \
+        libjpeg && \
     apk --update add --virtual .geotiff-deps \
         zlib \
         make \
@@ -152,70 +163,19 @@ RUN apk --update add zlib tiff libjpeg && \
     cd / && \
     apk del .geotiff-deps && \
     rm -rf /tmp/* && \
-    rm -rf /user/local/man
+    rm -rf /user/local/man && \
+    for i in /usr/local/lib/libgeotiff*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
-# Install GDAL
-#
-ARG GDAL_VERSION=3.0.1
-RUN apk --update add \
-        xz \
-        xz-libs \
-        zstd \
-        zstd-libs \
-        curl \
-        libxml2 \
-        sqlite \
-        sqlite-libs \
-        tiff && \
-    apk --update add --virtual .gdal-deps \
-        xz-dev \
-        zstd-dev \
-        curl-dev \
-        libxml2-dev \
-        sqlite-dev \
-        make \
-        gcc \
-        g++ \
-        file \
-        tiff-dev \
-        portablexdr-dev \
-        linux-headers && \
-    cd /tmp && \
-    wget http://download.osgeo.org/gdal/${GDAL_VERSION}/gdal-${GDAL_VERSION}.tar.gz && \
-    tar xzf gdal-${GDAL_VERSION}.tar.gz && \
-    rm -f gdal-${GDAL_VERSION}.tar.gz && \
-    cd gdal-${GDAL_VERSION} && \
-    ./configure \
-        --with-proj=/usr/local \
-        --with-liblzma=yes \
-        --with-zstd=yes \
-        --with-pg=/usr/bin/pg_config \
-        --with-geotiff=/usr/local \
-        --with-curl=/usr/local \
-        --with-xml2=/usr/local \
-        --with-sqlite3=yes \
-        --with-geos=/usr/local/bin/geos-config && \
-    make -j 4 && \
-    make install && \
-    cd ~ && \
-    apk del .gdal-deps && \
-    rm -rf /tmp/* && \
-    rm -rf /user/local/man
-
-#
-# Install Boost
+# 6 Install Boost
 #
 ARG BOOST_VERSION=1_71_0
 RUN apk del boost boost-dev && \
     apk --update add \
         zlib \
         zstd \
-        zstd-libs \
         xz \
-        xz-libs \
         icu \
-        icu-libs \
         bzip2 \
         mpfr3 \
         eigen && \
@@ -248,10 +208,11 @@ RUN apk del boost boost-dev && \
     cd ~ && \
     apk del .boost-deps && \
     rm -rf /tmp/* && \
-    rm -rf /user/local/man
+    rm -rf /user/local/man && \
+    for i in /usr/local/lib/libboost*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
-# Install LasZip
+# 7 Install LasZip
 #
 ARG LASZIP_VERSION=3.4.1
 RUN apk --update add --virtual .laszip-deps \
@@ -274,10 +235,12 @@ RUN apk --update add --virtual .laszip-deps \
     cd ~ && \
     apk del .laszip-deps && \
     rm -rf /tmp/* && \
-    rm -rf /user/local/man
+    rm -rf /user/local/man && \
+    for i in /usr/local/lib/liblaszip*; do strip -s $i 2>/dev/null || /bin/true; done && \
+    for i in /usr/local/bin/las*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
-# Install LibLas
+# 8 Install LibLas
 #
 RUN apk --update add --virtual .liblas-deps \
         make \
@@ -297,10 +260,11 @@ RUN apk --update add --virtual .liblas-deps \
     cd ~ && \
     apk del .liblas-deps && \
     rm -rf /tmp/* && \
-    rm -rf /user/local/man
+    rm -rf /user/local/man && \
+    for i in /usr/local/lib/LASlib/*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
-# Install CGAL
+# 9 Install CGAL
 #
 ARG CGAL_VERSION=releases/CGAL-4.14.1
 RUN apk --update add \
@@ -335,10 +299,11 @@ RUN apk --update add \
     cd ~ && \
     apk del .cgal-deps && \
     rm -rf /tmp/* && \
-    rm -rf /user/local/man
+    rm -rf /user/local/man && \
+    for i in /usr/local/lib64/libCGAL*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
-# Install SFCGAL
+# 10 Install SFCGAL
 #
 ARG SFCGAL_VERSION=v1.3.7
 RUN apk --update add \
@@ -371,24 +336,72 @@ RUN apk --update add \
     cd ~ && \
     apk del .sfcgal-deps && \
     rm -rf /tmp/* && \
-    rm -rf /user/local/man
+    rm -rf /user/local/man && \
+    for i in /usr/local/lib64/libSFCGAL*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
-# Install PostGIS
+# 11 Install GDAL
 #
-ARG POSTGIS_VERSION=3.0.0
-RUN ln -s /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
+ARG GDAL_VERSION=3.0.1
+RUN ln -sf /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
+    apk --update add \
+        xz \
+        zstd \
+        curl \
+        libxml2 \
+        sqlite \
+        tiff && \
+    apk --update add --virtual .gdal-deps \
+        xz-dev \
+        zstd-dev \
+        curl-dev \
+        libxml2-dev \
+        sqlite-dev \
+        make \
+        gcc \
+        g++ \
+        file \
+        tiff-dev \
+        portablexdr-dev \
+        linux-headers && \
+    cd /tmp && \
+    wget http://download.osgeo.org/gdal/${GDAL_VERSION}/gdal-${GDAL_VERSION}.tar.gz && \
+    tar xzf gdal-${GDAL_VERSION}.tar.gz && \
+    rm -f gdal-${GDAL_VERSION}.tar.gz && \
+    cd gdal-${GDAL_VERSION} && \
+    ./configure \
+        --with-proj=/usr/local \
+        --with-liblzma=yes \
+        --with-zstd=yes \
+        --with-pg=/usr/bin/pg_config \
+        --with-geotiff=/usr/local \
+        --with-curl=/usr/local \
+        --with-xml2=/usr/local \
+        --with-sqlite3=yes \
+        --with-spatialite=yes \
+        --with-sfcgal=yes \
+        --with-geos=/usr/local/bin/geos-config && \
+    make -j 4 && \
+    make install && \
+    cd ~ && \
+    apk del .gdal-deps && \
+    rm -rf /tmp/* && \
+    rm -rf /user/local/man && \
+    for i in /usr/local/lib/libgdal*; do strip -s $i 2>/dev/null || /bin/true; done && \
+    for i in /usr/local/bin/gdal*; do strip -s $i 2>/dev/null || /bin/true; done
+
+#
+# 12 Install PostGIS
+#
+ARG POSTGIS_VERSION=2.5.3
+RUN ln -sf /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
     apk --update add \
         curl \
         nghttp2 \
-        nghttp2-libs \
         zlib \
         zstd \
-        zstd-libs \
         xz \
-        xz-libs \
         icu \
-        icu-libs \
         bzip2 \
         mpfr3 \
         perl \
@@ -432,10 +445,11 @@ RUN ln -s /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
     rm -rf /user/local/man
 
 #
-# Install 3dfier
+# 13 Install 3dfier
 #
 COPY . /tmp
 RUN ln -s /usr/local/lib64/libCGAL.so.13 /usr/local/lib && \
+    ln -s /usr/local/lib64/libSFCGAL.so.1 /usr/local/lib && \
     apk --update add \
         gmp \
         mpfr3 \
@@ -476,6 +490,9 @@ RUN mkdir /data && \
     chmod g=u /data && \
     chgrp 0 /etc/passwd && \
     chmod g=u /etc/passwd
+
+# removing unnecessary headers
+RUN rm -rf /usr/local/include
 
 USER 1001
 
