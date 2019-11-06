@@ -53,11 +53,11 @@ Map3d::Map3d() {
   _threshold_jump_edges = 50;
   _threshold_bridge_jump_edges = 50;
   _requestedExtent = Box2(Point2(0, 0), Point2(0, 0));
-  _bbox = Box2(Point2(999999, 999999), Point2(-999999, -999999));
-  _minxradius = 999999;
-  _maxxradius = 999999;
-  _minyradius = -999999;
-  _maxyradius = -999999;
+  _bbox = Box2(Point2(9999999, 9999999), Point2(-9999999, -9999999));
+  _minxradius = 9999999;
+  _maxxradius = 9999999;
+  _minyradius = -9999999;
+  _maxyradius = -9999999;
 }
 
 Map3d::~Map3d() {
@@ -1013,6 +1013,13 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
             numSplitMulti++;
             numSplitPoly += numGeom;
           }
+          break;
+        }
+        case wkbCurvePolygon: {
+          OGRCurvePolygon* curve_polygon = geometry->toCurvePolygon();
+          OGRPolygon* polygon = curve_polygon->CurvePolyToPoly(0);
+          f->SetGeometry(polygon);
+          extract_feature(f, layerName, idfield, heightfield, l.second, multiple_heights);
           break;
         }
         default: {
