@@ -38,3 +38,4 @@ options:
   radius_vertex_elevation: 1.0
   threshold_jump_edges: 0.5
   threshold_bridge_jump_edges: 0.5
+  max_angle_curvepolygon: 0.0
