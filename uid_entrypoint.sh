@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+export PATH=$PATH:/usr/local/bin
 
 # Create passwd entry for arbitrary user ID
 if [[ -z "$(awk -F ':' "\$3 == $(id -u)" /etc/passwd)" ]]; then
