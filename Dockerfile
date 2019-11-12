@@ -303,95 +303,7 @@ RUN apk --update add \
     for i in /usr/local/lib64/libCGAL*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
-# 10 Install SFCGAL
-#
-ARG SFCGAL_VERSION=v1.3.7
-RUN apk --update add \
-        gmp \
-        mpfr3 \
-        zlib && \
-    apk --update add --virtual .sfcgal-deps \
-        make \
-        gcc \
-        gmp-dev \
-        mpfr-dev \
-        zlib-dev \
-        g++ \
-        git \
-        cmake \
-        linux-headers && \
-    cd /tmp && \
-    git clone https://github.com/Oslandia/SFCGAL.git && \
-    cd SFCGAL && \
-    git checkout tags/${SFCGAL_VERSION} && \
-    mkdir build && \
-    cd build && \
-    cmake \
-        -DBoost_NO_BOOST_CMAKE=TRUE \
-        -DBoost_NO_SYSTEM_PATHS=TRUE \
-        -DBOOST_ROOT=/usr/local \
-        .. && \
-    make && \
-    make install && \
-    cd ~ && \
-    apk del .sfcgal-deps && \
-    rm -rf /tmp/* && \
-    rm -rf /user/local/man && \
-    for i in /usr/local/lib64/libSFCGAL*; do strip -s $i 2>/dev/null || /bin/true; done
-
-#
-# 11 Install GDAL
-#
-ARG GDAL_VERSION=3.0.1
-RUN ln -sf /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
-    apk --update add \
-        xz \
-        zstd \
-        curl \
-        libxml2 \
-        sqlite \
-        tiff && \
-    apk --update add --virtual .gdal-deps \
-        xz-dev \
-        zstd-dev \
-        curl-dev \
-        libxml2-dev \
-        sqlite-dev \
-        make \
-        gcc \
-        g++ \
-        file \
-        tiff-dev \
-        portablexdr-dev \
-        linux-headers && \
-    cd /tmp && \
-    wget http://download.osgeo.org/gdal/${GDAL_VERSION}/gdal-${GDAL_VERSION}.tar.gz && \
-    tar xzf gdal-${GDAL_VERSION}.tar.gz && \
-    rm -f gdal-${GDAL_VERSION}.tar.gz && \
-    cd gdal-${GDAL_VERSION} && \
-    ./configure \
-        --with-proj=/usr/local \
-        --with-liblzma=yes \
-        --with-zstd=yes \
-        --with-pg=/usr/bin/pg_config \
-        --with-geotiff=/usr/local \
-        --with-curl=/usr/local \
-        --with-xml2=/usr/local \
-        --with-sqlite3=yes \
-        --with-spatialite=yes \
-        --with-sfcgal=yes \
-        --with-geos=/usr/local/bin/geos-config && \
-    make -j 4 && \
-    make install && \
-    cd ~ && \
-    apk del .gdal-deps && \
-    rm -rf /tmp/* && \
-    rm -rf /user/local/man && \
-    for i in /usr/local/lib/libgdal*; do strip -s $i 2>/dev/null || /bin/true; done && \
-    for i in /usr/local/bin/gdal*; do strip -s $i 2>/dev/null || /bin/true; done
-
-#
-# 12 Install PostGIS
+# 11 Install PostGIS
 #
 ARG POSTGIS_VERSION=2.5.3
 RUN ln -sf /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
@@ -436,13 +348,67 @@ RUN ln -sf /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
     wget http://download.osgeo.org/postgis/source/postgis-${POSTGIS_VERSION}.tar.gz && \
     tar xzf postgis-${POSTGIS_VERSION}.tar.gz && \
     cd postgis-${POSTGIS_VERSION} && \
-    ./configure && \
+    ./configure \
+        --without-raster && \
     make && \
     make install && \
     cd ~ && \
     apk del .postgis-deps && \
     rm -rf /tmp/* && \
     rm -rf /user/local/man
+
+#
+# 12 Install GDAL
+#
+ARG GDAL_VERSION=3.0.2
+RUN ln -sf /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
+    apk --update add \
+        xz \
+        zstd \
+        curl \
+        libxml2 \
+        sqlite \
+        tiff \
+        postgresql && \
+    apk --update add --virtual .gdal-deps \
+        xz-dev \
+        zstd-dev \
+        curl-dev \
+        libxml2-dev \
+        sqlite-dev \
+        make \
+        gcc \
+        g++ \
+        file \
+        tiff-dev \
+        postgresql-dev \
+        portablexdr-dev \
+        linux-headers && \
+    cd /tmp && \
+    wget http://download.osgeo.org/gdal/${GDAL_VERSION}/gdal-${GDAL_VERSION}.tar.gz && \
+    tar xzf gdal-${GDAL_VERSION}.tar.gz && \
+    rm -f gdal-${GDAL_VERSION}.tar.gz && \
+    cd gdal-${GDAL_VERSION} && \
+    ./configure \
+        --with-proj=/usr/local \
+        --with-liblzma=yes \
+        --with-zstd=yes \
+        --with-pg=yes \
+        --with-geotiff=/usr/local \
+        --with-curl=/usr/local \
+        --with-xml2=/usr/local \
+        --with-sqlite3=yes \
+        --with-spatialite=yes \
+        --with-sfcgal=yes \
+        --with-geos=/usr/local/bin/geos-config && \
+    make -j 4 && \
+    make install && \
+    cd ~ && \
+    apk del .gdal-deps && \
+    rm -rf /tmp/* && \
+    rm -rf /user/local/man && \
+    for i in /usr/local/lib/libgdal*; do strip -s $i 2>/dev/null || /bin/true; done && \
+    for i in /usr/local/bin/gdal*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
 # 13 Install 3dfier
