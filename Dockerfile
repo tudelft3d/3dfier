@@ -433,6 +433,7 @@ RUN ln -s /usr/local/lib64/libCGAL.so.13 /usr/local/lib && \
         cmake \
         linux-headers && \
     cd /tmp && \
+    rm -rf build && \
     mkdir build && \
     cd build && \
     cmake \
