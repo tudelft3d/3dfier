@@ -32,26 +32,32 @@ Settings within the roof section only apply to the calculation of the roof heigh
 #### use_LAS_classes_within
 
 #### lod: 0
+*Download [YAML]({{site.baseurl}}/assets/configs/lod0.yml) and [OBJ]()*
 {% include imagezoom.html file="/settings/settings_lod0.png" alt="" %}
 {% include imagezoom.html file="/settings/lod0.png" alt="" %}
 
 #### lod: 1
+*Download [YAML]({{site.baseurl}}/assets/configs/lod1.yml) and [OBJ]()*
 {% include imagezoom.html file="/settings/settings_lod1.png" alt="" %}
 {% include imagezoom.html file="/settings/lod1.png" alt="" %}
 
 #### floor: true
+*Download [YAML]({{site.baseurl}}/assets/configs/floor_true.yml) and [OBJ]()*
 {% include imagezoom.html file="/settings/settings_floor_true.png" alt="" %}
 {% include imagezoom.html file="/settings/floor_true.png" alt="" %}
 
 #### floor: false
+*Download [YAML]({{site.baseurl}}/assets/configs/floor_false.yml) and [OBJ]()*
 {% include imagezoom.html file="/settings/settings_floor_false.png" alt="" %}
 {% include imagezoom.html file="/settings/floor_false.png" alt="" %}
 
 #### inner_walls: true
+*Download [YAML]({{site.baseurl}}/assets/configs/inner_walls_true.yml) and [OBJ]()*
 {% include imagezoom.html file="/settings/settings_inner_walls_true.png" alt="" %}
 {% include imagezoom.html file="/settings/inner_walls_true.png" alt="" %}
 
 #### inner_walls: false
+*Download [YAML]({{site.baseurl}}/assets/configs/inner_walls_false.yml) and [OBJ]()*
 {% include imagezoom.html file="/settings/settings_inner_walls_false.png" alt="" %}
 {% include imagezoom.html file="/settings/inner_walls_false.png" alt="" %}
 
@@ -105,22 +111,28 @@ Random filtering
 **Don't use simplification and simplification_tinsimp at the same time!**
 
 #### simplification_tinsimp
+*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_0.yml) and [OBJ]()*
 {% include imagezoom.html file="/settings/settings_tinsimp_0.png" alt="" %}
 {% include imagezoom.html file="/settings/tinsimp_0.png" alt="" %}
 
+*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_01.yml) and [OBJ]()*
 {% include imagezoom.html file="/settings/settings_tinsimp_01.png" alt="" %}
 {% include imagezoom.html file="/settings/tinsimp_01.png" alt="" %}
 
+*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_05.yml) and [OBJ]()*
 {% include imagezoom.html file="/settings/settings_tinsimp_05.png" alt="" %}
 {% include imagezoom.html file="/settings/tinsimp_05.png" alt="" %}
 
 #### innerbuffer
+*Download [YAML]({{site.baseurl}}/assets/configs/innerbuffer_05.yml) and [OBJ]()*
 {% include imagezoom.html file="/settings/settings_innerbuffer_05.png" alt="" %}
 {% include imagezoom.html file="/settings/innerbuffer_05.png" alt="" %}
 
+*Download [YAML]({{site.baseurl}}/assets/configs/innerbuffer_1.yml) and [OBJ]()*
 {% include imagezoom.html file="/settings/settings_innerbuffer_1.png" alt="" %}
 {% include imagezoom.html file="/settings/innerbuffer_1.png" alt="" %}
 
+*Download [YAML]({{site.baseurl}}/assets/configs/innerbuffer_3.yml) and [OBJ]()*
 {% include imagezoom.html file="/settings/settings_innerbuffer_3.png" alt="" %}
 {% include imagezoom.html file="/settings/innerbuffer_3.png" alt="" %}
 

@@ -23,6 +23,7 @@ extent: xmin, ymin, xmax, ymax                        # Filter the input polygon
 ### threshold_bridge_jump_edges
 
 ### extent
+*Download [YAML]({{site.baseurl}}/assets/configs/extents.yml) and [OBJ]()*
 As one can see from the examples below, all objects of which its bounding box intersects with the extent is added to the output.
 
 {% include imagezoom.html file="/settings/settings_extent.png" alt="" %}

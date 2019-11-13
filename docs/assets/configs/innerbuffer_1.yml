@@ -59,8 +59,8 @@ lifting_options:
         - 6
   Terrain:
     simplification: 0
-    simplification_tinsimp: 0.1
-    innerbuffer: 0.5
+    simplification_tinsimp: 0
+    innerbuffer: 1.0
     use_LAS_classes:
       - 2
       - 9
@@ -79,8 +79,8 @@ lifting_options:
   Road:
     height: percentile-50
     use_LAS_classes:
-     - 2
-     - 11
+      - 2
+      - 11
   Separation:
     height: percentile-80
     use_LAS_classes:
@@ -106,10 +106,4 @@ options:
   building_radius_vertex_elevation: 3.0
   radius_vertex_elevation: 1.0
   threshold_jump_edges: 0.5
-  threshold_bridge_jump_edges: 0.5                      # Threshold in meters for stitching bridges to adjacent objects, if not specified it falls back to threshold_jump_edges
-  #extent: 84973, 447500, 85005, 447526    #box3
-  #extent: 84875,447538,84912,447564        #box2     # Filter the input polygons to this extent
-  #extent: 84897, 447518, 84944, 447558    #box1
-  #extent: 84897,447570,84938,447597        #box4
-  
-  
+  threshold_bridge_jump_edges: 0.5
