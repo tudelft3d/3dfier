@@ -65,8 +65,8 @@ entries:
   - title: Settings
     output: web, pdf
     folderitems:
-    - title: Configuration settings
-      url: /configuration_settings.html
+    - title: Do's & Don'ts
+      url: /do_donts.html
       output: web, pdf
     - title: Input options
       url: /input_options.html

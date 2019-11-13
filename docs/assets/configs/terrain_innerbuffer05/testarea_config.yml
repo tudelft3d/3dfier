@@ -1,0 +1,115 @@
+input_polygons:
+  - datasets: 
+      - bgt\bgt_waterdeel.sqlite
+      - bgt\bgt_ondersteunendwaterdeel.sqlite
+    uniqueid: gml_id
+    lifting: Water
+    height_field: relatievehoogteligging
+  - datasets: 
+      - bgt\bgt_onbegroeidterreindeel.sqlite
+    uniqueid: gml_id
+    lifting: Terrain
+    height_field: relatievehoogteligging
+  - datasets: 
+      - bgt\bgt_wegdeel.sqlite
+      - bgt\bgt_ondersteunendwegdeel.sqlite
+    uniqueid: gml_id
+    lifting: Road
+    height_field: relatievehoogteligging
+  - datasets: 
+      - bgt\bgt_pand.sqlite
+    uniqueid: gml_id
+    lifting: Building
+    height_field: relatievehoogteligging
+  - datasets: 
+      - bgt\bgt_begroeidterreindeel.sqlite
+    uniqueid: gml_id
+    lifting: Forest
+    height_field: relatievehoogteligging
+  - datasets: 
+      - bgt\bgt_scheiding.sqlite
+      - bgt\bgt_kunstwerkdeel.sqlite
+      - bgt\bgt_overigbouwwerk.sqlite
+    uniqueid: gml_id
+    lifting: Separation
+    height_field: relatievehoogteligging
+  - datasets: 
+      - bgt\bgt_overbruggingsdeel.sqlite
+    uniqueid: gml_id
+    lifting: Bridge/Overpass
+    height_field: relatievehoogteligging
+    handle_multiple_heights: true
+
+lifting_options: 
+  Building:
+    lod: 1
+    floor: false
+    inner_walls: true
+    triangulate: false
+    ground:
+      height: percentile-10
+      use_LAS_classes:
+        - 2
+        - 9
+    roof:
+      height: percentile-90
+      use_LAS_classes:
+        - 0
+        - 1
+        - 6
+  Terrain:
+    simplification: 0
+    simplification_tinsimp: 0
+    innerbuffer: 0.5
+    use_LAS_classes:
+      - 2
+      - 9
+  Forest:
+    simplification: 0
+    simplification_tinsimp: 0.1
+    innerbuffer: 0.5
+    use_LAS_classes:
+      - 2
+      - 9
+  Water:
+    height: percentile-10
+    use_LAS_classes:
+      - 2
+      - 9
+  Road:
+    height: percentile-50
+    use_LAS_classes:
+     - 2
+     - 11
+  Separation:
+    height: percentile-80
+    use_LAS_classes:
+      - 2
+      - 9
+      - 17
+  Bridge\Overpass:
+    height: percentile-50
+    use_LAS_classes:
+      - 2
+      - 26
+
+input_elevation:
+  - datasets:
+      - ahn3\ahn3_cropped_1.laz
+      - ahn3\ahn3_cropped_2.laz
+    omit_LAS_classes:
+      - 0 # Never classified
+      - 1 # Unclassified
+    thinning: 0
+
+options:
+  building_radius_vertex_elevation: 3.0
+  radius_vertex_elevation: 1.0
+  threshold_jump_edges: 0.5
+  threshold_bridge_jump_edges: 0.5                      # Threshold in meters for stitching bridges to adjacent objects, if not specified it falls back to threshold_jump_edges
+  #extent: 84973, 447500, 85005, 447526    #box3
+  #extent: 84875,447538,84912,447564        #box2     # Filter the input polygons to this extent
+  #extent: 84897, 447518, 84944, 447558    #box1
+  #extent: 84897,447570,84938,447597        #box4
+  
+  
