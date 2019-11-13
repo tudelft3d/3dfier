@@ -7,7 +7,7 @@ permalink: input_options.html
 
 ## input_polygons
 ### datasets
-1. flat config
+1. Flat config
 ~~~ yaml
 - datasets:
   - D:\data\campus\partof.shp
@@ -15,7 +15,7 @@ permalink: input_options.html
 	lifting: Building
 ~~~
 
-2. nested config
+2. Nested config
 ~~~ yaml
 - datasets:
   - D:\data\campus\polygons.gml
@@ -41,5 +41,27 @@ This is the name of the lifting options defined in [Lifting options]({{site.base
 
 ## input_elevation
 ### datasets
+1. Single file
+~~~ yaml
+- datasets:                          # List of data set with specific settings
+  - D:\data\top10nl\schie\ahn3.laz   # Definition for one or multiple LAS/LAZ files using the same parameters
+~~~
+2. Directory
+~~~ yaml
+- datasets:                          # List of data set with specific settings
+  - D:\data\top10nl\schie\*          # Definition for reading a full directory with LAS/LAZ files using the same parameters
+~~~
+
 ### omit_LAS_classes
+~~~ yaml
+omit_LAS_classes:                    # Option to omit classes defined in the LAS/LAZ files
+  - 1 # unclassified                  # ASPRS Standard Lidar Point Classes classification value
+  - 3 # vegation
+  - 4 # vegation
+  - 5 # vegation 
+~~~
+
 ### thinning
+~~~ yaml
+thinning: 10                         # Thinning factor for points, this is the amount of points skipped during read, a value of 10 would result in points 1, 11, 21, 31 beeing used
+~~~

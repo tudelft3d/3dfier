@@ -1,8 +1,8 @@
 ---
-title: Data preparation overview
+title: Minimal data requirements
 keywords: 3dfier homepage
 sidebar: 3dfier_sidebar
-permalink: data_preparation_overview.html
+permalink: minimal_data_requirements.html
 ---
 
 ## Buildings only

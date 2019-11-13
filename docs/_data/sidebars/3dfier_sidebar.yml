@@ -19,54 +19,28 @@ entries:
       output: pdf
       type: frontmatter
 
-  - title: Overview
+  - title: Getting started
     output: web, pdf
     folderitems:
-    - title: Get started
+    - title: First run
       url: /index.html
       output: web, pdf
       type: homepage
-    - title: Introduction
-      url: /introduction.html
+    - title: Installation
+      url: /installation.html
       output: web, pdf
     - title: Supported file formats
       url: /supported_file_formats.html
       output: web, pdf
-    - title: Contents of a release
-      url: /release_contents.html
-      output: web, pdf
-    - title: Known issues
-      url: /known_issues.html
-      output: web, pdf
 
-  - title: Installation
+  - title: Tutorials
     output: web, pdf
     folderitems:
-    - title: Install 3dfier on Windows
-      url: /install_windows.html
-      output: web, pdf
-    - title: Install 3dfier on Ubuntu
-      url: /install_ubuntu.html
-      output: web, pdf
-    - title: Install 3dfier using a Docker image
-      url: /install_docker.html
-      output: web, pdf
-
-  - title: Examples
-    output: web, pdf
-    folderitems:
-    - title: Example data
-      url: /example_data.html
+    - title: Minimal data requirements
+      url: /minimal_data_requirements.html
       output: web, pdf
     - title: Data visualisation
       url: /data_visualisation.html
-      output: web, pdf
-
-  - title: Data preparation
-    output: web, pdf
-    folderitems:
-    - title: Overview
-      url: /data_preparation_overview.html
       output: web, pdf
     - title: Generate terrain polygon
       url: /generate_terrain.html
@@ -75,9 +49,25 @@ entries:
       url: /building_footprints_from_openstreetmap.html
       output: web, pdf
 
+  - title: Examples
+    output: web, pdf
+    folderitems:
+    - title: Different LoD of buildings
+      url: /lod_buildings.html
+      output: web, pdf
+    - title: Large scale topology to 3D
+      url: /bgt_example.html
+      output: web, pdf
+    - title: Simplification of terrain
+      url: /terrain_simplification.html
+      output: web, pdf
+
   - title: Settings
     output: web, pdf
     folderitems:
+    - title: Configuration settings
+      url: /configuration_settings.html
+      output: web, pdf
     - title: Input options
       url: /input_options.html
       output: web, pdf
@@ -86,4 +76,11 @@ entries:
       output: web, pdf
     - title: Output options
       url: /output_options.html
+      output: web, pdf
+
+  - title: Architecture
+    output: web, pdf
+    folderitems:
+    - title: Main flow
+      url: /main_flow.html
       output: web, pdf
