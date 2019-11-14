@@ -79,6 +79,8 @@ Further, there is an [open data website](https://3d.bk.tudelft.nl/opendata/3dfie
 The configuration is stored in [YAML format](http://docs.ansible.com/ansible/latest/YAMLSyntax.html) and needs to be valid for the parser to read the file. 
 Config files can be schema validated using [YAML Lint](http://www.yamllint.com)
 
+A configuration file with description of all possible settings is [myconfig_README.yml](https://github.com/tudelft3d/3dfier/blob/master/resources/config_files/myconfig_README.yml)
+
 ## Run 3dfier:
 **Windows** 
 Open a command line (click start and type `command` or `cmd`). Using the command line browse to the folder where you extracted the example files and run:
