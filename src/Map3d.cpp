@@ -1039,7 +1039,12 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
       std::clog << "\tSplit " << numSplitMulti << " MultiPolygon(s) into " << numSplitPoly << " Polygon(s)\n";
     }
     if (numCurvePoly > 0) {
-      std::clog << "\tStroked " << numCurvePoly << " CurvePolygon(s) with a maximum angle of " << _max_angle_curvepolygon << "\n";
+      if (_max_angle_curvepolygon == 0.0) {
+        std::clog << "\tStroked " << numCurvePoly << " CurvePolygon(s) with a maximum angle of 4.0 degrees (default value)\n";
+      }
+      else {
+        std::clog << "\tStroked " << numCurvePoly << " CurvePolygon(s) with a maximum angle of " << _max_angle_curvepolygon << "degrees\n";
+      }
     }
     wentgood = true;
   }
