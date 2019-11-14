@@ -12,6 +12,47 @@ permalink: installation.html
 Binary releases exist only for Windows users. Others will have to follow one of the other installation guides for [Linux](#ubuntu-1604) or [Docker](#docker)
 There exists a ready-to-use version of [3dfier for Windows 64-bit]({{site.github.repository_url}}/releases/latest). Download and extract the files to any given folder and follow the instructions in the [Get started guide]({{site.baseurl}}/index).
 
+### Release binaries content
+Description of files in the zip file
+
+All dll files distributed with 3dfier belong to GDAL or other packages used in the GDAL drivers.
+
+Filename | Package
+---------|--------
+3dfier.exe | 3dfier
+expat.dll | GDAL
+freexl.dll | GDAL
+gdal204.dll | GDAL
+geos.dll | GDAL
+geos_c.dll | GDAL
+hdf5.dll | GDAL
+hdf5_hl.dll | GDAL
+iconv-2.dll | GDAL
+iconv.dll | GDAL
+jpeg.dll | GDAL
+libcurl.dll | GDAL
+libeay32.dll | GDAL
+libgmp-10.dll | GDAL
+liblzma.dll | GDAL
+libmpfr-4.dll | GDAL
+libmysql.dll | GDAL
+libpng16.dll | GDAL
+libpq.dll | GDAL
+libxml2.dll | GDAL
+lwgeom.dll | GDAL
+netcdf.dll | GDAL
+ogdi.dll | GDAL
+openjp2.dllv | GDAL
+proj_5_2.dll | GDAL
+spatialite.dll | GDAL
+sqlite3.dll | GDAL
+ssleay32.dll | GDAL
+szip.dll | GDAL
+xerces-c_3_2.dll | GDAL
+zlib1.dll | GDAL
+zstd.dll | GDAL
+
+
 ## Docker
 The Dockerfile for building 3dfier (`Dockerfile_builder`) contains the complete instruction for setting up a build environment. If you don't want to install the required dependencies on your local machine, you can use this docker image to build and run 3dfier. If you want to build 3dfier locally, then please look into the Dockerfile for the libraries that you'll need.
 
@@ -164,7 +205,7 @@ Download and extract the source code from the menu on the left or fork directly 
 If in any case the Visual Studio solution is not working its possible to generate them from the CMake files directly as explained previous for [Yaml-cpp](#yaml-cpp).
 
 ### 5. Run 3dfier!
-If all is good you should now be able to run 3dfier! Go to the [Get started guide]({{site.baseurl}}/index) and start producing models.
+If all is good you should now be able to run 3dfier! Go to the [First run]({{site.baseurl}}/first_run) and start producing models.
 
 * * * 
 #### Help, Visual Studio complains that some file can not be found!

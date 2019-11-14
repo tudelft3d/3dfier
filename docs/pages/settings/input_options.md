@@ -37,6 +37,8 @@ When not using a unique identifier many of the output formats will be invalid ac
 ### lifting
 This is the name of the lifting options defined in [Lifting options]({{site.baseurl}}/lifting_options)
 ### height_field
+Geometry relationship in height
+
 ### handle_multiple_heights
 
 ## input_elevation

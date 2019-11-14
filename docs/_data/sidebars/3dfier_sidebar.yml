@@ -22,10 +22,13 @@ entries:
   - title: Getting started
     output: web, pdf
     folderitems:
-    - title: First run
+    - title: A short introduction
       url: /index.html
       output: web, pdf
       type: homepage
+    - title: First run
+      url: /first_run.html
+      output: web, pdf
     - title: Installation
       url: /installation.html
       output: web, pdf
