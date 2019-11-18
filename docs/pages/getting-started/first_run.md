@@ -43,7 +43,7 @@ Allowed options:
 ```
 
 ## Prepare example data
-For this example we use [BGT_Delft_Example.zip]({{site.github.repository_url}}/raw/master/resources/Example_data/BGT_Delft_Example.zip) from the GitHub repository located in `3dfier/resources/Example_data/`. Create a folder with 3dfier and the depencency dll's and add the `example_data folder`.
+For this example we use [BGT_Delft_Example.zip](https://github.com/{{site.repository}}/raw/master/resources/Example_data/BGT_Delft_Example.zip) from the GitHub repository located in `3dfier/resources/Example_data/`. Create a folder with 3dfier and the depencency dll's and add the `example_data folder`.
 
 {% include imagezoom.html file="example_folder.png" caption="Folder layout" alt="Folder layout" %}
 

@@ -7,7 +7,9 @@ permalink: minimal_data_requirements.html
 
 ## Buildings only
 - Polygons
-- Lidar not classified
+- Lidar with minimum classification:
+	- Ground
+	- Non-ground
 
 ## All objects
 - Topologically connected polygons

@@ -11,16 +11,22 @@ building_radius_vertex_elevation: 3.0                 # Radius in meters used fo
 radius_vertex_elevation: 1.0                          # Radius in meters used for point-vertex distance between 3D points and vertices of polygons
 threshold_jump_edges: 0.5                             # Threshold in meters for stitching adjacent objects, when the height difference is larger then the threshold a vertical wall is created 
 threshold_bridge_jump_edges: 0.5                      # Threshold in meters for stitching bridges to adjacent objects, if not specified it falls back to threshold_jump_edges
+max_angle_curvepolygon: 0.0                           # The largest allowed angle along the stroked arc of a curved polygon. Use zero for the default setting. (https://gdal.org/doxygen/ogr__api_8h.html#a87f8bce40c82b3513e36109ea051dff2)
 extent: xmin, ymin, xmax, ymax                        # Filter the input polygons to this extent
 ~~~
 
-### building_radius_vertex_elevation
-
 ### radius_vertex_elevation
+{% include imagezoom.html file="/settings/radius_vertex_elevation.png" alt="" %}
+
+### building_radius_vertex_elevation
+Same as [radius_vertex_elevation](#radius_vertex_elevation) but specific to vertices of buildings.
 
 ### threshold_jump_edges
 
 ### threshold_bridge_jump_edges
+
+### max_angle_curvepolygon
+Please refer to the OGR API documentation for the function [OGR_G_ApproximateArcAngles()](https://gdal.org/doxygen/ogr__api_8h.html#a87f8bce40c82b3513e36109ea051dff2) that is used to stroke an arc to a line string.
 
 ### extent
 *Download [YAML]({{site.baseurl}}/assets/configs/extents.yml) and [OBJ]()*

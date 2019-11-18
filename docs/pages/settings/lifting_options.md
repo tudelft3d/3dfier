@@ -5,6 +5,17 @@ sidebar: 3dfier_sidebar
 permalink: lifting_options.html
 ---
 
+In the lifting_options we define the settings used for lifting polygons of the specified class. In total there are 7 different possibilities to choose from;
+- Building
+- Terrain
+- Forest
+- Water
+- Road
+- Separation
+- Bridge/Overpass
+
+If a class is not defined the default values will be used. Default values can be found in [resources/config_files/myconfig_DEFAULTS.yml](https://github.com/{{site.repository}}/raw/master/resources/config_files/myconfig_DEFAULTS.yml).
+
 ### Building
 ~~~ yaml
 roof:
@@ -73,8 +84,8 @@ use_LAS_classes_within:    # LAS classes to be used for this class, but only if 
 ### Road
 ~~~ yaml
 height: percentile-50
-filter_outliers: true      # Filter outliers by iterative Least Squares fitting of 3D quadric suface. Only replace heights of detected outliers
-flatten: true              # Filter outliers by iterative Least Squares fitting of 3D quadric suface. Replace all heights of polygon with the fitted plane. Results in smoother roads
+filter_outliers: true      # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Only replace heights of detected outliers
+flatten: true              # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Replace all heights of polygon with the fitted plane. Results in smoother roads
 use_LAS_classes:           # LAS classes to be used for this class. If empty all classes are used
   - 3
   - 6
@@ -95,7 +106,7 @@ height: percentile-80
 ### Bridge/Overpass
 ~~~ yaml
 height: percentile-50
-flatten: true              # Filter outliers by iterative Least Squares fitting of 3D quadric suface. Replace all heights of polygon with the fitted plane. Results in smoother bridges
+flatten: true              # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Replace all heights of polygon with the fitted plane. Results in smoother bridges
 ~~~
 
 ### Terrain
