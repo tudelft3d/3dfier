@@ -5,6 +5,10 @@ sidebar: 3dfier_sidebar
 permalink: input_options.html
 ---
 
+In the input_options we define the settings used for reading the input files for both polygons and point clouds.
+
+If a class is not defined the default values will be used. Default values can be found in [resources/config_files/myconfig_DEFAULTS.yml](https://github.com/{{site.repository}}/raw/master/resources/config_files/myconfig_DEFAULTS.yml).
+
 ## input_polygons
 ### datasets
 1. Flat config
@@ -57,25 +61,25 @@ When the input polygons use the [height_field](#height_field) this boolean setti
 ### datasets
 1. Single file
 ~~~ yaml
-- datasets:                          # List of data set with specific settings
-  - D:\data\top10nl\schie\ahn3.laz   # Definition for one or multiple LAS/LAZ files using the same parameters
+- datasets:                         # List of data set with specific settings
+  - D:\data\top10nl\schie\ahn3.laz  # Definition for one or multiple LAS/LAZ files using the same parameters
 ~~~
 2. Directory
 ~~~ yaml
-- datasets:                          # List of data set with specific settings
-  - D:\data\top10nl\schie\*          # Definition for reading a full directory with LAS/LAZ files using the same parameters
+- datasets:                         # List of data set with specific settings
+  - D:\data\top10nl\schie\*         # Definition for reading a full directory with LAS/LAZ files using the same parameters
 ~~~
 
 ### omit_LAS_classes
 ~~~ yaml
-omit_LAS_classes:                    # Option to omit classes defined in the LAS/LAZ files
-  - 1 # unclassified                 # ASPRS Standard Lidar Point Classes classification value
+omit_LAS_classes:     # Option to omit classes defined in the LAS/LAZ files
+  - 1 # unclassified  # ASPRS Standard Lidar Point Classes classification value
   - 3 # vegetation
   - 4 # vegetation
-  - 5 # vegetation 
+  - 5 # vegetation
 ~~~
 
 ### thinning
 ~~~ yaml
-thinning: 10                         # Thinning factor for points, this is the amount of points skipped during read, a value of 10 would result in points 1, 11, 21, 31 beeing used
+thinning: 10          # Thinning factor for points, this is the amount of points skipped during read, a value of 10 would result in points 1, 11, 21, 31 being used
 ~~~

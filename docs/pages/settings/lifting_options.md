@@ -75,8 +75,8 @@ Settings within the roof section only apply to the calculation of the roof heigh
 
 ### Water
 ~~~ yaml
-height: percentile-10      # Percentile of points within radius of water vertices for lifting, radius_vertex_elevation is defined in options
-use_LAS_classes_within:    # LAS classes to be used for this class, but only if points fall within the polygon and the range of the vertex.
+height: percentile-10     # Percentile of points within radius of water vertices for lifting, radius_vertex_elevation is defined in options
+use_LAS_classes_within:   # LAS classes to be used for this class, but only if points fall within the polygon and the range of the vertex.
   - 2
   - 9
 ~~~
@@ -84,9 +84,9 @@ use_LAS_classes_within:    # LAS classes to be used for this class, but only if 
 ### Road
 ~~~ yaml
 height: percentile-50
-filter_outliers: true      # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Only replace heights of detected outliers
-flatten: true              # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Replace all heights of polygon with the fitted plane. Results in smoother roads
-use_LAS_classes:           # LAS classes to be used for this class. If empty all classes are used
+filter_outliers: true     # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Only replace heights of detected outliers
+flatten: true             # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Replace all heights of polygon with the fitted plane. Results in smoother roads
+use_LAS_classes:          # LAS classes to be used for this class. If empty all classes are used
   - 3
   - 6
 ~~~
@@ -106,7 +106,7 @@ height: percentile-80
 ### Bridge/Overpass
 ~~~ yaml
 height: percentile-50
-flatten: true              # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Replace all heights of polygon with the fitted plane. Results in smoother bridges
+flatten: true             # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Replace all heights of polygon with the fitted plane. Results in smoother bridges
 ~~~
 
 ### Terrain

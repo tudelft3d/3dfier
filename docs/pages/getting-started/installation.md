@@ -6,7 +6,7 @@ sidebar: 3dfier_sidebar
 permalink: installation.html
 ---
 
-**TODO: CHANGE LIBLAS TO LASLIB!!**
+**TODO: CHANGE LIBLAS TO LASLIB for Ubuntu 16.04!!**
 
 ## Install on Windows using binaries
 Binary releases exist only for Windows users. Others will have to follow one of the other installation guides for [Linux](#ubuntu-1604) or [Docker](#docker)
@@ -15,7 +15,7 @@ There exists a ready-to-use version of [3dfier for Windows 64-bit]({{site.github
 ### Release binaries content
 Description of files in the zip file
 
-All dll files distributed with 3dfier belong to GDAL or other packages used in the GDAL drivers.
+All dll files distributed with 3dfier belong to GDAL or other packages used in the GDAL drivers. Other depencencies used are statically built within the executable. 
 
 Filename | Package
 ---------|--------

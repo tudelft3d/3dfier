@@ -35,6 +35,9 @@ entries:
     - title: Supported file formats
       url: /supported_file_formats.html
       output: web, pdf
+    - title: Useful Scripts
+      url: /useful_scripts.html
+      output: web, pdf
 
   - title: Tutorials
     output: web, pdf
@@ -58,7 +61,7 @@ entries:
     - title: Different LoD of buildings
       url: /lod_buildings.html
       output: web, pdf
-    - title: Large scale topology to 3D
+    - title: Large scale topography (BGT) to 3D
       url: /bgt_example.html
       output: web, pdf
     - title: Simplification of terrain

@@ -43,16 +43,16 @@ Allowed options:
 ```
 
 ## Prepare example data
-For this example we use [BGT_Delft_Example.zip](https://github.com/{{site.repository}}/raw/master/resources/Example_data/BGT_Delft_Example.zip) from the GitHub repository located in `3dfier/resources/Example_data/`. Create a folder with 3dfier and the depencency dll's and add the `example_data folder`.
+For this example we use [BGT_Delft_Example.zip](https://github.com/{{site.repository}}/raw/master/resources/Example_data/BGT_Delft_Example.zip) from the GitHub repository located in `3dfier/resources/Example_data/`. Create a folder with 3dfier and the depencency dll's by following the [Installation]({{site.baseurl}}/installation) instructions and add the `example_data folder`.
 
 {% include imagezoom.html file="example_folder.png" caption="Folder layout" alt="Folder layout" %}
 
 ## Running with example data
 Opening the Command Prompt (press windows button+R, type cmd and press enter) and navigate to the folder where 3dfier is located.
 
-Now go into the example data folder using `cd example_data` and run `..\3dfier.exe testarea_config.yml --OBJ output\myfirstmodel.obj`. Now 3dfier will start processing and when finished it produced its first 3D model!
+Now go into the example data folder using `cd example_data` and run `..\3dfier.exe testarea_config.yml --OBJ output\myfirstmodel.obj`. Now 3dfier will start processing and when finished it produced your first 3D model!
 
-The output file can be found here `example_data\output\testarea.obj` and console output should be as follows.
+The output file is written to `example_data\output\myfirstmodel.obj` and console output should be as follows.
 
 ```
 3dfier Copyright (C) 2015-2019  3D geoinformation research group, TU Delft
@@ -131,31 +131,7 @@ Successfully terminated in 2 seconds || 00:00:02
 ```
 
 ## Data that is generated
-Only 3D data is generated for 2D polygons supplied in the input. If no polygon is input for terrain it is not (automagically) generated. There is no option (yet) for the creation of terrain within the polygons extent or point file extent. A tutorial is written to create a terrain polygon with building footprints cut out. Please follow the [Generate terrain polygon tutorial]({{site.baseurl}}/generate_terrain)
-
-## Resources
-Description of the contents of the resources repository
-
-Name | Folder | Description
------|--------|-------------
-3dfier.mtl | | Material description file for coloring an OBJ file
-3dfier2sim | x | Source code for program to convert 3dfier OBJ output to OFF file with a volume, see README.md
-BGT_prepare | x | Script and GFS files to stroke arcs and convert BGT GML to GeoPackage, see ReadMe.md
-BGT_prepare\BGT_gfs_files | x | GFS files describing the content of different BGT GML files
-build_ubuntu | x | Scripts to build 3dfier program and dependencies for Ubuntu
-build_ubuntu1604.sh | | Script to build 3dfier program and dependencies for Ubuntu 16.04
-config_files | x | Example config files
-config_files\myconfig.yml | | Example config file
-config_files\myconfig_DEFAULTS.yml | | Config file describing programmed defaults
-config_files\myconfig_README.yml | | Config file with complete description of all settings options
-create_vegetation_off.py | | **TODO: ASK HUGO**
-Example_data | x | Zip file with example input data and configuration for running 3dfier
-flowdiagrams | x | Flow diagrams of 3dfier used within the documentation
-obj2off.py | | Script to convert a OBJ to OFF file format
-splitobj | x | Script for splitting a single OBJ file into several different OBJ files by class
-splitobj_cpp | x | Program for splitting a single OBJ file into several different OBJ files by class
-translate2min-obj.py | | Script for shifting origin of OBJ to 0,0
-
+Only 3D data is generated for 2D polygons supplied in the input. If no polygon is input for terrain it is not automagically generated. There is no option (yet) for the creation of terrain within the polygons extent or point file extent. A [Generate terrain polygon tutorial]({{site.baseurl}}/generate_terrain) is written to create a topologically terrain polygon with building footprints cut out.
 
 ## Known issues
 ### Missing DLL's
