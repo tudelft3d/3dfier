@@ -50,16 +50,16 @@ lifting_options:                                        # Group for class liftin
       - 9
   Road:                                                 # Class definition for Road
     height: percentile-50
-    filter_outliers: true                               # Filter outliers by iterative Least Squares fitting of 3D quadric suface. Only replace heights of detected outliers
-    flatten: true                                       # Filter outliers by iterative Least Squares fitting of 3D quadric suface. Replace all heights of polygon with the fitted plane. Results in smoother roads
+    filter_outliers: true                               # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Only replace heights of detected outliers
+    flatten: true                                       # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Replace all heights of polygon with the fitted plane. Results in smoother roads
     use_LAS_classes:                                    # LAS classes to be used for this class. If empty all classes are used
       - 3
       - 6
-  Separation:                                           # Class definition for Seperation
+  Separation:                                           # Class definition for Separation
     height: percentile-80
   Bridge/Overpass:                                      # Class definition for Bridge/Overpass
     height: percentile-50
-    flatten: true                                       # Filter outliers by iterative Least Squares fitting of 3D quadric suface. Replace all heights of polygon with the fitted plane. Results in smoother bridges
+    flatten: true                                       # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Replace all heights of polygon with the fitted plane. Results in smoother bridges
   Terrain:                                              # Class definition for Terrain
     simplification: 100                                 # Simplification factor for points added within terrain polygons, points are added random
     simplification_tinsimp: 0.1                         # Simplification threshold for points added within terrain polygons, points are removed from triangulation until specified error threshold value is reached
@@ -81,10 +81,10 @@ input_elevation:                                        # Group for point clouds
     - D:\data\top10nl\schie\*                           # Definition under Windows for directory with LAS/LAZ files using the same parameters
   omit_LAS_classes:                                     # Option to omit classes defined in the LAS/LAZ files
     - 1 # unclassified                                  # ASPRS Standard Lidar Point Classes classification value
-    - 3 # vegation
-    - 4 # vegation
-    - 5 # vegation 
-  thinning: 10                                          # Thinning factor for points, this is the amount of points skipped during read, a value of 10 would result in points 1, 11, 21, 31 beeing used
+    - 3 # vegetation
+    - 4 # vegetation
+    - 5 # vegetation 
+  thinning: 10                                          # Thinning factor for points, this is the amount of points skipped during read, a value of 10 would result in points 1, 11, 21, 31 being used
 
 options:                                                # Global options
   building_radius_vertex_elevation: 3.0                 # Radius in meters used for point-vertex distance between 3D points and vertices of building polygons, radius_vertex_elevation used when not specified
