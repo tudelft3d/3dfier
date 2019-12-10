@@ -32,7 +32,7 @@ lifting_options:                                        # Group for class liftin
   Building:                                             # Class definition for Building
     roof:
       height: percentile-90                             # Percentile of points within radius of building vertices for roof height lifting, building_radius_vertex_elevation is defined in options
-      use_LAS_classes:                                  # LAS classes to be used for this class. If empty all classes are used
+      use_LAS_classes:                                  # LAS classes to be used for this class, if empty all classes are used
         - 6
     ground:
       height: percentile-10                             # Percentile of points within radius of building vertices for floor height lifting
@@ -45,21 +45,22 @@ lifting_options:                                        # Group for class liftin
     triangulate: false                                  # Set if the output should be triangulated, only works for non-triangular output formats like CityGML/IMGeo
   Water:                                                # Class definition for Water
     height: percentile-10                               # Percentile of points within radius of water vertices for lifting, radius_vertex_elevation is defined in options
-    use_LAS_classes_within:                             # LAS classes to be used for this class, but only if points fall within the polygon and the range of the vertex.
-      - 2
+    use_LAS_classes:                                    # LAS classes to be used for this class, if empty all classes are used
+      - 2 
+    use_LAS_classes_within:                             # LAS classes to be used for this class, but only if points fall within the polygon and the range of the vertex
       - 9
   Road:                                                 # Class definition for Road
     height: percentile-50
-    filter_outliers: true                               # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Only replace heights of detected outliers
-    flatten: true                                       # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Replace all heights of polygon with the fitted plane. Results in smoother roads
-    use_LAS_classes:                                    # LAS classes to be used for this class. If empty all classes are used
-      - 3
-      - 6
+    filter_outliers: true                               # Filter outliers by iterative Least Squares fitting of 3D quadric surface, only replace heights of detected outliers
+    flatten: true                                       # Filter outliers by iterative Least Squares fitting of 3D quadric surface, replace all heights of polygon with the fitted plane which results in smoother roads
+    use_LAS_classes:                                    # LAS classes to be used for this class, if empty all classes are used
+      - 2
+      - 11
   Separation:                                           # Class definition for Separation
     height: percentile-80
   Bridge/Overpass:                                      # Class definition for Bridge/Overpass
     height: percentile-50
-    flatten: true                                       # Filter outliers by iterative Least Squares fitting of 3D quadric surface. Replace all heights of polygon with the fitted plane. Results in smoother bridges
+    flatten: true                                       # Filter outliers by iterative Least Squares fitting of 3D quadric surface, replace all heights of polygon with the fitted plane which results in smoother bridges
   Terrain:                                              # Class definition for Terrain
     simplification: 100                                 # Simplification factor for points added within terrain polygons, points are added random
     simplification_tinsimp: 0.1                         # Simplification threshold for points added within terrain polygons, points are removed from triangulation until specified error threshold value is reached
