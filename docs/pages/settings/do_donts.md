@@ -15,3 +15,4 @@ permalink: do_donts.html
 - Don't expect magic
 - Don't combine [*simplification*] and [*simplification_tinsimp*] settings, the latter is always preferred
 - Don't use lidar [*thinning*] setting for other then testing to improve speed since this is a simple skip amount while reading points
+- Don't forget to configure a value in [*use_LAS_classes*] when using [*use_LAS_classes_within*], it defaults to all classes
