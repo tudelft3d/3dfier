@@ -218,15 +218,15 @@ Below are three examples of the impact of this simplification setting.
 2. The second is 0.1 meters where it means that the terrain TIN is allowed to have a maximum deviation of 0.1 meters with the point cloud. The result shows a lot less triangles compared to the first example. In area's with a bit more relief close to the buildings there are quite some triangles left.
 3. The final example is 0.5 meters an it results in only points added at locations that greatly influence the height of terrain since the example area is quite flat.
 
-*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_0.yml) and [OBJ]() of simplification_tinsimp:0*
+*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_0.yml) and [OBJ]({{site.baseurl}}/assets/examples/tinsimp_0.yml) of simplification_tinsimp:0*
 {% include imagezoom.html file="/settings/settings_tinsimp_0.png" alt="" %}
 {% include imagezoom.html file="/settings/tinsimp_0.png" alt="" %}
 
-*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_01.yml) and [OBJ]() of simplification_tinsimp:0.1*
+*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_01.yml) and [OBJ]({{site.baseurl}}/assets/examples/tinsimp_01.yml) of simplification_tinsimp:0.1*
 {% include imagezoom.html file="/settings/settings_tinsimp_01.png" alt="" %}
 {% include imagezoom.html file="/settings/tinsimp_01.png" alt="" %}
 
-*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_05.yml) and [OBJ]() of simplification_tinsimp:0.5*
+*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_05.yml) and [OBJ]({{site.baseurl}}/assets/examples/tinsimp_05.yml) of simplification_tinsimp:0.5*
 {% include imagezoom.html file="/settings/settings_tinsimp_05.png" alt="" %}
 {% include imagezoom.html file="/settings/tinsimp_05.png" alt="" %}
 

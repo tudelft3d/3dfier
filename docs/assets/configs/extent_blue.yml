@@ -107,8 +107,5 @@ options:
   radius_vertex_elevation: 1.0
   threshold_jump_edges: 0.5
   threshold_bridge_jump_edges: 0.5
-  extent: 84897,447570,84938,447597        #Green
-  #extent: 84875,447538,84912,447564       #Blue
-  #extent: 84897, 447518, 84944, 447558    #Purple
-  #extent: 84973, 447500, 85005, 447526    #Red
+  extent: 84875,447538,84912,447564
   
