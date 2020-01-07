@@ -54,13 +54,11 @@ lifting_options:
     roof:
       height: percentile-90
       use_LAS_classes:
-        - 0
-        - 1
         - 6
   Terrain:
     simplification: 0
     simplification_tinsimp: 0.5
-    innerbuffer: 0.5
+    innerbuffer: 0
     use_LAS_classes:
       - 2
       - 9
