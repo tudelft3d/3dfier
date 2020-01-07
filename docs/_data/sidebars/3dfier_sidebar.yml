@@ -42,9 +42,6 @@ entries:
   - title: Tutorials
     output: web, pdf
     folderitems:
-    - title: Minimal data requirements
-      url: /minimal_data_requirements.html
-      output: web, pdf
     - title: Data visualisation
       url: /data_visualisation.html
       output: web, pdf
@@ -58,6 +55,9 @@ entries:
   - title: Examples
     output: web, pdf
     folderitems:
+    - title: Minimal data requirements
+      url: /minimal_data_requirements.html
+      output: web, pdf
     - title: Different LoD of buildings
       url: /lod_buildings.html
       output: web, pdf
