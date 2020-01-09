@@ -57,8 +57,8 @@ lifting_options:
         - 6
   Terrain:
     simplification: 0
-    simplification_tinsimp: 0
-    innerbuffer: 3.0
+    simplification_tinsimp: 0.1
+    innerbuffer: 0
     use_LAS_classes:
       - 2
       - 9
@@ -105,3 +105,5 @@ options:
   radius_vertex_elevation: 1.0
   threshold_jump_edges: 0.5
   threshold_bridge_jump_edges: 0.5
+  extent: 84897, 447518, 84944, 447558
+  

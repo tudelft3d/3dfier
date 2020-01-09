@@ -54,8 +54,6 @@ lifting_options:
     roof:
       height: percentile-90
       use_LAS_classes:
-        - 0
-        - 1
         - 6
   Terrain:
     simplification: 0

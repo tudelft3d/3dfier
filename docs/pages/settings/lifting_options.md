@@ -64,12 +64,12 @@ Lets say this setting corresponds to the class `Road` and the LAS classes config
 #### use_LAS_classes_within
 Additional to the [use_LAS_classes](#use_las_classes) there is a more specific version that defines additionally that points have to lay within a polygon to be allowed to be added to the heights list. All 3 steps described in the previous setting are taken plus an additional one that checks if the point falls within the polygon. This can be used for example for objects that are influenced by surrounding objects and their heights like bridges crossing over bridges.
 
-**If no use_LAS_classes are defined but only use_LAS_classes_within, points are not filtered by use_LAS_classes resulting in points not being filtered by class and all points read are used!**
+**If use_LAS_classes are not defined but only use_LAS_classes_within, points within distance of a vertex but not within the polygon are not filtered by class and all classes are used!**
 
-**TODO: Add image of vertex buffer including within**
+**TODO: Add image of vertex buffer including within and image of excluding use_LAS_classes**
 
 #### lod: 0
-*Download [YAML]({{site.baseurl}}/assets/configs/lod0.yml) and [OBJ]()*
+*Download [YAML]({{site.baseurl}}/assets/configs/lod0.yml) and [OBJ]({{site.baseurl}}/assets/configs/lod0.obj)*
 
 Create a building as a flat surface at ground level. The calculation of the floor height is done identical to LoD 1 and reconstructed with vertical walls from the terrain to the floor surface of the building. The vertical walls are added to make the model water tight and close the terrain surface.
 
@@ -77,7 +77,7 @@ Create a building as a flat surface at ground level. The calculation of the floo
 {% include imagezoom.html file="/settings/lod0.png" alt="" %}
 
 #### lod: 1
-*Download [YAML]({{site.baseurl}}/assets/configs/lod1.yml) and [OBJ]()*
+*Download [YAML]({{site.baseurl}}/assets/configs/lod1.yml) and [OBJ]({{site.baseurl}}/assets/configs/lod1.obj)*
 
 Create a building as an extrusion from the ground level to the roof level. The calculation of the floor height is done using the `Building:ground:height` percentile and the roof height using `Building:roof:height` percentile. When the heights are calculated the two surfaces, roof and floor, are built and calculation of the vertical walls is started. The walls are topologically noded to neighbouring buildings. If a building is taller then its neighbour an additional vertex is added at the roof height of its neighbour. Same holds for a buildings floor being lower then that of a neighbour. 
 
@@ -87,7 +87,7 @@ For example we have two buildings with their floors at 0 meters and roofs at 10 
 {% include imagezoom.html file="/settings/lod1.png" alt="" %}
 
 #### floor: true
-*Download [YAML]({{site.baseurl}}/assets/configs/floor_true.yml) and [OBJ]()*
+*Download [YAML]({{site.baseurl}}/assets/configs/floor_true.yml) and [OBJ]({{site.baseurl}}/assets/configs/floor_true.obj)*
 
 Reconstruct polygons of the floor of buildings. When set to `true` (and configuration set to `lod: 1`) the model will create a watertight 3D solid object per building.
 
@@ -95,7 +95,7 @@ Reconstruct polygons of the floor of buildings. When set to `true` (and configur
 {% include imagezoom.html file="/settings/floor_true.png" alt="" %}
 
 #### floor: false
-*Download [YAML]({{site.baseurl}}/assets/configs/floor_false.yml) and [OBJ]()*
+*Download [YAML]({{site.baseurl}}/assets/configs/floor_false.yml) and [OBJ]({{site.baseurl}}/assets/configs/floor_false.obj)*
 
 Do not reconstruct polygons of the floor of buildings. The buildings are still connected to the surrounding objects through the walls but do not contain polygons for the floors.
 
@@ -103,7 +103,7 @@ Do not reconstruct polygons of the floor of buildings. The buildings are still c
 {% include imagezoom.html file="/settings/floor_false.png" alt="" %}
 
 #### inner_walls: true
-*Download [YAML]({{site.baseurl}}/assets/configs/inner_walls_true.yml) and [OBJ]()*
+*Download [YAML]({{site.baseurl}}/assets/configs/inner_walls_true.yml) and [OBJ]({{site.baseurl}}/assets/configs/inner_walls_true.obj)*
 
 Reconstruct polygons for walls in between connected buildings. When set to `true` (and configuration set to `lod: 1`) the model will create walls in between houses that are connected with at least one side.
 
@@ -111,7 +111,7 @@ Reconstruct polygons for walls in between connected buildings. When set to `true
 {% include imagezoom.html file="/settings/inner_walls_true.png" alt="" %}
 
 #### inner_walls: false
-*Download [YAML]({{site.baseurl}}/assets/configs/inner_walls_false.yml) and [OBJ]()*
+*Download [YAML]({{site.baseurl}}/assets/configs/inner_walls_false.yml) and [OBJ]({{site.baseurl}}/assets/configs/inner_walls_false.obj)*
 
 Do not reconstruct polygons for walls in between connected buildings.
 
@@ -195,9 +195,9 @@ See [road:flatten: false](#road-flatten-false) for more information.
 
 ### Terrain
 ~~~ yaml
-simplification: 100          # Simplification factor for points added within terrain polygons, points are added random
+simplification: 0            # Simplification factor for points added within terrain polygons, points are added random
 simplification_tinsimp: 0.1  # Simplification threshold for points added within terrain polygons, points are removed from triangulation until specified error threshold value is reached
-innerbuffer: 1.0             # Inner buffer in meters where no additional points will be added within boundary of the terrain polygon
+innerbuffer: 0.0             # Inner buffer in meters where no additional points will be added within boundary of the terrain polygon
 ~~~
 Since it is a special case the *Terrain* class is adding raw points from the point cloud to the interior of the polygon. Since a terrain polygon can be rather large and contains information about relief within its boundaries more information is needed.
 
@@ -218,38 +218,38 @@ Below are three examples of the impact of this simplification setting.
 2. The second is 0.1 meters where it means that the terrain TIN is allowed to have a maximum deviation of 0.1 meters with the point cloud. The result shows a lot less triangles compared to the first example. In area's with a bit more relief close to the buildings there are quite some triangles left.
 3. The final example is 0.5 meters an it results in only points added at locations that greatly influence the height of terrain since the example area is quite flat.
 
-*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_0.yml) and [OBJ]() of simplification_tinsimp:0*
+*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_0.yml) and [OBJ]({{site.baseurl}}/assets/configs/tinsimp_0.obj) of simplification_tinsimp:0*
 {% include imagezoom.html file="/settings/settings_tinsimp_0.png" alt="" %}
 {% include imagezoom.html file="/settings/tinsimp_0.png" alt="" %}
 
-*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_01.yml) and [OBJ]() of simplification_tinsimp:0.1*
+*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_01.yml) and [OBJ]({{site.baseurl}}/assets/configs/tinsimp_01.obj) of simplification_tinsimp:0.1*
 {% include imagezoom.html file="/settings/settings_tinsimp_01.png" alt="" %}
 {% include imagezoom.html file="/settings/tinsimp_01.png" alt="" %}
 
-*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_05.yml) and [OBJ]() of simplification_tinsimp:0.5*
+*Download [YAML]({{site.baseurl}}/assets/configs/tinsimp_05.yml) and [OBJ]({{site.baseurl}}/assets/configs/tinsimp_05.obj) of simplification_tinsimp:0.5*
 {% include imagezoom.html file="/settings/settings_tinsimp_05.png" alt="" %}
 {% include imagezoom.html file="/settings/tinsimp_05.png" alt="" %}
 
 #### innerbuffer
 In case there is a need to prevent points to be added close to polygon boundaries there is the *innerbuffer* setting. When this is used the interior points are only added when the distance to the boundary is a minimum of the supplied value in meters. Below are three examples that show what happens when setting and increasing the *innerbuffer* value.
 
-*Download [YAML]({{site.baseurl}}/assets/configs/innerbuffer_05.yml) and [OBJ]()*
+*Download [YAML]({{site.baseurl}}/assets/configs/innerbuffer_05.yml) and [OBJ]({{site.baseurl}}/assets/configs/innerbuffer_05.obj)*
 {% include imagezoom.html file="/settings/settings_innerbuffer_05.png" alt="" %}
 {% include imagezoom.html file="/settings/innerbuffer_05.png" alt="" %}
 
-*Download [YAML]({{site.baseurl}}/assets/configs/innerbuffer_1.yml) and [OBJ]()*
+*Download [YAML]({{site.baseurl}}/assets/configs/innerbuffer_1.yml) and [OBJ]({{site.baseurl}}/assets/configs/innerbuffer_1.obj)*
 {% include imagezoom.html file="/settings/settings_innerbuffer_1.png" alt="" %}
 {% include imagezoom.html file="/settings/innerbuffer_1.png" alt="" %}
 
-*Download [YAML]({{site.baseurl}}/assets/configs/innerbuffer_3.yml) and [OBJ]()*
+*Download [YAML]({{site.baseurl}}/assets/configs/innerbuffer_3.yml) and [OBJ]({{site.baseurl}}/assets/configs/innerbuffer_3.obj)*
 {% include imagezoom.html file="/settings/settings_innerbuffer_3.png" alt="" %}
 {% include imagezoom.html file="/settings/innerbuffer_3.png" alt="" %}
 
 ### Forest
 ~~~ yaml
-simplification: 100          # Simplification factor for points added within forest polygons, points are added random
+simplification: 0            # Simplification factor for points added within forest polygons, points are added random
 simplification_tinsimp: 0.1  # Simplification threshold for points added within forest polygons, points are removed from triangulation until specified error threshold value is reached
-innerbuffer: 1.0             # Inner buffer in meters where no additional points will be added within boundary of the forest polygon
+innerbuffer: 0.0             # Inner buffer in meters where no additional points will be added within boundary of the forest polygon
 ~~~
 
 All options available for [Terrain](#terrain) are also available for the *Forest* class.
