@@ -358,7 +358,7 @@ int main(int argc, const char * argv[]) {
     if (n["stitching"] && n["stitching"].as<std::string>() == "false")
       bStitching = false;
     if (n["max_angle_curvepolygon"])
-       map3d.set_max_angle_curvepolygon(n["max_angle_curvepolygon"].as<double>());
+      map3d.set_max_angle_curvepolygon(n["max_angle_curvepolygon"].as<double>());
 
     if (n["extent"]) {
       std::vector<std::string> extent_split = stringsplit(n["extent"].as<std::string>(), ',');
