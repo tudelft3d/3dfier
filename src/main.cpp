@@ -357,6 +357,8 @@ int main(int argc, const char * argv[]) {
       map3d.set_threshold_bridge_jump_edges(n["threshold_jump_edges"].as<float>());
     if (n["stitching"] && n["stitching"].as<std::string>() == "false")
       bStitching = false;
+    if (n["max_angle_curvepolygon"])
+       map3d.set_max_angle_curvepolygon(n["max_angle_curvepolygon"].as<double>());
 
     if (n["extent"]) {
       std::vector<std::string> extent_split = stringsplit(n["extent"].as<std::string>(), ',');
@@ -1162,6 +1164,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       if ((s != "true") && (s != "false")) {
         wentgood = false;
         std::cerr << "\tOption 'options.stitching' invalid; must be 'true' or 'false'.\n";
+      }
+    }
+    if (n["max_angle_curvepolygon"]) {
+      try {
+        boost::lexical_cast<double>(n["max_angle_curvepolygon"].as<std::string>());
+      }
+      catch (boost::bad_lexical_cast& e) {
+        wentgood = false;
+        std::cerr << "\tOption 'options.max_angle_curvepolygon' invalid.\n";
       }
     }
     if (n["extent"]) {
