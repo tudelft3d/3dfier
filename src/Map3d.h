@@ -104,7 +104,6 @@ public:
   void set_threshold_jump_edges(float threshold);
   void set_threshold_bridge_jump_edges(float threshold);
   void set_requested_extent(double xmin, double ymin, double xmax, double ymax);
-  void set_max_angle_curvepolygon(double max_angle);
 
   void add_allowed_las_class(AllowedLASTopo c, int i);
   void add_allowed_las_class_within(AllowedLASTopo c, int i);
@@ -141,7 +140,6 @@ private:
   double      _minyradius;
   double      _maxyradius;
   Box2        _requestedExtent;
-  double      _max_angle_curvepolygon; //-- the largest step in degrees along the arc, zero to use the default setting.
 
   //-- storing the LAS allowed for each TopoFeature
   std::array<std::set<int>,NUM_ALLOWEDLASTOPO> _las_classes_allowed;

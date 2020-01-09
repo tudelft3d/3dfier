@@ -13,7 +13,7 @@ platform: x64
 cache:
   - C:\deps\yaml-cpp-yaml-cpp-0.5.3
   - C:\deps\OSGeo4W
-  - C:\deps\LAStools-9dfaef70640ea9eb556b81f35257f1b67832831a
+  - C:\deps\LAStools-master
   - C:\deps\CGAL-4.12
   
 install:

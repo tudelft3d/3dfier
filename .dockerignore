@@ -1,7 +1,0 @@
-build
-dist
-.coverage
-.git
-docs
-example_data
-vs_build
