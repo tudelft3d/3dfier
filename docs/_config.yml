@@ -6,7 +6,7 @@ output: web
 topnav_title: 3dfier documentation
 # this appears on the top navigation bar next to the home button
 
-site_title: 3fdier Recreating your environment
+site_title: 3dfier Recreating your environment
 # this appears in the html browser tab for the site title (seen mostly by search engines, not users)
 
 company_name: 3D geoinformation group - Delft University of Technology
