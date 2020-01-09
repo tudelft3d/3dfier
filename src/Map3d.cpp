@@ -53,11 +53,12 @@ Map3d::Map3d() {
   _threshold_jump_edges = 50;
   _threshold_bridge_jump_edges = 50;
   _requestedExtent = Box2(Point2(0, 0), Point2(0, 0));
-  _bbox = Box2(Point2(999999, 999999), Point2(-999999, -999999));
-  _minxradius = 999999;
-  _maxxradius = 999999;
-  _minyradius = -999999;
-  _maxyradius = -999999;
+  _bbox = Box2(Point2(9999999, 9999999), Point2(-9999999, -9999999));
+  _minxradius = 9999999;
+  _maxxradius = 9999999;
+  _minyradius = -9999999;
+  _maxyradius = -9999999;
+  _max_angle_curvepolygon = 0;
 }
 
 Map3d::~Map3d() {
@@ -158,6 +159,10 @@ void Map3d::set_bridge_flatten(bool flatten) {
 
 void Map3d::set_requested_extent(double xmin, double ymin, double xmax, double ymax) {
   _requestedExtent = Box2(Point2(xmin, ymin), Point2(xmax, ymax));
+}
+
+void Map3d::set_max_angle_curvepolygon(double max_angle) {
+  _max_angle_curvepolygon = max_angle;
 }
 
 Box2 Map3d::get_bbox() {
@@ -978,6 +983,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
 
     int numSplitMulti = 0;
     int numSplitPoly = 0;
+    int numCurvePoly = 0;
     while ((f = dataLayer->GetNextFeature()) != NULL) {
       OGRGeometry *geometry = f->GetGeometryRef();
       if (!geometry->IsValid()) {
@@ -1015,6 +1021,14 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
           }
           break;
         }
+        case wkbCurvePolygon: {
+          OGRCurvePolygon* curve_polygon = geometry->toCurvePolygon();
+          OGRPolygon* polygon = curve_polygon->CurvePolyToPoly(_max_angle_curvepolygon);
+          f->SetGeometry(polygon);
+          extract_feature(f, layerName, idfield, heightfield, l.second, multiple_heights);
+          numCurvePoly++;
+          break;
+        }
         default: {
           continue;
         }
@@ -1023,6 +1037,14 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
     }
     if (numSplitMulti > 0) {
       std::clog << "\tSplit " << numSplitMulti << " MultiPolygon(s) into " << numSplitPoly << " Polygon(s)\n";
+    }
+    if (numCurvePoly > 0) {
+      if (_max_angle_curvepolygon == 0.0) {
+        std::clog << "\tStroked " << numCurvePoly << " CurvePolygon(s) with a maximum angle of 4.0 degrees (default value)\n";
+      }
+      else {
+        std::clog << "\tStroked " << numCurvePoly << " CurvePolygon(s) with a maximum angle of " << _max_angle_curvepolygon << "degrees\n";
+      }
     }
     wentgood = true;
   }

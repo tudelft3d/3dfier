@@ -41,7 +41,7 @@ lifting_options:                                        # Group for class liftin
         - 9
     lod: 1                                              # Define the Level Of Detail for Buildings (0 and 1 possible)
     floor: true                                         # Set if floors should be created
-    inner_walls: true                                   # Set if the walls between to adjacent buildings in a block should be created
+    inner_walls: true                                   # Set if the walls between to adjacent buildings within a block should be created
     triangulate: false                                  # Set if the output should be triangulated, only works for non-triangular output formats like CityGML/IMGeo
   Water:                                                # Class definition for Water
     height: percentile-10                               # Percentile of points within radius of water vertices for lifting, radius_vertex_elevation is defined in options
@@ -64,11 +64,11 @@ lifting_options:                                        # Group for class liftin
   Terrain:                                              # Class definition for Terrain
     simplification: 100                                 # Simplification factor for points added within terrain polygons, points are added random
     simplification_tinsimp: 0.1                         # Simplification threshold for points added within terrain polygons, points are removed from triangulation until specified error threshold value is reached
-    inner_buffer: 1.0                                   # Inner buffer in meters where no additional points will be added within boundary of the terrain polygon
+    innerbuffer: 1.0                                    # Inner buffer in meters where no additional points will be added within boundary of the terrain polygon
   Forest:                                               # Class definition for Forest
     simplification: 10                                  # Simplification factor for points added within forest polygons, points are added random
     simplification_tinsimp: 0.1                         # Simplification threshold for points added within forest polygons, points are removed from triangulation until specified error threshold value is reached
-    inner_buffer: 1.0                                   # Inner buffer in meters where no additional points will be added within boundary of the forest polygon
+    innerbuffer: 1.0                                    # Inner buffer in meters where no additional points will be added within boundary of the forest polygon
 
 input_elevation:                                        # Group for point clouds
   - datasets:                                           # List of data set with specific settings
@@ -77,9 +77,9 @@ input_elevation:                                        # Group for point clouds
     # Windows
     - D:\data\top10nl\schie\ahn3.laz                    # Definition under Windows for one or multiple LAS/LAZ files using the same parameters
     # Unix
-    - /data/top10nl/schie/*                             # Definition under Unix for directory with LAS/LAZ files using the same parameters
+    - /data/top10nl/schie/*                             # Definition under Unix for reading a full directory with LAS/LAZ files using the same parameters
     # Windows
-    - D:\data\top10nl\schie\*                           # Definition under Windows for directory with LAS/LAZ files using the same parameters
+    - D:\data\top10nl\schie\*                           # Definition under Windows for reading a full  directory with LAS/LAZ files using the same parameters
   omit_LAS_classes:                                     # Option to omit classes defined in the LAS/LAZ files
     - 1 # unclassified                                  # ASPRS Standard Lidar Point Classes classification value
     - 3 # vegetation
@@ -92,4 +92,5 @@ options:                                                # Global options
   radius_vertex_elevation: 1.0                          # Radius in meters used for point-vertex distance between 3D points and vertices of polygons
   threshold_jump_edges: 0.5                             # Threshold in meters for stitching adjacent objects, when the height difference is larger then the threshold a vertical wall is created 
   threshold_bridge_jump_edges: 0.5                      # Threshold in meters for stitching bridges to adjacent objects, if not specified it falls back to threshold_jump_edges
+  max_angle_curvepolygon: 0.0                           # The largest allowed angle along the stroked arc of a curved polygon. Use zero for the default setting. (https://gdal.org/doxygen/ogr__api_8h.html#a87f8bce40c82b3513e36109ea051dff2) 
   extent: xmin, ymin, xmax, ymax                        # Filter the input polygons to this extent

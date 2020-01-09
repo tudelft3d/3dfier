@@ -41,6 +41,9 @@ vs_build/.vs
 *.vcxproj.user
 *.lib
 
+# Visual studio code files
+/.vscode/
+
 # Folders
 x64
 x86
