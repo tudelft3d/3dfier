@@ -144,7 +144,7 @@ int main(int argc, const char * argv[]) {
         return EXIT_FAILURE;
       }
       if (yp.extension() != ".yml") {
-        std::cerr << "ERROR: config file " << f_yaml << " if not *.yml" << std::endl;
+        std::cerr << "ERROR: config file " << f_yaml << " extension is not *.yml" << std::endl;
         return EXIT_FAILURE;
       }
     }
