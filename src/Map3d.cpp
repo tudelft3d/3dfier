@@ -769,6 +769,12 @@ void Map3d::add_elevation_point(LASpoint const& laspt) {
   }
 }
 
+void Map3d::cleanup_elevations() {
+  for (auto& f : _lsFeatures) {
+    f->cleanup_elevations();
+  }
+}
+
 bool Map3d::threeDfy(bool stitching) {
   /*
     1. lift
@@ -779,7 +785,6 @@ bool Map3d::threeDfy(bool stitching) {
     std::clog << "===== /LIFTING =====\n";
     for (auto& f : _lsFeatures) {
       f->lift();
-      f->cleanup_elevations();
     }
     std::clog << "===== LIFTING/ =====\n";
     if (stitching == true) {

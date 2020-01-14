@@ -911,6 +911,8 @@ bool TopoFeature::point_in_polygon(const Point2& p) {
 void TopoFeature::cleanup_lidarelevs() {
   _lidarelevs.clear();
   _lidarelevs.shrink_to_fit();
+  _p2z.clear();
+  _p2z.shrink_to_fit();
 }
 
 void TopoFeature::get_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, bool verticalwall) {
