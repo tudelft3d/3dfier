@@ -600,7 +600,6 @@ int main(int argc, const char * argv[]) {
     print_duration("CDT created in %lld seconds || %02d:%02d:%02d\n", startCDT);
   }
   std::clog << "...3dfying done.\n";
-  map3d.cleanup_elevations();
 
   //-- iterate over all output
   for (auto& output : outputs) {

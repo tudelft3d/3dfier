@@ -908,11 +908,9 @@ bool TopoFeature::point_in_polygon(const Point2& p) {
   return insideOuter;
 }
 
-void TopoFeature::cleanup_elevations() {
+void TopoFeature::cleanup_lidarelevs() {
   _lidarelevs.clear();
   _lidarelevs.shrink_to_fit();
-  _p2z.clear();
-  _p2z.shrink_to_fit();
 }
 
 void TopoFeature::get_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, bool verticalwall) {
@@ -1130,7 +1128,7 @@ return true;
 void Flat::cleanup_elevations() {
   _zvaluesinside.clear();
   _zvaluesinside.shrink_to_fit();
-  TopoFeature::cleanup_elevations();
+  TopoFeature::cleanup_lidarelevs();
 }
 
 //-------------------------------
@@ -1305,7 +1303,7 @@ bool TIN::add_elevation_point(Point2& p, double z, float radius, int lasclass, b
 void TIN::cleanup_elevations() {
   _lidarpts.clear();
   _lidarpts.shrink_to_fit();
-  TopoFeature::cleanup_elevations();
+  TopoFeature::cleanup_lidarelevs();
 }
 
 bool TIN::buildCDT() {
