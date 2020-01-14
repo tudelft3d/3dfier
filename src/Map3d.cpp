@@ -1034,6 +1034,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
         }
         }
       }
+      OGRFeature::DestroyFeature(f);
     }
     if (numSplitMulti > 0) {
       std::clog << "\tSplit " << numSplitMulti << " MultiPolygon(s) into " << numSplitPoly << " Polygon(s)\n";
@@ -1100,6 +1101,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
       _lsFeatures.pop_back();
     }
   }
+  CPLFree(wkt);
 }
 
 bool Map3d::add_las_file(PointFile pointFile) {
