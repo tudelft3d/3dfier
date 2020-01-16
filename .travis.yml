@@ -1,32 +1,45 @@
-sudo: false
-dist: trusty
+sudo: required
+
 language: cpp
-compiler: gcc
-addons:
-    apt:
-        sources:
-            - ubuntu-toolchain-r-test
-            - sourceline: 'ppa:ubuntugis/ppa'
-        packages:
-            - gcc-6
-            - g++-6
-            - cmake
-            - libgdal-dev
-            - libboost-dev
-            - libboost-filesystem-dev
-            - libboost-locale-dev
-            - libboost-thread-dev
-            - libboost-iostreams-dev
-            - libboost-program-options-dev
-            - libyaml-cpp-dev
-            - libproj-dev
-            - libgeotiff-dev
-            - libgmp-dev
-            - libmpfr-dev
+
+services:
+  - docker
+
+install: skip
 
 script:
-    - resources/build_ubuntu/build_deps.sh /opt
-    - export CC=gcc-6
-    - export CXX=g++-6
-    - resources/build_ubuntu/build_cgal.sh /opt
-    - resources/build_ubuntu/build_3dfier.sh /opt
+  - echo "skipping tests"
+  - echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
+  - docker pull tudelft3d/3dfier:latest || true
+  - docker build . --cache-from tudelft3d/3dfier:latest -t tudelft3d/3dfier:latest
+
+
+deploy:
+  - provider: script
+    script:
+        - docker push tudelft3d/3dfier:latest
+    skip_cleanup: true
+    on:
+      branch: master
+  - provider: script
+    script: 
+        - docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:dev
+        - docker push tudelft3d/3dfier:dev
+    skip_cleanup: true
+    on:
+      branch: develop
+  - provider: script
+    script: 
+        - docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:${TRAVIS_TAG}
+        - docker push tudelft3d/3dfier:${TRAVIS_TAG}
+    skip_cleanup: true
+    on:
+      tags: true
+  - provider: script
+    script: 
+        - docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:${TRAVIS_BRANCH}
+        - docker push tudelft3d/3dfier:${TRAVIS_BRANCH}
+    skip_cleanup: true
+    on:
+      all_branches: true
+      condition: ${TRAVIS_BRANCH} =~ ^(?!master|develop$)[a-zA-Z0-9.?!%, -_]+$
