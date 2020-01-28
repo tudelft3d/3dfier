@@ -64,6 +64,6 @@ For these classes there is a difference to the others. Since these features are 
 These classes do not have any specific rules for assigning elevation information.
 
 ### Magic
-
+{% include imagezoom.html file="threedfy.png" alt="Flow diagram for threedfy" %}
 
 ### Writing model
