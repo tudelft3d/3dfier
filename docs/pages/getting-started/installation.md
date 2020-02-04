@@ -149,17 +149,17 @@ There are some steps to be taken to prepare the build environment for 3dfier. Mo
 
 ### 1. Running installers
 First you will need to download and install in their default directorties:
-1. [Visual Studio Community 2017](https://www.visualstudio.com/downloads/). Install at least the C++ part.
-1. [CMake](https://cmake.org/download/), download and install `Windows win64-x64 Installer`. Add variable to the PATH during installation.
-1. [Boost precompiled binaries](https://sourceforge.net/projects/boost/files/boost-binaries). Pick the latest version (`boost_1_71_0-msvc-14.0-64.exe` at the time of writing). If you build on VS2015 get *mscv-14.0*, for VS2017 get *mscv-14.1*. Install boost using the installer.
-1. [OSGeo4W](https://trac.osgeo.org/osgeo4w), download the [64-bit installer](http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe). From this package you will need to install at least GDAL.
-1. [CGAL](https://github.com/CGAL/cgal/releases), download `CGAL-4.12-Setup.exe` and install. Select *GMP and MPFR precompiled libs*, *Environment variables to set CGAL_DIR* and *Add CGAL/auxilary/gmp/lib to the PATH* during setup.
+1. [Visual Studio Community (2017 or later)](https://www.visualstudio.com/downloads/). Install at least the C++ part.
+1. [CMake (3.15 or later)](https://cmake.org/download/), download and install `Windows win64-x64 Installer`. Add variable to the PATH during installation.
+1. [Boost precompiled binaries (1.71 or later)](https://sourceforge.net/projects/boost/files/boost-binaries). Pick the latest version. If you build on VS2015 get *mscv-14.0*, for VS2017 get *mscv-14.1*. Install boost using the installer.
+1. [OSGeo4W (with GDAL 2.3.0 or later)](https://trac.osgeo.org/osgeo4w), download the [64-bit installer](http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe). From this package you will need to install at least the GDAL package.
+1. [CGAL (4.12 or later)](https://github.com/CGAL/cgal/releases), download `CGAL-4.12-Setup.exe` (or newer) and install. Select *GMP and MPFR precompiled libs*, *Environment variables to set CGAL_DIR* and *Add CGAL/auxilary/gmp/lib to the PATH* during setup.
 
 ### 2. Compilation of dependencies
 Next, we need to download and compile Yaml-cpp and LAStools. 
 
 #### Yaml-cpp
-Download [yaml-cpp 0.5.3](https://github.com/jbeder/yaml-cpp/releases) and extract to e.g. `C:\dev\yaml-cpp`. There are two options of getting the Visual Studio project files using CMake:
+Download [yaml-cpp (0.5.3 or later)](https://github.com/jbeder/yaml-cpp/releases) and extract to e.g. `C:\dev\yaml-cpp`. There are two options of getting the Visual Studio project files using CMake:
 
 1. using CMake GUI ([tutorial here](https://cmake.org/runningcmake/)).
 
