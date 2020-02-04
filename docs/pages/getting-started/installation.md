@@ -10,7 +10,7 @@ permalink: installation.html
 
 ## Install on Windows using binaries
 Binary releases exist only for Windows users. Others will have to follow one of the other installation guides for [Linux](#ubuntu-1604) or [Docker](#docker)
-There exists a ready-to-use version of [3dfier for Windows 64-bit]({{site.github.repository_url}}/releases/latest). Download and extract the files to any given folder and follow the instructions in the [Get started guide]({{site.baseurl}}/index).
+There exists a ready-to-use version of [3dfier for Windows 64-bit](https://github.com/{{site.repository}}/releases/latest). Download and extract the files to any given folder and follow the instructions in the [Get started guide]({{site.baseurl}}/index).
 
 ### Release binaries content
 Description of files in the zip file
