@@ -67,3 +67,4 @@ These classes do not have any specific rules for assigning elevation information
 {% include imagezoom.html file="threedfy.png" alt="Flow diagram for threedfy" %}
 
 ### Writing model
+{% include imagezoom.html file="3dfier_writing_model.png" alt="Flow diagram for writing 3D models" %}
