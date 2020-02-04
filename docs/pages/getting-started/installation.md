@@ -186,7 +186,7 @@ Download [LAStools](https://rapidlasso.com/lastools/) and extract to e.g. `C:\de
 After generation open the Visual Studio file `LASlib.sln`. Set the solution configuration to `Release` in the main toolbar. From the menu bar select Build and click `Build Solution`.
 
 ### 3. Set environment variables
-Go to `Control Panel > System > Advanced system settings > Environment Variables` and add the following user variables. Note that the version numbers may be different!
+Go to `Control Panel > System > Advanced system settings > Environment Variables` and add the following user variables. Note that the version numbers and the installation paths may be different!
 * `BOOST_ROOT`=`C:\boost_1_71_0`
 * `BOOST_LIBRARYDIR`=`C:\boost_1_71_0\lib64-msvc-14.0`
 * `CGAL_DIR`=`C:\dev\CGAL-4.12`

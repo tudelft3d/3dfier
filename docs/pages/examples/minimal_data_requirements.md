@@ -10,6 +10,8 @@ Using the software can have different reasons and end-goals. These examples desc
 
 Besides the data files the software needs a configuration file formatted as YAML. This configuration contains all settings except the output format. All possibilities are explained in [Settings]({{site.baseurl}}/input_options.html). In the following sections various possibilities and their minimum data requirements are covered.
 
+{% include imagezoom.html file="extrusion.png" alt="Data input and extrusion steps" %}
+
 ## Buildings only
 For the creation of a 3D model consisting of only LoD1 buildings there is the need for the following data:
 - Polygons of building footprints

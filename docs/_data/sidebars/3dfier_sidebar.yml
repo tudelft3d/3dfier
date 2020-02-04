@@ -42,14 +42,17 @@ entries:
   - title: Tutorials
     output: web, pdf
     folderitems:
-    - title: Data visualisation
-      url: /data_visualisation.html
+    - title: Generate LoD1 models
+      url: /generate_lod1.html
       output: web, pdf
     - title: Generate terrain polygon
       url: /generate_terrain.html
       output: web, pdf
     - title: Extract footprints from OSM
       url: /building_footprints_from_openstreetmap.html
+      output: web, pdf
+    - title: Data visualisation
+      url: /data_visualisation.html
       output: web, pdf
 
   - title: Examples
