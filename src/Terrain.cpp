@@ -87,7 +87,7 @@ void Terrain::get_citygml(std::wostream& of) {
 void Terrain::get_citygml_imgeo(std::wostream& of) {
   of << "<cityObjectMember>";
   of << "<imgeo:OnbegroeidTerreindeel gml:id=\"" << this->get_id() << "\">";
-  get_imgeo_object_info(of, this->get_id());
+  get_imgeo_attributes(of, this->get_id());
   of << "<lu:lod1MultiSurface>";
   of << "<gml:MultiSurface>";
   for (auto& t : _triangles)
