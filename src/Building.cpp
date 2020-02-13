@@ -454,29 +454,7 @@ void Building::get_citygml(std::wostream& of) {
   get_polygon_lifted_gml(of, this->_p2, h, true);
   of << "</gml:MultiSurface>";
   of << "</bui:lod0RoofEdge>";
-  //-- LOD1 Solid
-  of << "<bui:lod1Solid>";
-  of << "<gml:Solid>";
-  of << "<gml:exterior>";
-  of << "<gml:CompositeSurface>";
-  if (_building_triangulate) {
-    for (auto& t : _triangles)
-      get_triangle_as_gml_surfacemember(of, t);
-    for (auto& t : _triangles_vw)
-      get_triangle_as_gml_surfacemember(of, t, true);
-    if (_building_include_floor) {
-      for (auto& t : _triangles) {
-        get_floor_triangle_as_gml_surfacemember(of, t, _height_base);
-      }
-    }
-  }
-  else {
-    get_extruded_lod1_block_gml(of, this->_p2, h, hbase, _building_include_floor);
-  }
-  of << "</gml:CompositeSurface>";
-  of << "</gml:exterior>";
-  of << "</gml:Solid>";
-  of << "</bui:lod1Solid>";
+  get_citygml_lod1(of, h, hbase);
   of << "</bui:Building>";
   of << "</cityObjectMember>";
 }
@@ -490,6 +468,19 @@ void Building::get_citygml_imgeo(std::wostream& of) {
   get_imgeo_object_info(of, this->get_id());
   of << "<bui:consistsOfBuildingPart>";
   of << "<bui:BuildingPart>";
+  get_citygml_lod1(of, h, hbase);
+  std::string attribute;
+  if (get_attribute("identificatiebagpnd", attribute)) {
+    of << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>";
+  }
+  get_imgeo_nummeraanduiding(of);
+  of << "</bui:BuildingPart>";
+  of << "</bui:consistsOfBuildingPart>";
+  of << "</bui:Building>";
+  of << "</cityObjectMember>";
+}
+
+void Building::get_citygml_lod1(std::wostream& of, int h, int hbase) {
   //-- LOD1 Solid
   of << "<bui:lod1Solid>";
   of << "<gml:Solid>";
@@ -513,15 +504,6 @@ void Building::get_citygml_imgeo(std::wostream& of) {
   of << "</gml:exterior>";
   of << "</gml:Solid>";
   of << "</bui:lod1Solid>";
-  std::string attribute;
-  if (get_attribute("identificatiebagpnd", attribute)) {
-    of << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>";
-  }
-  get_imgeo_nummeraanduiding(of);
-  of << "</bui:BuildingPart>";
-  of << "</bui:consistsOfBuildingPart>";
-  of << "</bui:Building>";
-  of << "</cityObjectMember>";
 }
 
 void Building::get_imgeo_nummeraanduiding(std::wostream& of) {

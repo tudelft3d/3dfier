@@ -42,6 +42,7 @@ public:
   void          get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs);
   void          get_citygml(std::wostream& of);
   void          get_citygml_imgeo(std::wostream& of);
+  void          get_citygml_lod1(std::wostream& of, int h, int hbase);
   void          get_imgeo_nummeraanduiding(std::wostream& of);
   void          get_csv(std::wostream& of);
   void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts);
