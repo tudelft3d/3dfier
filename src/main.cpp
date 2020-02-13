@@ -643,7 +643,7 @@ int main(int argc, const char * argv[]) {
       map3d.get_obj_per_feature(of);
     }
     else if (format == "OBJ-NoID") {
-      std::clog << "OBJ (without IDs) output: " << ofname << std::endl;
+      std::clog << "OBJ (without IDs, sorted per class) output: " << ofname << std::endl;
       map3d.get_obj_per_class(of);
     }
     else if (format == "CSV-BUILDINGS") {

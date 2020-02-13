@@ -389,7 +389,7 @@ void Map3d::get_obj_per_feature(std::wostream& of) {
 void Map3d::get_obj_per_class(std::wostream& of) {
   std::unordered_map< std::string, unsigned long > dPts;
   std::string fs;
-  for (int c = 0; c < 6; c++) {
+  for (int c = 0; c < 7; c++) {
     for (auto& p : _lsFeatures) {
       if (p->get_class() == c) {
         if (p->get_class() == BUILDING) {
