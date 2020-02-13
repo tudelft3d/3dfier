@@ -365,10 +365,10 @@ void Map3d::get_obj_per_feature(std::wostream& of) {
     fs += "o "; fs += p->get_id(); fs += "\n";
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
-      b->get_obj(dPts, _building_lod, b->get_mtl(), fs);
+      b->get_obj_geom(dPts, _building_lod, b->get_mtl(), fs);
     }
     else {
-      p->get_obj(dPts, p->get_mtl(), fs);
+      p->get_obj_geom(dPts, p->get_mtl(), fs);
     }
   }
 
@@ -394,10 +394,10 @@ void Map3d::get_obj_per_class(std::wostream& of) {
       if (p->get_class() == c) {
         if (p->get_class() == BUILDING) {
           Building* b = dynamic_cast<Building*>(p);
-          b->get_obj(dPts, _building_lod, b->get_mtl(), fs);
+          b->get_obj_geom(dPts, _building_lod, b->get_mtl(), fs);
         }
         else {
-          p->get_obj(dPts, p->get_mtl(), fs);
+          p->get_obj_geom(dPts, p->get_mtl(), fs);
         }
       }
     }
