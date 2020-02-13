@@ -507,25 +507,7 @@ void Building::get_citygml_imgeo(std::wostream& of) {
     }
   }
   else {
-    if (_building_include_floor) {
-      //-- get floor
-      get_polygon_lifted_gml(of, this->_p2, hbase, false);
-    }
-    //-- get roof
-    get_polygon_lifted_gml(of, this->_p2, h, true);
-    //-- get the walls
-    auto r = _p2->outer();
-    int i;
-    for (i = 0; i < (r.size() - 1); i++)
-      get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
-    get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
-    //-- irings
-    std::vector<Ring2>& irings = _p2->inners();
-    for (Ring2& r : irings) {
-      for (i = 0; i < (r.size() - 1); i++)
-        get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
-      get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
-    }
+    get_extruded_lod1_block_gml(of, this->_p2, h, hbase, _building_include_floor);
   }
   of << "</gml:CompositeSurface>";
   of << "</gml:exterior>";
