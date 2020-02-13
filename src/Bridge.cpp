@@ -46,7 +46,7 @@ bool Bridge::is_hard() {
 }
 
 void Bridge::cleanup_elevations() {
-  TopoFeature::cleanup_elevations();
+  TopoFeature::cleanup_lidarelevs();
 }
 
 std::string Bridge::get_mtl() {

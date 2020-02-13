@@ -44,7 +44,7 @@ bool Separation::is_hard() {
 }
 
 void Separation::cleanup_elevations() {
-  TopoFeature::cleanup_elevations();
+  TopoFeature::cleanup_lidarelevs();
 }
 
 std::string Separation::get_mtl() {

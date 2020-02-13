@@ -48,7 +48,7 @@ bool Road::is_hard() {
 }
 
 void Road::cleanup_elevations() {
-  TopoFeature::cleanup_elevations();
+  TopoFeature::cleanup_lidarelevs();
 }
 
 std::string Road::get_mtl() {
