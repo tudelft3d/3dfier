@@ -86,7 +86,7 @@ void Forest::get_citygml(std::wostream& of) {
 void Forest::get_citygml_imgeo(std::wostream& of) {
   of << "<cityObjectMember>";
   of << "<veg:PlantCover gml:id=\"" << this->get_id() << "\">";
-  get_imgeo_object_info(of, this->get_id());
+  get_imgeo_attributes(of, this->get_id());
   of << "<veg:lod1MultiSurface>";
   of << "<gml:MultiSurface>";
   for (auto& t : _triangles)

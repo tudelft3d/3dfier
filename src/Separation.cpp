@@ -101,7 +101,7 @@ void Separation::get_citygml_imgeo(std::wostream& of) {
   else {
     of << "<imgeo:Scheiding gml:id=\"" << this->get_id() << "\">";
   }
-  get_imgeo_object_info(of, this->get_id());
+  get_imgeo_attributes(of, this->get_id());
   of << "<imgeo:lod1Geometry>";
   of << "<gml:MultiSurface>";
   for (auto& t : _triangles)

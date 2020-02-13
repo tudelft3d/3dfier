@@ -215,7 +215,7 @@ AttributeMap &TopoFeature::get_attributes() {
   return _attributes;
 }
 
-void TopoFeature::get_imgeo_object_info(std::wostream& of, std::string id) {
+void TopoFeature::get_imgeo_attributes(std::wostream& of, std::string id) {
   std::string attribute;
   if (get_attribute("creationDate", attribute)) {
     of << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>";

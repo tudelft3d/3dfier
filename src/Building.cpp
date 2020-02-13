@@ -465,7 +465,7 @@ void Building::get_citygml_imgeo(std::wostream& of) {
   of << "<cityObjectMember>";
   of << "<bui:Building gml:id=\"" << this->get_id() << "\">";
   //-- store building information
-  get_imgeo_object_info(of, this->get_id());
+  get_imgeo_attributes(of, this->get_id());
   of << "<bui:consistsOfBuildingPart>";
   of << "<bui:BuildingPart>";
   get_citygml_lod1(of);
