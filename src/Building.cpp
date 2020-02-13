@@ -454,7 +454,7 @@ void Building::get_citygml(std::wostream& of) {
   get_polygon_lifted_gml(of, this->_p2, h, true);
   of << "</gml:MultiSurface>";
   of << "</bui:lod0RoofEdge>";
-  get_citygml_lod1(of, h, hbase);
+  get_citygml_lod1(of);
   of << "</bui:Building>";
   of << "</cityObjectMember>";
 }
@@ -468,7 +468,7 @@ void Building::get_citygml_imgeo(std::wostream& of) {
   get_imgeo_object_info(of, this->get_id());
   of << "<bui:consistsOfBuildingPart>";
   of << "<bui:BuildingPart>";
-  get_citygml_lod1(of, h, hbase);
+  get_citygml_lod1(of);
   std::string attribute;
   if (get_attribute("identificatiebagpnd", attribute)) {
     of << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>";
@@ -480,7 +480,7 @@ void Building::get_citygml_imgeo(std::wostream& of) {
   of << "</cityObjectMember>";
 }
 
-void Building::get_citygml_lod1(std::wostream& of, int h, int hbase) {
+void Building::get_citygml_lod1(std::wostream& of) {
   //-- LOD1 Solid
   of << "<bui:lod1Solid>";
   of << "<gml:Solid>";
@@ -498,7 +498,7 @@ void Building::get_citygml_lod1(std::wostream& of, int h, int hbase) {
     }
   }
   else {
-    get_extruded_lod1_block_gml(of, this->_p2, h, hbase, _building_include_floor);
+    get_extruded_lod1_block_gml(of, this->_p2, _height_top, _height_base, _building_include_floor);
   }
   of << "</gml:CompositeSurface>";
   of << "</gml:exterior>";
