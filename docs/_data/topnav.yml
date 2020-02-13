@@ -5,16 +5,3 @@ topnav:
   items:
     - title: GitHub
       external_url: https://github.com/tudelft3d/3dfier
-
-#Topnav dropdowns
-topnav_dropdowns:
-- title: Topnav dropdowns
-  folders:
-    - title: Howto's
-      folderitems:
-        - title: Download and install
-          url: /3dfier_introduction.html
-        - title: Run for the first time
-          url: /p1_landing_page.html
-        - title: Change configurations
-          url: /p2_landing_page.html
