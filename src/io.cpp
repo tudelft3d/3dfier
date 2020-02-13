@@ -183,16 +183,13 @@ float z_to_float(int z) {
 }
 
 std::vector<std::string> stringsplit(std::string str, char delimiter) {
-  std::vector<std::string> internal;
-  std::stringstream ss(str); // Turn the string into a stream.
-  std::string tok;
-
-  while (getline(ss, tok, delimiter)) {
-    std::remove_if(tok.begin(), tok.end(), isspace);
-    internal.push_back(tok);
-  }
-
-  return internal;
+   std::vector<std::string> elems;
+   str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
+   std::istringstream iss(str);
+   for (std::string item; getline(iss, item, delimiter); )
+      if (item.empty()) continue;
+      else elems.push_back(item);
+   return elems;
 }
 
 std::wostream& operator<< (std::wostream& of, const std::string& str) {
