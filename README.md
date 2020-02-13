@@ -15,7 +15,7 @@ The [3dfier wiki](https://github.com/tudelft3d/3dfier/wiki) has extensive inform
 
 **SETTINGS**
 
-For all available setting read the documentation and for default values look at the [config files folder](https://github.com/tudelft3d/3dfier/tree/master/resources/config_files)
+For all available setting and default values look at the [config files folder](https://github.com/tudelft3d/3dfier/tree/master/resources/config_files)
 
 # 3dfier
 <img src="https://dl.dropboxusercontent.com/s/05eo2r5yc2kke5g/3dfierNoBridge.png" width="300">
@@ -60,8 +60,17 @@ We expect the LAS/LAZ to be classified according to the ASPRS Standard LIDAR Poi
 
 If the vegetation is not classified or not filtered out, then buildings might be taller and there might be artefacts in the terrain.
 
+## Binary releases for Windows and Mac OS X
+
+In order to make easy use of 3dfier we created pre-build binaries which can be downloaded from the [releases page](https://github.com/tudelft3d/3dfier/releases). 
+
+Download the latest release and unzip the archive in a easy to find location, not in the download folder of your browser. 
+
+To be able to quickly test 3dfier one can download the [example dataset](https://github.com/tudelft3d/3dfier/releases/tag/example_data) and unzip the archive in the folder of 3dfier. 
+
 ## Test data
-In the folder `example_data` (download [example dataset](https://github.com/tudelft3d/3dfier/tree/master/example_data)) there is a small part of the [BGT datasets](http://www.kadaster.nl/web/Themas/Registraties/BGT.htm) (2D 1:1k topographic datasets of the Netherlands), and a part of the [AHN3 LIDAR dataset](https://www.pdok.nl/nl/ahn3-downloads) that can be used for testing. 
+
+In the folder `example_data` (download [example dataset](https://github.com/tudelft3d/3dfier/releases/tag/example_data)) there is a small part of the [BGT datasets](http://www.kadaster.nl/web/Themas/Registraties/BGT.htm) (2D 1:1k topographic datasets of the Netherlands), and a part of the [AHN3 LIDAR dataset](https://www.pdok.nl/nl/ahn3-downloads) that can be used for testing. 
 The resulting model (in OBJ) can be found in `example_data/output/test_area.obj`
 
 Further, there is an [open data website](https://3d.bk.tudelft.nl/opendata/3dfier/) that contains 3D models of a few Dutch cities, generated with 3dfier.
@@ -69,8 +78,6 @@ Further, there is an [open data website](https://3d.bk.tudelft.nl/opendata/3dfie
 ## Validate config file
 The configuration is stored in [YAML format](http://docs.ansible.com/ansible/latest/YAMLSyntax.html) and needs to be valid for the parser to read the file. 
 Config files can be schema validated using [YAML Lint](http://www.yamllint.com)
-
-A configuration file with description of all possible settings is [myconfig_README.yml](https://github.com/tudelft3d/3dfier/blob/master/resources/config_files/myconfig_README.yml)
 
 ## Run 3dfier:
 **Windows** 
@@ -81,5 +88,56 @@ Open a command line (click start and type `command` or `cmd`). Using the command
 Open a console. Using the console browse to the folder where you extracted the example files and run:
 `$ ./3dfier myconfig.yml -o output.ext`
 
+**Docker**
+
+3dfier offers a alpine base image which tries to give you as much freedom for your vector data source as possible. Vector data is read by GDAL/OGR.
+
+To run 3dfier over Docker simply execute:
+
+    $ docker run --rm --name 3dfier -v <local path where your files are>:/data tudelft3d/3dfier:<tag> 3dfier <name of config file> <... 3dfier parameters>
+
+There is also a [tutorial](https://github.com/tudelft3d/3dfier/wiki/General-3dfier-tutorial-to-generate-LOD1-models) on how to generate a 3D model with 3dfier.
+
 ## Prepare BGT data
-For preparing BGT data as input for 3dfier look at [Large scale topography to 3D example](http://tudelft3d.github.io/3dfier/bgt_example.html) in the documentation.
+For preparing BGT data as input for 3dfier look at [resources/BGT_prepare/ReadMe.md](https://github.com/tudelft3d/3dfier/blob/master/resources/BGT_prepare/ReadMe.md)
+
+## Compiling Mac OS X/Linux
+
+To build you'll normally do (from 3dfier root directory):
+
+```
+mkdir build && cd build
+cmake .. 
+cmake ..
+make
+```
+
+Notice that cmake is indeed called *twice*, we have noticed that on some machines the compiler optimisation is activated only when you cmake twice.
+Why that is we are not sure, but to be sure do it twice.
+With the optimisation, the test dataset should take around 20s to produce; if more (>5min) then the optimisation is not activated properly.
+
+The dependencies that are necessary (under Mac we suggest using [Homebrew](http://brew.sh)):
+
+  1. LIBLAS *with* LASzip support (`brew install liblas --with-laszip`)
+  1. GDAL (`brew install gdal`)
+  1. Boost (`brew install boost`)
+  1. CGAL (`brew install cgal`)
+  1. yaml-cpp (`brew install yaml-cpp`)
+
+For Linux we suggest taking a look at the travis build scripts for Ubuntu.
+
+## Compiling Windows using Visual Studio
+Detailed instructions can be found on our [wiki](https://github.com/tudelft3d/3dfier/wiki/Building-on-Windows-10). Short version:
+
+1. Download and install [Boost precompiled binaries](https://sourceforge.net/projects/boost/files/boost-binaries)
+1. Download and install [OSGeo4W](https://trac.osgeo.org/osgeo4w)
+1. Compile your own copies of [Yaml-cpp](https://github.com/jbeder/yaml-cpp) and [CGAL](https://www.cgal.org)
+1. Add environment variables for:
+1. - `OSGEO4W_ROOT` (set by OSGeo4W installer)
+    - `BOOST_ROOT` (root of the boost directory)
+    - `BOOST_LIBRARYDIR` (dir of the boost lib files)
+    - `LIBLAS_ROOT` (same as OSGEO4W_ROOT if that liblas is used)
+    - `LASZIP_ROOT` (same as OSGEO4W_ROOT if that liblas is used)
+    - `YAML-CPP_DIR` (root of the Yaml-cpp directory)
+    - `CGAL_DIR` (root of the CGAL directory)
+1. Build solution using Visual Studio

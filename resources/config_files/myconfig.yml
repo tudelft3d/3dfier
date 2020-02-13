@@ -45,9 +45,8 @@ lifting_options:
     triangulate: false
   Water:
     height: percentile-10
-    use_LAS_classes:
-      - 2
     use_LAS_classes_within:
+      - 2
       - 9
   Road:
     height: percentile-50
@@ -55,7 +54,6 @@ lifting_options:
     flatten: true
     use_LAS_classes:
       - 2
-      - 11
     use_LAS_classes_within:
       - 17
   Separation:
@@ -66,8 +64,6 @@ lifting_options:
   Bridge/Overpass:
     height: percentile-50
     flatten: true
-    use_LAS_classes:
-      - 1 # filtered by omit_LAS_classes, hack to disable use_LAS_classes and only apply use_LAS_classes_within
     use_LAS_classes_within:
       - 17
   Terrain:
@@ -90,7 +86,6 @@ input_elevation:
     # Windows
     - D:\data\top10nl\schie\ahn3.laz
   omit_LAS_classes:
-    - 0 # never classified
     - 1 # unclassified
     - 3 # vegation
     - 4 # vegation
