@@ -72,6 +72,6 @@ set_target_properties(
   PROPERTIES CXX_STANDARD 11
 )
 
-target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${GDAL_LIBRARY} ${YAMLCPP_LIBRARY} Boost::program_options Boost::filesystem Boost::locale ${LASLIB_LIBRARY})
+target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${GDAL_LIBRARY} ${YAMLCPP_LIBRARY} Boost::program_options Boost::filesystem Boost::locale Boost::chrono ${LASLIB_LIBRARY})
 
 install(TARGETS 3dfier DESTINATION bin)
