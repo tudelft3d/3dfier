@@ -145,7 +145,7 @@ void TopoFeature::get_cityjson_geom(nlohmann::json& g, std::unordered_map<std::s
     g["boundaries"].push_back(shelli);
 }
 
-void TopoFeature::get_obj_geom(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs) {
+void TopoFeature::get_obj((std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs) {
   fs += mtl; fs += "\n";
   for (auto& t : _triangles) {
     unsigned long a, b, c;

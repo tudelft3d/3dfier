@@ -306,9 +306,9 @@ std::string Building::get_mtl() {
   return "usemtl Building";
 }
 
-void Building::get_obj_geom(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs) {
+void Building::get_obj((std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs) {
   if (lod == 1) {
-    TopoFeature::get_obj_geom(dPts, mtl, fs);
+    TopoFeature::get_obj((dPts, mtl, fs);
 
     if (_building_include_floor) {
       fs += "usemtl BuildingFloor\n";
