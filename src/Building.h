@@ -39,7 +39,7 @@ public:
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within);
   void          construct_building_walls(const NodeColumn& nc);
-  void          get_obj_geom(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs);
+  void          get_obj((std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs);
   void          get_citygml(std::wostream& of);
   void          get_citygml_imgeo(std::wostream& of);
   void          get_citygml_lod1(std::wostream& of);
