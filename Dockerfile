@@ -460,9 +460,9 @@ RUN mkdir /data && \
 # removing unnecessary headers
 RUN rm -rf /usr/local/include
 
-USER 1001
-
 COPY --chown=1001:0 uid_entrypoint.sh /usr/local/bin/
+
+USER 1001
 
 WORKDIR /data
 
