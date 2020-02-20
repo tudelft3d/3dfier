@@ -10,14 +10,14 @@ How is the architecture of 3dfier described and how would you read it.
 
 ## Data flow through the program
 **TODO: Explain different steps in the flow diagram. Show what data goes were and link to following flow diagrams.**
-{% include imagezoom.html file="3dfier_general_flow.png" alt="General flow diagram 3dfier" %}
+{% include imagezoom.html file="flows/3dfier_general_flow.png" alt="General flow diagram 3dfier" %}
 
 ### Configuration
 Reading and validation of the configuration is done using the [YAML-CPP library](https://github.com/jbeder/yaml-cpp). It parses the file into an object and allows for easy access to all values. The configuration file is read and validated first. Value types are tested and options with limited options are verified. If validation fails an error message will be printed and the program execution will stop.
 
 When validation passes, all values are used to set the corresponding parameters in the software. After this initial read the configuration file is not used anymore since all values are now stored in memory.
 
-{% include imagezoom.html file="3dfier_classes.png" alt="Diagram of 3dfier classes" %}
+{% include imagezoom.html file="flows/3dfier_classes.png" alt="Diagram of 3dfier classes" %}
 
 ### Data integrity check
 For all input files configured to use a check is done if they exist and readable. The polygon files are opened using an OGR reader and closed directly after. Same is done for the LAS/LAZ files, they are opened with LASlib and directly closed. This prevents failure of the program after partly executing. Also the output filepaths are tested to be existing before execution of the algorithm.
@@ -37,7 +37,7 @@ For a later stage a spatial index is created that stores the bounding box of the
 
 The bounding box of all polygons is calculated from the two R-trees combined plus the vertex radius. Since the R-trees contain the bounding box of the object geometries the total bounding box can be larger then the actual area.
 
-{% include imagezoom.html file="3dfier_reading_polygons.png" alt="Flow diagram polygon reading" %}
+{% include imagezoom.html file="flows/3dfier_reading_polygons.png" alt="Flow diagram polygon reading" %}
 
 ### Reading points
 The elevation information is read from LAS or LAZ files. The file is opened and the header is read. The bounding box from the header is intersected with the bounding box of all polygons. When the file doesn't overlap it is skipped. When the bounds overlap the point count is logged together with thinning setting if configured. For each point read the following things are checked before going into adding a point to a TopoFeature:
@@ -52,7 +52,7 @@ The elevation point is added to the object if its classification is configured f
 Each object class has its own additional set of rules for a point to be used.
 
 
-{% include imagezoom.html file="3dfier_reading_points.png" alt="Flow diagram point reading" %}
+{% include imagezoom.html file="flows/3dfier_reading_points.png" alt="Flow diagram point reading" %}
 
 #### Terrain and Forest (TIN)
 These classes have the [simplification settings]({{site.baseurl}}/lifting_options.html#simplification) that adds points randomly. Also it stores all elevation points that are within the polygon respecting the [innerbuffer setting]({{site.baseurl}}/lifting_options.html#innerbuffer) in a vector. This vector is used to add additional points inside the polygons for a more precise ground model. 
@@ -64,7 +64,7 @@ For these classes there is a difference to the others. Since these features are 
 These classes do not have any specific rules for assigning elevation information.
 
 ### Magic
-{% include imagezoom.html file="threedfy.png" alt="Flow diagram for threedfy" %}
+{% include imagezoom.html file="flows/threedfy.png" alt="Flow diagram for threedfy" %}
 
 ### Writing model
-{% include imagezoom.html file="3dfier_writing_model.png" alt="Flow diagram for writing 3D models" %}
+{% include imagezoom.html file="flows/3dfier_writing_model.png" alt="Flow diagram for writing 3D models" %}
