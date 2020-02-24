@@ -67,4 +67,5 @@ These classes do not have any specific rules for assigning elevation information
 {% include imagezoom.html file="flows/threedfy.png" alt="Flow diagram for threedfy" %}
 
 ### Writing model
+Besides creation of the data an important part is to write the created model into a data standard applicable for future use. There are several options available from a 3D modelling, computer graphics or statistics point of view. Most code for writing the model to a file is specifically created for that output format. The flow diagram contains part of all available flows. A more detailed description can be found in [Output flows]({{site.baseurl}}/output_flow).
 {% include imagezoom.html file="flows/3dfier_writing_model.png" alt="Flow diagram for writing 3D models" %}
