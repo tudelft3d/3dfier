@@ -93,6 +93,9 @@ entries:
     - title: Main flow
       url: /main_flow.html
       output: web, pdf
+    - title: Threedfy flow
+      url: /threedfy_flow.html
+      output: web, pdf
     - title: Output flow
       url: /output_flow.html
       output: web, pdf

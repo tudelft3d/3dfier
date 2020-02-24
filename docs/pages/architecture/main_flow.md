@@ -51,7 +51,6 @@ The elevation point is added to the object if its classification is configured f
 
 Each object class has its own additional set of rules for a point to be used.
 
-
 {% include imagezoom.html file="flows/3dfier_reading_points.png" alt="Flow diagram point reading" %}
 
 #### Terrain and Forest (TIN)
@@ -64,6 +63,8 @@ For these classes there is a difference to the others. Since these features are 
 These classes do not have any specific rules for assigning elevation information.
 
 ### Magic
+The magic of the algorithm happens inside the threedfy [3-D-fy] function. This code is what makes the input data to be merged into a 3D model. Yellow boxes are explained in separate flow diagrams in the [Threedfy flow section]({{site.baseurl}}/threedfy_flow.html).
+
 {% include imagezoom.html file="flows/threedfy.png" alt="Flow diagram for threedfy" %}
 
 ### Writing model
