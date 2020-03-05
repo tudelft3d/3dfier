@@ -1029,7 +1029,29 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
           numCurvePoly++;
           break;
         }
+        case wkbMultiSurface:
+        {
+          OGRMultiSurface* multisurface = (OGRMultiSurface*)geometry;
+          int numGeom = multisurface->getNumGeometries();
+          if (numGeom >= 1) {
+            for (int i = 0; i < numGeom; i++) {
+              OGRFeature* cf = f->Clone();
+              if (numGeom > 1) {
+                std::string idString = (std::string)f->GetFieldAsString(idfield) + "-" + std::to_string(i);
+                cf->SetField(idfield, idString.c_str());
+              }
+              OGRPolygon* polygon = multisurface->getGeometryRef(i)->toCurvePolygon()->CurvePolyToPoly(_max_angle_curvepolygon);
+              cf->SetGeometry(polygon);
+              extract_feature(cf, layerName, idfield, heightfield, l.second, multiple_heights);
+            }
+            numSplitMulti++;
+            numSplitPoly += numGeom;
+            numCurvePoly += numGeom;
+          }
+          break;
+        }
         default: {
+          std::cerr << "Geometry type is unsupported: " << geometry->getGeometryName() << std::endl;
           continue;
         }
         }
