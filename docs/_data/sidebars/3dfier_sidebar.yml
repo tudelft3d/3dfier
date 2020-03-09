@@ -35,6 +35,9 @@ entries:
     - title: Supported file formats
       url: /supported_file_formats.html
       output: web, pdf
+    - title: Data visualisation
+      url: /data_visualisation.html
+      output: web, pdf
     - title: Useful Scripts
       url: /useful_scripts.html
       output: web, pdf
@@ -50,9 +53,6 @@ entries:
       output: web, pdf
     - title: Extract footprints from OSM
       url: /building_footprints_from_openstreetmap.html
-      output: web, pdf
-    - title: Data visualisation
-      url: /data_visualisation.html
       output: web, pdf
 
   - title: Examples
