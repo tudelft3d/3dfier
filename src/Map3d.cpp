@@ -1522,16 +1522,16 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
         f2->set_vertex_elevation(ringi2, pi2, avgz);
         bStitched = true;
       }
-      if (f1->is_hard() == false) {
+      if (f1->is_hard() == false) { //- stitch soft f1 to f2
         f1->set_vertex_elevation(ringi1, pi1, f2z);
         bStitched = true;
       }
-      else if (f2->is_hard() == false) {
+      else if (f2->is_hard() == false) { //- stitch soft f2 to f1
         f2->set_vertex_elevation(ringi2, pi2, f1z);
         bStitched = true;
       }
     }
-    //-- then vertical walls must be added: nc to highest
+    //-- handle features without height value and vertical walls must be added to highest feature
     if (bStitched == false) {
       // stitch object withouth height to adjacent object which does have a height
       if (f1z == -9999 && f2z != -9999) {
@@ -1541,7 +1541,7 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
         f2->set_vertex_elevation(ringi2, pi2, f1z);
       }
       else {
-        //- add a wall to the heighest feature
+        //- add a wall to the heighest feature and push heights to the NodeColumn
         if (f1z > f2z) {
           f1->add_vertical_wall();
         }
@@ -1556,6 +1556,7 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
 }
 
 void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
+  //-- set average height to both features and push height to the NodeColumn
   int avgz = (f1->get_vertex_elevation(ringi1, pi1) + f2->get_vertex_elevation(ringi2, pi2)) / 2;
   f1->set_vertex_elevation(ringi1, pi1, avgz);
   f2->set_vertex_elevation(ringi2, pi2, avgz);
