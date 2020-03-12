@@ -28,7 +28,7 @@ In this tutorial we will briefly demonstrate how to generate a 3D model with it,
 
 The software is command-line, that is, it doesn't have a graphical interface.
 However, it is still very simple to use.
-The first step is to install it following the [installation instructions]({{site.baseurl/installation}}). 
+The first step is to install it following the [installation instructions]({{site.baseurl}}/installation). 
 To test whether you installed it correctly, just run `./3dfier` and you should get something like this:
 
 ```

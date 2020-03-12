@@ -177,8 +177,7 @@ bool Map3d::check_bounds(const double xmin, const double xmax, const double ymin
   return false;
 }
 
-bool Map3d::get_cityjson(std::string filename) {
-  std::cout << "CityJSON" << std::endl;
+bool Map3d::get_cityjson(std::wostream& of) {
   nlohmann::json j;
   j["type"] = "CityJSON";
   j["version"] = "1.0";
@@ -206,8 +205,7 @@ bool Map3d::get_cityjson(std::string filename) {
     boost::split(c, p, boost::is_any_of(" "));
     j["vertices"].push_back({std::stod(c[0], NULL), std::stod(c[1], NULL), std::stod(c[2], NULL) });
   }
-  std::ofstream o(filename);
-  o << j.dump() << std::endl;
+  of << j.dump() << std::endl;
   return true;
 }
 
@@ -1029,7 +1027,29 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
           numCurvePoly++;
           break;
         }
+        case wkbMultiSurface:
+        {
+          OGRMultiSurface* multisurface = (OGRMultiSurface*)geometry;
+          int numGeom = multisurface->getNumGeometries();
+          if (numGeom >= 1) {
+            for (int i = 0; i < numGeom; i++) {
+              OGRFeature* cf = f->Clone();
+              if (numGeom > 1) {
+                std::string idString = (std::string)f->GetFieldAsString(idfield) + "-" + std::to_string(i);
+                cf->SetField(idfield, idString.c_str());
+              }
+              OGRPolygon* polygon = multisurface->getGeometryRef(i)->toCurvePolygon()->CurvePolyToPoly(_max_angle_curvepolygon);
+              cf->SetGeometry(polygon);
+              extract_feature(cf, layerName, idfield, heightfield, l.second, multiple_heights);
+            }
+            numSplitMulti++;
+            numSplitPoly += numGeom;
+            numCurvePoly += numGeom;
+          }
+          break;
+        }
         default: {
+          std::cerr << "Geometry type is unsupported: " << geometry->getGeometryName() << std::endl;
           continue;
         }
         }
@@ -1248,11 +1268,11 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     if (star.size() == 1) {
       if (std::get<0>(star[0])->get_class() != BRIDGE) {
         TopoFeature* fadj = std::get<0>(star[0]);
-        //-- if not building or both soft, then average.
+        //-- if not building or both soft, then average the heights
         if (f->get_class() != BUILDING && fadj->get_class() != BUILDING && (f->is_hard() == false && fadj->is_hard() == false)) {
           stitch_average(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
         }
-        else {
+        else { //-- there might be a heightjump here so stitch using the jumpedge settings
           stitch_jumpedge(f, ringi, pi, fadj, std::get<1>(star[0]), std::get<2>(star[0]));
         }
       }
@@ -1261,19 +1281,22 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
     else if (star.size() > 1) {
       //-- collect all elevations
       std::vector< std::tuple< int, TopoFeature*, int, int > > zstar;
+      //-- add own elevation to the zstar
       zstar.push_back(std::make_tuple(
         f->get_vertex_elevation(ringi, pi),
         f,
         ringi,
         pi));
+      //-- add heights of adjacent features to the zstar
       for (auto& fadj : star) {
+        //-- adjacent feature not Bridge or Building so add the height to the zstar
         if (std::get<0>(fadj)->get_class() != BRIDGE && std::get<0>(fadj)->get_class() != BUILDING) {
           zstar.push_back(std::make_tuple(
             std::get<0>(fadj)->get_vertex_elevation(std::get<1>(fadj), std::get<2>(fadj)),
             std::get<0>(fadj),
             std::get<1>(fadj),
             std::get<2>(fadj)));
-        }
+        } //-- adjacent feature is a building so add the floor height to the zstar
         else if (std::get<0>(fadj)->get_class() == BUILDING) {
           zstar.push_back(std::make_tuple(
             dynamic_cast<Building*>(std::get<0>(fadj))->get_height_base(),
@@ -1281,7 +1304,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
             std::get<1>(fadj),
             std::get<2>(fadj)));
         }
-        // This it for adjacent objects at the corners of the bridge where the adjacent features need extra VW at the height jump.
+        // This it for adjacent objects at the corners of a bridge where the adjacent features need extra VW at the height jump.
         else {
           f->add_vertical_wall();
         }
@@ -1293,21 +1316,21 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
         return std::get<0>(t1) < std::get<0>(t2);
       });
 
-      //-- Identify buildings and water
+      //-- Identify buildings and water to handle specific cases
       int building = -1;
       int water = -1;
-      int lowestbuilding = -1;
       std::vector<int> buildings;
       for (int i = 0; i < zstar.size(); i++) {
         TopoClass topoClass = std::get<1>(zstar[i])->get_class();
         if (topoClass == BUILDING) {
-          //-- store building indexes
+          //-- store building indices
           buildings.push_back(i);
           //-- set building to the one with the highest base
           if (building == -1 || dynamic_cast<Building*>(std::get<1>(zstar[i]))->get_height_base() > dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base()) {
             building = i;
           }
         }
+        //-- store water index
         else if (topoClass == WATER) {
           water = i;
         }
@@ -1334,9 +1357,11 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
         if (water != -1) {
           std::get<1>(zstar[water])->add_vertical_wall();
         }
+        // get the base height of the building to set as height of the adjacent TopoFeatures
         int baseheight = dynamic_cast<Building*>(std::get<1>(zstar[building]))->get_height_base();
         for (auto& each : zstar) {
           if (std::get<1>(each)->get_class() != BUILDING && std::get<1>(each)->get_class() != WATER) {
+            // set buiding base height as height of the adjacent TopoFeature
             std::get<0>(each) = baseheight;
             if (water != -1) {
               //- add a vertical wall between the feature and the water
@@ -1377,7 +1402,7 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
                 std::get<0>(*it) = std::get<0>(*it2);
               }
             }
-            // features are outside threshold jump edges, add vw
+            // features are outside threshold jump edges. Fix cases where a feature has no height or add a vertical wall
             else {
               // stitch object withouth height to adjacent object which does have a height
               if (std::get<0>(*it) == -9999 && std::get<0>(*it2) != -9999) {
@@ -1495,16 +1520,16 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
         f2->set_vertex_elevation(ringi2, pi2, avgz);
         bStitched = true;
       }
-      if (f1->is_hard() == false) {
+      if (f1->is_hard() == false) { //- stitch soft f1 to f2
         f1->set_vertex_elevation(ringi1, pi1, f2z);
         bStitched = true;
       }
-      else if (f2->is_hard() == false) {
+      else if (f2->is_hard() == false) { //- stitch soft f2 to f1
         f2->set_vertex_elevation(ringi2, pi2, f1z);
         bStitched = true;
       }
     }
-    //-- then vertical walls must be added: nc to highest
+    //-- handle features without height value and vertical walls must be added to highest feature
     if (bStitched == false) {
       // stitch object withouth height to adjacent object which does have a height
       if (f1z == -9999 && f2z != -9999) {
@@ -1514,7 +1539,7 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
         f2->set_vertex_elevation(ringi2, pi2, f1z);
       }
       else {
-        //- add a wall to the heighest feature
+        //- add a wall to the heighest feature and push heights to the NodeColumn
         if (f1z > f2z) {
           f1->add_vertical_wall();
         }
@@ -1529,6 +1554,7 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
 }
 
 void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
+  //-- set average height to both features and push height to the NodeColumn
   int avgz = (f1->get_vertex_elevation(ringi1, pi1) + f2->get_vertex_elevation(ringi2, pi2)) / 2;
   f1->set_vertex_elevation(ringi1, pi1, avgz);
   f2->set_vertex_elevation(ringi2, pi2, avgz);

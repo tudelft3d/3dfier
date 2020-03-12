@@ -555,6 +555,7 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
         sbit = std::find(bnc.begin(), bnc.end(), bz);
         ebit = std::find(bnc.begin(), bnc.end(), fadj_bz);
 
+        // Set the top of the vertical wall to the bottom of the building
         if (this->get_class() == WATER && fadj->get_class() == BUILDING) {
           if (eait == anc.end()) {
             eait--;
