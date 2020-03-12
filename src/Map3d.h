@@ -68,7 +68,7 @@ public:
   void get_citygml_multifile(std::string);
   void create_citygml_header(std::wostream& of);
   void get_citygml_imgeo(std::wostream& of);
-  bool get_cityjson(std::string filename);
+  bool get_cityjson(std::wostream& of);
   void get_citygml_imgeo_multifile(std::string ofname);
   void create_citygml_imgeo_header(std::wostream& of);
   bool get_postgis_output(std::string filename, bool pdok = false, bool citygml = false);

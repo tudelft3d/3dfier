@@ -612,7 +612,7 @@ int main(int argc, const char * argv[]) {
     bool fileWritten = true;
     std::wofstream of;
     std::string ofname = output.second;
-    if (format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "CityJSON" &&
+    if (format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" &&
       format != "Shapefile" && format != "Shapefile-Multifile" &&
       format != "PostGIS" && format != "PostGIS-PDOK" && format != "PostGIS-PDOK-CityGML" &&
       format != "GDAL") {
@@ -636,7 +636,7 @@ int main(int argc, const char * argv[]) {
     }
     else if (format == "CityJSON") {
       std::clog << "CityJSON output: " << ofname << std::endl;
-      fileWritten = map3d.get_cityjson(ofname);
+      fileWritten = map3d.get_cityjson(of);
     }
     else if (format == "OBJ") {
       std::clog << "OBJ output: " << ofname << std::endl;

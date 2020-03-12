@@ -177,8 +177,7 @@ bool Map3d::check_bounds(const double xmin, const double xmax, const double ymin
   return false;
 }
 
-bool Map3d::get_cityjson(std::string filename) {
-  std::cout << "CityJSON" << std::endl;
+bool Map3d::get_cityjson(std::wostream& of) {
   nlohmann::json j;
   j["type"] = "CityJSON";
   j["version"] = "1.0";
@@ -206,8 +205,7 @@ bool Map3d::get_cityjson(std::string filename) {
     boost::split(c, p, boost::is_any_of(" "));
     j["vertices"].push_back({std::stod(c[0], NULL), std::stod(c[1], NULL), std::stod(c[2], NULL) });
   }
-  std::ofstream o(filename);
-  o << j.dump() << std::endl;
+  of << j.dump() << std::endl;
   return true;
 }
 
