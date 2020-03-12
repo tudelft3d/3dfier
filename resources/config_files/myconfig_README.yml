@@ -80,11 +80,11 @@ input_elevation:                                        # Group for point clouds
     # Windows
     - D:\data\top10nl\schie\*                           # Definition under Windows for reading a full  directory with LAS/LAZ files using the same parameters
   omit_LAS_classes:                                     # Option to omit classes defined in the LAS/LAZ files
-    - 1 # unclassified                                  # ASPRS Standard Lidar Point Classes classification value
-    - 3 # vegation
-    - 4 # vegation
-    - 5 # vegation 
-  thinning: 10                                          # Thinning factor for points, this is the amount of points skipped during read, a value of 10 would result in points 1, 11, 21, 31 beeing used
+    - 1 # unclassified                                  # ASPRS Standard LiDAR Point Classes classification value
+    - 3 # vegetation
+    - 4 # vegetation
+    - 5 # vegetation 
+  thinning: 10                                          # Thinning factor for points, this is the amount of points skipped during read, a value of 10 would result in points 10, 20, 30, 40 being used
 
 options:                                                # Global options
   building_radius_vertex_elevation: 3.0                 # Radius in meters used for point-vertex distance between 3D points and vertices of building polygons, radius_vertex_elevation used when not specified
