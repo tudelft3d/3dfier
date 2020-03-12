@@ -11,3 +11,11 @@ permalink: index.html
 Our aim is to obtain one model that is error-free, so no intersecting objects, no holes (the surface is watertight) and buildings are integrated in the surface.
 
 {% include imagezoom.html file="leiden3dfier.png" alt="3dfier result of Delft" %}
+
+
+**TODO: Write pages on the general process**
+
+
+
+**TODO:explain classes and move to appropriate place**
+{% include imagezoom.html file="flows/3dfier_classes.png" alt="Diagram of 3dfier classes" %}
