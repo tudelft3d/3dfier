@@ -296,9 +296,9 @@ void Building::cleanup_elevations() {
 }
 
 void Building::get_csv(std::wostream& of) {
-  of << this->get_id() << ";" <<
+  of << this->get_id() << "," <<
     std::setprecision(2) << std::fixed <<
-    this->get_height_roof_at_percentile(_heightref_top) / 100.0 << ";" <<
+    this->get_height_roof_at_percentile(_heightref_top) / 100.0 << "," <<
     this->get_height_ground_at_percentile(_heightref_base) / 100.0 << "\n";
 }
 
