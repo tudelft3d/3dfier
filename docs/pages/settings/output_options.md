@@ -18,6 +18,8 @@ extent: xmin, ymin, xmax, ymax         # Filter the input polygons to this exten
 ### radius_vertex_elevation
 *Default value: 1.0m.* 
 Describes the maximum distance between a vertex and a height points. If the point is within radius of the vertex it will be stored in the vertex height list.
+
+From the image below it is shown what is meant with the radius vertex elevation. The distance to the vertex on the edge of the building in blue is calcuated for each height point and if the point is within the red buffer distance the point is used.
 {% include imagezoom.html file="/settings/radius_vertex_elevation.png" alt="" %}
 
 ### building_radius_vertex_elevation

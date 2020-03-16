@@ -17,8 +17,6 @@ Multipolygons are supported. They will be split into single polygons. The unique
 
 Curvedpolygons are supported starting v1.3. When the reader comes across a curvedpolygon this is discretized using the default OGR settings. This algorithm makes sure the discretization for a curve into a linestring is identical for traversing the line from start->end as from end->start.
 
-**TODO: Write example for PostGIS reading**
-
 ### 2. Point cloud
 Point cloud reading is implemented using the [LASLib library](https://github.com/LAStools/LAStools/tree/master/LASlib) that is the OpenSource reading library of [LAStools](https://rapidlasso.com/lastools/). This library supports reading of LAS and LAZ point clouds.
 

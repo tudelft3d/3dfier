@@ -30,6 +30,20 @@ Last is the output of the model. There are various implementations where each is
 
 {% include imagezoom.html file="flows/3dfier_general_flow.png" alt="General flow diagram 3dfier" %}
 
+### Data types
+3dfier makes use of some data types specifically designed for the algorithm. The sections below describe these data types for better readability of the architecture pages. 
+
+#### Map3D
+The main object of 3dfier is the Map3D. It is the object that stores all configurations and objects used in the reconstruction process. The software only creates a single Map3D during the reconstruction. After reconstruction writing the model is done by feeding it the Map3D. The Map3D also contains all TopoFeatures.
+
+#### TopoFeature
+TopoFeature is short for Topological Feature. This object contains the 2D geometry of a polygon, a list of heights per vertex that is collected from the process that reads 3D points, the NodeColumn's and the final 3D object created during the reconstruction process. The TopoFeature class contains overloads from three subclasses (Flat, Boundary3D and TIN) that contain the seven subclasses that implement the lifting classes.
+
+{% include imagezoom.html file="flows/3dfier_classes.png" alt="Diagram of 3dfier classes" %}
+
+#### NodeColumn
+The NodeColumn is a nested vector of integers containing the various heights on a given x,y-location. For each vertex that is processed by the algorithm an entry is created in the NodeColumn. If an object has that vertex the height calculated from the statistics is pushed to the NodeColumn. Finally the NodeColumn is used when making the decision at what height to put the final object.
+
 ### Configuration
 Reading and validation of the configuration is done using the [YAML-CPP library](https://github.com/jbeder/yaml-cpp). It parses the file into an object and allows for easy access to all values. The configuration file is read and validated first. Value types are tested and options with limited options are verified. If validation fails an error message will be printed and the program execution will stop.
 
