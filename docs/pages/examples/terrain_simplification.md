@@ -17,3 +17,10 @@ It is not advised to use this random simplification for production stage. It cre
 
 ## TIN simplification
 A more robust algorithm for simplification of terrain and forest classes is implemented. It minimises the amount of triangles while it makes sure the set maximum error is not exceeded. Points that do not add more detail to the terrain when added are not used. The minimum detail it needs to add must be higher then the configured simplification distance. The algorithm is based on the paper of [Heckbert, P. S., & Garland, M. (1997). Survey of polygonal surface simplification algorithms](https://people.eecs.berkeley.edu/~jrs/meshpapers/GarlandHeckbert.pdf). It uses Greedy Insertion to add points in a specific order to the triangle mesh so the point with the largest impact on the terrain is processed first. The points are added iteratively up-to the point the calculated error is less then the configured threshold.
+
+In the image the black dashed line called true ground surface is the surface described by the point clouds. The error defined by the TIN and the point cloud is the smallest distance from the point to the TIN.
+
+{% include imagezoom.html file="/tinsimp_error_specification.png" alt="Terrain simplification error definition" %}
+
+In the example below there are three cases that show the impact of the `simplification_tinsimp` setting. On the left is an example of using all points for the Terrain without simplification. The middle permits a maximum error of 5 centimeter (`simplification_tinsimp: 0.05`) and the right a maximum error of 15 centimeter (`simplification_tinsimp: 0.15`).
+{% include imagezoom.html file="/terrain_simplification_tinsimp.png" alt="" %}
