@@ -79,8 +79,6 @@ Further, there is an [open data website](https://3d.bk.tudelft.nl/opendata/3dfie
 The configuration is stored in [YAML format](http://docs.ansible.com/ansible/latest/YAMLSyntax.html) and needs to be valid for the parser to read the file. 
 Config files can be schema validated using [YAML Lint](http://www.yamllint.com)
 
-A configuration file with description of all possible settings is [myconfig_README.yml](https://github.com/tudelft3d/3dfier/blob/master/resources/config_files/myconfig_README.yml)
-
 ## Run 3dfier:
 **Windows** 
 Open a command line (click start and type `command` or `cmd`). Using the command line browse to the folder where you extracted the example files and run:
@@ -89,6 +87,14 @@ Open a command line (click start and type `command` or `cmd`). Using the command
 **Mac OS X and Linux**
 Open a console. Using the console browse to the folder where you extracted the example files and run:
 `$ ./3dfier myconfig.yml -o output.ext`
+
+**Docker**
+
+3dfier offers a alpine base image which tries to give you as much freedom for your vector data source as possible. Vector data is read by GDAL/OGR.
+
+To run 3dfier over Docker simply execute:
+
+    $ docker run --rm --name 3dfier -v <local path where your files are>:/data tudelft3d/3dfier:<tag> 3dfier <name of config file> <... 3dfier parameters>
 
 There is also a [tutorial](https://github.com/tudelft3d/3dfier/wiki/General-3dfier-tutorial-to-generate-LOD1-models) on how to generate a 3D model with 3dfier.
 

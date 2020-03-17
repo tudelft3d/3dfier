@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2019  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2020 3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -77,9 +77,10 @@ public:
   bool         writeAttribute(OGRFeature* feature, OGRFeatureDefn* featureDefn, std::string name, std::string value);
   void         get_obj(std::unordered_map< std::string, unsigned long >& dPts, std::string mtl, std::string& fs);
   AttributeMap& get_attributes();
-  void         get_imgeo_object_info(std::wostream& of, std::string id);
+  void         get_imgeo_attributes(std::wostream& of, std::string id);
   void         get_citygml_attributes(std::wostream& of, const AttributeMap& attributes);
   void         get_cityjson_attributes(nlohmann::json& f, const AttributeMap& attributes);
+  void         cleanup_lidarelevs();
 protected:
   Polygon2*                         _p2;
   std::vector< std::vector<int> >   _p2z;

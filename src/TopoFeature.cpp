@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2019  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2020 3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -215,7 +215,7 @@ AttributeMap &TopoFeature::get_attributes() {
   return _attributes;
 }
 
-void TopoFeature::get_imgeo_object_info(std::wostream& of, std::string id) {
+void TopoFeature::get_imgeo_attributes(std::wostream& of, std::string id) {
   std::string attribute;
   if (get_attribute("creationDate", attribute)) {
     of << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>";
@@ -555,6 +555,7 @@ void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
         sbit = std::find(bnc.begin(), bnc.end(), bz);
         ebit = std::find(bnc.begin(), bnc.end(), fadj_bz);
 
+        // Set the top of the vertical wall to the bottom of the building
         if (this->get_class() == WATER && fadj->get_class() == BUILDING) {
           if (eait == anc.end()) {
             eait--;
@@ -908,7 +909,7 @@ bool TopoFeature::point_in_polygon(const Point2& p) {
   return insideOuter;
 }
 
-void TopoFeature::cleanup_elevations() {
+void TopoFeature::cleanup_lidarelevs() {
   _lidarelevs.clear();
   _lidarelevs.shrink_to_fit();
   _p2z.clear();
@@ -1130,7 +1131,7 @@ return true;
 void Flat::cleanup_elevations() {
   _zvaluesinside.clear();
   _zvaluesinside.shrink_to_fit();
-  TopoFeature::cleanup_elevations();
+  TopoFeature::cleanup_lidarelevs();
 }
 
 //-------------------------------
@@ -1305,7 +1306,7 @@ bool TIN::add_elevation_point(Point2& p, double z, float radius, int lasclass, b
 void TIN::cleanup_elevations() {
   _lidarpts.clear();
   _lidarpts.shrink_to_fit();
-  TopoFeature::cleanup_elevations();
+  TopoFeature::cleanup_lidarelevs();
 }
 
 bool TIN::buildCDT() {

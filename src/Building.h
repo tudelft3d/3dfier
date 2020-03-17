@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2019  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2020 3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -42,6 +42,7 @@ public:
   void          get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs);
   void          get_citygml(std::wostream& of);
   void          get_citygml_imgeo(std::wostream& of);
+  void          get_citygml_lod1(std::wostream& of);
   void          get_imgeo_nummeraanduiding(std::wostream& of);
   void          get_csv(std::wostream& of);
   void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts);

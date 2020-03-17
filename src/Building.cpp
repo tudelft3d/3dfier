@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2019  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2020 3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -61,8 +61,17 @@ std::string Building::get_all_z_values() {
   allz.insert(allz.end(), _zvaluesinside.begin(), _zvaluesinside.end());
   std::sort(allz.begin(), allz.end());
   std::stringstream ss;
-  for (auto& z : allz)
-    ss << z / 100.0 << "|";
+  bool first = true;
+  for (auto& z : allz) {
+    // skip seperator while writing first value
+    if (first) {
+      first = false;
+    }
+    else {
+      ss << "|";
+    }
+    ss << z / 100.0;
+  }
   return ss.str();
 }
 
@@ -290,15 +299,13 @@ bool Building::is_hard() {
 }
 
 void Building::cleanup_elevations() {
-  _zvaluesground.clear();
-  _zvaluesground.shrink_to_fit();
-  Flat::cleanup_elevations();
+  //Do not cleanup buildings since CSV output uses the elevation vectors
 }
 
 void Building::get_csv(std::wostream& of) {
-  of << this->get_id() << ";" <<
+  of << this->get_id() << "," <<
     std::setprecision(2) << std::fixed <<
-    this->get_height_roof_at_percentile(_heightref_top) / 100.0 << ";" <<
+    this->get_height_roof_at_percentile(_heightref_top) / 100.0 << "," <<
     this->get_height_ground_at_percentile(_heightref_base) / 100.0 << "\n";
 }
 
@@ -309,6 +316,42 @@ std::string Building::get_mtl() {
 void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs) {
   if (lod == 1) {
     TopoFeature::get_obj(dPts, mtl, fs);
+
+    if (_building_include_floor) {
+      fs += "usemtl BuildingFloor\n";
+      float z = z_to_float(this->get_height_base());
+      for (auto& t : _triangles) {
+        unsigned long a, b, c;
+        auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
+        if (it == dPts.end()) {
+          a = dPts.size() + 1;
+          dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
+        }
+        else {
+          a = it->second;
+        }
+        it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
+        if (it == dPts.end()) {
+          b = dPts.size() + 1;
+          dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
+        }
+        else {
+          b = it->second;
+        }
+        it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
+        if (it == dPts.end()) {
+          c = dPts.size() + 1;
+          dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
+        }
+        else {
+          c = it->second;
+        }
+        //reverse orientation for floor polygon, a-c-b instead of a-b-c.
+        if ((a != b) && (a != c) && (b != c)) {
+          fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(c); fs += " "; fs += std::to_string(b); fs += "\n";
+        }
+      }
+    }
   }
   else if (lod == 0) {
     fs += mtl;
@@ -344,41 +387,8 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
         fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
       }
     }
-  }
-  if (_building_include_floor) {
-    fs += "usemtl BuildingFloor\n";
-    float z = z_to_float(this->get_height_base());
-    for (auto& t : _triangles) {
-      unsigned long a, b, c;
-      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
-      if (it == dPts.end()) {
-        a = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
-      }
-      else {
-        a = it->second;
-      }
-      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
-      if (it == dPts.end()) {
-        b = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
-      }
-      else {
-        b = it->second;
-      }
-      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
-      if (it == dPts.end()) {
-        c = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
-      }
-      else {
-        c = it->second;
-      }
-      //reverse orientation for floor polygon, a-c-b instead of a-b-c.
-      if ((a != b) && (a != c) && (b != c)) {
-        fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(c); fs += " "; fs += std::to_string(b); fs += "\n";
-      }
-    }
+
+    //TODO: Write vertical walls between adjacent buildings as done when creating LoD1
   }
 }
 
@@ -454,29 +464,7 @@ void Building::get_citygml(std::wostream& of) {
   get_polygon_lifted_gml(of, this->_p2, h, true);
   of << "</gml:MultiSurface>";
   of << "</bui:lod0RoofEdge>";
-  //-- LOD1 Solid
-  of << "<bui:lod1Solid>";
-  of << "<gml:Solid>";
-  of << "<gml:exterior>";
-  of << "<gml:CompositeSurface>";
-  if (_building_triangulate) {
-    for (auto& t : _triangles)
-      get_triangle_as_gml_surfacemember(of, t);
-    for (auto& t : _triangles_vw)
-      get_triangle_as_gml_surfacemember(of, t, true);
-    if (_building_include_floor) {
-      for (auto& t : _triangles) {
-        get_floor_triangle_as_gml_surfacemember(of, t, _height_base);
-      }
-    }
-  }
-  else {
-    get_extruded_lod1_block_gml(of, this->_p2, h, hbase, _building_include_floor);
-  }
-  of << "</gml:CompositeSurface>";
-  of << "</gml:exterior>";
-  of << "</gml:Solid>";
-  of << "</bui:lod1Solid>";
+  get_citygml_lod1(of);
   of << "</bui:Building>";
   of << "</cityObjectMember>";
 }
@@ -487,9 +475,22 @@ void Building::get_citygml_imgeo(std::wostream& of) {
   of << "<cityObjectMember>";
   of << "<bui:Building gml:id=\"" << this->get_id() << "\">";
   //-- store building information
-  get_imgeo_object_info(of, this->get_id());
+  get_imgeo_attributes(of, this->get_id());
   of << "<bui:consistsOfBuildingPart>";
   of << "<bui:BuildingPart>";
+  get_citygml_lod1(of);
+  std::string attribute;
+  if (get_attribute("identificatiebagpnd", attribute)) {
+    of << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>";
+  }
+  get_imgeo_nummeraanduiding(of);
+  of << "</bui:BuildingPart>";
+  of << "</bui:consistsOfBuildingPart>";
+  of << "</bui:Building>";
+  of << "</cityObjectMember>";
+}
+
+void Building::get_citygml_lod1(std::wostream& of) {
   //-- LOD1 Solid
   of << "<bui:lod1Solid>";
   of << "<gml:Solid>";
@@ -507,39 +508,12 @@ void Building::get_citygml_imgeo(std::wostream& of) {
     }
   }
   else {
-    if (_building_include_floor) {
-      //-- get floor
-      get_polygon_lifted_gml(of, this->_p2, hbase, false);
-    }
-    //-- get roof
-    get_polygon_lifted_gml(of, this->_p2, h, true);
-    //-- get the walls
-    auto r = _p2->outer();
-    int i;
-    for (i = 0; i < (r.size() - 1); i++)
-      get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
-    get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
-    //-- irings
-    std::vector<Ring2>& irings = _p2->inners();
-    for (Ring2& r : irings) {
-      for (i = 0; i < (r.size() - 1); i++)
-        get_extruded_line_gml(of, &r[i], &r[i + 1], h, hbase, false);
-      get_extruded_line_gml(of, &r[i], &r[0], h, hbase, false);
-    }
+    get_extruded_lod1_block_gml(of, this->_p2, _height_top, _height_base, _building_include_floor);
   }
   of << "</gml:CompositeSurface>";
   of << "</gml:exterior>";
   of << "</gml:Solid>";
   of << "</bui:lod1Solid>";
-  std::string attribute;
-  if (get_attribute("identificatiebagpnd", attribute)) {
-    of << "<imgeo:identificatieBAGPND>" << attribute << "</imgeo:identificatieBAGPND>";
-  }
-  get_imgeo_nummeraanduiding(of);
-  of << "</bui:BuildingPart>";
-  of << "</bui:consistsOfBuildingPart>";
-  of << "</bui:Building>";
-  of << "</cityObjectMember>";
 }
 
 void Building::get_imgeo_nummeraanduiding(std::wostream& of) {

@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2019  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2020 3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -52,7 +52,7 @@ int main(int argc, const char * argv[]) {
   std::cout.imbue(loc);
 
   std::string licensewarning =
-    "3dfier Copyright (C) 2015-2019  3D geoinformation research group, TU Delft\n"
+    "3dfier Copyright (C) 2015-2020 3D geoinformation research group, TU Delft\n"
     "This program comes with ABSOLUTELY NO WARRANTY.\n"
     "This is free software, and you are welcome to redistribute it\n"
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
@@ -357,6 +357,8 @@ int main(int argc, const char * argv[]) {
       map3d.set_threshold_bridge_jump_edges(n["threshold_jump_edges"].as<float>());
     if (n["stitching"] && n["stitching"].as<std::string>() == "false")
       bStitching = false;
+    if (n["max_angle_curvepolygon"])
+      map3d.set_max_angle_curvepolygon(n["max_angle_curvepolygon"].as<double>());
 
     if (n["extent"]) {
       std::vector<std::string> extent_split = stringsplit(n["extent"].as<std::string>(), ',');
@@ -376,7 +378,8 @@ int main(int argc, const char * argv[]) {
         std::cerr << "ERROR: The supplied extent is not valid: (" << n["extent"].as<std::string>() << "), using all polygons\n";
       }
       else {
-        std::clog << "Using extent for polygons: (" << n["extent"].as<std::string>() << ")\n";
+        std::clog << std::setprecision(3) << std::fixed;
+        std::clog << "Using extent for polygons: (" << xmin << ", " << ymin << ", " << xmax << ", " << ymax << ")\n";
         map3d.set_requested_extent(xmin, ymin, xmax, ymax);
       }
     }
@@ -609,7 +612,7 @@ int main(int argc, const char * argv[]) {
     bool fileWritten = true;
     std::wofstream of;
     std::string ofname = output.second;
-    if (format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" && format != "CityJSON" &&
+    if (format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" &&
       format != "Shapefile" && format != "Shapefile-Multifile" &&
       format != "PostGIS" && format != "PostGIS-PDOK" && format != "PostGIS-PDOK-CityGML" &&
       format != "GDAL") {
@@ -633,14 +636,14 @@ int main(int argc, const char * argv[]) {
     }
     else if (format == "CityJSON") {
       std::clog << "CityJSON output: " << ofname << std::endl;
-      fileWritten = map3d.get_cityjson(ofname);
+      fileWritten = map3d.get_cityjson(of);
     }
     else if (format == "OBJ") {
       std::clog << "OBJ output: " << ofname << std::endl;
       map3d.get_obj_per_feature(of);
     }
     else if (format == "OBJ-NoID") {
-      std::clog << "OBJ (without IDs) output: " << ofname << std::endl;
+      std::clog << "OBJ (without IDs, sorted per class) output: " << ofname << std::endl;
       map3d.get_obj_per_class(of);
     }
     else if (format == "CSV-BUILDINGS") {
@@ -702,7 +705,7 @@ std::string print_license() {
   std::string thelicense =
     "======================================================================\n"
     "\n3dfier: takes 2D GIS datasets and '3dfies' to create 3D city models.\n\n"
-    "Copyright (C) 2015-2019  3D geoinformation research group, TU Delft\n\n"
+    "Copyright (C) 2015-2020 3D geoinformation research group, TU Delft\n\n"
     "3dfier is free software: you can redistribute it and/or modify\n"
     "it under the terms of the GNU General Public License as published by\n"
     "the Free Software Foundation, either version 3 of the License, or\n"
@@ -720,6 +723,11 @@ std::string print_license() {
     "Faculty of Architecture & the Built Environment\n"
     "Delft University of Technology\n"
     "Julianalaan 134, Delft 2628BL, the Netherlands\n"
+    "======================================================================\n"
+    "External libraries used by 3dfier have their own license.\n"
+    "Please refer to the license of the library for more information.\n"
+    "The following libraries are used:\n"
+    "LasLib, GDAL, Boost, CGAL, YAML-cpp and nlohmann-json\n"
     "======================================================================";
   return thelicense;
 }
@@ -1161,6 +1169,15 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
       if ((s != "true") && (s != "false")) {
         wentgood = false;
         std::cerr << "\tOption 'options.stitching' invalid; must be 'true' or 'false'.\n";
+      }
+    }
+    if (n["max_angle_curvepolygon"]) {
+      try {
+        boost::lexical_cast<double>(n["max_angle_curvepolygon"].as<std::string>());
+      }
+      catch (boost::bad_lexical_cast& e) {
+        wentgood = false;
+        std::cerr << "\tOption 'options.max_angle_curvepolygon' invalid.\n";
       }
     }
     if (n["extent"]) {

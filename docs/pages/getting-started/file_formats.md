@@ -17,8 +17,6 @@ Multipolygons are supported. They will be split into single polygons. The unique
 
 Curvedpolygons are supported starting v1.3. When the reader comes across a curvedpolygon this is discretized using the default OGR settings. This algorithm makes sure the discretization for a curve into a linestring is identical for traversing the line from start->end as from end->start.
 
-**TODO: Write example for PostGIS reading**
-
 ### 2. Point cloud
 Point cloud reading is implemented using the [LASLib library](https://github.com/LAStools/LAStools/tree/master/LASlib) that is the OpenSource reading library of [LAStools](https://rapidlasso.com/lastools/). This library supports reading of LAS and LAZ point clouds.
 
@@ -57,9 +55,50 @@ To write a separate file for each class there is the format specifier `CityGML-I
 ### CSV
 For the purpose of calculation building statistics some CSV outputs are implemented. The output writes a CSV with unique id and height statistics per building.
 
-**TODO: PUT EXAMPLE OF OUTPUT HERE**
-
 `CSV-BUILDINGS`, `CSV-BUILDINGS-MULTIPLE`, `CSV-BUILDINGS-ALL-Z`
+
+The available options for CSV output are:
+
+**`CSV-BUILDINGS`**
+
+Returns the xx-th percentile of the z-values of the ground and roof points within a building polygon. Values are in **cm**. The percentiles are provided as:
+
+```
+lifting_options: 
+  Building:
+    ground:
+      height: percentile-10
+    roof:
+      height: percentile-90
+```
+Output:
+
+| id                                    | roof | floor |
+|---------------------------------------|------|-------|
+| b31e1feb1-00ba-11e6-b420-2bdcc4ab5d7f | 1248 | 20    |
+
+**`CSV-BUILDINGS-MULTIPLE`**
+
+Returns multiple percentiles of the z-values of the ground and roof points within a building polygon. Values are in **m**.
+
+Output:
+
+| id                                    | ground-0.00 | ground-0.10 | ground-0.20 | ground-0.30 | ground-0.40 | ground-0.50 | roof-0.00 | roof-0.10 | roof-0.25 | roof-0.50 | roof-0.75 | roof-0.90 | roof-0.95 | roof-0.99 |
+|---------------------------------------|-------------|-------------|-------------|-------------|-------------|-------------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| b31bdd44c-00ba-11e6-b420-2bdcc4ab5d7f | -0.03       | 0.01        | 0.02        | 0.02        | 0.03        | 0.04        | -0.03     | 0.01      | 0.02      | 0.04      | 0.11      | 2.36      | 2.38      | 2.44      |
+
+**`CSV-BUILDINGS-ALL-Z`**
+
+Returns all z-values of the points within a building polygon. Values are in **cm**.
+
+Output:
+
+| id                                    | allzvalues |
+|---------------------------------------|------------|
+| b31bdfb7a-00ba-11e6-b420-2bdcc4ab5d7f | -3\|-3\|-2\|-2\|-2\|... |
+
+
+
 
 ### Shapefile
 Writing of Shapefiles is supported in a simplified way; it writes MultiPolygonZ with vertical faces. Not all software has support for vertical faces and will show errors in the output. When using QGIS the file opens as expected.

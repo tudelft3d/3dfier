@@ -143,23 +143,29 @@ Where `/opt` is the directory where *3dfier* will be installed and *LASzip*, *li
 If you already have GRASS installed from the *ubuntugis-(un)stable* PPA, you probably also have libLAS (`liblas-c3, liblas3`) installed, as GRASS depends on them. However, this *libLAS* install is without *LASzip* support as *LASzip* is not part of the *ubuntugis* PPA. Therefore, you will need to remove the GRASS and *libLAS* libraries first, then compile *libLAS* with *LASzip* support (with this script). Then you can install GRASS again from the *ubuntugis* PPA, it will be compiled with *libLAS* that now supports `.laz`.
 
 ## Windows
-This guide will talk you through the compilation of 3dfier on Windows 10 64-bit using Visual Studio 2017 (steps are identical for Visual Studio 2015).
+This guide will talk you through the compilation of 3dfier on Windows 10 64-bit using Visual Studio (steps are identical for Visual Studio 2017 and 2019).
 
-There are some steps to be taken to prepare the build environment for 3dfier. Most important is installing software to compile and downloading the libraries 3dfier is dependent of.
+*Note: Versions used in this guide are the versions used at time of writing. Future versions of libraries could be supported but usage can change and the Visual Studio Solution might need changing for them to work.*
+
+There are some steps to be taken to prepare the build environment for 3dfier. Most important is installing software to compile and downloading the libraries 3dfier is depending on.
+
+*Note: In this guide we build 3dfier in 64-bit (x64) and all dependencies must also be built in 64-bit. For project files created with CMake the *-A x64* switch should explicitly be used.*
+
+*Note: Since CGAL 5.0 the library is header only. Building the library is not needed anymore. The current Visual Studio project file in the repository is made for version 4.xx, when using verions >5.0 one should remove the library includes from the project file.*
 
 ### 1. Running installers
 First you will need to download and install in their default directorties:
-1. [Visual Studio Community 2017](https://www.visualstudio.com/downloads/). Install at least the C++ part.
-1. [CMake](https://cmake.org/download/), download and install `Windows win64-x64 Installer`. Add variable to the PATH during installation.
-1. [Boost precompiled binaries](https://sourceforge.net/projects/boost/files/boost-binaries). Pick the latest version (`boost_1_71_0-msvc-14.0-64.exe` at the time of writing). If you build on VS2015 get *mscv-14.0*, for VS2017 get *mscv-14.1*. Install boost using the installer.
-1. [OSGeo4W](https://trac.osgeo.org/osgeo4w), download the [64-bit installer](http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe). From this package you will need to install at least GDAL.
-1. [CGAL](https://github.com/CGAL/cgal/releases), download `CGAL-4.12-Setup.exe` and install. Select *GMP and MPFR precompiled libs*, *Environment variables to set CGAL_DIR* and *Add CGAL/auxilary/gmp/lib to the PATH* during setup.
+1. [Visual Studio Community (2017 or later)](https://www.visualstudio.com/downloads/). Install at least the C++ part.
+1. [CMake (3.15 or later)](https://cmake.org/download/), download and install `Windows win64-x64 Installer`. Add variable to the PATH during installation.
+1. [Boost precompiled binaries (1.71 or later)](https://sourceforge.net/projects/boost/files/boost-binaries). Pick the latest version that is built for your [MSVC++ compiler version](https://en.wikipedia.org/wiki/Microsoft_Visual_C%2B%2B). Install boost using the installer.
+1. [OSGeo4W (with GDAL 2.3.0 or later)](https://trac.osgeo.org/osgeo4w), download the [64-bit installer](http://download.osgeo.org/osgeo4w/osgeo4w-setup-x86_64.exe). From this package you will need to install at least the GDAL package.
+1. [CGAL (4.12 or later)](https://github.com/CGAL/cgal/releases), download `CGAL-4.12-Setup.exe` (or newer) and install. Select *GMP and MPFR precompiled libs*, *Environment variables to set CGAL_DIR* and *Add CGAL/auxilary/gmp/lib to the PATH* during setup.
 
 ### 2. Compilation of dependencies
 Next, we need to download and compile Yaml-cpp and LAStools. 
 
 #### Yaml-cpp
-Download [yaml-cpp 0.5.3](https://github.com/jbeder/yaml-cpp/releases) and extract to e.g. `C:\dev\yaml-cpp`. There are two options of getting the Visual Studio project files using CMake:
+Download [yaml-cpp (0.5.3 or later)](https://github.com/jbeder/yaml-cpp/releases) and extract to e.g. `C:\dev\yaml-cpp`. There are two options of getting the Visual Studio project files using CMake:
 
 1. using CMake GUI ([tutorial here](https://cmake.org/runningcmake/)).
 
@@ -178,15 +184,14 @@ cmake .. -G "Visual Studio 15 2017 Win64"
 After generation open the Visual Studio file `YAML_CPP.sln`. Set the solution configuration to `Release` in the main toolbar. From the menu bar select Build and click `Build Solution`.
 
 #### LAStools
-Download [LAStools](https://rapidlasso.com/lastools/) and extract to e.g. `C:\dev\lastools`. There are two options of getting the Visual Studio project files:
+Download [LAStools](https://rapidlasso.com/lastools/) and extract to e.g. `C:\dev\lastools`.
 
-1. Go to the folder where you extacted LAStools using file explorer (C:\dev\lastools). Enter subfolder LASlib and open `LASlib.dsp`. Now Visual Studio will automatically open and asks for a one time upgrade. Choose Yes to proceed with the upgrade. After the upgrade save and close the solution.
-1. Use CMake as explained previous for [Yaml-cpp](#yaml-cpp) to generate the Visual Studio solution files.
+Use CMake as explained previous for [Yaml-cpp](#yaml-cpp) to generate the Visual Studio solution files.
 
 After generation open the Visual Studio file `LASlib.sln`. Set the solution configuration to `Release` in the main toolbar. From the menu bar select Build and click `Build Solution`.
 
 ### 3. Set environment variables
-Go to `Control Panel > System > Advanced system settings > Environment Variables` and add the following user variables. Note that the version numbers may be different!
+Go to `Control Panel > System > Advanced system settings > Environment Variables` and add the following user variables. Note that the version numbers and the installation paths may be different!
 * `BOOST_ROOT`=`C:\boost_1_71_0`
 * `BOOST_LIBRARYDIR`=`C:\boost_1_71_0\lib64-msvc-14.0`
 * `CGAL_DIR`=`C:\dev\CGAL-4.12`

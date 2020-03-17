@@ -1,7 +1,7 @@
 /*
   3dfier: takes 2D GIS datasets and "3dfies" to create 3D city models.
 
-  Copyright (C) 2015-2019  3D geoinformation research group, TU Delft
+  Copyright (C) 2015-2020 3D geoinformation research group, TU Delft
 
   This file is part of 3dfier.
 
@@ -68,7 +68,7 @@ public:
   void get_citygml_multifile(std::string);
   void create_citygml_header(std::wostream& of);
   void get_citygml_imgeo(std::wostream& of);
-  bool get_cityjson(std::string filename);
+  bool get_cityjson(std::wostream& of);
   void get_citygml_imgeo_multifile(std::string ofname);
   void create_citygml_imgeo_header(std::wostream& of);
   bool get_postgis_output(std::string filename, bool pdok = false, bool citygml = false);
@@ -104,6 +104,7 @@ public:
   void set_threshold_jump_edges(float threshold);
   void set_threshold_bridge_jump_edges(float threshold);
   void set_requested_extent(double xmin, double ymin, double xmax, double ymax);
+  void set_max_angle_curvepolygon(double max_angle);
 
   void add_allowed_las_class(AllowedLASTopo c, int i);
   void add_allowed_las_class_within(AllowedLASTopo c, int i);
@@ -140,6 +141,7 @@ private:
   double      _minyradius;
   double      _maxyradius;
   Box2        _requestedExtent;
+  double      _max_angle_curvepolygon; //-- the largest step in degrees along the arc, zero to use the default setting.
 
   //-- storing the LAS allowed for each TopoFeature
   std::array<std::set<int>,NUM_ALLOWEDLASTOPO> _las_classes_allowed;

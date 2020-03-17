@@ -30,6 +30,7 @@ cmake_install.cmake
 CMakeCache.txt
 CMakeFiles
 Makefile
+boo.xcodeproj
 
 # Visual studio files
 vs_build/.vs
@@ -41,7 +42,20 @@ vs_build/.vs
 *.vcxproj.user
 *.lib
 
+# Visual studio code files
+/.vscode/
+
 # Folders
 x64
 x86
+vendor
+_site
+.sass-cache
+/resources/convert-to-simulation/simulatorready
+/resources/convert-to-simulation/out.off
+/resources/convert-to-simulation/bin/
+/ressources/convert-to-simulation/simulatorready
+/resources/3dfier2sim/build
+/ressources/convert-to-simulation/bin/
+/example_data/o.json
 /buildxcode

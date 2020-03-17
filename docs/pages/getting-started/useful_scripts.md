@@ -22,7 +22,7 @@ config_files | x | Example config files
 config_files\myconfig.yml | | Example config file
 config_files\myconfig_DEFAULTS.yml | | Config file describing programmed defaults
 config_files\myconfig_README.yml | | Config file with complete description of all settings options
-create_vegetation_off.py | | **TODO: ASK HUGO**
+create_vegetation_off.py | | See script
 Example_data | x | Zip file with example input data and configuration for running 3dfier
 flowdiagrams | x | Flow diagrams of 3dfier used within the documentation
 obj2off.py | | Script to convert an OBJ to OFF file format
