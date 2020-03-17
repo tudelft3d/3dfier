@@ -42,6 +42,20 @@ Allowed options:
   --GDAL arg                    Output
 ```
 
+## Minimum system requirements
+The software is built with the idea to make creating 3D models as easy as possible. Therefore the software doesn't need supercomputers or special hardware. As long as you are not reconstructing extremely large areas the software allows to use any normal hardware. Most of the developments and testing have been done using a laptop with an Intel Core i7-6560U CPU, 16Gb RAM and SSD for data storage. A simple model can be created even using a laptop with less RAM and slower CPU.
+
+## Command line options
+When executing 3dfier without any command line options the text output prints all possible options as shown in [Verify installation](#verify-installation). The `--help` option prints the same text output as when executed without any options. Using `--version` one can see the version of 3dfier and that of some of the libraries used. The `--license` option shows the license message of 3dfier and list the licenses of libraries used.
+
+All other options (marked with Output) are model output formats that can be used to write the output. The option is the file format name followed by the arguments needed for the format. 
+
+In case of `OBJ`, `OBJ-NoID`, `CityGML`, `CityGML-IMGeo`,  `CityJSON`, `CSV-BUILDINGS`, `CSV-BUILDINGS-MULTIPLE`, `CSV-BUILDINGS-ALL-Z` and `Shapefile` the argument is the file name of the output.
+
+In case of `CityGML-Multifile`, `CityGML-IMGeo-Multifile` and`Shapefile-Multifile` the argument is the first part of the file name that will be followed by the input layer name and the file extension. If `arg` is `filename_` the resulting format is `filename_layername.ext`.
+
+In case of `PostGIS`, `PostGIS-PDOK` and `PostGIS-PDOK-CityGML` the argument is a [PostGIS connection string](https://gdal.org/drivers/vector/pg.html) in the format used by GDAL. The string must be surrounded by single quotes so 3dfier understands it as a single option. Example: `'PG:"dbname='databasename' host='addr' port='5432' user='x' password='y'"'`.
+
 ## Prepare example data
 For this example we use [BGT_Delft_Example.zip](https://github.com/{{site.repository}}/raw/master/resources/Example_data/BGT_Delft_Example.zip) from the GitHub repository located in `3dfier/resources/Example_data/`. Create a folder with 3dfier and the depencency dll's by following the [Installation]({{site.baseurl}}/installation) instructions and add the `example_data folder`.
 
