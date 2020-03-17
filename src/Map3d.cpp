@@ -322,7 +322,7 @@ void Map3d::get_csv_buildings_all_elevation_points(std::wostream& of) {
       Building* b = dynamic_cast<Building*>(p);
       of << b->get_id() << ",";
       of << b->get_all_z_values();
-      of << "," << std::endl;
+      of << std::endl;
     }
   }
 }
@@ -332,23 +332,23 @@ void Map3d::get_csv_buildings_multiple_heights(std::wostream& of) {
   std::vector<float> gpercentiles = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
   std::vector<float> rpercentiles = {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
   of << std::setprecision(2) << std::fixed;
-  of << "id,";
+  of << "id";
   for (auto& each : gpercentiles)
-    of << "ground-" << each << ",";
+    of << ",ground-" << each;
   for (auto& each : rpercentiles)
-    of << "roof-" << each << ",";
+    of << ",roof-" << each;
   of << std::endl;
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
-      of << b->get_id() << ",";
+      of << b->get_id();
       for (auto& each : gpercentiles) {
         int h = b->get_height_ground_at_percentile(each);
-        of << float(h)/100 << ",";
+        of << "," << float(h)/100;
       }
       for (auto& each : rpercentiles) {
         int h = b->get_height_roof_at_percentile(each);
-        of << float(h)/100 << ",";
+        of << "," << float(h)/100;
       }
       of << std::endl;
     }
