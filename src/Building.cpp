@@ -61,8 +61,17 @@ std::string Building::get_all_z_values() {
   allz.insert(allz.end(), _zvaluesinside.begin(), _zvaluesinside.end());
   std::sort(allz.begin(), allz.end());
   std::stringstream ss;
-  for (auto& z : allz)
-    ss << z / 100.0 << "|";
+  bool first = true;
+  for (auto& z : allz) {
+    // skip seperator while writing first value
+    if (first) {
+      first = false;
+    }
+    else {
+      ss << "|";
+    }
+    ss << z / 100.0;
+  }
   return ss.str();
 }
 
@@ -290,9 +299,7 @@ bool Building::is_hard() {
 }
 
 void Building::cleanup_elevations() {
-  _zvaluesground.clear();
-  _zvaluesground.shrink_to_fit();
-  Flat::cleanup_elevations();
+  //Do not cleanup buildings since CSV output uses the elevation vectors
 }
 
 void Building::get_csv(std::wostream& of) {
