@@ -178,10 +178,9 @@ cmake .. -G "Visual Studio 15 2017 Win64"
 After generation open the Visual Studio file `YAML_CPP.sln`. Set the solution configuration to `Release` in the main toolbar. From the menu bar select Build and click `Build Solution`.
 
 #### LAStools
-Download [LAStools](https://rapidlasso.com/lastools/) and extract to e.g. `C:\dev\lastools`. There are two options of getting the Visual Studio project files:
+Download [LAStools](https://rapidlasso.com/lastools/) and extract to e.g. `C:\dev\lastools`.
 
-1. Go to the folder where you extacted LAStools using file explorer (C:\dev\lastools). Enter subfolder LASlib and open `LASlib.dsp`. Now Visual Studio will automatically open and asks for a one time upgrade. Choose Yes to proceed with the upgrade. After the upgrade save and close the solution.
-1. Use CMake as explained previous for [Yaml-cpp](#yaml-cpp) to generate the Visual Studio solution files.
+Use CMake as explained previous for [Yaml-cpp](#yaml-cpp) to generate the Visual Studio solution files.
 
 After generation open the Visual Studio file `LASlib.sln`. Set the solution configuration to `Release` in the main toolbar. From the menu bar select Build and click `Build Solution`.
 
