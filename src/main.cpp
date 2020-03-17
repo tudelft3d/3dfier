@@ -723,6 +723,11 @@ std::string print_license() {
     "Faculty of Architecture & the Built Environment\n"
     "Delft University of Technology\n"
     "Julianalaan 134, Delft 2628BL, the Netherlands\n"
+    "======================================================================\n"
+    "External libraries used by 3dfier have their own license.\n"
+    "Please refer to the license of the library for more information.\n"
+    "The following libraries are used:\n"
+    "LasLib, GDAL, Boost, CGAL, YAML-cpp and nlohmann-json\n"
     "======================================================================";
   return thelicense;
 }
