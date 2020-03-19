@@ -395,6 +395,12 @@ bool TopoFeature::writeAttribute(OGRFeature* feature, OGRFeatureDefn* featureDef
   return true;
 }
 
+/**
+ * solve for cases where stitching created bow ties
+ * a bow tie is created if two surfaces have opposite slope and 
+ * height intersection doesn't occur in a vertex
+ * solve by lowering one of the vertices to that of the adjacent feature
+ */
 void TopoFeature::fix_bowtie() {
   //-- gather all rings
   std::vector<Ring2> therings;
@@ -489,6 +495,11 @@ void TopoFeature::fix_bowtie() {
   }
 }
 
+/**
+ * create vertical walls from the NodeColumn
+ * walls are created as a fan shape to force a closed surface
+ * bridge and water are handles specifically due to surface orientation
+ */
 void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
   //-- gather all rings
   std::vector<Ring2> therings;
@@ -707,6 +718,10 @@ bool TopoFeature::has_segment(const Point2& a, const Point2& b, int& aringi, int
   return false;
 }
 
+/**
+ * calculate the distance from a point to a polygon boundary
+ * is used for the innerbuffer configuration setting
+ */
 float TopoFeature::get_distance_to_boundaries(const Point2& p) {
   //-- collect the rings of the polygon
   std::vector<Ring2> therings;
@@ -740,6 +755,10 @@ float TopoFeature::get_distance_to_boundaries(const Point2& p) {
   return (float)dmin;
 }
 
+/**
+ * check if this feature has the supplied point
+ * uses squared distance rather then equals for floating point precision errors
+ */
 bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis) {
   std::vector<Ring2> rings;
   rings.push_back(_p2->outer());
@@ -762,6 +781,10 @@ bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vec
   return re;
 }
 
+/**
+ * check if this feature has a point in common with the supplied feature
+ * uses squared distance rather then equals for floating point precision errors
+ */
 bool TopoFeature::adjacent(Polygon2& poly) {
   std::vector<Ring2> rings1;
   rings1.push_back(_p2->outer());
@@ -833,8 +856,12 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
   _p2z[ringi][pi] = z;
 }
 
-//-- used to collect all points linked to the polygon
-//-- later all these values are used to lift the polygon (and put values in _p2z)
+/**
+ * push supplied z to the elevation vector of the vertex
+ * only pushed when within distance of vertex 
+ * uses radius_vertex_elevation from configuration
+ * later all these values are used to lift the polygon (and put values in _p2z)
+ */
 bool TopoFeature::assign_elevation_to_vertex(const Point2& p, double z, float radius) {
   double sqr_radius = radius * radius;
   int zcm = int(z * 100);
@@ -858,6 +885,12 @@ bool TopoFeature::assign_elevation_to_vertex(const Point2& p, double z, float ra
   return true;
 }
 
+/**
+ * check is point is within range of a polygon
+ * is used for Buildings
+ * point is within polygon or within distance of a vertex
+ * uses radius_vertex_elevation from configuration
+ */
 bool TopoFeature::within_range(const Point2& p, double radius) {
   if (point_in_polygon(p)) {
     return true;
