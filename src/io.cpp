@@ -26,6 +26,10 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
+ /**
+  * io is a collection of functions to help reading and writing files
+  */
+
 #include "io.h"
 
 void printProgressBar(int percent) {

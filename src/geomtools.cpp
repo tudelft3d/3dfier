@@ -26,6 +26,10 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
+/**
+ * geomtools is a collection of functions to be used for geometric calculations
+ */
+
 #include "geomtools.h"
 #include "io.h"
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>

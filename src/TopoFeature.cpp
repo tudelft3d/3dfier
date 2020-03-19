@@ -26,6 +26,13 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
+/**
+ * TopoFeature describes a single 3D object.
+ * The object contains the 2D polygon, attributes and elevation information.
+ * Functions contain topolocigal checks, creation of geometries and lifting of vertices
+ * TopoFeature has 3 subclasses, Flat, Boundary3D and TIN.
+ */
+
 #include "TopoFeature.h"
 
 TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attributes, std::string pid) {
@@ -1090,8 +1097,10 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
   }
 }
 
-//-------------------------------
-//-------------------------------
+/**
+ * Flat describes objects with a single height
+ * Functions contain lifting to a single height
+ */
 
 Flat::Flat(char* wkt, std::string layername, AttributeMap attributes, std::string pid)
   : TopoFeature(wkt, layername, attributes, pid) {}
@@ -1134,8 +1143,10 @@ void Flat::cleanup_elevations() {
   TopoFeature::cleanup_lidarelevs();
 }
 
-//-------------------------------
-//-------------------------------
+/**
+ * Boundary3D describes object with varying heights
+ * Functions contain removing outliers
+ */
 
 Boundary3D::Boundary3D(char* wkt, std::string layername, AttributeMap attributes, std::string pid)
   : TopoFeature(wkt, layername, attributes, pid) {
@@ -1153,8 +1164,8 @@ bool Boundary3D::add_elevation_point(Point2& p, double z, float radius, int lasc
   return true;
 }
 
+// Old code that is not used anymore. It is replaced by detect_outliers
 void Boundary3D::smooth_boundary(int passes) {
-  //TODO: fix this or remove completely (tmp is not written back to r)
   std::vector<int> tmp;
   for (int p = 0; p < passes; p++) {
     for (auto& r : _p2z) {
@@ -1170,6 +1181,8 @@ void Boundary3D::smooth_boundary(int passes) {
   }
 }
 
+// Detect outliers in a 3D polygon by fitting a 3D polynomial surface through the vertices
+// iteratively remove largest outlier if larger then 2 sigma and refit surface
 void Boundary3D::detect_outliers(bool flatten){
   //-- gather all rings
   std::vector<Ring2> rings;
@@ -1267,8 +1280,10 @@ void Boundary3D::detect_outliers(bool flatten){
   }
 }
 
-//-------------------------------
-//-------------------------------
+/**
+ * TIN describes objects with varying heights and interior points
+ * Functions contain building the CDT with interior points
+ */
 
 TIN::TIN(char* wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer)
   : TopoFeature(wkt, layername, attributes, pid) {
