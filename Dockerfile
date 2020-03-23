@@ -1,4 +1,5 @@
 FROM alpine:3.10
+LABEL maintainer.email="b.dukai@tudelft.nl" maintainer.name="Balázs Dukai"
 
 #
 # 1 Install FreeXL
