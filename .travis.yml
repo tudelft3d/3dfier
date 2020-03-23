@@ -27,7 +27,7 @@ deploy:
         - docker push tudelft3d/3dfier:dev
     cleanup: false
     on:
-      branch: develop
+      branch: development
   - provider: script
     script: 
         - docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:${TRAVIS_TAG}
