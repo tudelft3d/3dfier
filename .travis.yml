@@ -18,28 +18,28 @@ deploy:
   - provider: script
     script:
         - docker push tudelft3d/3dfier:latest
-    skip_cleanup: true
+    cleanup: false
     on:
       branch: master
   - provider: script
     script: 
         - docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:dev
         - docker push tudelft3d/3dfier:dev
-    skip_cleanup: true
+    cleanup: false
     on:
       branch: develop
   - provider: script
     script: 
         - docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:${TRAVIS_TAG}
         - docker push tudelft3d/3dfier:${TRAVIS_TAG}
-    skip_cleanup: true
+    cleanup: false
     on:
       tags: true
   - provider: script
     script: 
         - docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:${TRAVIS_BRANCH}
         - docker push tudelft3d/3dfier:${TRAVIS_BRANCH}
-    skip_cleanup: true
+    cleanup: false
     on:
       all_branches: true
       condition: ${TRAVIS_BRANCH} =~ ^(?!master|develop$)[a-zA-Z0-9.?!%, -_]+$
