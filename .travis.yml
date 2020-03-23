@@ -10,8 +10,7 @@ install: skip
 script:
   - echo "skipping tests"
   - echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
-  - docker pull tudelft3d/3dfier:latest || true
-  - docker build . --cache-from tudelft3d/3dfier:latest -t tudelft3d/3dfier:latest
+  - docker build --pull --cache-from tudelft3d/3dfier:latest -t tudelft3d/3dfier:latest .
 
 
 deploy:
