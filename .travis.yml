@@ -1,4 +1,4 @@
-sudo: required
+os: linux
 
 language: cpp
 
@@ -10,36 +10,35 @@ install: skip
 script:
   - echo "skipping tests"
   - echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
-  - docker pull tudelft3d/3dfier:latest || true
-  - docker build . --cache-from tudelft3d/3dfier:latest -t tudelft3d/3dfier:latest
+  - docker build --pull --cache-from tudelft3d/3dfier:latest -t tudelft3d/3dfier:latest .
 
 
 deploy:
   - provider: script
     script:
         - docker push tudelft3d/3dfier:latest
-    skip_cleanup: true
+    cleanup: false
     on:
       branch: master
   - provider: script
     script: 
         - docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:dev
         - docker push tudelft3d/3dfier:dev
-    skip_cleanup: true
+    cleanup: false
     on:
-      branch: develop
+      branch: development
   - provider: script
     script: 
         - docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:${TRAVIS_TAG}
         - docker push tudelft3d/3dfier:${TRAVIS_TAG}
-    skip_cleanup: true
+    cleanup: false
     on:
       tags: true
   - provider: script
     script: 
         - docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:${TRAVIS_BRANCH}
         - docker push tudelft3d/3dfier:${TRAVIS_BRANCH}
-    skip_cleanup: true
+    cleanup: false
     on:
       all_branches: true
       condition: ${TRAVIS_BRANCH} =~ ^(?!master|develop$)[a-zA-Z0-9.?!%, -_]+$
