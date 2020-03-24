@@ -13,6 +13,7 @@
 The [3dfier documentation](http://tudelft3d.github.io/3dfier) has extensive information on the installation, usage and how the 3dfier algorithm works.
 
 **SETTINGS**
+
 For all available setting read the [3dfier documentation](http://tudelft3d.github.io/3dfier) and for default values look at the [config files folder](https://github.com/tudelft3d/3dfier/tree/master/resources/config_files)
 
 
