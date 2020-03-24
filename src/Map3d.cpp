@@ -26,6 +26,12 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
+/**
+ * Map3D contains all configuration settings and functions to create the 3D model.
+ * It contains functions to read polygons, points, threedfy, construct CDT and 
+ * create all output formats.
+ */
+
 #include "Map3d.h"
 
 Map3d::Map3d() {
@@ -618,56 +624,6 @@ OGRLayer* Map3d::create_gdal_layer(GDALDriver* driver, GDALDataset* dataSource, 
 }
 #endif
 
-bool Map3d::get_shapefile2d(std::string filename) {
-#if GDAL_VERSION_MAJOR < 2
-  if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0)
-    OGRRegisterAll();
-  OGRSFDriver *driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName("ESRI Shapefile");
-  OGRDataSource *dataSource = driver->CreateDataSource(filename.c_str(), NULL);
-#else
-  if (GDALGetDriverCount() == 0)
-    GDALAllRegister();
-  GDALDriver *driver = GetGDALDriverManager()->GetDriverByName("ESRI Shapefile");
-  GDALDataset *dataSource = driver->Create(filename.c_str(), 0, 0, 0, GDT_Unknown, NULL);
-#endif
-
-  if (dataSource == NULL) {
-    std::cerr << "\tERROR: could not open file, skipping it.\n";
-    return false;
-  }
-  OGRLayer *layer = dataSource->CreateLayer("my3dmap", NULL, wkbMultiPolygon, NULL);
-
-  OGRFieldDefn oField("3df_id", OFTString);
-  if (layer->CreateField(&oField) != OGRERR_NONE) {
-    std::cerr << "Creating 3df_id field failed.\n";
-    return false;
-  }
-  OGRFieldDefn oField2("3df_class", OFTString);
-  if (layer->CreateField(&oField2) != OGRERR_NONE) {
-    std::cerr << "Creating 3df_class field failed.\n";
-    return false;
-  }
-  OGRFieldDefn oField3("baseheight", OFTReal);
-  if (layer->CreateField(&oField3) != OGRERR_NONE) {
-    std::cerr << "Creating floorheight field failed.\n";
-    return false;
-  }
-  OGRFieldDefn oField4("roofheight", OFTReal);
-  if (layer->CreateField(&oField4) != OGRERR_NONE) {
-    std::cerr << "Creating roofheight field failed.\n";
-    return false;
-  }
-  for (auto& f : _lsFeatures) {
-    f->get_shape(layer, false);
-  }
-#if GDAL_VERSION_MAJOR < 2
-  OGRDataSource::DestroyDataSource(dataSource);
-#else
-  GDALClose(dataSource);
-#endif
-  return true;
-}
-
 unsigned long Map3d::get_num_polygons() {
   return _lsFeatures.size();
 }
@@ -676,6 +632,11 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
   return _lsFeatures;
 }
 
+/**
+ * process a LAS/LAZ point
+ * search rtrees for intersecting features
+ * check if points classification is allowed for feature and add point to feature
+ */
 void Map3d::add_elevation_point(LASpoint const& laspt) {
   //-- only process last returns; 
   //-- although perhaps not smart for vegetation/forest in the future
@@ -773,12 +734,16 @@ void Map3d::cleanup_elevations() {
   }
 }
 
+/**
+ * algorithm to create the 3D model from the input data
+ * 
+ * 1. lift polygon vertices to calculated height from point cloud
+ * 2. stitch vertices to solve for vertical gaps and height jumps
+ * 3. fix bow ties created by wrong stitching
+ * 4. create vertical walls and building walls
+*/
 bool Map3d::threeDfy(bool stitching) {
-  /*
-    1. lift
-    2. stitch
-    3. process vertical walls
-  */
+
   try {
     std::clog << "===== /LIFTING =====\n";
     for (auto& f : _lsFeatures) {
@@ -838,6 +803,9 @@ bool Map3d::threeDfy(bool stitching) {
   return true;
 }
 
+/**
+ * build the Constrained Delaunay Triangulation for each TopoFeature
+ */
 bool Map3d::construct_CDT() {
   std::clog << "=====  /CDT =====\n";
   for (auto& p : _lsFeatures) {
@@ -859,6 +827,10 @@ bool Map3d::save_building_variables() {
   return true;
 }
 
+/**
+ * create rtrees, one for building and one for other objects
+ * calculate a single bounding box from both trees
+ */
 bool Map3d::construct_rtree() {
   std::clog << "Constructing the R-tree...";
   for (auto p : _lsFeatures) {
@@ -886,6 +858,10 @@ bool Map3d::construct_rtree() {
   return true;
 }
 
+/**
+ * read a polygon file
+ * setup the GDAL driver, datasource and read layers
+ */
 bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
 #if GDAL_VERSION_MAJOR < 2
   if (OGRSFDriverRegistrar::GetRegistrar()->GetDriverCount() == 0)
@@ -937,6 +913,11 @@ bool Map3d::add_polygons_files(std::vector<PolygonFile> &files) {
   return true;
 }
 
+/**
+ * read a polygon layer
+ * read id and relative height attributes and check if polygon is within max extent
+ * Split MultiPolygons/MultiSurface and stroke CurvedPolygons
+ */
 #if GDAL_VERSION_MAJOR < 2
 bool Map3d::extract_and_add_polygon(OGRDataSource* dataSource, PolygonFile* file) {
 #else
@@ -992,7 +973,7 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
         geometry->getEnvelope(&env);
       }
 
-      //-- add the polygon of no extent is used or if the envelope is within the extent
+      //-- add the polygon when no extent is given or if the boundinx box of the polygon is within the extent
       if (!useRequestedExtent || extent.Intersects(env)) {
         switch (geometry->getGeometryType()) {
         case wkbPolygon:
@@ -1072,6 +1053,11 @@ bool Map3d::extract_and_add_polygon(GDALDataset* dataSource, PolygonFile* file) 
   return wentgood;
 }
 
+/**
+ * extract the GDAL feature
+ * force polygon to 2D and read attributes
+ * create a TopoFeature from the GDAL feature
+ */
 void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *idfield, const char *heightfield, std::string layertype, bool multiple_heights) {
   char *wkt;
   OGRGeometry *geom = f->GetGeometryRef();
@@ -1124,6 +1110,12 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
   CPLFree(wkt);
 }
 
+/**
+ * read a LAS/LAZ file
+ * read header, get extent and check if file intersects with Map3D bounding box
+ * apply filters set in configuration (class, thinning, extent)
+ * check if point intersects with Map3D bounding box
+ */
 bool Map3d::add_las_file(PointFile pointFile) {
   std::clog << "Reading LAS/LAZ file: " << pointFile.filename << std::endl;
 
@@ -1199,6 +1191,9 @@ bool Map3d::add_las_file(PointFile pointFile) {
   return true;
 }
 
+/**
+ * query rtrees and iterate results to find adjacent features
+ */
 void Map3d::collect_adjacent_features(TopoFeature* f) {
   std::vector<PairIndexed> re;
   Box2 b = f->get_bbox2d();
@@ -1212,6 +1207,12 @@ void Map3d::collect_adjacent_features(TopoFeature* f) {
   }
 }
 
+/**
+ * main function for stitching all features
+ * adjacent vertices with different heights from lifting are 
+ * changed based on adjacency rules so the output model will 
+ * not have gaps and height jumps
+ */ 
 void Map3d::stitch_lifted_features() {
   std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
@@ -1259,6 +1260,10 @@ void Map3d::stitch_lifted_features() {
   }
 }
 
+/**
+ * stitch multiple heights at a single vertex
+ * rules depend on object types containing this vertex and their height differences
+ */
 void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< std::tuple<TopoFeature*, int, int> >& star) {
   //-- get p and key_bucket once and check if nc location is empty
   Point2 p = f->get_point2(ringi, pi);
@@ -1459,6 +1464,9 @@ void Map3d::stitch_one_vertex(TopoFeature* f, int ringi, int pi, std::vector< st
   }
 }
 
+/**
+ * stitch two heights at a vertex with or without jumpedge, depending on object types
+ */
 void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
   Point2 p = f1->get_point2(ringi1, pi1);
   std::string key_bucket = gen_key_bucket(&p);
@@ -1553,6 +1561,9 @@ void Map3d::stitch_jumpedge(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f
   }
 }
 
+/**
+ * stitch two heights at a vertex to their average height
+ */
 void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2, int ringi2, int pi2) {
   //-- set average height to both features and push height to the NodeColumn
   int avgz = (f1->get_vertex_elevation(ringi1, pi1) + f2->get_vertex_elevation(ringi2, pi2)) / 2;
@@ -1562,6 +1573,13 @@ void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2
   _nc[gen_key_bucket(&p)].push_back(avgz);
 }
 
+/**
+ * main function for stitching features of class Bridge
+ * top of a bridge (bridge deck) is forced to be flattened and stitched to the surrounding objects
+ * heights of bridge top are collected from height points like other objects
+ * bottom of a bridge is stitched to surrounding objects not connected to the top of a bridge
+ * heights of bridge bottom are copied from the height of adjacent objects
+ */
 void Map3d::stitch_bridges() {
   std::vector<int> ringis, pis;
   for (auto& f : _lsFeatures) {
@@ -1778,8 +1796,10 @@ void Map3d::stitch_bridges() {
   }
 }
 
+/**
+ * interpolate height (distance weighted) between previous and next corner of a bridge
+ */
 int Map3d::interpolate_height(TopoFeature* f, const Point2 &p, int prevringi, int prevpi, int nextringi, int nextpi) {
-  // interpolate height between previous and next corner distance weighted
   double dprev = distance(p, f->get_point2(prevringi, prevpi));
   double dnext = distance(p, f->get_point2(nextringi, nextpi));
   double dtotal = dprev + dnext;

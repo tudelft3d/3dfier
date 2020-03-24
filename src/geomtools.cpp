@@ -26,6 +26,10 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
+/**
+ * geomtools is a collection of functions to be used for geometric calculations
+ */
+
 #include "geomtools.h"
 #include "io.h"
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
@@ -121,12 +125,15 @@ void mark_domains(CDT& ct,
   }
 }
 
-//explore set of facets connected with non constrained edges,
-//and attribute to each such set a nesting level.
-//We start from facets incident to the infinite vertex, with a nesting
-//level of 0. Then we recursively consider the non-explored facets incident 
-//to constrained edges bounding the former set and increase the nesting level by 1.
-//Facets in the domain are those with an odd nesting level.
+/**
+ * mark the triangles that are inside the original 2D polygon.
+ * explore set of facets connected with non constrained edges,
+ * and attribute to each such set a nesting level.
+ * start from facets incident to the infinite vertex, with a nesting
+ * level of 0. Then recursively consider the non-explored facets incident
+ * to constrained edges bounding the former set and increase the nesting level by 1.
+ * facets in the domain are those with an odd nesting level.
+ */
 void mark_domains(CDT& cdt) {
   for (CDT::All_faces_iterator it = cdt.all_faces_begin(); it != cdt.all_faces_end(); ++it) {
     it->info().nesting_level = -1;
@@ -143,6 +150,11 @@ void mark_domains(CDT& cdt) {
   }
 }
 
+/**
+ * triangulation the polygon with lifted vertices
+ * add height points to the triangulation in case of Terrain and Forest class
+ * push created vertices and triangles to the output vectors
+ */
 bool getCDT(Polygon2* pgn,
   const std::vector< std::vector<int> > &z,
   std::vector< std::pair<Point3, std::string> > &vertices,

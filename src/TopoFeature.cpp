@@ -26,6 +26,13 @@
   Julianalaan 134, Delft 2628BL, the Netherlands
 */
 
+/**
+ * TopoFeature describes a single 3D object.
+ * The object contains the 2D polygon, attributes and elevation information.
+ * Functions contain topolocigal checks, creation of geometries and lifting of vertices
+ * TopoFeature has 3 subclasses, Flat, Boundary3D and TIN.
+ */
+
 #include "TopoFeature.h"
 
 TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attributes, std::string pid) {
@@ -296,6 +303,11 @@ void TopoFeature::get_citygml_attributes(std::wostream& of, const AttributeMap& 
   }
 }
 
+/**
+ * create GDAL feature with attributes and geometry
+ * geometry type is a MultiPolygon
+ * geometry contains polygon and vertical walls as triangles
+ */
 bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, const AttributeMap& extraAttributes) {
   OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
   OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
@@ -370,6 +382,9 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
   return true;
 }
 
+/**
+ * create GDAL attribute in feature based on OGR feature definition
+ */
 bool TopoFeature::writeAttribute(OGRFeature* feature, OGRFeatureDefn* featureDefn, std::string name, std::string value) {
   int fi = featureDefn->GetFieldIndex(name.c_str());
   if (fi == -1) {
@@ -388,6 +403,12 @@ bool TopoFeature::writeAttribute(OGRFeature* feature, OGRFeatureDefn* featureDef
   return true;
 }
 
+/**
+ * solve for cases where stitching created bow ties
+ * a bow tie is created if two surfaces have opposite slope and 
+ * height intersection doesn't occur in a vertex
+ * solve by lowering one of the vertices to that of the adjacent feature
+ */
 void TopoFeature::fix_bowtie() {
   //-- gather all rings
   std::vector<Ring2> therings;
@@ -482,6 +503,11 @@ void TopoFeature::fix_bowtie() {
   }
 }
 
+/**
+ * create vertical walls from the NodeColumn
+ * walls are created as a fan shape to force a closed surface
+ * bridge and water are handles specifically due to surface orientation
+ */
 void TopoFeature::construct_vertical_walls(const NodeColumn& nc) {
   //-- gather all rings
   std::vector<Ring2> therings;
@@ -700,6 +726,10 @@ bool TopoFeature::has_segment(const Point2& a, const Point2& b, int& aringi, int
   return false;
 }
 
+/**
+ * calculate the distance from a point to a polygon boundary
+ * is used for the innerbuffer configuration setting
+ */
 float TopoFeature::get_distance_to_boundaries(const Point2& p) {
   //-- collect the rings of the polygon
   std::vector<Ring2> therings;
@@ -733,6 +763,10 @@ float TopoFeature::get_distance_to_boundaries(const Point2& p) {
   return (float)dmin;
 }
 
+/**
+ * check if this feature has the supplied point
+ * uses squared distance rather then equals for floating point precision errors
+ */
 bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vector<int>& pis) {
   std::vector<Ring2> rings;
   rings.push_back(_p2->outer());
@@ -755,6 +789,10 @@ bool TopoFeature::has_point2(const Point2& p, std::vector<int>& ringis, std::vec
   return re;
 }
 
+/**
+ * check if this feature has a point in common with the supplied feature
+ * uses squared distance rather then equals for floating point precision errors
+ */
 bool TopoFeature::adjacent(Polygon2& poly) {
   std::vector<Ring2> rings1;
   rings1.push_back(_p2->outer());
@@ -787,6 +825,10 @@ Point2 TopoFeature::get_point2(int ringi, int pi) {
     return _p2->inners()[ringi - 1][pi];
 }
 
+/**
+ * return next vertex in the ring
+ * return first vertex of ring when last vertex is supplied
+ */
 Point2 TopoFeature::get_next_point2_in_ring(int ringi, int i, int& pi) {
   Ring2 ring;
   if (ringi == 0)
@@ -826,8 +868,12 @@ void TopoFeature::set_vertex_elevation(int ringi, int pi, int z) {
   _p2z[ringi][pi] = z;
 }
 
-//-- used to collect all points linked to the polygon
-//-- later all these values are used to lift the polygon (and put values in _p2z)
+/**
+ * push supplied z to the elevation vector of the vertex
+ * only pushed when within distance of vertex 
+ * uses radius_vertex_elevation from configuration
+ * later all these values are used to lift the polygon (and put values in _p2z)
+ */
 bool TopoFeature::assign_elevation_to_vertex(const Point2& p, double z, float radius) {
   double sqr_radius = radius * radius;
   int zcm = int(z * 100);
@@ -851,6 +897,12 @@ bool TopoFeature::assign_elevation_to_vertex(const Point2& p, double z, float ra
   return true;
 }
 
+/**
+ * check is point is within range of a polygon
+ * is used for Buildings
+ * point is within polygon or within distance of a vertex
+ * uses radius_vertex_elevation from configuration
+ */
 bool TopoFeature::within_range(const Point2& p, double radius) {
   if (point_in_polygon(p)) {
     return true;
@@ -909,6 +961,10 @@ bool TopoFeature::point_in_polygon(const Point2& p) {
   return insideOuter;
 }
 
+/**
+ * cleanup elevation information vectors
+ * clean _lidarelevs and _p2z
+ */
 void TopoFeature::cleanup_lidarelevs() {
   _lidarelevs.clear();
   _lidarelevs.shrink_to_fit();
@@ -1004,6 +1060,10 @@ bool TopoFeature::get_attribute(std::string attributeName, std::string& attribut
   return false;
 }
 
+/**
+ * lift polygon to a single height
+ * used for Flat class
+ */
 void TopoFeature::lift_all_boundary_vertices_same_height(int height) {
   int ringi = 0;
   Ring2& oring = _p2->outer();
@@ -1026,6 +1086,10 @@ std::vector<TopoFeature*>* TopoFeature::get_adjacent_features() {
   return _adjFeatures;
 }
 
+/**
+ * lift each vertex to its calculated height
+ * used for Boundary3D and TIN classes
+ */
 void TopoFeature::lift_each_boundary_vertices(float percentile) {
   //-- assign value for each vertex based on percentile
   bool hasHeight = false;
@@ -1090,8 +1154,10 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
   }
 }
 
-//-------------------------------
-//-------------------------------
+/**
+ * Flat describes objects with a single height
+ * Functions contain lifting to a single height
+ */
 
 Flat::Flat(char* wkt, std::string layername, AttributeMap attributes, std::string pid)
   : TopoFeature(wkt, layername, attributes, pid) {}
@@ -1134,8 +1200,10 @@ void Flat::cleanup_elevations() {
   TopoFeature::cleanup_lidarelevs();
 }
 
-//-------------------------------
-//-------------------------------
+/**
+ * Boundary3D describes object with varying heights
+ * Functions contain removing outliers
+ */
 
 Boundary3D::Boundary3D(char* wkt, std::string layername, AttributeMap attributes, std::string pid)
   : TopoFeature(wkt, layername, attributes, pid) {
@@ -1153,8 +1221,8 @@ bool Boundary3D::add_elevation_point(Point2& p, double z, float radius, int lasc
   return true;
 }
 
+// Old code that is not used anymore. It is replaced by detect_outliers
 void Boundary3D::smooth_boundary(int passes) {
-  //TODO: fix this or remove completely (tmp is not written back to r)
   std::vector<int> tmp;
   for (int p = 0; p < passes; p++) {
     for (auto& r : _p2z) {
@@ -1170,6 +1238,8 @@ void Boundary3D::smooth_boundary(int passes) {
   }
 }
 
+// Detect outliers in a 3D polygon by fitting a 3D polynomial surface through the vertices
+// iteratively remove largest outlier if larger then 2 sigma and refit surface
 void Boundary3D::detect_outliers(bool flatten){
   //-- gather all rings
   std::vector<Ring2> rings;
@@ -1267,8 +1337,10 @@ void Boundary3D::detect_outliers(bool flatten){
   }
 }
 
-//-------------------------------
-//-------------------------------
+/**
+ * TIN describes objects with varying heights and interior points
+ * Functions contain building the CDT with interior points
+ */
 
 TIN::TIN(char* wkt, std::string layername, AttributeMap attributes, std::string pid, int simplification, double simplification_tinsimp, float innerbuffer)
   : TopoFeature(wkt, layername, attributes, pid) {
