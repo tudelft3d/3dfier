@@ -12,14 +12,8 @@
 # Documentation
 The [3dfier documentation](http://tudelft3d.github.io/3dfier) has extensive information on the installation, usage and how the 3dfier algorithm works.
 
-**SETTINGS**
-
-For all available setting read the [3dfier documentation](http://tudelft3d.github.io/3dfier) and for default values look at the [config files folder](https://github.com/tudelft3d/3dfier/tree/master/resources/config_files)
-
-
 # 3dfier
 <img src="https://dl.dropboxusercontent.com/s/05eo2r5yc2kke5g/3dfierNoBridge.png" width="300">
-
 
 Takes 2D GIS datasets (e.g. topographical datasets) and "3dfies" them (as in "making them three-dimensional") by lifting every polygon to 3D.
 The elevation is obtained from a point cloud (we support LAS/LAZ at this moment), and the semantics of every polygon is used to perform the lifting.
@@ -49,30 +43,3 @@ Output is in the following formats: OBJ, CityGML, CityJSON, CSV (for buildings o
 The ID of each polygon is preserved, and there is a 1-to-1 mapping between the input and the output. 
 
 If you use it, feedback is very much appreciated.
-
-## Test data
-In the folder `example_data` (download [example dataset](https://github.com/tudelft3d/3dfier/releases/tag/example_data)) there is a small part of the [BGT datasets](http://www.kadaster.nl/web/Themas/Registraties/BGT.htm) (2D 1:1k topographic datasets of the Netherlands), and a part of the [AHN3 LIDAR dataset](https://www.pdok.nl/nl/ahn3-downloads) that can be used for testing. 
-The resulting model (in OBJ) can be found in `example_data/output/test_area.obj`
-
-Further, there is an [open data website](https://3d.bk.tudelft.nl/opendata/3dfier/) that contains 3D models of a few Dutch cities, generated with 3dfier.
-
-## Validate config file
-The configuration is stored in [YAML format](http://docs.ansible.com/ansible/latest/YAMLSyntax.html) and needs to be valid for the parser to read the file. 
-Config files can be schema validated using [YAML Lint](http://www.yamllint.com)
-
-A configuration file with description of all possible settings is [myconfig_README.yml](https://github.com/tudelft3d/3dfier/blob/master/resources/config_files/myconfig_README.yml)
-
-## Run 3dfier:
-**Windows** 
-Open a command line (click start and type `command` or `cmd`). Using the command line browse to the folder where you extracted the example files and run:
-`3dfier myconfig.yml -o output.ext`
-
-**Mac OS X and Linux**
-Open a console. Using the console browse to the folder where you extracted the example files and run:
-`$ ./3dfier myconfig.yml -o output.ext`
-
-**Docker**
-We offer built docker images from the `master`, `development` branches and each release. You'll find the images and instructions on using them at [Docker Hub](https://hub.docker.com/repository/docker/tudelft3d/3dfier).
-
-## Prepare BGT data
-For preparing BGT data as input for 3dfier look at [Large scale topography to 3D example](http://tudelft3d.github.io/3dfier/bgt_example.html) in the documentation.
