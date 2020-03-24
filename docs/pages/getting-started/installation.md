@@ -145,13 +145,13 @@ If you already have GRASS installed from the *ubuntugis-(un)stable* PPA, you pro
 ## Windows
 This guide will talk you through the compilation of 3dfier on Windows 10 64-bit using Visual Studio (steps are identical for Visual Studio 2017 and 2019).
 
-*Note: Versions used in this guide are the versions used at time of writing. Future versions of libraries could be supported but usage can change and the Visual Studio Solution might need changing for them to work.*
-
 There are some steps to be taken to prepare the build environment for 3dfier. Most important is installing software to compile and downloading the libraries 3dfier is depending on.
 
-*Note: In this guide we build 3dfier in 64-bit (x64) and all dependencies must also be built in 64-bit. For project files created with CMake the *-A x64* switch should explicitly be used.*
+*Note 1: Versions used in this guide are the versions used at time of writing. Future versions of libraries could be supported but usage can change and the Visual Studio Solution might need changing for them to work.*
 
-*Note: Since CGAL 5.0 the library is header only. Building the library is not needed anymore. The current Visual Studio project file in the repository is made for version 4.xx, when using verions >5.0 one should remove the library includes from the project file.*
+*Note 2: In this guide we build 3dfier in 64-bit (x64) and all dependencies must also be built in 64-bit. For project files created with CMake the `-A x64` switch should explicitly be used.*
+
+*Note 3: Since CGAL 5.0 the library is header only. Building the library is not needed anymore. The current Visual Studio project file in the repository is made for version 4.xx, when using verions >5.0 one should remove the library includes from the project file.*
 
 ### 1. Running installers
 First you will need to download and install in their default directorties:
