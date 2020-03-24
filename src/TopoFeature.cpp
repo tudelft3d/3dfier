@@ -303,6 +303,11 @@ void TopoFeature::get_citygml_attributes(std::wostream& of, const AttributeMap& 
   }
 }
 
+/**
+ * create GDAL feature with attributes and geometry
+ * geometry type is a MultiPolygon
+ * geometry contains polygon and vertical walls as triangles
+ */
 bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, const AttributeMap& extraAttributes) {
   OGRFeatureDefn *featureDefn = layer->GetLayerDefn();
   OGRFeature *feature = OGRFeature::CreateFeature(featureDefn);
@@ -377,6 +382,9 @@ bool TopoFeature::get_multipolygon_features(OGRLayer* layer, std::string classNa
   return true;
 }
 
+/**
+ * create GDAL attribute in feature based on OGR feature definition
+ */
 bool TopoFeature::writeAttribute(OGRFeature* feature, OGRFeatureDefn* featureDefn, std::string name, std::string value) {
   int fi = featureDefn->GetFieldIndex(name.c_str());
   if (fi == -1) {
@@ -817,6 +825,10 @@ Point2 TopoFeature::get_point2(int ringi, int pi) {
     return _p2->inners()[ringi - 1][pi];
 }
 
+/**
+ * return next vertex in the ring
+ * return first vertex of ring when last vertex is supplied
+ */
 Point2 TopoFeature::get_next_point2_in_ring(int ringi, int i, int& pi) {
   Ring2 ring;
   if (ringi == 0)
@@ -949,6 +961,10 @@ bool TopoFeature::point_in_polygon(const Point2& p) {
   return insideOuter;
 }
 
+/**
+ * cleanup elevation information vectors
+ * clean _lidarelevs and _p2z
+ */
 void TopoFeature::cleanup_lidarelevs() {
   _lidarelevs.clear();
   _lidarelevs.shrink_to_fit();
@@ -1044,6 +1060,10 @@ bool TopoFeature::get_attribute(std::string attributeName, std::string& attribut
   return false;
 }
 
+/**
+ * lift polygon to a single height
+ * used for Flat class
+ */
 void TopoFeature::lift_all_boundary_vertices_same_height(int height) {
   int ringi = 0;
   Ring2& oring = _p2->outer();
@@ -1066,6 +1086,10 @@ std::vector<TopoFeature*>* TopoFeature::get_adjacent_features() {
   return _adjFeatures;
 }
 
+/**
+ * lift each vertex to its calculated height
+ * used for Boundary3D and TIN classes
+ */
 void TopoFeature::lift_each_boundary_vertices(float percentile) {
   //-- assign value for each vertex based on percentile
   bool hasHeight = false;

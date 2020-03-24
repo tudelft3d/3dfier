@@ -1191,6 +1191,9 @@ bool Map3d::add_las_file(PointFile pointFile) {
   return true;
 }
 
+/**
+ * query rtrees and iterate results to find adjacent features
+ */
 void Map3d::collect_adjacent_features(TopoFeature* f) {
   std::vector<PairIndexed> re;
   Box2 b = f->get_bbox2d();
