@@ -35,7 +35,7 @@ Any 2D input (which should be a planar partition) can be used as input, and each
   1. Water
   1. Forest
   1. Bridge
-  1. Separation (used for concrete slabs used along canals for instance, surely very "Dutch")
+  1. Separation (used for walls and fences)
 
 It is possible to define new classes, although that would require a bit of programming.
 
