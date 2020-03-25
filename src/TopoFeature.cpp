@@ -1162,18 +1162,18 @@ void TopoFeature::create_triangle_tree() {
     auto v0 = _vertices[t.v0].first;
     auto v1 = _vertices[t.v1].first;
     auto v2 = _vertices[t.v2].first;
-    Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
-    Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
-    Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
+    Point3D a = Point3D(v0.get<0>(), v0.get<1>(), v0.get<2>());
+    Point3D b = Point3D(v1.get<0>(), v1.get<1>(), v1.get<2>());
+    Point3D c = Point3D(v2.get<0>(), v2.get<1>(), v2.get<2>());
     _cgal_tris.push_back(Triangle3D(a,b,c));
   }
   for (auto& t : _triangles_vw) {
     auto v0 = _vertices_vw[t.v0].first;
     auto v1 = _vertices_vw[t.v1].first;
     auto v2 = _vertices_vw[t.v2].first;
-    Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
-    Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
-    Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
+    Point3D a = Point3D(v0.get<0>(), v0.get<1>(), v0.get<2>());
+    Point3D b = Point3D(v1.get<0>(), v1.get<1>(), v1.get<2>());
+    Point3D c = Point3D(v2.get<0>(), v2.get<1>(), v2.get<2>());
     _cgal_tris.push_back(Triangle3D(a,b,c));
   }
   _triangle_tree.rebuild(_cgal_tris.begin(), _cgal_tris.end());
@@ -1182,6 +1182,32 @@ void TopoFeature::create_triangle_tree() {
       std::clog << "build AABB_tree fail\n";
       _triangle_tree.clear();
   }
+}
+
+void TopoFeature::resize_distanceinside(int size) {
+  if (_distancesinside.size() == 0) {
+    for (int i = 0; i < size; ++i) {
+      _distancesinside.push_back(std::vector<double>());
+    }
+  }
+}
+
+// compute the shortest 3D distance between a triangle and a point
+double TopoFeature::distance_3d(AABB_Tree const& TriTree, LASpoint const& laspt) {
+  if (!TriTree.empty()) {
+    try {
+      Point3D p = Point3D(laspt.get_x(), laspt.get_y(), laspt.get_z());
+      double dist = TriTree.squared_distance(p);
+      return sqrt(dist);
+    }
+    catch (const std::exception& e) {
+      std::cerr << std::endl << e.what() << std::endl;
+    }
+  }
+  else {
+    std::clog << std::endl << "WARNING: AABB_tree empty" << std::endl;
+  }
+  return std::numeric_limits<double>::quiet_NaN();
 }
 
 double TopoFeature::get_point_distance(LASpoint const& laspt, float radius) {

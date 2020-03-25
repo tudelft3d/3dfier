@@ -57,7 +57,7 @@ int main(int argc, const char * argv[]) {
     "This is free software, and you are welcome to redistribute it\n"
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
 
-  int stats = 0;
+  bool stats = false;
   std::map<std::string, std::string> outputs;
   outputs["OBJ"] = "";
   outputs["OBJ-NoID"] = "";
@@ -140,7 +140,7 @@ int main(int argc, const char * argv[]) {
       return EXIT_FAILURE;
     }
     if (vm.count("stat_RMSE")) {
-      stats = 1;
+      stats = true;
     }
     else {
       boost::filesystem::path yp(f_yaml);
@@ -595,12 +595,12 @@ int main(int argc, const char * argv[]) {
       bStitching = false;
     }
   }
-  if (stats == 1) {
+  if (stats) {
       threedfy = true;
       cdt = true;
       std::clog << "\nPerforming 3D reconstruction in order to compute quality metrics" << std::endl;
   }
-  if (stats == 1 && multi_rmse) {
+  if (stats && multi_rmse) {
     std::vector<float> rpercentiles = {0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
     distance = true;
     for (int i = 0; i < rpercentiles.size(); i++) {
@@ -646,7 +646,7 @@ int main(int argc, const char * argv[]) {
     std::clog << "...3dfying done.\n";
 
     //-- add the elevation data to the map3d again for computing the Building-mesh - PC distances
-    if (stats == 1) {
+    if (stats) {
       distance = true;
       auto startPoints = boost::chrono::high_resolution_clock::now();
       map3d.construct_TriTrees();

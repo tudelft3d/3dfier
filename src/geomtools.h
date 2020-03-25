@@ -32,26 +32,12 @@
 #include "definitions.h"
 #include <random>
 
-#include <CGAL/Simple_cartesian.h>
-#include <CGAL/AABB_tree.h>
-#include <CGAL/AABB_traits.h>
-#include <CGAL/AABB_triangle_primitive.h>
-
-typedef CGAL::Simple_cartesian<double>                    K;
-typedef K::Point_3                                        Point3D;
-typedef K::Triangle_3                                     Triangle3D;
-typedef std::list<Triangle3D>::iterator                   AABB_Iterator;
-typedef CGAL::AABB_triangle_primitive<K, AABB_Iterator>   AABB_Primitive;
-typedef CGAL::AABB_traits<K, AABB_Primitive>              AABB_triangle_traits;
-typedef CGAL::AABB_tree<AABB_triangle_traits>             AABB_Tree;
-
 std::string gen_key_bucket(const Point2* p);
 std::string gen_key_bucket(const Point3* p);
 std::string gen_key_bucket(const Point3* p, float z);
 
 double distance(const Point2 &p1, const Point2 &p2);
 double sqr_distance(const Point2 &p1, const Point2 &p2);
-double distance_3d(AABB_Tree const& TriTree, LASpoint const& laspt);
 bool   getCDT(Polygon2* pgn,
             const std::vector< std::vector<int> > &z, 
             std::vector< std::pair<Point3, std::string> > &vertices, 

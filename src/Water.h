@@ -37,7 +37,7 @@ public:
   Water(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref);
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within);
-  bool          push_distance(double dist, int lasclass);
+  bool          push_distance(double dist);
   void          clear_distances();
   void          get_citygml(std::wostream& of);
   void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts);

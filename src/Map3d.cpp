@@ -320,8 +320,8 @@ void Map3d::create_citygml_imgeo_header(std::wostream& of) {
     of << "</gml:boundedBy>\n";
 }
 
-void Map3d::get_csv_buildings(std::wostream& of, int stats) {
-  if (stats == 1) {
+void Map3d::get_csv_buildings(std::wostream& of, bool stats) {
+  if (stats) {
     of << "id,roof,ground,rmse" << std::endl;
   }
   else {
@@ -347,7 +347,7 @@ void Map3d::get_csv_buildings_all_elevation_points(std::wostream& of) {
   }
 }
 
-void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, int stats) {
+void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, bool stats) {
   //-- ground heights
   std::vector<float> gpercentiles = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
   std::vector<float> rpercentiles = {0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
@@ -357,7 +357,7 @@ void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, int stats) {
     of << ",ground-" << each;
   for (auto& each : rpercentiles) {
     of << ",roof-" << each;
-    if (stats == 1) {
+    if (stats) {
         of << ",rmse-" << each;
     }
   }
@@ -365,7 +365,7 @@ void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, int stats) {
   of << ",nr_ground_pts";
   of << ",nr_roof_pts";
   of << std::endl;
-  if (stats == 1) {
+  if (stats) {
     for (auto& p : _lsFeatures) {
       if (p->get_class() == BUILDING) {
         Building* b = dynamic_cast<Building*>(p);
@@ -681,16 +681,13 @@ void Map3d::construct_TriTrees() {
   for (auto& f : _lsFeatures) {
     try {
       f->create_triangle_tree();
-      if (f->_distancesinside.size()==0) {
-//          f->_distancesinside.resize(8);
-          for (int i = 0; i < 8; ++i) {
-              f->_distancesinside.push_back( std::vector<double>() );
-          }
+      if (f->get_class() == BUILDING) {
+        f->resize_distanceinside(8);
+      }
+      else {
+        f->resize_distanceinside(1);
       }
       f->clear_distances();
-//      if (f->get_class() == BUILDING) {
-//        f->clear_distances();
-//      }
     }
     catch (const std::exception& e) {
       std::cerr << std::endl << "AABB Tree failed for " << f->get_id() << " (" << f->get_class() << ") with error: " << e.what() << std::endl;
@@ -888,7 +885,7 @@ void Map3d::add_point_distance(LASpoint const& laspt, bool multi_rmse) {
     if (bInsert == true) {
       double dist = f->get_point_distance(laspt, radius);
       if (std::isfinite(dist)) {
-        f->push_distance(dist, c);
+        f->push_distance(dist);
       }
     }
   }
