@@ -85,26 +85,6 @@ std::string Building::get_all_z_values() {
   return ss.str();
 }
 
-//TODO B: is this function used or needed?
-std::string Building::get_all_distances() {
-  std::vector<float> alldist (_distancesinside[0].begin(), _distancesinside[0].end());
-  alldist.insert(alldist.end(), _distancesinside[0].begin(), _distancesinside[0].end());
-  std::sort(alldist.begin(), alldist.end());
-  std::stringstream ss;
-  bool first = true;
-  for (auto& z : alldist) {
-    // skip seperator while writing first value
-    if (first) {
-      first = false;
-    }
-    else {
-      ss << "|";
-    }
-    ss << z / 100.0;
-  }
-  return ss.str();
-}
-
 int Building::get_height_ground_at_percentile(float percentile) {
   if (_zvaluesground.empty() == false) {
     std::nth_element(_zvaluesground.begin(), _zvaluesground.begin() + (_zvaluesground.size() * percentile), _zvaluesground.end());
@@ -279,13 +259,15 @@ void Building::clear_distances() {
   if (!_distancesinside[idx].empty()) { _distancesinside[idx].clear(); }
 }
 
-bool Building::push_distance(double dist, int lasclass) {
-  //TODO B: remove the if clause it doesnt make sense
-  if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0) ) {
-    int key = _heightref_top * 100;
-    int idx = _rpctile_map[key];
-    _distancesinside[idx].push_back(dist);
+bool Building::push_distance(double dist) {
+  if (_distancesinside.size() == 0) {
+    for (int i = 0; i < 8; ++i) {
+      _distancesinside.push_back(std::vector<double>());
+    }
   }
+  int key = _heightref_top * 100;
+  int idx = _rpctile_map[key];
+  _distancesinside[idx].push_back(dist);
   return true;
 }
 
@@ -457,21 +439,18 @@ void Building::cleanup_elevations() {
   //Do not cleanup buildings since CSV output uses the elevation vectors
 }
 
-void Building::get_csv(std::wostream& of, int stats) {
+void Building::get_csv(std::wostream& of, bool stats) {
   of << this->get_id() << "," <<
     std::setprecision(2) << std::fixed <<
     this->get_height_roof_at_percentile(_heightref_top) / 100.0 << "," <<
-    this->get_height_ground_at_percentile(_heightref_base) / 100.0 << "\n";
-  if (stats == 1) {
+    this->get_height_ground_at_percentile(_heightref_base) / 100.0;
+  if (stats) {
     std::vector<double> rmse = this->get_RMSE();
     int key = _heightref_top * 100;
     int idx = _rpctile_map[key];
-    of << "," << rmse[idx] << std::endl;
+    of << "," << rmse[idx];
   }
-  else {
-    std::clog << this->get_id() << "\t" << "no RMSE" << std::endl;
-    of << std::endl;
-  }
+  of << std::endl;
 }
 
 std::string Building::get_mtl() {

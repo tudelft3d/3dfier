@@ -34,6 +34,18 @@
 #include "io.h"
 #include "polyfit.hpp"
 #include "nlohmann-json/json.hpp"
+#include <CGAL/Simple_cartesian.h>
+#include <CGAL/AABB_tree.h>
+#include <CGAL/AABB_traits.h>
+#include <CGAL/AABB_triangle_primitive.h>
+
+typedef CGAL::Simple_cartesian<double>                    Kc;
+typedef Kc::Point_3                                       Point3D;
+typedef Kc::Triangle_3                                    Triangle3D;
+typedef std::list<Triangle3D>::iterator                   AABB_Iterator;
+typedef CGAL::AABB_triangle_primitive<Kc, AABB_Iterator>  AABB_Primitive;
+typedef CGAL::AABB_traits<Kc, AABB_Primitive>             AABB_triangle_traits;
+typedef CGAL::AABB_tree<AABB_triangle_traits>             AABB_Tree;
 
 class TopoFeature {
 public:
@@ -51,7 +63,7 @@ public:
   virtual void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long>& dPts) = 0;
   virtual void          get_citygml_imgeo(std::wostream& of) = 0;
   virtual bool          get_shape(OGRLayer*, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap()) = 0;
-  virtual bool          push_distance(double dist, int lasclass) = 0;
+  virtual bool          push_distance(double dist) = 0;
   virtual void          clear_distances() = 0;
   virtual void          cleanup_elevations() = 0;
 
@@ -84,8 +96,10 @@ public:
   void         get_cityjson_attributes(nlohmann::json& f, const AttributeMap& attributes);
   void         cleanup_lidarelevs();
   void         create_triangle_tree();
+  void         resize_distanceinside(int size);
   double       get_point_distance(LASpoint const& laspt, float radius);
-
+  double       distance_3d(AABB_Tree const& TriTree, LASpoint const& laspt);
+  
 protected:
   Polygon2*                         _p2;
   std::vector< std::vector<int> >   _p2z;
