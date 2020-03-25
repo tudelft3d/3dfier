@@ -96,7 +96,6 @@ public:
   void         get_cityjson_attributes(nlohmann::json& f, const AttributeMap& attributes);
   void         cleanup_lidarelevs();
   void         create_triangle_tree();
-  void         resize_distanceinside(int size);
   double       get_point_distance(LASpoint const& laspt, float radius);
   double       distance_3d(AABB_Tree const& TriTree, LASpoint const& laspt);
   
@@ -117,7 +116,7 @@ protected:
   std::vector<Triangle>                           _triangles_vw;
   AABB_Tree                                       _triangle_tree;
   std::list<Triangle3D>                           _cgal_tris;
-  std::vector< std::vector<double> >              _distancesinside;
+  std::unordered_map< int, std::vector<double> >  _distancesinside;
 
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(const Point2& p, double z, float radius);

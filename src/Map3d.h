@@ -57,8 +57,7 @@ public:
   bool threeDfy(bool stitching = true);
   bool construct_CDT();
   void construct_TriTrees();
-  void add_elevation_point(LASpoint const& laspt);
-  void add_point_distance(LASpoint const& laspt, bool multi_rmse);
+  void add_elevation_point(LASpoint const& laspt, bool distance = false, bool multi_rmse = false);
   void cleanup_elevations();
 
   unsigned long get_num_polygons();

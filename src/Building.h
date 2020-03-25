@@ -49,7 +49,6 @@ public:
   void          get_csv(std::wostream& of, bool stats);
   void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts);
   std::string   get_all_z_values();
-  std::string   get_all_distances();
   std::string   get_mtl();
   bool          get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap());
   TopoClass     get_class();
@@ -60,8 +59,9 @@ public:
   int           get_height_roof_at_percentile(float percentile);
   int           get_nr_roof_pts();
   int           get_nr_ground_pts();
-  std::vector<double> get_RMSE();
+  std::unordered_map<int, double> get_RMSE();
   void          set_heightref_top(float h);
+  void          add_roof_percentile(int percentile);
   std::map<std::string,float> compute_histogram();
   float         find_roof_z_threshold();
   float         get_roof_variance();
@@ -80,7 +80,7 @@ private:
   static bool          _building_inner_walls;
   static std::set<int> _las_classes_roof;
   static std::set<int> _las_classes_ground;
-  std::map<int,int>    _rpctile_map;
+  std::vector<int>     _roof_percentiles;
   std::vector<int>     _zhistogram;
 };
 

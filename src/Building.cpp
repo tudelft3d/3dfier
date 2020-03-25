@@ -46,12 +46,6 @@ Building::Building(char *wkt, std::string layername, AttributeMap attributes, st
   _building_triangulate = building_triangulate;
   _building_include_floor = building_include_floor;
   _building_inner_walls = building_inner_walls;
-  _rpctile_map[25] = 0;
-  _rpctile_map[50] = 1;
-  _rpctile_map[75] = 2;
-  _rpctile_map[90] = 3;
-  _rpctile_map[95] = 4;
-  _rpctile_map[99] = 5;
 }
 
 void Building::set_las_classes_roof(std::set<int> theset) {
@@ -123,19 +117,25 @@ int Building::get_nr_ground_pts() {
   }
 }
 
-std::vector<double> Building::get_RMSE() {
-  std::vector<double> rmse;
-  for (int i = 0; i < _distancesinside.size(); i++) {
-    auto& distinside = _distancesinside[i];
+std::unordered_map<int, double> Building::get_RMSE() {
+  std::unordered_map<int, double> rmse;
+  if (_roof_percentiles.empty()) {
+    add_roof_percentile(_heightref_top * 100);
+  }
+  for(auto& rp: _roof_percentiles){
+    auto& distinside = _distancesinside[rp];
     if (distinside.empty()) {
-      rmse.push_back(-99.99);
+      rmse[rp] = -99.99;
     }
     else {
       double sum = 0.0;
-      for (double& d : distinside) sum += d;
+      for (double d : distinside) {
+        sum += d;
+      }
       double n = distinside.size();
-      auto rm = sqrt(sum/n);
-      rmse.push_back(rm);
+      double rm = sqrt(sum/n);
+      rmse[rp] = rm;
+      std::cout << sum << " - " << n << std::endl;
     }
   }
   return rmse;
@@ -255,20 +255,18 @@ bool Building::add_elevation_point(Point2 &p, double z, float radius, int lascla
 
 void Building::clear_distances() {
   int key = _heightref_top * 100;
-  int idx = _rpctile_map[key];
-  if (!_distancesinside[idx].empty()) { _distancesinside[idx].clear(); }
+  if (!_distancesinside[key].empty()) { _distancesinside[key].clear(); }
 }
 
 bool Building::push_distance(double dist) {
-  if (_distancesinside.size() == 0) {
-    for (int i = 0; i < 8; ++i) {
-      _distancesinside.push_back(std::vector<double>());
-    }
-  }
   int key = _heightref_top * 100;
-  int idx = _rpctile_map[key];
-  _distancesinside[idx].push_back(dist);
+  _distancesinside[key].push_back(dist);
   return true;
+}
+
+void Building::add_roof_percentile(int percentile) {
+  _roof_percentiles.push_back(percentile);
+  _distancesinside[percentile] = std::vector<double>();
 }
 
 void Building::construct_building_walls(const NodeColumn& nc) {
@@ -445,10 +443,9 @@ void Building::get_csv(std::wostream& of, bool stats) {
     this->get_height_roof_at_percentile(_heightref_top) / 100.0 << "," <<
     this->get_height_ground_at_percentile(_heightref_base) / 100.0;
   if (stats) {
-    std::vector<double> rmse = this->get_RMSE();
+    std::unordered_map<int, double> rmse = this->get_RMSE();
     int key = _heightref_top * 100;
-    int idx = _rpctile_map[key];
-    of << "," << rmse[idx];
+    of << "," << rmse[key];
   }
   of << std::endl;
 }

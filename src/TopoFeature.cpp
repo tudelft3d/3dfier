@@ -1184,14 +1184,6 @@ void TopoFeature::create_triangle_tree() {
   }
 }
 
-void TopoFeature::resize_distanceinside(int size) {
-  if (_distancesinside.size() == 0) {
-    for (int i = 0; i < size; ++i) {
-      _distancesinside.push_back(std::vector<double>());
-    }
-  }
-}
-
 // compute the shortest 3D distance between a triangle and a point
 double TopoFeature::distance_3d(AABB_Tree const& TriTree, LASpoint const& laspt) {
   if (!TriTree.empty()) {
