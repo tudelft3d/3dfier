@@ -75,6 +75,15 @@ void Map3d::set_building_heightref_roof(float h) {
   _building_heightref_roof = h;
 }
 
+void Map3d::set_building_features_heightref_top(float h) {
+  for (auto& f : _lsFeatures) {
+    if (f->get_class() == BUILDING) {
+      Building* b = dynamic_cast<Building*>(f);
+      b->set_heightref_top(h);
+    }
+  }
+}
+
 void Map3d::set_building_heightref_ground(float h) {
   _building_heightref_ground = h;
 }
@@ -311,12 +320,17 @@ void Map3d::create_citygml_imgeo_header(std::wostream& of) {
     of << "</gml:boundedBy>\n";
 }
 
-void Map3d::get_csv_buildings(std::wostream& of) {
-  of << "id,roof,ground\n";
+void Map3d::get_csv_buildings(std::wostream& of, int stats) {
+  if (stats == 1) {
+    of << "id,roof,ground,rmse" << std::endl;
+  }
+  else {
+    of << "id,roof,ground" << std::endl;
+  }
   for (auto& p : _lsFeatures) {
     if (p->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(p);
-      b->get_csv(of);
+      b->get_csv(of, stats);
     }
   }
 }
@@ -333,30 +347,60 @@ void Map3d::get_csv_buildings_all_elevation_points(std::wostream& of) {
   }
 }
 
-void Map3d::get_csv_buildings_multiple_heights(std::wostream& of) {
+void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, int stats) {
   //-- ground heights
   std::vector<float> gpercentiles = {0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f};
-  std::vector<float> rpercentiles = {0.0f, 0.1f, 0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
+  std::vector<float> rpercentiles = {0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
   of << std::setprecision(2) << std::fixed;
   of << "id";
   for (auto& each : gpercentiles)
     of << ",ground-" << each;
-  for (auto& each : rpercentiles)
+  for (auto& each : rpercentiles) {
     of << ",roof-" << each;
+    if (stats == 1) {
+        of << ",rmse-" << each;
+    }
+  }
+  of << ",roof_flat";
+  of << ",nr_ground_pts";
+  of << ",nr_roof_pts";
   of << std::endl;
-  for (auto& p : _lsFeatures) {
-    if (p->get_class() == BUILDING) {
-      Building* b = dynamic_cast<Building*>(p);
-      of << b->get_id();
-      for (auto& each : gpercentiles) {
-        int h = b->get_height_ground_at_percentile(each);
-        of << "," << float(h)/100;
+  if (stats == 1) {
+    for (auto& p : _lsFeatures) {
+      if (p->get_class() == BUILDING) {
+        Building* b = dynamic_cast<Building*>(p);
+        std::vector<double> rmse = b->get_RMSE();
+        of << b->get_id();
+        for (auto& each : gpercentiles) {
+          int h = b->get_height_ground_at_percentile(each);
+          of << "," << float(h)/100;
+        }
+        for (int i = 0; i < rpercentiles.size(); i++) {
+          int h = b->get_height_roof_at_percentile(rpercentiles[i]);
+          of << "," << float(h)/100;
+          of << "," << rmse[i];
+        }
+        of << "," << b->has_flat_roof();
+        of << "," << b->get_nr_ground_pts();
+        of << "," << b->get_nr_roof_pts() << std::endl;
       }
-      for (auto& each : rpercentiles) {
-        int h = b->get_height_roof_at_percentile(each);
-        of << "," << float(h)/100;
+    }
+  }
+  else {
+    for (auto& p : _lsFeatures) {
+      if (p->get_class() == BUILDING) {
+        Building* b = dynamic_cast<Building*>(p);
+        of << b->get_id();
+        for (auto& each : gpercentiles) {
+          int h = b->get_height_ground_at_percentile(each);
+          of << "," << float(h)/100;
+        }
+        for (auto& each : rpercentiles) {
+          int h = b->get_height_roof_at_percentile(each);
+          of << "," << float(h)/100;
+        }
+        of << std::endl;
       }
-      of << std::endl;
     }
   }
 }
@@ -632,6 +676,29 @@ const std::vector<TopoFeature*>& Map3d::get_polygons3d() {
   return _lsFeatures;
 }
 
+void Map3d::construct_TriTrees() {
+  std::clog << "=====  /AABB Tree =====\n";
+  for (auto& f : _lsFeatures) {
+    try {
+      f->create_triangle_tree();
+      if (f->_distancesinside.size()==0) {
+//          f->_distancesinside.resize(8);
+          for (int i = 0; i < 8; ++i) {
+              f->_distancesinside.push_back( std::vector<double>() );
+          }
+      }
+      f->clear_distances();
+//      if (f->get_class() == BUILDING) {
+//        f->clear_distances();
+//      }
+    }
+    catch (const std::exception& e) {
+      std::cerr << std::endl << "AABB Tree failed for " << f->get_id() << " (" << f->get_class() << ") with error: " << e.what() << std::endl;
+    }
+  }
+  std::clog << "=====  AABB Tree/ =====\n";
+}
+
 /**
  * process a LAS/LAZ point
  * search rtrees for intersecting features
@@ -731,6 +798,99 @@ void Map3d::add_elevation_point(LASpoint const& laspt) {
 void Map3d::cleanup_elevations() {
   for (auto& f : _lsFeatures) {
     f->cleanup_elevations();
+  }
+}
+
+void Map3d::add_point_distance(LASpoint const& laspt, bool multi_rmse) {
+  if (laspt.return_number != laspt.number_of_returns)
+    return;
+
+  std::vector<PairIndexed> re;
+  float x = laspt.get_x();
+  float y = laspt.get_y();
+  Point2 minp(x - _radius_vertex_elevation, y - _radius_vertex_elevation);
+  Point2 maxp(x + _radius_vertex_elevation, y + _radius_vertex_elevation);
+  Box2 querybox(minp, maxp);
+  _rtree.query(bgi::intersects(querybox), std::back_inserter(re));
+  minp = Point2(x - _building_radius_vertex_elevation, y - _building_radius_vertex_elevation);
+  maxp = Point2(x + _building_radius_vertex_elevation, y + _building_radius_vertex_elevation);
+  querybox = Box2(minp, maxp);
+  _rtree_buildings.query(bgi::intersects(querybox), std::back_inserter(re));
+
+  for (auto& v : re) {
+    TopoFeature* f = v.second;
+    float radius = _radius_vertex_elevation;
+
+    int c = (int)laspt.classification;
+    bool bInsert = false;
+    bool bWithin = false;
+    if (f->get_class() == BUILDING) {
+      bInsert = true;
+      radius = _building_radius_vertex_elevation;
+    }
+    else if (f->get_class() == TERRAIN) {
+      if (_las_classes_allowed[LAS_TERRAIN].empty() || _las_classes_allowed[LAS_TERRAIN].count(c) > 0) {
+        bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_TERRAIN].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
+    }
+    else if (f->get_class() == FOREST) {
+      if (_las_classes_allowed[LAS_FOREST].empty() || _las_classes_allowed[LAS_FOREST].count(c) > 0) {
+        bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_FOREST].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
+    }
+    else if (f->get_class() == ROAD) {
+      if (_las_classes_allowed[LAS_ROAD].empty() || _las_classes_allowed[LAS_ROAD].count(c) > 0) {
+        bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_ROAD].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
+    }
+    else if (f->get_class() == WATER) {
+      if (_las_classes_allowed[LAS_WATER].empty() || _las_classes_allowed[LAS_WATER].count(c) > 0) {
+        bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_WATER].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
+    }
+    else if (f->get_class() == SEPARATION) {
+      if (_las_classes_allowed[LAS_SEPARATION].empty() || _las_classes_allowed[LAS_SEPARATION].count(c) > 0) {
+        bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_SEPARATION].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
+    }
+    else if (f->get_class() == BRIDGE) {
+      if (_las_classes_allowed[LAS_BRIDGE].empty() || _las_classes_allowed[LAS_BRIDGE].count(c) > 0) {
+        bInsert = true;
+      }
+      if (_las_classes_allowed_within[LAS_BRIDGE].count(c) > 0) {
+        bInsert = true;
+        bWithin = true;
+      }
+    }
+    if (multi_rmse) {
+      if (f->get_class() != BUILDING) { bInsert = false; }
+    }
+    if (bInsert == true) {
+      double dist = f->get_point_distance(laspt, radius);
+      if (std::isfinite(dist)) {
+        f->push_distance(dist, c);
+      }
+    }
   }
 }
 
@@ -1116,7 +1276,7 @@ void Map3d::extract_feature(OGRFeature *f, std::string layername, const char *id
  * apply filters set in configuration (class, thinning, extent)
  * check if point intersects with Map3D bounding box
  */
-bool Map3d::add_las_file(PointFile pointFile) {
+bool Map3d::add_las_file(PointFile pointFile, bool distance, bool multi_rmse) {
   std::clog << "Reading LAS/LAZ file: " << pointFile.filename << std::endl;
 
   LASreadOpener lasreadopener;
@@ -1159,24 +1319,46 @@ bool Map3d::add_las_file(PointFile pointFile) {
       }
       printProgressBar(0);
       int i = 0;
-      while (lasreader->read_point()) {
-        LASpoint const& p = lasreader->point;
-        //-- set the thinning filter
-        if (i % pointFile.thinning == 0) {
-          //-- set the classification filter
-          if (std::find(lasomits.begin(), lasomits.end(), (int)p.classification) == lasomits.end()) {
-            //-- set the bounds filter
-            if (check_bounds(p.X, p.X, p.Y, p.Y)) {
-              this->add_elevation_point(p);
+      if (!distance) {
+        while (lasreader->read_point()) {
+          LASpoint const& p = lasreader->point;
+          //-- set the thinning filter
+          if (i % pointFile.thinning == 0) {
+            //-- set the classification filter
+            if (std::find(lasomits.begin(), lasomits.end(), (int)p.classification) == lasomits.end()) {
+              //-- set the bounds filter
+              if (check_bounds(p.X, p.X, p.Y, p.Y)) {
+                this->add_elevation_point(p);
+              }
             }
           }
+          if (i % (pointCount / 100) == 0)
+            printProgressBar(100 * (i / double(pointCount)));
+          i++;
         }
-        if (i % (pointCount / 100) == 0)
-          printProgressBar(100 * (i / double(pointCount)));
-        i++;
+        printProgressBar(100);
+        std::clog << std::endl;
       }
-      printProgressBar(100);
-      std::clog << std::endl;
+      else if (distance) {
+        while (lasreader->read_point()) {
+          LASpoint const& p = lasreader->point;
+          //-- set the thinning filter
+          if (i % pointFile.thinning == 0) {
+            //-- set the classification filter
+            if (std::find(lasomits.begin(), lasomits.end(), (int)p.classification) == lasomits.end()) {
+              //-- set the bounds filter
+              if (check_bounds(p.X, p.X, p.Y, p.Y)) {
+                this->add_point_distance(p, multi_rmse);
+              }
+            }
+          }
+          if (i % (pointCount / 100) == 0)
+            printProgressBar(100 * (i / double(pointCount)));
+          i++;
+        }
+        printProgressBar(100);
+        std::clog << std::endl;
+      }
     }
     else {
       std::clog << "\tskipping file, bounds do not intersect polygon extent\n";

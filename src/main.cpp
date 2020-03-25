@@ -57,6 +57,7 @@ int main(int argc, const char * argv[]) {
     "This is free software, and you are welcome to redistribute it\n"
     "under certain conditions; for details run 3dfier with the '--license' option.\n";
 
+  int stats = 0;
   std::map<std::string, std::string> outputs;
   outputs["OBJ"] = "";
   outputs["OBJ-NoID"] = "";
@@ -82,6 +83,7 @@ int main(int argc, const char * argv[]) {
       ("help", "View all options")
       ("version", "View version")
       ("license", "View license")
+      ("stat_RMSE", "Compute the Root Mean Square Error from distances between the 3D Building and its point cloud")
       ("OBJ", po::value<std::string>(&outputs["OBJ"]), "Output ")
       ("OBJ-NoID", po::value<std::string>(&outputs["OBJ-NoID"]), "Output ")
       ("CityGML", po::value<std::string>(&outputs["CityGML"]), "Output ")
@@ -136,6 +138,9 @@ int main(int argc, const char * argv[]) {
       std::cerr << "ERROR: one YAML config file must be specified." << std::endl;
       std::cout << std::endl << pomain << std::endl;
       return EXIT_FAILURE;
+    }
+    if (vm.count("stat_RMSE")) {
+      stats = 1;
     }
     else {
       boost::filesystem::path yp(f_yaml);
@@ -548,8 +553,10 @@ int main(int argc, const char * argv[]) {
 
   //-- add the elevation data to the map3d
   auto startPoints = boost::chrono::high_resolution_clock::now();
+  bool multi_rmse = false;
+  bool distance = false;
   for (auto file : elevationFiles) {
-    bool added = map3d.add_las_file(file);
+    bool added = map3d.add_las_file(file, distance, multi_rmse);
     if (!added) {
       std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
       return EXIT_FAILURE;
@@ -575,6 +582,7 @@ int main(int argc, const char * argv[]) {
     else if (outputs["CSV-BUILDINGS-MULTIPLE"] != "") {
       threedfy = false;
       cdt = false;
+      multi_rmse = true;
       std::clog << "CSV-BUILDINGS-MULTIPLE: no 3D reconstruction" << std::endl;
     }
     else if (outputs["CSV-BUILDINGS-ALL-Z"] != "") {
@@ -587,21 +595,73 @@ int main(int argc, const char * argv[]) {
       bStitching = false;
     }
   }
-  if (threedfy) {
-    auto startThreeDfy = boost::chrono::high_resolution_clock::now();
-    map3d.threeDfy(bStitching);
-    print_duration("Lifting, stitching and vertical walls done in %lld seconds || %02d:%02d:%02d\n", startThreeDfy);
+  if (stats == 1) {
+      threedfy = true;
+      cdt = true;
+      std::clog << "\nPerforming 3D reconstruction in order to compute quality metrics" << std::endl;
   }
-  if (cdt) {
-    auto startCDT = boost::chrono::high_resolution_clock::now();
-    if (!map3d.construct_CDT()) {
-      return EXIT_FAILURE;
-    }
-    print_duration("CDT created in %lld seconds || %02d:%02d:%02d\n", startCDT);
-  }
-  std::clog << "...3dfying done.\n";
-  map3d.cleanup_elevations();
+  if (stats == 1 && multi_rmse) {
+    std::vector<float> rpercentiles = {0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
+    distance = true;
+    for (int i = 0; i < rpercentiles.size(); i++) {
+      float pctile = rpercentiles[i];
+      std::clog << std::setprecision(2) << "\nPerforming 3D reconstruction of Buildings for roof percentile-" << pctile << std::endl;
+      map3d.set_building_features_heightref_top(pctile);
 
+      auto startThreeDfy = boost::chrono::high_resolution_clock::now();
+      map3d.threeDfy(bStitching);
+      print_duration("Lifting, stitching and vertical walls done in %lld seconds || %02d:%02d:%02d\n", startThreeDfy);
+
+      auto startCDT = boost::chrono::high_resolution_clock::now();
+      if (!map3d.construct_CDT()) {
+        return EXIT_FAILURE;
+      }
+      print_duration("CDT created in %lld seconds || %02d:%02d:%02d\n", startCDT);
+
+      auto startPoints = boost::chrono::high_resolution_clock::now();
+      map3d.construct_TriTrees();
+      for (auto file : elevationFiles) {
+        bool added = map3d.add_las_file(file, distance, multi_rmse);
+        if (!added) {
+          std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
+          return EXIT_FAILURE;
+        }
+      }
+      print_duration("All points read in %lld seconds || %02d:%02d:%02d\n", startPoints);
+    }
+  }
+  else {
+    if (threedfy) {
+      auto startThreeDfy = boost::chrono::high_resolution_clock::now();
+      map3d.threeDfy(bStitching);
+      print_duration("Lifting, stitching and vertical walls done in %lld seconds || %02d:%02d:%02d\n", startThreeDfy);
+    }
+    if (cdt) {
+      auto startCDT = boost::chrono::high_resolution_clock::now();
+      if (!map3d.construct_CDT()) {
+        return EXIT_FAILURE;
+      }
+      print_duration("CDT created in %lld seconds || %02d:%02d:%02d\n", startCDT);
+    }
+    std::clog << "...3dfying done.\n";
+
+    //-- add the elevation data to the map3d again for computing the Building-mesh - PC distances
+    if (stats == 1) {
+      distance = true;
+      auto startPoints = boost::chrono::high_resolution_clock::now();
+      map3d.construct_TriTrees();
+      for (auto file : elevationFiles) {
+        bool added = map3d.add_las_file(file, distance, multi_rmse);
+        if (!added) {
+          std::cerr << "ERROR: corrupt file " << file.filename << std::endl;
+          return EXIT_FAILURE;
+        }
+      }
+      print_duration("All points read in %lld seconds || %02d:%02d:%02d\n", startPoints);
+    }
+  }
+  map3d.cleanup_elevations();
+  
   //-- iterate over all output
   for (auto& output : outputs) {
     auto startFileWriting = boost::chrono::high_resolution_clock::now();
@@ -648,11 +708,11 @@ int main(int argc, const char * argv[]) {
     }
     else if (format == "CSV-BUILDINGS") {
       std::clog << "CSV output (only of the buildings): " << ofname << std::endl;
-      map3d.get_csv_buildings(of);
+      map3d.get_csv_buildings(of, stats);
     }
     else if (format == "CSV-BUILDINGS-MULTIPLE") {
       std::clog << "CSV output with multiple heights (only of the buildings): " << ofname << std::endl;
-      map3d.get_csv_buildings_multiple_heights(of);
+      map3d.get_csv_buildings_multiple_heights(of, stats);
     }
     else if (format == "CSV-BUILDINGS-ALL-Z") {
       std::clog << "CSV output with all z values (only of the buildings): " << ofname << std::endl;

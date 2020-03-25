@@ -34,6 +34,7 @@
  */
 
 #include "TopoFeature.h"
+#include <limits>
 
 TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attributes, std::string pid) {
   _id = pid;
@@ -1154,11 +1155,49 @@ void TopoFeature::lift_each_boundary_vertices(float percentile) {
   }
 }
 
+void TopoFeature::create_triangle_tree() {
+  if (!_triangle_tree.empty()) { _triangle_tree.clear(); }
+  if (!_cgal_tris.empty()) { _cgal_tris.clear(); }
+  for (auto& t : _triangles) {
+    auto v0 = _vertices[t.v0].first;
+    auto v1 = _vertices[t.v1].first;
+    auto v2 = _vertices[t.v2].first;
+    Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
+    Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
+    Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
+    _cgal_tris.push_back(Triangle3D(a,b,c));
+  }
+  for (auto& t : _triangles_vw) {
+    auto v0 = _vertices_vw[t.v0].first;
+    auto v1 = _vertices_vw[t.v1].first;
+    auto v2 = _vertices_vw[t.v2].first;
+    Point3D a(v0.get<0>(), v0.get<1>(), v0.get<2>());
+    Point3D b(v1.get<0>(), v1.get<1>(), v1.get<2>());
+    Point3D c(v2.get<0>(), v2.get<1>(), v2.get<2>());
+    _cgal_tris.push_back(Triangle3D(a,b,c));
+  }
+  _triangle_tree.rebuild(_cgal_tris.begin(), _cgal_tris.end());
+  bool suc = _triangle_tree.accelerate_distance_queries();
+  if (!suc) {
+      std::clog << "build AABB_tree fail\n";
+      _triangle_tree.clear();
+  }
+}
+
+double TopoFeature::get_point_distance(LASpoint const& laspt, float radius) {
+  Point2 p(laspt.get_x(), laspt.get_y());
+  double dist = std::numeric_limits<double>::quiet_NaN();
+  if (within_range(p, radius)) {
+    dist = distance_3d(_triangle_tree, laspt);
+  }
+  return dist;
+}
+
 /**
  * Flat describes objects with a single height
  * Functions contain lifting to a single height
  */
-
+ 
 Flat::Flat(char* wkt, std::string layername, AttributeMap attributes, std::string pid)
   : TopoFeature(wkt, layername, attributes, pid) {}
 

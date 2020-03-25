@@ -42,6 +42,7 @@
 #include <vector>
 #include <unordered_set>
 #include <boost/heap/fibonacci_heap.hpp>
+#include <limits>
 
 typedef CGAL::Exact_predicates_inexact_constructions_kernel			K;
 
@@ -63,6 +64,7 @@ typedef std::vector<heap_handle> heap_handle_vec;
 
 typedef CGAL::Projection_traits_xy_3<K>								Gt;
 typedef CGAL::Triangulation_vertex_base_with_id_2<Gt>				Vb;
+
 struct FaceInfo2
 {
   FaceInfo2() {}
@@ -80,6 +82,7 @@ typedef CGAL::Exact_predicates_tag                                Itag;
 typedef CGAL::Constrained_Delaunay_triangulation_2<Gt, Tds, Itag> CDT;
 typedef CDT::Point                                                Point;
 typedef CGAL::Polygon_2<Gt>                                       Polygon_2;
+
 
 struct PointXYHash {
   std::size_t operator()(Point const& p) const noexcept {
@@ -249,6 +252,27 @@ double sqr_distance(const Point2 &p1, const Point2 &p2) {
   double dx = p1.x() - p2.x();
   double dy = p1.y() - p2.y();
   return dx * dx + dy * dy;
+}
+
+// compute the shortest 3D distance between a triangle and a point
+double distance_3d(AABB_Tree const& TriTree, LASpoint const& laspt){
+  Point3D p(laspt.get_x(), laspt.get_y(), laspt.get_z());
+  double dist = std::numeric_limits<double>::quiet_NaN();
+  if (!TriTree.empty()) {
+    try {
+      dist = TriTree.squared_distance(p);
+      return sqrt(dist);
+    }
+    catch (const std::exception& e){
+      std::cerr << std::endl << e.what() << std::endl;
+      return dist;
+    }
+  }
+  else {
+    std::clog << std::endl << "WARNING: AABB_tree empty" << std::endl;
+    return dist;
+  }
+
 }
 
 //--- TIN Simplification

@@ -27,6 +27,7 @@
 */
 
 #include "Building.h"
+#include <map>
 
 //-- static variable
 float Building::_heightref_top;
@@ -36,6 +37,7 @@ bool Building::_building_include_floor;
 bool Building::_building_inner_walls;
 std::set<int> Building::_las_classes_roof;
 std::set<int> Building::_las_classes_ground;
+
 Building::Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base, bool building_triangulate, bool building_include_floor, bool building_inner_walls)
   : Flat(wkt, layername, attributes, pid)
 {
@@ -44,16 +46,24 @@ Building::Building(char *wkt, std::string layername, AttributeMap attributes, st
   _building_triangulate = building_triangulate;
   _building_include_floor = building_include_floor;
   _building_inner_walls = building_inner_walls;
+  _rpctile_map[25] = 0;
+  _rpctile_map[50] = 1;
+  _rpctile_map[75] = 2;
+  _rpctile_map[90] = 3;
+  _rpctile_map[95] = 4;
+  _rpctile_map[99] = 5;
 }
 
-void Building::set_las_classes_roof(std::set<int> theset)
-{
+void Building::set_las_classes_roof(std::set<int> theset) {
   Building::_las_classes_roof = theset;
 }
 
-void Building::set_las_classes_ground(std::set<int> theset)
-{
+void Building::set_las_classes_ground(std::set<int> theset) {
   Building::_las_classes_ground = theset;
+}
+
+void Building::set_heightref_top(float h) {
+  _heightref_top = h;
 }
 
 std::string Building::get_all_z_values() {
@@ -63,6 +73,26 @@ std::string Building::get_all_z_values() {
   std::stringstream ss;
   bool first = true;
   for (auto& z : allz) {
+    // skip seperator while writing first value
+    if (first) {
+      first = false;
+    }
+    else {
+      ss << "|";
+    }
+    ss << z / 100.0;
+  }
+  return ss.str();
+}
+
+//TODO B: is this function used or needed?
+std::string Building::get_all_distances() {
+  std::vector<float> alldist (_distancesinside[0].begin(), _distancesinside[0].end());
+  alldist.insert(alldist.end(), _distancesinside[0].begin(), _distancesinside[0].end());
+  std::sort(alldist.begin(), alldist.end());
+  std::stringstream ss;
+  bool first = true;
+  for (auto& z : alldist) {
     // skip seperator while writing first value
     if (first) {
       first = false;
@@ -93,6 +123,115 @@ int Building::get_height_roof_at_percentile(float percentile) {
   else {
     return -9999;
   }
+}
+
+int Building::get_nr_roof_pts() {
+  if (_zvaluesroof.empty() == false) {
+    return _zvaluesroof.size();
+  }
+  else {
+    return 0;
+  }
+}
+
+int Building::get_nr_ground_pts() {
+  if (_zvaluesground.empty() == false) {
+    return _zvaluesground.size();
+  }
+  else {
+    return 0;
+  }
+}
+
+std::vector<double> Building::get_RMSE() {
+  std::vector<double> rmse;
+  for (int i = 0; i < _distancesinside.size(); i++) {
+    auto& distinside = _distancesinside[i];
+    if (distinside.empty()) {
+      rmse.push_back(-99.99);
+    }
+    else {
+      double sum = 0.0;
+      for (double& d : distinside) sum += d;
+      double n = distinside.size();
+      auto rm = sqrt(sum/n);
+      rmse.push_back(rm);
+    }
+  }
+  return rmse;
+}
+
+std::map<std::string, float> Building::compute_histogram() {
+  // compute a histogram of z-values of the point cloud
+  std::map<std::string,float> hist_result;
+  if ( _zhistogram.empty() == false ) { _zhistogram.clear(); }
+  int n_bins = 24; // (magical) empirical value
+  // z-values are in cm, not in meters!
+  int min = 0;
+  min = *std::min_element( _zvaluesinside.begin(), _zvaluesinside.end() );
+  int max = *std::max_element( _zvaluesinside.begin(), _zvaluesinside.end() );
+  _zhistogram.resize(n_bins);
+  float bin_width = 0;
+  bin_width = std::abs((max-min)/(n_bins-1));
+  for(auto& val : _zvaluesinside) {
+    if(val>max || val<min) continue;
+    auto bin = std::floor((val-min)/bin_width);
+    if(bin>=0 && bin<n_bins)
+      _zhistogram[bin]++;
+  }
+  hist_result["min"] = static_cast<float>(min);
+  hist_result["bin_width"] = bin_width;
+  return hist_result;
+}
+
+float Building::find_roof_z_threshold() {
+  // find the z-values that represent the roof of the building
+  std::map<std::string,float> hist = compute_histogram();
+  std::vector<int> bin_idx;
+  float z_threshold = 0;
+  for (int i = 0; i < _zhistogram.size(); i++) {
+      int threshold = 30; // the number of points in a bin, another (magical) empirical value
+      if (_zhistogram[i] >= threshold) { bin_idx.push_back(i); }
+  }
+  if (bin_idx.size() > 0) {
+    z_threshold = std::ceil( hist["min"] + (hist["bin_width"] * bin_idx[0]) );
+  }
+  else {
+    z_threshold = 0;
+  }
+  return z_threshold;
+}
+
+float Building::get_roof_variance() {
+  float var = 0;
+  if (_zvaluesroof.empty() == false) { _zvaluesroof.clear(); }
+  if (_zvaluesinside.size() > 1) {
+    float z_threshold = find_roof_z_threshold();
+    float sum = 0;
+    for (auto& z : _zvaluesinside) {
+      if(z >= z_threshold) {
+        _zvaluesroof.push_back(z);
+        sum += float(z) / 100;
+      }
+    };
+
+    int n = _zvaluesroof.size();
+    float mean = sum / n;
+    float sq_sum = 0;
+    for (auto& z : _zvaluesroof) {
+      sq_sum += ((float(z)/100) - mean) * ((float(z)/100) - mean);
+    };
+    var = sq_sum / (n - 1);
+  }
+  return var;
+}
+
+int Building::has_flat_roof() {
+  float roof_variance = get_roof_variance();
+  float threshold = 0.35;
+  // the variance threshold of 0.25 is an empirical value, based on Balázs' analysis
+  if (roof_variance <= threshold) { return 1; }
+  else { return 0; }
 }
 
 bool Building::lift() {
@@ -130,6 +269,22 @@ bool Building::add_elevation_point(Point2 &p, double z, float radius, int lascla
         _zvaluesground.push_back(zcm);
       }
     }
+  }
+  return true;
+}
+
+void Building::clear_distances() {
+  int key = _heightref_top * 100;
+  int idx = _rpctile_map[key];
+  if (!_distancesinside[idx].empty()) { _distancesinside[idx].clear(); }
+}
+
+bool Building::push_distance(double dist, int lasclass) {
+  //TODO B: remove the if clause it doesnt make sense
+  if ( (_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0) ) {
+    int key = _heightref_top * 100;
+    int idx = _rpctile_map[key];
+    _distancesinside[idx].push_back(dist);
   }
   return true;
 }
@@ -302,11 +457,21 @@ void Building::cleanup_elevations() {
   //Do not cleanup buildings since CSV output uses the elevation vectors
 }
 
-void Building::get_csv(std::wostream& of) {
+void Building::get_csv(std::wostream& of, int stats) {
   of << this->get_id() << "," <<
     std::setprecision(2) << std::fixed <<
     this->get_height_roof_at_percentile(_heightref_top) / 100.0 << "," <<
     this->get_height_ground_at_percentile(_heightref_base) / 100.0 << "\n";
+  if (stats == 1) {
+    std::vector<double> rmse = this->get_RMSE();
+    int key = _heightref_top * 100;
+    int idx = _rpctile_map[key];
+    of << "," << rmse[idx] << std::endl;
+  }
+  else {
+    std::clog << this->get_id() << "\t" << "no RMSE" << std::endl;
+    of << std::endl;
+  }
 }
 
 std::string Building::get_mtl() {

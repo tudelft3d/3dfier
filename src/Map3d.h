@@ -50,13 +50,15 @@ public:
   ~Map3d();
 
   bool add_polygons_files(std::vector<PolygonFile> &files);
-  bool add_las_file(PointFile pointFile);
+  bool add_las_file(PointFile pointFile, bool distance, bool multi_rmse);
 
   void stitch_lifted_features();
   bool construct_rtree();
   bool threeDfy(bool stitching = true);
   bool construct_CDT();
+  void construct_TriTrees();
   void add_elevation_point(LASpoint const& laspt);
+  void add_point_distance(LASpoint const& laspt, bool multi_rmse);
   void cleanup_elevations();
 
   unsigned long get_num_polygons();
@@ -73,13 +75,14 @@ public:
   void create_citygml_imgeo_header(std::wostream& of);
   bool get_postgis_output(std::string filename, bool pdok = false, bool citygml = false);
   bool get_gdal_output(std::string filename, std::string drivername, bool multi);
-  void get_csv_buildings(std::wostream& of);
-  void get_csv_buildings_multiple_heights(std::wostream& of);
+  void get_csv_buildings(std::wostream& of, int stats);
+  void get_csv_buildings_multiple_heights(std::wostream& of, int stats);
   void get_csv_buildings_all_elevation_points(std::wostream& of);
   void get_obj_per_feature(std::wostream& of);
   void get_obj_per_class(std::wostream& of);
 
   void set_building_heightref_roof(float heightref);
+  void set_building_features_heightref_top(float h);
   void set_building_heightref_ground(float heightref);
   void set_building_include_floor(bool include);
   void set_building_triangulate(bool triangulate);

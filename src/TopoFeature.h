@@ -51,6 +51,8 @@ public:
   virtual void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long>& dPts) = 0;
   virtual void          get_citygml_imgeo(std::wostream& of) = 0;
   virtual bool          get_shape(OGRLayer*, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap()) = 0;
+  virtual bool          push_distance(double dist, int lasclass) = 0;
+  virtual void          clear_distances() = 0;
   virtual void          cleanup_elevations() = 0;
 
   std::string  get_id();
@@ -81,6 +83,9 @@ public:
   void         get_citygml_attributes(std::wostream& of, const AttributeMap& attributes);
   void         get_cityjson_attributes(nlohmann::json& f, const AttributeMap& attributes);
   void         cleanup_lidarelevs();
+  void         create_triangle_tree();
+  double       get_point_distance(LASpoint const& laspt, float radius);
+
 protected:
   Polygon2*                         _p2;
   std::vector< std::vector<int> >   _p2z;
@@ -96,6 +101,9 @@ protected:
   std::vector<Triangle>                           _triangles;
   std::vector< std::pair<Point3, std::string> >   _vertices_vw;
   std::vector<Triangle>                           _triangles_vw;
+  AABB_Tree                                       _triangle_tree;
+  std::list<Triangle3D>                           _cgal_tris;
+  std::vector< std::vector<double> >              _distancesinside;
 
   Point2  get_next_point2_in_ring(int ringi, int i, int& pi);
   bool    assign_elevation_to_vertex(const Point2& p, double z, float radius);

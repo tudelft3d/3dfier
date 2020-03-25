@@ -55,6 +55,15 @@ bool Water::add_elevation_point(Point2 &p, double z, float radius, int lasclass,
   return Flat::add_elevation_point(p, z, radius, lasclass, within);
 }
 
+bool Water::push_distance(double dist, int lasclass) {
+  _distancesinside[0].push_back(dist);
+  return true;
+}
+
+void Water::clear_distances() {
+  if (!_distancesinside[0].empty()) { _distancesinside[0].clear(); }
+}
+
 bool Water::lift() {
   Flat::lift_percentile(_heightref);
   return true;

@@ -38,15 +38,18 @@ public:
   Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base, bool building_triangulate, bool building_include_floor, bool building_inner_walls);
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within);
+  bool          push_distance(double dist, int lasclass);
   void          construct_building_walls(const NodeColumn& nc);
+  void          clear_distances();
   void          get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs);
   void          get_citygml(std::wostream& of);
   void          get_citygml_imgeo(std::wostream& of);
   void          get_citygml_lod1(std::wostream& of);
   void          get_imgeo_nummeraanduiding(std::wostream& of);
-  void          get_csv(std::wostream& of);
+  void          get_csv(std::wostream& of, int stats);
   void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts);
   std::string   get_all_z_values();
+  std::string   get_all_distances();
   std::string   get_mtl();
   bool          get_shape(OGRLayer* layer, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap());
   TopoClass     get_class();
@@ -55,11 +58,20 @@ public:
   int           get_height_base();
   int           get_height_ground_at_percentile(float percentile);
   int           get_height_roof_at_percentile(float percentile);
+  int           get_nr_roof_pts();
+  int           get_nr_ground_pts();
+  std::vector<double> get_RMSE();
+  void          set_heightref_top(float h);
+  std::map<std::string,float> compute_histogram();
+  float         find_roof_z_threshold();
+  float         get_roof_variance();
+  int           has_flat_roof();
 
   static void   set_las_classes_roof(std::set<int> theset);
   static void   set_las_classes_ground(std::set<int> theset);
 private:
   std::vector<int>     _zvaluesground;
+  std::vector<int>     _zvaluesroof;
   int                  _height_base;
   static float         _heightref_top;
   static float         _heightref_base; 
@@ -68,6 +80,8 @@ private:
   static bool          _building_inner_walls;
   static std::set<int> _las_classes_roof;
   static std::set<int> _las_classes_ground;
+  std::map<int,int>    _rpctile_map;
+  std::vector<int>     _zhistogram;
 };
 
 #endif /* Building_h */
