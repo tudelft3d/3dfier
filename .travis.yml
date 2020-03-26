@@ -28,9 +28,3 @@ deploy:
     cleanup: false
     on:
       tags: true
-  - provider: script
-    script: docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:${TRAVIS_BRANCH}; docker push tudelft3d/3dfier:${TRAVIS_BRANCH}
-    cleanup: false
-    on:
-      all_branches: true
-      condition: ${TRAVIS_BRANCH} =~ ^(?!master|development$)[a-zA-Z0-9.?!%, -_]+$
