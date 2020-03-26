@@ -12,33 +12,25 @@ script:
   - echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
   - docker build --pull --cache-from tudelft3d/3dfier:latest -t tudelft3d/3dfier:latest .
 
-
 deploy:
   - provider: script
-    script:
-        - docker push tudelft3d/3dfier:latest
+    script: docker push tudelft3d/3dfier:latest
     cleanup: false
     on:
       branch: master
   - provider: script
-    script: 
-        - docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:dev
-        - docker push tudelft3d/3dfier:dev
+    script: docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:dev; docker push tudelft3d/3dfier:dev
     cleanup: false
     on:
       branch: development
   - provider: script
-    script: 
-        - docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:${TRAVIS_TAG}
-        - docker push tudelft3d/3dfier:${TRAVIS_TAG}
+    script: docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:${TRAVIS_TAG}; docker push tudelft3d/3dfier:${TRAVIS_TAG}
     cleanup: false
     on:
       tags: true
   - provider: script
-    script: 
-        - docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:${TRAVIS_BRANCH}
-        - docker push tudelft3d/3dfier:${TRAVIS_BRANCH}
+    script: docker tag tudelft3d/3dfier:latest tudelft3d/3dfier:${TRAVIS_BRANCH}; docker push tudelft3d/3dfier:${TRAVIS_BRANCH}
     cleanup: false
     on:
       all_branches: true
-      condition: ${TRAVIS_BRANCH} =~ ^(?!master|develop$)[a-zA-Z0-9.?!%, -_]+$
+      condition: ${TRAVIS_BRANCH} =~ ^(?!master|development$)[a-zA-Z0-9.?!%, -_]+$
