@@ -54,7 +54,7 @@ zstd.dll | GDAL
 
 
 ## Docker
-We offer built docker images from the `master`, `development` branches and each release. You'll find the images and instructions on using them at [Docker Hub](https://hub.docker.com/repository/docker/tudelft3d/3dfier).
+We offer built docker images from the `master`, `development` branches and each release. You'll find the images and instructions on using them at [Docker Hub](https://hub.docker.com/r/tudelft3d/3dfier).
 
 ## Ubuntu 16.04
 ### 1. Adding *ubuntugis* repositories
