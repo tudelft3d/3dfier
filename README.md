@@ -96,6 +96,13 @@ To run 3dfier over Docker simply execute:
 
     $ docker run --rm --name 3dfier -v <local path where your files are>:/data tudelft3d/3dfier:<tag> 3dfier <name of config file> <... 3dfier parameters>
 
+All your input data needs to be in `<local path where your files are>` and in the config file you need to reference your input data relative to `<local path where your files are>`. To achieve this either move your data and config into `<local path where your files are>` (and subdirectories), or set `<local path where your files are>` to the lowest common ancestor that contains all the data and config files you need.
+
+For instance to run it on the example data set (on Linux):
+
+    $ cd 3dfier/example_data
+    $ docker run --rm -it -v 3dfier/example_data:/data tudelft3d/3dfier:latest 3dfier testarea_config_unix.yml --OBJ test.obj
+
 There is also a [tutorial](https://github.com/tudelft3d/3dfier/wiki/General-3dfier-tutorial-to-generate-LOD1-models) on how to generate a 3D model with 3dfier.
 
 ## Prepare BGT data
