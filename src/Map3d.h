@@ -81,6 +81,7 @@ public:
   void get_obj_per_class(std::wostream& of);
 
   void set_building_heightref_roof(float heightref);
+  void create_roof_percentiles(std::vector<float> rpercentiles);
   void set_building_features_heightref_top(float h);
   void set_building_heightref_ground(float heightref);
   void set_building_include_floor(bool include);

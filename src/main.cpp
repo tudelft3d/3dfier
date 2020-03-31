@@ -603,6 +603,8 @@ int main(int argc, const char * argv[]) {
   if (stats && multi_rmse) {
     std::vector<float> rpercentiles = {0.25f, 0.5f, 0.75f, 0.9f, 0.95f, 0.99f};
     distance = true;
+    // set roof percentiles for buildings and create vectors
+    map3d.create_roof_percentiles(rpercentiles);
     for (int i = 0; i < rpercentiles.size(); i++) {
       float pctile = rpercentiles[i];
       std::clog << std::setprecision(2) << "\nPerforming 3D reconstruction of Buildings for roof percentile-" << pctile << std::endl;

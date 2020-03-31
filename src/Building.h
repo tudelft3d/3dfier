@@ -61,7 +61,7 @@ public:
   int           get_nr_ground_pts();
   std::unordered_map<int, double> get_RMSE();
   void          set_heightref_top(float h);
-  void          add_roof_percentile(int percentile);
+  void          add_roof_percentiles(std::vector<float> rpercentiles);
   std::map<std::string,float> compute_histogram();
   float         find_roof_z_threshold();
   float         get_roof_variance();

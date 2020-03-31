@@ -75,12 +75,20 @@ void Map3d::set_building_heightref_roof(float h) {
   _building_heightref_roof = h;
 }
 
+void Map3d::create_roof_percentiles(std::vector<float> rpercentiles) {
+  for (auto& f : _lsFeatures) {
+    if (f->get_class() == BUILDING) {
+      Building* b = dynamic_cast<Building*>(f);
+      b->add_roof_percentiles(rpercentiles);
+    }
+  }
+}
+
 void Map3d::set_building_features_heightref_top(float h) {
   for (auto& f : _lsFeatures) {
     if (f->get_class() == BUILDING) {
       Building* b = dynamic_cast<Building*>(f);
       b->set_heightref_top(h);
-      b->add_roof_percentile(h * 100);
     }
   }
 }
@@ -681,7 +689,11 @@ void Map3d::construct_TriTrees() {
   std::clog << "=====  /AABB Tree =====\n";
   for (auto& f : _lsFeatures) {
     try {
-      f->create_triangle_tree();
+      // only create tritree for buildings
+      if (f->get_class() == BUILDING) {
+        Building* b = dynamic_cast<Building*>(f);
+        b->create_triangle_tree();
+      }
     }
     catch (const std::exception& e) {
       std::cerr << std::endl << "AABB Tree failed for " << f->get_id() << " (" << f->get_class() << ") with error: " << e.what() << std::endl;
@@ -783,10 +795,9 @@ void Map3d::add_elevation_point(LASpoint const& laspt, bool distance, bool multi
       }
     }
     else {
-      if (multi_rmse) {
-        if (f->get_class() != BUILDING) {
-          bInsert = false;
-        }
+      // push distance for buildings only
+      if (f->get_class() != BUILDING) {
+        bInsert = false;
       }
       if (bInsert == true) {
         double dist = f->get_point_distance(laspt, radius);

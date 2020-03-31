@@ -120,7 +120,7 @@ int Building::get_nr_ground_pts() {
 std::unordered_map<int, double> Building::get_RMSE() {
   std::unordered_map<int, double> rmse;
   if (_roof_percentiles.empty()) {
-    add_roof_percentile(_heightref_top * 100);
+    add_roof_percentiles({ _heightref_top });
   }
   for(auto& rp: _roof_percentiles){
     auto& distinside = _distancesinside[rp];
@@ -264,9 +264,12 @@ bool Building::push_distance(double dist) {
   return true;
 }
 
-void Building::add_roof_percentile(int percentile) {
-  _roof_percentiles.push_back(percentile);
-  _distancesinside[percentile] = std::vector<double>();
+void Building::add_roof_percentiles(std::vector<float> rpercentiles) {
+  for (float rp : rpercentiles) {
+    int perc = rp * 100;
+    _roof_percentiles.push_back(perc);
+    _distancesinside[perc] = std::vector<double>();
+  }
 }
 
 void Building::construct_building_walls(const NodeColumn& nc) {
