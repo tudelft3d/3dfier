@@ -81,9 +81,9 @@ std::string Building::get_all_z_values() {
 
 //TODO B: is this function used or needed?
 std::string Building::get_all_distances(int ptile) {
-  std::vector<float> alldist(_distancesinside[ptile].begin(), _distancesinside[ptile].end());
+  std::vector<double> alldist(_distancesinside[ptile].begin(), _distancesinside[ptile].end());
   alldist.insert(alldist.end(), _distancesinside[ptile].begin(), _distancesinside[ptile].end());
-  std::sort(alldist.begin(), alldist.end());
+  //std::sort(alldist.begin(), alldist.end());
   std::stringstream ss;
   for (auto& z : alldist)
     ss << z << "|";
@@ -273,9 +273,12 @@ void Building::clear_distances() {
   if (!_distancesinside[key].empty()) { _distancesinside[key].clear(); }
 }
 
-bool Building::push_distance(double dist) {
-  int key = _heightref_top * 100;
-  _distancesinside[key].push_back(dist);
+bool Building::push_distance(double dist, int lasclass) {
+  if ((_las_classes_roof.empty() == true) || (_las_classes_roof.count(lasclass) > 0)) {
+    int key = _heightref_top * 100;
+    _distancesinside[key].push_back(dist);
+  }
+
   return true;
 }
 

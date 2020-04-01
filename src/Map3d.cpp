@@ -802,7 +802,7 @@ void Map3d::add_elevation_point(LASpoint const& laspt, bool distance, bool multi
       if (bInsert == true) {
         double dist = f->get_point_distance(laspt, radius);
         if (std::isfinite(dist)) {
-          f->push_distance(dist);
+          f->push_distance(dist, c);
         }
       }
     }

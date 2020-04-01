@@ -63,7 +63,7 @@ public:
   virtual void          get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long>& dPts) = 0;
   virtual void          get_citygml_imgeo(std::wostream& of) = 0;
   virtual bool          get_shape(OGRLayer*, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap()) = 0;
-  virtual bool          push_distance(double dist) = 0;
+  virtual bool          push_distance(double dist, int lasclass) = 0;
   virtual void          clear_distances() = 0;
   virtual void          cleanup_elevations() = 0;
 

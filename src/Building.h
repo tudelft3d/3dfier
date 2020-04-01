@@ -38,7 +38,7 @@ public:
   Building(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref_top, float heightref_base, bool building_triangulate, bool building_include_floor, bool building_inner_walls);
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within);
-  bool          push_distance(double dist);
+  bool          push_distance(double dist, int lasclass);
   void          construct_building_walls(const NodeColumn& nc);
   void          clear_distances();
   void          get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs);

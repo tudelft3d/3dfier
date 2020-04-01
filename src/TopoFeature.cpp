@@ -974,18 +974,10 @@ void TopoFeature::cleanup_lidarelevs() {
 }
 
 void TopoFeature::clean() {
-  if (!_vertices.empty()) {
-    _vertices.clear();
-  }
-  if (!_triangles.empty()) {
-    _triangles.clear();
-  }
-  if (!_vertices_vw.empty()) {
-    _vertices_vw.clear();
-  }
-  if (!_triangles_vw.empty()) {
-    _triangles_vw.clear();
-  }
+  _vertices.clear();
+  _triangles.clear();
+  _vertices_vw.clear();
+  _triangles_vw.clear();
 }
 
 void TopoFeature::get_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, bool verticalwall) {
@@ -1193,6 +1185,7 @@ void TopoFeature::create_triangle_tree() {
   }
   _triangle_tree.rebuild(_cgal_tris.begin(), _cgal_tris.end());
   bool suc = _triangle_tree.accelerate_distance_queries();
+  std::cout << _triangle_tree.size() << " - " << _cgal_tris.size() << std::endl;
   if (!suc) {
       std::clog << "build AABB_tree fail\n";
       _triangle_tree.clear();

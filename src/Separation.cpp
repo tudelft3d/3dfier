@@ -55,7 +55,7 @@ bool Separation::add_elevation_point(Point2 &p, double z, float radius, int lasc
   return Boundary3D::add_elevation_point(p, z, radius, lasclass, within);
 }
 
-bool Separation::push_distance(double dist) {
+bool Separation::push_distance(double dist, int lasclass) {
   _distancesinside[0].push_back(dist);
   return true;
 }
