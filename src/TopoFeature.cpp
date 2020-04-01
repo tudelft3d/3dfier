@@ -1117,6 +1117,27 @@ double TopoFeature::get_point_distance(LASpoint const& laspt,
   return dist;
 }
 
+
+// compute the shortest 3D distance between a triangle and a point
+double TopoFeature::distance_3d(AABB_Tree const& TriTree, LASpoint const& laspt) {
+  Point3D p(laspt.get_x(), laspt.get_y(), laspt.get_z());
+  double dist = std::numeric_limits<double>::quiet_NaN();
+  if (!TriTree.empty()) {
+    try {
+      dist = TriTree.squared_distance(p);
+      return sqrt(dist);
+    }
+    catch (const std::exception& e) {
+      std::cerr << std::endl << e.what() << std::endl;
+      return dist;
+    }
+  }
+  else {
+    std::clog << std::endl << "WARNING: AABB_tree empty" << std::endl;
+    return dist;
+  }
+}
+
 //-------------------------------
 //-------------------------------
 

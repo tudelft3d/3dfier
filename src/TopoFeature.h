@@ -35,6 +35,20 @@
 #include "polyfit.hpp"
 #include "nlohmann-json/json.hpp"
 
+
+#include <CGAL/Simple_cartesian.h>
+#include <CGAL/AABB_tree.h>
+#include <CGAL/AABB_traits.h>
+#include <CGAL/AABB_triangle_primitive.h>
+
+typedef CGAL::Simple_cartesian<double>                    Kc;
+typedef Kc::Point_3                                       Point3D;
+typedef Kc::Triangle_3                                    Triangle3D;
+typedef std::list<Triangle3D>::iterator                   AABB_Iterator;
+typedef CGAL::AABB_triangle_primitive<Kc, AABB_Iterator>   AABB_Primitive;
+typedef CGAL::AABB_traits<Kc, AABB_Primitive>             AABB_triangle_traits;
+typedef CGAL::AABB_tree<AABB_triangle_traits>             AABB_Tree;
+
 class TopoFeature {
 public:
   TopoFeature(char *wkt, std::string layername, AttributeMap attributes, std::string pid);
@@ -84,7 +98,7 @@ public:
   void         get_cityjson_attributes(nlohmann::json& f, const AttributeMap& attributes);
   void         create_triangle_tree();
   double       get_point_distance(LASpoint const& laspt, float radius);
-
+  double       distance_3d(AABB_Tree const& TriTree, LASpoint const& laspt);
 
   std::vector< std::vector< std::vector<int> > >  _lidarelevs; //-- used to collect all LiDAR points linked to the polygon
   std::vector< std::pair<Point3, std::string> >   _vertices;
