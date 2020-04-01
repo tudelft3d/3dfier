@@ -973,6 +973,21 @@ void TopoFeature::cleanup_lidarelevs() {
   _p2z.shrink_to_fit();
 }
 
+void TopoFeature::clean() {
+  if (!_vertices.empty()) {
+    _vertices.clear();
+  }
+  if (!_triangles.empty()) {
+    _triangles.clear();
+  }
+  if (!_vertices_vw.empty()) {
+    _vertices_vw.clear();
+  }
+  if (!_triangles_vw.empty()) {
+    _triangles_vw.clear();
+  }
+}
+
 void TopoFeature::get_triangle_as_gml_surfacemember(std::wostream& of, Triangle& t, bool verticalwall) {
   of << "<gml:surfaceMember>";
   of << "<gml:Polygon>";
@@ -1185,11 +1200,11 @@ void TopoFeature::create_triangle_tree() {
 }
 
 // compute the shortest 3D distance between a triangle and a point
-double TopoFeature::distance_3d(AABB_Tree const& TriTree, LASpoint const& laspt) {
-  if (!TriTree.empty()) {
+double TopoFeature::distance_3d(LASpoint const& laspt) {
+  if (!_triangle_tree.empty()) {
     try {
       Point3D p = Point3D(laspt.get_x(), laspt.get_y(), laspt.get_z());
-      double dist = TriTree.squared_distance(p);
+      double dist = _triangle_tree.squared_distance(p);
       return sqrt(dist);
     }
     catch (const std::exception& e) {
@@ -1206,7 +1221,7 @@ double TopoFeature::get_point_distance(LASpoint const& laspt, float radius) {
   Point2 p(laspt.get_x(), laspt.get_y());
   double dist = std::numeric_limits<double>::quiet_NaN();
   if (within_range(p, radius)) {
-    dist = distance_3d(_triangle_tree, laspt);
+    dist = distance_3d(laspt);
   }
   return dist;
 }

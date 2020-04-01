@@ -79,6 +79,17 @@ std::string Building::get_all_z_values() {
   return ss.str();
 }
 
+//TODO B: is this function used or needed?
+std::string Building::get_all_distances(int ptile) {
+  std::vector<float> alldist(_distancesinside[ptile].begin(), _distancesinside[ptile].end());
+  alldist.insert(alldist.end(), _distancesinside[ptile].begin(), _distancesinside[ptile].end());
+  std::sort(alldist.begin(), alldist.end());
+  std::stringstream ss;
+  for (auto& z : alldist)
+    ss << z << "|";
+  return ss.str();
+}
+
 int Building::get_height_ground_at_percentile(float percentile) {
   if (_zvaluesground.empty() == false) {
     std::nth_element(_zvaluesground.begin(), _zvaluesground.begin() + (_zvaluesground.size() * percentile), _zvaluesground.end());
@@ -118,11 +129,15 @@ int Building::get_nr_ground_pts() {
 }
 
 std::unordered_map<int, double> Building::get_RMSE() {
+  //std::cout << " 25 -------------------------------------" << std::endl;
+  //std::cout << get_all_distances(25) << std::endl;
+  //std::cout << " 50-------------------------------------" << std::endl;
+  //std::cout << get_all_distances(50) << std::endl;
   std::unordered_map<int, double> rmse;
   if (_roof_percentiles.empty()) {
     add_roof_percentiles({ _heightref_top });
   }
-  for(auto& rp: _roof_percentiles){
+  for(auto rp: _roof_percentiles){
     auto& distinside = _distancesinside[rp];
     if (distinside.empty()) {
       rmse[rp] = -99.99;
@@ -135,7 +150,7 @@ std::unordered_map<int, double> Building::get_RMSE() {
       double n = distinside.size();
       double rm = sqrt(sum/n);
       rmse[rp] = rm;
-      std::cout << sum << " - " << n << std::endl;
+      std::cout << rp << " - sum  " << sum << " - n " << n << " - sum/n " << sum/n << " - rm" << rm << std::endl;
     }
   }
   return rmse;

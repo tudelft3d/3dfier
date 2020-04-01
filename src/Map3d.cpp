@@ -380,14 +380,14 @@ void Map3d::get_csv_buildings_multiple_heights(std::wostream& of, bool stats) {
         Building* b = dynamic_cast<Building*>(p);
         std::unordered_map<int, double> rmse = b->get_RMSE();
         of << b->get_id();
-        for (auto& each : gpercentiles) {
+        for (float each : gpercentiles) {
           int h = b->get_height_ground_at_percentile(each);
           of << "," << float(h)/100;
         }
-        for (auto& each : rpercentiles) {
-          int h = b->get_height_roof_at_percentile(each);
+        for (float rp : rpercentiles) {
+          int h = b->get_height_roof_at_percentile(rp);
           of << "," << float(h)/100;
-          of << "," << rmse[each*100];
+          of << "," << rmse[rp *100];
         }
         of << "," << b->has_flat_roof();
         of << "," << b->get_nr_ground_pts();
@@ -812,6 +812,12 @@ void Map3d::add_elevation_point(LASpoint const& laspt, bool distance, bool multi
 void Map3d::cleanup_elevations() {
   for (auto& f : _lsFeatures) {
     f->cleanup_elevations();
+  }
+}
+
+void Map3d::clean() {
+  for (auto& f : _lsFeatures) {
+    f->clean();
   }
 }
 

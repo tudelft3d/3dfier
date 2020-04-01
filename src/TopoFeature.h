@@ -95,9 +95,10 @@ public:
   void         get_citygml_attributes(std::wostream& of, const AttributeMap& attributes);
   void         get_cityjson_attributes(nlohmann::json& f, const AttributeMap& attributes);
   void         cleanup_lidarelevs();
+  void         clean();
   void         create_triangle_tree();
   double       get_point_distance(LASpoint const& laspt, float radius);
-  double       distance_3d(AABB_Tree const& TriTree, LASpoint const& laspt);
+  double       distance_3d(LASpoint const& laspt);
   
 protected:
   Polygon2*                         _p2;

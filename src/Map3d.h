@@ -57,8 +57,9 @@ public:
   bool threeDfy(bool stitching = true);
   bool construct_CDT();
   void construct_TriTrees();
-  void add_elevation_point(LASpoint const& laspt, bool distance = false, bool multi_rmse = false);
+  void add_elevation_point(LASpoint const& laspt, bool distance, bool multi_rmse);
   void cleanup_elevations();
+  void clean();
 
   unsigned long get_num_polygons();
   const std::vector<TopoFeature*>&  get_polygons3d();

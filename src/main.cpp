@@ -610,6 +610,10 @@ int main(int argc, const char * argv[]) {
       std::clog << std::setprecision(2) << "\nPerforming 3D reconstruction of Buildings for roof percentile-" << pctile << std::endl;
       map3d.set_building_features_heightref_top(pctile);
 
+
+      ///CLEAN SHIT
+      map3d.clean();
+
       auto startThreeDfy = boost::chrono::high_resolution_clock::now();
       map3d.threeDfy(bStitching);
       print_duration("Lifting, stitching and vertical walls done in %lld seconds || %02d:%02d:%02d\n", startThreeDfy);
