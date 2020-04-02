@@ -1124,8 +1124,7 @@ double TopoFeature::distance_3d(AABB_Tree const& TriTree, LASpoint const& laspt)
   double dist = std::numeric_limits<double>::quiet_NaN();
   if (!TriTree.empty()) {
     try {
-      dist = TriTree.squared_distance(p);
-      return sqrt(dist);
+      return TriTree.squared_distance(p);
     }
     catch (const std::exception& e) {
       std::cerr << std::endl << e.what() << std::endl;
