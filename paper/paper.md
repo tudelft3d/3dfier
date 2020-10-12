@@ -9,13 +9,13 @@ authors:
     affiliation: 1 
   - name: Filip Biljecki
     affiliation: 2
-  - Name: Balázs Dukai
+  - name: Balázs Dukai
     affiliation: 1
-  - Name: Kavisha Kumar
+  - name: Kavisha Kumar
     affiliation: 1
-  - Name: Ravi Peters
+  - name: Ravi Peters
     affiliation: 1
-  - Name: Jantien Stoter    
+  - name: Jantien Stoter    
     affiliation: 1
   - name: Tom Commandeur
     affiliation: 1
@@ -36,7 +36,7 @@ bibliography: paper.bib
 # Summary
 
 Three-dimensional city models are essential to assess the impact that environmental factors will have on citizens, because they are the input to several simulation and prediction software.
-Examples of such environmental factors are noise [@Stoter08], air pollution[@Ujang13], and temperature [@Lee13; @Hsieh11].
+Examples of such environmental factors are noise [@Stoter08], air pollution @Ujang13], and temperature [@Lee13; @Hsieh11].
 
 However, those 3D models, which typically contain buildings and other man-made objects such as roads, overpasses, bridges, and trees, are in practice complex to obtain, and it is very time-consuming to reconstruct them manually.
 
