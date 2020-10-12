@@ -48,15 +48,13 @@ Several output formats are supported (including the international standards), an
 
 # Statement of need
 
-The 3D city models needed as input in environmental simulations have specific requirements that go beyond the typical 3D models used for visualisation: they require semantic information (ie a feature, modelled with one or more surfaces, "knows" what it is, for instance a window) and they should be free of geometric errors.
-
+The 3D city models needed as input in environmental simulations have specific requirements that go beyond the typical 3D models used for visualisation: they require semantic information (ie an object, modelled with one or more surfaces, "knows" what it is, for instance a window or a roof surface) and they should be free of geometric errors.
 It is known that practitioners and researchers can spend a significant part of their time constructing and repairing the input 3D models, [@McKenney98] estimates as much as 70\% of their time.
-
-Furthermore, the formats required by the different software and/or the agencies (for instance [the international standard CityGML](https://www.ogc.org/standards/citygml)), are very complex to generate.
+Furthermore, the formats required by the different software and/or the agencies (for instance [the international standard CityGML](https://www.ogc.org/standards/citygml)), are arguably complex to generate [@Ledoux19].
 
 The software *3dfier* automates the reconstruction step, can structure enrich the data with semantics, and supports several output formats (used in different fields).
 
-It builds upon previous work done for reconstructing the whole country of the Netherlands (with its 10M+ buildings) [@Stoter14], and provides the following improvements: clear open-source license, recent complex formats supported, no geometric errors in output.
+It builds upon previous work done for reconstructing the whole country of the Netherlands (with its 10M+ buildings) [@OudeElberink13], and provides the following improvements: clear open-source license, recent complex formats supported, no geometric errors in output.
 
 
 
