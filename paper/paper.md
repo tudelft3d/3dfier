@@ -4,16 +4,26 @@ tags:
   - GIS
   - 3D city modelling
 authors:
-  - name: Hugo Ledoux^[Custom footnotes for e.g. denoting who the corresponding author is can be included like this.]
+  - name: Hugo Ledoux^[Corresponding author]
     orcid: 0000-0002-1251-8654
-    affiliation: 1 # (Multiple affiliations must be quoted)
-  - name: Author Without ORCID
+    affiliation: 1 
+  - name: Filip Biljecki
+    affiliation: 2
+  - Name: Balázs Dukai
     affiliation: 1
-  - name: Author with no affiliation
+  - Name: Kavisha Kumar
+    affiliation: 1
+  - Name: Ravi Peters
+    affiliation: 1
+  - Name: Jantien Stoter    
+    affiliation: 1
+  - name: Tom Commandeur
     affiliation: 1
 affiliations:
- - name: Delft University of Technology, the Netherlands
-   index: 1
+  - name: Delft University of Technology, the Netherlands
+    index: 1
+  - name: National University of Singapore
+    index: 2
 date: 12 October 2020
 bibliography: paper.bib
 
