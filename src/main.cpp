@@ -179,6 +179,11 @@ int main(int argc, const char * argv[]) {
 
   Map3d map3d;
   YAML::Node nodes = YAML::LoadFile(f_yaml);
+  
+  boost::filesystem::path yp(f_yaml);
+  boost::filesystem::path ypcan = canonical(yp.parent_path(), boost::filesystem::current_path());
+  std::cout << "==> " << ypcan << std::endl;
+
   //-- store the lifting options in the Map3d
   if (nodes["lifting_options"]) {
     YAML::Node n = nodes["lifting_options"];
@@ -410,7 +415,9 @@ int main(int argc, const char * argv[]) {
       YAML::Node datasets = (*it)["datasets"];
       for (auto it2 = datasets.begin(); it2 != datasets.end(); ++it2) {
         PolygonFile file;
-        file.filename = it2->as<std::string>();
+        boost::filesystem::path p = canonical(it2->as<std::string>(), ypcan).make_preferred();
+        std::cout << "=>" << p << std::endl;
+        file.filename = p.string();
         file.idfield = uniqueid;
         file.heightfield = heightfield;
         file.handle_multiple_heights = handle_multiple_heights;
@@ -484,7 +491,7 @@ int main(int argc, const char * argv[]) {
         }
 
         //-- iterate over all files in directory
-        boost::filesystem::path path(it2->as<std::string>());
+        boost::filesystem::path path = canonical(it2->as<std::string>(), ypcan).make_preferred();
         boost::filesystem::path rootPath = path.parent_path();
         if (path.stem() == "*") {
           if (!boost::filesystem::exists(rootPath) || !boost::filesystem::is_directory(rootPath)) {
