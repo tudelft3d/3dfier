@@ -8,6 +8,7 @@ authors:
     orcid: 0000-0002-1251-8654
     affiliation: 1 
   - name: Filip Biljecki
+    orcid: 0000-0002-6229-7749
     affiliation: 2
   - name: Balázs Dukai
     affiliation: 1
@@ -22,9 +23,9 @@ authors:
 affiliations:
   - name: Delft University of Technology, the Netherlands
     index: 1
-  - name: National University of Singapore
+  - name: National University of Singapore, Singapore
     index: 2
-date: 12 October 2020
+date: 16 October 2020
 bibliography: paper.bib
 
 # Optional fields if submitting to a AAS journal too, see this blog post:
