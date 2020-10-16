@@ -87,5 +87,6 @@ This file allows the user to control the mapping between the input and the *3dfi
 The software, being modular, is also extensible for other use cases or for use in different countries.
 As an example, new topographic classes (for instance trees) could be added by simply creating a new C++ class that inherits from the parent class, and the output for the different formats supported must be added.
 
+![An example of the output of 3dfier, for the city of Leiden in the Netherlands.\label{fig:results}](results.png)
 
 # References
