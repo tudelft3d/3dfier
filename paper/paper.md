@@ -44,7 +44,7 @@ However, those 3D models, which typically contain buildings and other man-made o
 The software *3dfier* helps us automate the 3D reconstruction process.
 It takes 2D geographical datasets (eg topographic datasets) and "3dfies" them (as in "making them three-dimensional"). 
 The elevation is obtained from an aerial point cloud dataset, and the semantics of every polygon is used to perform the lifting to the third dimension (so that it is realistic).
-Several output formats are supported (including the international standards), and the 3D city models are optimised for used in different software (they are error-free: no self-intersections, no gaps, etc.).
+Several output formats are supported (including the international standards), and the 3D city models are optimised for used in different software.
 
 
 # Statement of need
@@ -75,7 +75,7 @@ The semantics of every input 2D polygon is used to perform the lifting to the th
 For example, water polygons are extruded to horizontal polygons, buildings to prismatic blocks, roads as smooth surfaces, etc. 
 Every polygon is triangulated and in a next step the lifted polygons are "stitched" together so that one  surface is reconstructed. 
 The output of the software is one watertight surface with no intersecting triangles and no holes, and features such as buildings and trees can be added or omitted.  
-Each triangle is is labelled with its class and the attributes that were contained in the input 2D polygons.
+Each triangle is labelled with its class and the attributes that were contained in the input 2D polygons.
 This surface can be used directly as input in several urban applications, such as simulations of noise or wind.
 
 
