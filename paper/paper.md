@@ -87,6 +87,8 @@ This file allows the user to control the mapping between the input and the *3dfi
 The software, being modular, is also extensible for other use cases or for use in different countries.
 As an example, new topographic classes (for instance trees) could be added by simply creating a new C++ class that inherits from the parent class, and the output for the different formats supported must be added.
 
+Great care was taken to keep the software as efficient as possible and make it suitable for reconstructing very large areas. For instance *3dfier* is the software that enables the Dutch national mapping agency (Kadaster) to create the [3D base registration for the Netherlands](https://www.pdok.nl/3d-basisvoorziening).
+
 ![An example of the output of 3dfier, for the city of Leiden in the Netherlands.\label{fig:results}](results.png)
 
 # References
