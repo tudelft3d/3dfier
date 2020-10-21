@@ -91,4 +91,9 @@ As an example, new topographic classes (for instance trees) could be added by si
 
 ![An example of the output of 3dfier, for the city of Leiden in the Netherlands.\label{fig:results}](results.png)
 
+
+# Acknowlegements
+
+This work was funded by the [Netherlands Kadaster](https://www.kadaster.nl/) and received funding from the European Research Council (ERC) under the European Unions Horizon2020 Research & Innovation Programme (grant agreement no. 677312 UMnD: Urban modelling in higher dimensions).
+
 # References
