@@ -41,21 +41,22 @@ Examples of such environmental factors are noise [@Stoter08], wind [@GarciaSanch
 
 However, those 3D models, which typically contain buildings and other man-made objects such as roads, overpasses, bridges, and trees, are in practice complex to obtain, and it is very time-consuming and tedious to reconstruct them manually.
 
-The software *3dfier* helps us automate the 3D reconstruction process.
+The software *3dfier* addresses this issue by automating the 3D reconstruction process.
 It takes 2D geographical datasets (eg topographic datasets) and "3dfies" them (as in "making them three-dimensional"). 
-The elevation is obtained from an aerial point cloud dataset, and the semantics of every polygon is used to perform the lifting to the third dimension (so that it is realistic).
-Several output formats are supported (including the international standards), and the 3D city models are optimised for used in different software (they are error-free: no self-intersections, no gaps, etc.).
+The elevation is obtained from an aerial point cloud dataset, and the semantics of every polygon is used to perform the lifting to the third dimension, so that it is realistic.
+The resulting surface is error-free: no self-intersections, no gaps, etc.
+Several output formats are supported (including the international standards), and the 3D city models are optimised for used in different software 
 
 
 # Statement of need
 
 The 3D city models needed as input in environmental simulations have specific requirements that go beyond the typical 3D models used for visualisation: they require semantic information (ie an object, modelled with one or more surfaces, "knows" what it is, for instance a window or a roof surface) and they should be free of geometric errors.
-It is known that practitioners and researchers wanting to perform some simulations or analysis can spend a significant part of their time constructing and repairing the input 3D models, [@McKenney98] estimates this to as much as 70\% of their time.
-Furthermore, the formats required by the different software and/or the agencies (for instance [the international standard CityGML](https://www.ogc.org/standards/citygml)), are arguably complex to generate [@Ledoux19].
+It is known that practitioners and researchers wanting to perform some simulations or analysis can spend a significant part of their time constructing and repairing the input 3D models; @McKenney98 estimates this to as much as 70\% of their time.
+Furthermore, the formats required by the different software and/or the agencies (for instance [the international standard CityGML](https://www.ogc.org/standards/citygml)), are complex to generate [@Ledoux19].
 
 The software *3dfier* automates the reconstruction step, it enriches the data with semantics, and it supports several output formats (used in different fields).
 
-It builds upon previous work done for reconstructing the whole country of the Netherlands (with its 10M+ buildings) [@OudeElberink13], and provides the following improvements: use of recent and maintained libraries, a clear open-source license, recent formats and international standards are supported, no geometric errors in output.
+It builds upon previous work done for reconstructing the whole country of the Netherlands (with 10M+ buildings) [@OudeElberink13], and provides the following improvements: use of recent and maintained libraries (eg [CGAL](https://www.cgal.org/), [GDAL](https://gdal.org/) and [Boost](https://www.boost.org/)), a clear open-source license, recent formats and international standards are supported, no geometric errors in output.
 
 
 # Overview of the reconstruction steps
@@ -74,8 +75,9 @@ Each of the classes in the input 2D polygons is mapped to a specific class: *Ter
 The semantics of every input 2D polygon is used to perform the lifting to the third dimension.
 For example, water polygons are extruded to horizontal polygons, buildings to prismatic blocks, roads as smooth surfaces, etc. 
 Every polygon is triangulated and in a next step the lifted polygons are "stitched" together so that one  surface is reconstructed. 
+In this step, priority is given to "hard" objects such as roads, ie vegetation polygons are moved to be aligned with the road polygons.
 The output of the software is one watertight surface with no intersecting triangles and no holes, and features such as buildings and trees can be added or omitted.  
-Each triangle is is labelled with its class and the attributes that were contained in the input 2D polygons.
+Each triangle is labelled with its class and the attributes that were contained in the input 2D polygons.
 This surface can be used directly as input in several urban applications, such as simulations of noise or wind.
 
 
