@@ -44,8 +44,9 @@ However, those 3D models, which typically contain buildings and other man-made o
 The software *3dfier* addresses this issue by automating the 3D reconstruction process.
 It takes 2D geographical datasets (eg topographic datasets) and "3dfies" them (as in "making them three-dimensional"). 
 The elevation is obtained from an aerial point cloud dataset, and the semantics of every polygon is used to perform the lifting to the third dimension, so that it is realistic.
-The resulting surface is error-free: no self-intersections, no gaps, etc.
+The resulting surface aims at being error-free: no self-intersections, no gaps, etc.
 Several output formats are supported (including the international standards), and the 3D city models are optimised for used in different software 
+
 
 
 # Statement of need
@@ -89,6 +90,8 @@ This file allows the user to control the mapping between the input and the *3dfi
 The software, being modular, is also extensible for other use cases or for use in different countries.
 As an example, new topographic classes (for instance trees) could be added by simply creating a new C++ class that inherits from the parent class, and the output for the different formats supported must be added.
 
+Great care was taken to keep the software as efficient as possible and make it suitable for reconstructing very large areas. For instance *3dfier* is the software that enables the Dutch national mapping agency (Kadaster) to create the [3D base registration for the Netherlands](https://www.pdok.nl/3d-basisvoorziening).
+
 ![An example of the output of 3dfier, for the city of Leiden in the Netherlands.\label{fig:results}](results.png)
 
 
@@ -97,3 +100,4 @@ As an example, new topographic classes (for instance trees) could be added by si
 This work was funded by the [Netherlands Kadaster](https://www.kadaster.nl/) and received funding from the European Research Council (ERC) under the European Unions Horizon2020 Research & Innovation Programme (grant agreement no. 677312 UMnD: Urban modelling in higher dimensions).
 
 # References
+
