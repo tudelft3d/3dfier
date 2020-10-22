@@ -1,0 +1,12 @@
+{
+    "name": "3dfier",
+    "version-string": "1.2.2",
+    "dependencies": [
+        "boost-program-options",
+        "boost-geometry",
+        "cgal",
+        "gdal",
+        "lastools",
+        "yaml-cpp"
+    ]
+}
