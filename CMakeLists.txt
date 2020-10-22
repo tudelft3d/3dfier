@@ -22,39 +22,30 @@ endif()
 
 # Boost
 find_package( Boost REQUIRED locale chrono system filesystem program_options)
-if ( NOT Boost_FOUND )
-  message(SEND_ERROR "3dfier requires the Boost library")
-  return()  
-endif()
-INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 
 # GDAL
-find_package( GDAL )
-if ( NOT GDAL_FOUND )
-  message(SEND_ERROR "3dfier requires the GDAL library")
-endif()
+find_package( GDAL REQUIRED)
 
 # LASLIB
-# find_package(libLAS REQUIRED)
-# find_package (LASzip QUIET)
-find_package (LASlib REQUIRED)
+find_package( LASlib REQUIRED)
 
 # YamlCpp
-find_package(YamlCpp REQUIRED)
+find_package( yaml-cpp REQUIRED)
 
 # CGAL
-find_package( CGAL QUIET COMPONENTS  )
-if ( NOT CGAL_FOUND )
-  message(SEND_ERROR "3dfier requires the CGAL library")
-  return()  
-endif()
+find_package( CGAL REQUIRED QUIET COMPONENTS)
 
 # include helper file
 include( ${CGAL_USE_FILE} )
 
+if(MSVC)
+  add_definitions(-DNOMINMAX)
+  add_definitions("/EHsc")
+endif()
+
 include_directories( ${CMAKE_SOURCE_DIR}/thirdparty )
 
-include_directories( ${CGAL_INCLUDE_DIR} ${CGAL_3RD_PARTY_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${YAMLCPP_INCLUDE_DIR} ${GDAL_INCLUDE_DIR} ${LASLIB_INCLUDE_DIR})
+include_directories( ${CGAL_INCLUDE_DIR} ${CGAL_3RD_PARTY_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${YAMLCPP_INCLUDE_DIR} ${GDAL_INCLUDE_DIR})
 link_directories(${YamlCpp_LIBRARY_DIRS})
 
 # # build ptinpoly as static lib
@@ -72,6 +63,6 @@ set_target_properties(
   PROPERTIES CXX_STANDARD 11
 )
 
-target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${GDAL_LIBRARY} ${YAMLCPP_LIBRARY} Boost::program_options Boost::filesystem Boost::locale Boost::chrono ${LASLIB_LIBRARY})
+target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${GDAL_LIBRARY} ${YAMLCPP_LIBRARY} Boost::program_options Boost::filesystem Boost::locale Boost::chrono LASlib)
 
 install(TARGETS 3dfier DESTINATION bin)
