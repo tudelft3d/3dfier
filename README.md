@@ -10,16 +10,10 @@
 [4]: https://travis-ci.org/tudelft3d/3dfier
 
 # Documentation
-
 The [3dfier documentation](http://tudelft3d.github.io/3dfier) has extensive information on the installation, usage and how the 3dfier algorithm works.
-
-**SETTINGS**
-
-For all available setting and default values look at the [config files folder](https://github.com/tudelft3d/3dfier/tree/master/resources/config_files)
 
 # 3dfier
 <img src="https://dl.dropboxusercontent.com/s/05eo2r5yc2kke5g/3dfierNoBridge.png" width="300">
-
 
 Takes 2D GIS datasets (e.g. topographical datasets) and "3dfies" them (as in "making them three-dimensional") by lifting every polygon to 3D.
 The elevation is obtained from a point cloud (we support LAS/LAZ at this moment), and the semantics of every polygon is used to perform the lifting.
@@ -41,7 +35,7 @@ Any 2D input (which should be a planar partition) can be used as input, and each
   1. Water
   1. Forest
   1. Bridge
-  1. Separation (used for concrete slabs used along canals for instance, surely very "Dutch")
+  1. Separation (used for walls and fences)
 
 It is possible to define new classes, although that would require a bit of programming.
 
