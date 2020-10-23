@@ -27,7 +27,9 @@ jobs:
       run: |
         cd C:\
         git clone https://github.com/microsoft/vcpkg
-        .\vcpkg\bootstrap-vcpkg.bat
+        cd vcpkg
+        git checkout d1ba685e975db41d767af5676ca2669a5e7e6ad9
+        .\bootstrap-vcpkg.bat
     - name: Download bin cache
       run: |
         Invoke-WebRequest http://godzilla.bk.tudelft.nl/tmp/vcpkg-bin-cache.7z -OutFile vcpkg-bin-cache.7z
