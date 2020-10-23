@@ -16,7 +16,7 @@ jobs:
     env:
       VCPKG_DEFAULT_TRIPLET: x64-windows
       VCPKG_INSTALLATION_ROOT: C:\vcpkg
-      VCPKG_BINARY_SOURCES : clear,files,C:\vcpkg-bin-cache\archives,read
+      VCPKG_BINARY_SOURCES : clear;files,C:\vcpkg-bin-cache\archives,read
     steps:
     - name: Remove system vcpkg (to ensure support for binary caching)
       shell: 'bash'
