@@ -29,7 +29,7 @@ jobs:
         .\vcpkg\bootstrap-vcpkg.bat
     - name: download bin cache
       run: |
-        Invoke-WebRequest http://godzilla.bk.tudelft.nl/tmp/vcpkg-bin-cache/vcpkg-bin-cache.7z -OutFile vcpkg-bin-cache.7z
+        Invoke-WebRequest http://godzilla.bk.tudelft.nl/tmp/vcpkg-bin-cache.7z -OutFile vcpkg-bin-cache.7z
         mkdir C:\vcpkg-bin-cache
         7z.exe x .\vcpkg-bin-cache.7z -oC:\vcpkg-bin-cache\
     - uses: actions/checkout@v2
