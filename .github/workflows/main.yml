@@ -1,0 +1,50 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master, development ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  Windows-build:
+    name: Build Windows
+    runs-on: windows-latest
+    env:
+      VCPKG_DEFAULT_TRIPLET: x64-windows
+      VCPKG_INSTALLATION_ROOT: C:\vcpkg
+      VCPKG_BINARY_SOURCES : files,C:\vcpkg-bin-cache,read
+    steps:
+    - name: 'remove outdated vcpkg'
+      shell: 'bash'
+      run: |
+        rm -rf "$VCPKG_INSTALLATION_ROOT"
+    - name: 'install fresh vcpkg'
+      run: |
+        cd C:\
+        git clone https://github.com/microsoft/vcpkg
+        .\vcpkg\bootstrap-vcpkg.bat
+    - name: download bin cache
+      run: |
+        Invoke-WebRequest http://godzilla.bk.tudelft.nl/tmp/vcpkg-bin-cache/vcpkg-bin-cache.7z -OutFile vcpkg-bin-cache.7z
+        mkdir C:\vcpkg-bin-cache
+        7z.exe x .\vcpkg-bin-cache.7z -oC:\vcpkg-bin-cache\
+    - uses: actions/checkout@v2
+    - name: Build
+      run: |
+        mkdir Release
+        cd Release
+        cmake .. -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_INSTALL_PREFIX=C:\Software -DCMAKE_PREFIX_PATH=Release\vcpkg_installed\x64-windows\share\lastools
+        cmake --build . --parallel 4 --config Release
+    - name: Build
+      run: |
+        cd Release
+        7z a 3dfier-win64.zip .\Release\*
+    - name: Upload nsis installer as artifact
+      uses: actions/upload-artifact@master
+      with:
+        name: 3dfier-win64
+        path: Release/3dfier-win64.zip
