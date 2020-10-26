@@ -421,6 +421,36 @@ void Map3d::get_obj_per_class(std::wostream& of) {
   of << fs << std::endl;
 }
 
+void Map3d::get_stl(std::wostream& of) {
+  std::unordered_map< std::string, unsigned long > dPts;
+  std::string fs;
+  
+  for (auto& p : _lsFeatures) {
+    fs += "o "; fs += p->get_id(); fs += "\n";
+    if (p->get_class() == BUILDING) {
+      Building* b = dynamic_cast<Building*>(p);
+      b->get_obj(dPts, _building_lod, b->get_mtl(), fs);
+    }
+    else {
+      p->get_obj(dPts, p->get_mtl(), fs);
+    }
+  }
+
+  //-- sort the points in the map: simpler to copy to a vector
+  std::vector<std::string> thepts;
+  thepts.resize(dPts.size());
+  for (auto& p : dPts)
+    thepts[p.second - 1] = p.first;
+  dPts.clear();
+
+  of << "mtllib ./3dfier.mtl" << "\n";
+  for (auto& p : thepts) {
+    of << "v " << p << "\n";
+  }
+  of << fs << std::endl;
+}
+
+
 bool Map3d::get_postgis_output(std::string connstr, bool pdok, bool citygml) {
 #if GDAL_VERSION_MAJOR < 2
   std::cerr << "ERROR: cannot write MultiPolygonZ files with GDAL < 2.0.\n";
