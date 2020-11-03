@@ -425,14 +425,17 @@ void Map3d::get_stl(std::wostream& of) {
   std::unordered_map< std::string, unsigned long > dPts;
   std::string fs;
   
-  for (auto& p : _lsFeatures) {
-    fs += "o "; fs += p->get_id(); fs += "\n";
-    if (p->get_class() == BUILDING) {
-      Building* b = dynamic_cast<Building*>(p);
-      b->get_obj(dPts, _building_lod, b->get_mtl(), fs);
-    }
-    else {
-      p->get_obj(dPts, p->get_mtl(), fs);
+  for (int c = 0; c < 7; c++) {
+    for (auto& p : _lsFeatures) {
+      if (p->get_class() == c) {
+        if (p->get_class() == BUILDING) {
+          Building* b = dynamic_cast<Building*>(p);
+          b->get_stl(dPts, _building_lod, b->get_mtl(), fs);
+        }
+        else {
+          p->get_stl(dPts, p->get_mtl(), fs);
+        }
+      }
     }
   }
 

@@ -218,6 +218,72 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
   }
 }
 
+void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs) {
+  fs += mtl; fs += "\n";
+  for (auto& t : _triangles) {
+    unsigned long a, b, c;
+    auto it = dPts.find(_vertices[t.v0].second);
+    if (it == dPts.end()) {
+      // first get the size + 1 and then store the size in dPts due to unspecified order of execution
+      a = dPts.size() + 1;
+      dPts[_vertices[t.v0].second] = a;
+    }
+    else
+      a = it->second;
+    it = dPts.find(_vertices[t.v1].second);
+    if (it == dPts.end()) {
+      b = dPts.size() + 1;
+      dPts[_vertices[t.v1].second] = b;
+    }
+    else
+      b = it->second;
+    it = dPts.find(_vertices[t.v2].second);
+    if (it == dPts.end()) {
+      c = dPts.size() + 1;
+      dPts[_vertices[t.v2].second] = c;
+    }
+    else
+      c = it->second;
+
+    if ((a != b) && (a != c) && (b != c)) {
+      fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
+    }
+  }
+
+  //-- vertical triangles
+  if (_triangles_vw.size() > 0) {
+    fs += mtl; fs += "Wall"; fs += "\n";
+    for (auto& t : _triangles_vw) {
+      unsigned long a, b, c;
+      auto it = dPts.find(_vertices_vw[t.v0].second);
+      if (it == dPts.end()) {
+        a = dPts.size() + 1;
+        dPts[_vertices_vw[t.v0].second] = a;
+      }
+      else
+        a = it->second;
+      it = dPts.find(_vertices_vw[t.v1].second);
+      if (it == dPts.end()) {
+        b = dPts.size() + 1;
+        dPts[_vertices_vw[t.v1].second] = b;
+      }
+      else
+        b = it->second;
+      it = dPts.find(_vertices_vw[t.v2].second);
+      if (it == dPts.end()) {
+        c = dPts.size() + 1;
+        dPts[_vertices_vw[t.v2].second] = c;
+      }
+      else
+        c = it->second;
+
+      if ((a != b) && (a != c) && (b != c)) {
+        fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
+      }
+    }
+  }
+}
+
 AttributeMap &TopoFeature::get_attributes() {
   return _attributes;
 }
