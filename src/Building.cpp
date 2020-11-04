@@ -397,7 +397,7 @@ void Building::get_stl(std::unordered_map< std::string, unsigned long > &dPts, i
     TopoFeature::get_stl(dPts, mtl, fs);
 
     if (_building_include_floor) {
-      fs += "solid BuildingFloor\n";
+//      fs += "solid BuildingFloor\n";
       float z = z_to_float(this->get_height_base());
       for (auto& t : _triangles) {
         unsigned long a, b, c;
@@ -430,11 +430,11 @@ void Building::get_stl(std::unordered_map< std::string, unsigned long > &dPts, i
           stl_prep(dPts, a, c, b, fs);
         }
       }
-      fs += "endsolid "; fs+= "BuildingFloor"; fs += "\n";
+//      fs += "endsolid "; fs+= "BuildingFloor"; fs += "\n";
     }
   }
   else if (lod == 0) {
-    fs+= "solid "; fs += mtl; fs += "\n";
+//    fs+= "solid "; fs += mtl; fs += "\n";
     float z = z_to_float(this->get_height_base());
     for (auto& t : _triangles) {
       unsigned long a, b, c;
@@ -468,7 +468,7 @@ void Building::get_stl(std::unordered_map< std::string, unsigned long > &dPts, i
     }
 
     //TODO: Write vertical walls between adjacent buildings as done when creating LoD1
-    fs += "endsolid "; fs+= mtl; fs += "\n";
+//    fs += "endsolid "; fs+= mtl; fs += "\n";
   }
 }
 

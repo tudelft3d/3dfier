@@ -219,10 +219,10 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
 }
 
 void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs) {
-  // remove "usemtl" from feature name
-  mtl=mtl.substr(mtl.find_first_of(" \t")+1);
-
-  fs+= "solid "; fs += mtl; fs += "\n";
+    // In case every single feature has to be defined as a separate solid
+//  // remove "usemtl" from feature name
+//  mtl=mtl.substr(mtl.find_first_of(" \t")+1);
+//  fs+= "solid "; fs += mtl; fs += "\n";
   for (auto& t : _triangles) {
     unsigned long a, b, c;
     auto it = dPts.find(_vertices[t.v0].second);
@@ -252,11 +252,11 @@ void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts
       stl_prep(dPts, a, b, c, fs);
     }
   }
-  fs += "endsolid "; fs+= mtl; fs += "\n";
+//  fs += "endsolid "; fs+= mtl; fs += "\n";
 
   //-- vertical triangles
   if (_triangles_vw.size() > 0) {
-    fs+= "solid "; fs += mtl; fs += "Wall"; fs += "\n";
+//    fs+= "solid "; fs += mtl; fs += "Wall"; fs += "\n";
     for (auto& t : _triangles_vw) {
       unsigned long a, b, c;
       auto it = dPts.find(_vertices_vw[t.v0].second);
@@ -285,7 +285,7 @@ void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts
         stl_prep(dPts, a, b, c, fs);
       }
     }
-    fs += "endsolid "; fs += mtl; fs += "Wall"; fs += "\n";
+//    fs += "endsolid "; fs += mtl; fs += "Wall"; fs += "\n";
   }
 }
 
@@ -294,9 +294,8 @@ void TopoFeature::stl_prep(std::unordered_map< std::string, unsigned long > dPts
     std::vector<double> v1, v2, v3;
     std::string pointsa, pointsb, pointsc;
     // get vertices that are written as string and turn them into float point vectors
-    for (auto& got: dPts) {
+    for (auto& got: dPts) { // Must be a better way to access values from dPts - this is slow
       double num;
-
       if (got.second == a) {
         pointsa = got.first;
         std::stringstream ss(pointsa);
@@ -307,7 +306,7 @@ void TopoFeature::stl_prep(std::unordered_map< std::string, unsigned long > dPts
         std::stringstream ss(pointsb);
         while (ss >> num) v2.push_back(num);
       }
-        else if (got.second == c) {
+      else if (got.second == c) {
         pointsc = got.first;
         std::stringstream ss(pointsc);
         while (ss >> num) v3.push_back(num);
@@ -319,8 +318,8 @@ void TopoFeature::stl_prep(std::unordered_map< std::string, unsigned long > dPts
     double nVec[3];
 
     for (int j = 0; j < 3; j++){
-    vecU[j] = v2[j] - v1[j];
-    vecV[j] = v3[j] - v1[j];
+      vecU[j] = v2[j] - v1[j];
+      vecV[j] = v3[j] - v1[j];
     }
     nVec[0] = vecU[1]*vecV[2] - vecU[2]*vecV[1];
     nVec[1] = vecU[2]*vecV[0] - vecU[0]*vecV[2];
@@ -328,7 +327,7 @@ void TopoFeature::stl_prep(std::unordered_map< std::string, unsigned long > dPts
 
     double nLen = sqrt(nVec[0]*nVec[0] + nVec[1]*nVec[1] + nVec[2]*nVec[2]); // normalize the normal
     for (int j = 0; j < 3; j++)
-    nVec[j] /= nLen;
+      nVec[j] /= nLen;
 
     // output feature
     fs += "  facet normal "; fs += std::to_string(nVec[0]); fs += " "; fs += std::to_string(nVec[1]); fs+= " "; fs += std::to_string(nVec[2]); fs += "\n";

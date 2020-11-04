@@ -423,23 +423,35 @@ void Map3d::get_obj_per_class(std::wostream& of) {
 
 void Map3d::get_stl(std::wostream& of) {
   std::unordered_map< std::string, unsigned long > dPts;
-  std::string fs;
+  std::string fs[7];
   
   for (int c = 0; c < 7; c++) {
     for (auto& p : _lsFeatures) {
       if (p->get_class() == c) {
         if (p->get_class() == BUILDING) {
           Building* b = dynamic_cast<Building*>(p);
-          b->get_stl(dPts, _building_lod, b->get_mtl(), fs);
+          b->get_stl(dPts, _building_lod, b->get_mtl(), fs[0]);
         }
         else {
-          p->get_stl(dPts, p->get_mtl(), fs);
+          p->get_stl(dPts, p->get_mtl(), fs[c]);
         }
       }
     }
   }
 
-  of << fs << std::endl;
+  // Is there a better way to handle this?
+  // Define each class as a separate solid
+  fs[0] = "solid Building\n"   + fs[0]; fs[0] += "endsolid Building";
+  fs[1] = "solid Water\n"      + fs[1]; fs[1] += "endsolid Water";
+  fs[2] = "solid Bridge\n"     + fs[2]; fs[2] += "endsolid Bridge";
+  fs[3] = "solid Road\n"       + fs[3]; fs[3] += "endsolid Road";
+  fs[4] = "solid Terrain\n"    + fs[4]; fs[4] += "endsolid Terrain";
+  fs[5] = "solid Forest\n"     + fs[5]; fs[5] += "endsolid Forest";
+  fs[6] = "solid Separation\n" + fs[6]; fs[6] += "endsolid Separation";
+
+  for (int c = 0; c < 7; c++) {
+    of << fs[c] << std::endl;
+  }
 }
 
 
