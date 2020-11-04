@@ -440,16 +440,16 @@ void Map3d::get_stl(std::wostream& of) {
   }
 
   //-- sort the points in the map: simpler to copy to a vector
-  std::vector<std::string> thepts;
-  thepts.resize(dPts.size());
-  for (auto& p : dPts)
-    thepts[p.second - 1] = p.first;
-  dPts.clear();
+//  std::vector<std::string> thepts;
+//  thepts.resize(dPts.size());
+//  for (auto& p : dPts)
+//    thepts[p.second - 1] = p.first;
+//  dPts.clear();
 
   of << "mtllib ./3dfier.mtl" << "\n";
-  for (auto& p : thepts) {
-    of << "v " << p << "\n";
-  }
+//  for (auto& p : thepts) {
+//    of << "v " << p << "\n";
+//  }
   of << fs << std::endl;
 }
 

@@ -246,7 +246,57 @@ void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts
       c = it->second;
 
     if ((a != b) && (a != c) && (b != c)) {
-      fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
+        std::vector<double> v1, v2, v3;
+        std::string pointsa, pointsb, pointsc;
+      // get vertices that are written as string and turn them into vectors
+      for (auto& got: dPts) {
+        if (got.second == a) {
+            pointsa = got.first;
+
+            double num;
+            std::stringstream ss(pointsa);
+            while (ss >> num) v1.push_back(num);
+        }
+        else if (got.second == b) {
+          pointsb = got.first;
+
+          std::stringstream ss(pointsb);
+          double num;
+          while (ss >> num) v2.push_back(num);
+        }
+        else if (got.second == c) {
+          pointsc = got.first;
+
+          std::stringstream ss(pointsc);
+          double num;
+          while (ss >> num) v3.push_back(num);
+        }
+      }
+
+      // calculate face normals
+      double vecU[3], vecV[3];
+      double nVec[3];
+
+      for (int j = 0; j < 3; j++){
+        vecU[j] = v2[j] - v1[j];
+        vecV[j] = v3[j] - v1[j];
+      }
+      nVec[0] = vecU[1]*vecV[2] - vecU[2]*vecV[1];
+      nVec[1] = vecU[2]*vecV[0] - vecU[0]*vecV[2];
+      nVec[2] = vecU[0]*vecV[1] - vecU[1]*vecV[0];
+
+      double nLen = sqrt(nVec[0]*nVec[0] + nVec[1]*nVec[1] + nVec[2]*nVec[2]); // normalize the normal length
+      for (int j = 0; j < 3; j++)
+        nVec[j] /= nLen;
+
+      // output feature
+      fs += "  facet normal "; fs += std::to_string(nVec[0]); fs += " "; fs += std::to_string(nVec[1]); fs+= " "; fs += std::to_string(nVec[2]); fs += "\n";
+      fs += "    outer loop"; fs += "\n";
+      fs += "      "; fs += "vertex "; fs += pointsa; fs += "\n";
+      fs += "      "; fs += "vertex "; fs += pointsb; fs += "\n";
+      fs += "      "; fs += "vertex "; fs += pointsc; fs += "\n";
+      fs += "    endloop"; fs += "\n";
+      fs += "  endfacet"; fs += "\n";
     }
   }
 
