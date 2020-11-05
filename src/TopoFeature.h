@@ -77,7 +77,7 @@ public:
   bool         writeAttribute(OGRFeature* feature, OGRFeatureDefn* featureDefn, std::string name, std::string value);
   void         get_obj(std::unordered_map< std::string, unsigned long >& dPts, std::string mtl, std::string& fs);
   void         get_stl(std::unordered_map< std::string, unsigned long >& dPts, std::string mtl, std::string& fs);
-  void         stl_prep(std::unordered_map< std::string, unsigned long > dPts, unsigned long a, unsigned long b, unsigned long c, std::string &fs);
+  void         stl_prep(std::string pointsa, std::string pointsb, std::string pointsc, std::string &fs);
   AttributeMap& get_attributes();
   void         get_imgeo_attributes(std::wostream& of, std::string id);
   void         get_citygml_attributes(std::wostream& of, const AttributeMap& attributes);

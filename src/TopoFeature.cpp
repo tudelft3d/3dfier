@@ -249,7 +249,7 @@ void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts
       c = it->second;
 
     if ((a != b) && (a != c) && (b != c)) {
-      stl_prep(dPts, a, b, c, fs);
+      stl_prep(_vertices[t.v0].second, _vertices[t.v1].second, _vertices[t.v2].second, fs);
     }
   }
 //  fs += "endsolid "; fs+= mtl; fs += "\n";
@@ -282,7 +282,7 @@ void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts
         c = it->second;
 
       if ((a != b) && (a != c) && (b != c)) {
-        stl_prep(dPts, a, b, c, fs);
+        stl_prep(_vertices_vw[t.v0].second, _vertices_vw[t.v1].second, _vertices_vw[t.v2].second, fs);
       }
     }
 //    fs += "endsolid "; fs += mtl; fs += "Wall"; fs += "\n";
@@ -290,28 +290,23 @@ void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts
 }
 
 /* Access, calculate and output STL format for a feature */
-void TopoFeature::stl_prep(std::unordered_map< std::string, unsigned long > dPts, unsigned long a, unsigned long b, unsigned long c, std::string &fs){
+void TopoFeature::stl_prep(std::string pointsa, std::string pointsb, std::string pointsc, std::string &fs){
+    // take vertices that are written as string and turn them into float point vectors
     std::vector<double> v1, v2, v3;
-    std::string pointsa, pointsb, pointsc;
-    // get vertices that are written as string and turn them into float point vectors
-    for (auto& got: dPts) { // Must be a better way to access values from dPts - this is slow
-      double num;
-      if (got.second == a) {
-        pointsa = got.first;
-        std::stringstream ss(pointsa);
-        while (ss >> num) v1.push_back(num);
-      }
-      else if (got.second == b) {
-        pointsb = got.first;
-        std::stringstream ss(pointsb);
-        while (ss >> num) v2.push_back(num);
-      }
-      else if (got.second == c) {
-        pointsc = got.first;
-        std::stringstream ss(pointsc);
-        while (ss >> num) v3.push_back(num);
-      }
-    }
+    double num;
+    std::stringstream ss;
+
+    ss << pointsa;
+    while (ss >> num) v1.push_back(num);
+    ss.clear();
+
+    ss << pointsb;
+    while (ss >> num) v2.push_back(num);
+    ss.clear();
+
+    ss << pointsc;
+    while (ss >> num) v3.push_back(num);
+    ss.clear();
 
     // calculate face normals
     double vecU[3], vecV[3];
