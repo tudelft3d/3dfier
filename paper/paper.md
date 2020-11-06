@@ -78,7 +78,7 @@ For example, water polygons are extruded to horizontal polygons, buildings to pr
 Every polygon is triangulated and in a next step the lifted polygons are "stitched" together so that one  surface is reconstructed. 
 In this step, priority is given to "hard" objects such as roads, ie vegetation polygons are moved to be aligned with the road polygons.
 The output of the software is one watertight surface with no intersecting triangles and no holes, and features such as buildings and trees can be added or omitted.  
-Each triangle is labelled with its class and the attributes that were contained in the input 2D polygons.
+Triangles are grouped and labelled with the class and the attributes that were in the input 2D polygons they decompose.
 This surface can be used directly as input in several urban applications, such as simulations of noise or wind.
 
 
