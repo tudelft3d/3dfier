@@ -39,7 +39,7 @@ Any 2D input (which should be a planar partition) can be used as input, and each
 
 It is possible to define new classes, although that would require a bit of programming.
 
-Output is in the following formats: OBJ, CityGML, CityJSON, CSV (for buildings only, i.e. their ID and height (ground+roof) are output in a tabular format), and PostGIS.
+Output is in the following formats: OBJ, CityGML, CityJSON, CSV (for buildings only, i.e. their ID and height (ground+roof) are output in a tabular format), PostGIS, and STL.
 The ID of each polygon is preserved, and there is a 1-to-1 mapping between the input and the output. 
 
 If you use it, feedback is very much appreciated.
