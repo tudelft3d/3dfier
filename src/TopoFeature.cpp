@@ -218,16 +218,125 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
   }
 }
 
+void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts, std::string &fs) {
+  for (auto& t : _triangles) {
+    unsigned long a, b, c;
+    auto it = dPts.find(_vertices[t.v0].second);
+    if (it == dPts.end()) {
+      // first get the size + 1 and then store the size in dPts due to unspecified order of execution
+      a = dPts.size() + 1;
+      dPts[_vertices[t.v0].second] = a;
+    }
+    else
+      a = it->second;
+    it = dPts.find(_vertices[t.v1].second);
+    if (it == dPts.end()) {
+      b = dPts.size() + 1;
+      dPts[_vertices[t.v1].second] = b;
+    }
+    else
+      b = it->second;
+    it = dPts.find(_vertices[t.v2].second);
+    if (it == dPts.end()) {
+      c = dPts.size() + 1;
+      dPts[_vertices[t.v2].second] = c;
+    }
+    else
+      c = it->second;
+
+    if ((a != b) && (a != c) && (b != c)) {
+      stl_prep(_vertices[t.v0].second, _vertices[t.v1].second, _vertices[t.v2].second, fs);
+    }
+  }
+
+  //-- vertical triangles
+  if (_triangles_vw.size() > 0) {
+    for (auto& t : _triangles_vw) {
+      unsigned long a, b, c;
+      auto it = dPts.find(_vertices_vw[t.v0].second);
+      if (it == dPts.end()) {
+        a = dPts.size() + 1;
+        dPts[_vertices_vw[t.v0].second] = a;
+      }
+      else
+        a = it->second;
+      it = dPts.find(_vertices_vw[t.v1].second);
+      if (it == dPts.end()) {
+        b = dPts.size() + 1;
+        dPts[_vertices_vw[t.v1].second] = b;
+      }
+      else
+        b = it->second;
+      it = dPts.find(_vertices_vw[t.v2].second);
+      if (it == dPts.end()) {
+        c = dPts.size() + 1;
+        dPts[_vertices_vw[t.v2].second] = c;
+      }
+      else
+        c = it->second;
+
+      if ((a != b) && (a != c) && (b != c)) {
+        stl_prep(_vertices_vw[t.v0].second, _vertices_vw[t.v1].second, _vertices_vw[t.v2].second, fs);
+      }
+    }
+  }
+}
+
+/* Access, calculate and output STL format for a feature */
+void TopoFeature::stl_prep(std::string pointsa, std::string pointsb, std::string pointsc, std::string &fs){
+    // take vertices that are written as string and turn them into float point vectors
+    std::vector<double> v1, v2, v3;
+    double num;
+    std::stringstream ss;
+
+    ss << pointsa;
+    while (ss >> num) v1.push_back(num);
+    ss.clear();
+
+    ss << pointsb;
+    while (ss >> num) v2.push_back(num);
+    ss.clear();
+
+    ss << pointsc;
+    while (ss >> num) v3.push_back(num);
+    ss.clear();
+
+    // calculate face normals
+    double vecU[3], vecV[3];
+    double nVec[3];
+
+    for (int j = 0; j < 3; j++){
+      vecU[j] = v2[j] - v1[j];
+      vecV[j] = v3[j] - v1[j];
+    }
+    nVec[0] = vecU[1]*vecV[2] - vecU[2]*vecV[1];
+    nVec[1] = vecU[2]*vecV[0] - vecU[0]*vecV[2];
+    nVec[2] = vecU[0]*vecV[1] - vecU[1]*vecV[0];
+
+    double nLen = sqrt(nVec[0]*nVec[0] + nVec[1]*nVec[1] + nVec[2]*nVec[2]); // normalize the normal
+    for (int j = 0; j < 3; j++)
+      nVec[j] /= nLen;
+
+    // output feature
+    fs += "  facet normal "; fs += std::to_string(nVec[0]); fs += " "; fs += std::to_string(nVec[1]); fs+= " "; fs += std::to_string(nVec[2]); fs += "\n";
+    fs += "    outer loop"; fs += "\n";
+    fs += "      "; fs += "vertex "; fs += pointsa; fs += "\n";
+    fs += "      "; fs += "vertex "; fs += pointsb; fs += "\n";
+    fs += "      "; fs += "vertex "; fs += pointsc; fs += "\n";
+    fs += "    endloop"; fs += "\n";
+    fs += "  endfacet"; fs += "\n";
+}
+
 AttributeMap &TopoFeature::get_attributes() {
-  return _attributes;
+    return _attributes;
 }
 
 void TopoFeature::get_imgeo_attributes(std::wostream& of, std::string id) {
-  std::string attribute;
-  if (get_attribute("creationDate", attribute)) {
-    of << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>";
-  }
-  if (get_attribute("terminationDate", attribute)) {
+    std::string attribute;
+    if (get_attribute("creationDate", attribute)) {
+        of << "<imgeo:creationDate>" << attribute << "</imgeo:creationDate>";
+    }
+    if (get_attribute("terminationDate", attribute)) {
     of << "<imgeo:terminationDate>" << attribute << "</imgeo:terminationDate>";
   }
   if (get_attribute("lokaalid", attribute)) {

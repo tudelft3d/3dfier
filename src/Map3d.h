@@ -78,6 +78,7 @@ public:
   void get_csv_buildings_all_elevation_points(std::wostream& of);
   void get_obj_per_feature(std::wostream& of);
   void get_obj_per_class(std::wostream& of);
+  void get_stl(std::wostream& of);
 
   void set_building_heightref_roof(float heightref);
   void set_building_heightref_ground(float heightref);

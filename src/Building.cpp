@@ -392,6 +392,84 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
   }
 }
 
+void Building::get_stl(std::unordered_map< std::string, unsigned long > &dPts, int lod,std::string &fs) {
+  if (lod == 1) {
+    TopoFeature::get_stl(dPts, fs);
+
+    if (_building_include_floor) {
+//      fs += "solid BuildingFloor\n";
+      float z = z_to_float(this->get_height_base());
+      for (auto& t : _triangles) {
+        unsigned long a, b, c;
+        auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
+        if (it == dPts.end()) {
+          a = dPts.size() + 1;
+          dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
+        }
+        else {
+          a = it->second;
+        }
+        it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
+        if (it == dPts.end()) {
+          b = dPts.size() + 1;
+          dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
+        }
+        else {
+          b = it->second;
+        }
+        it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
+        if (it == dPts.end()) {
+          c = dPts.size() + 1;
+          dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
+        }
+        else {
+          c = it->second;
+        }
+        //reverse orientation for floor polygon, a-c-b instead of a-b-c.
+        if ((a != b) && (a != c) && (b != c)) {
+          stl_prep(_vertices[t.v0].second, _vertices[t.v2].second, _vertices[t.v1].second, fs);
+        }
+      }
+    }
+  }
+  else if (lod == 0) {
+    float z = z_to_float(this->get_height_base());
+    for (auto& t : _triangles) {
+      unsigned long a, b, c;
+      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
+      if (it == dPts.end()) {
+        a = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
+      }
+      else {
+        a = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
+      if (it == dPts.end()) {
+        b = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
+      }
+      else {
+        b = it->second;
+      }
+      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
+      if (it == dPts.end()) {
+        c = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
+      }
+      else {
+        c = it->second;
+      }
+      if ((a != b) && (a != c) && (b != c)) {
+        stl_prep(_vertices[t.v0].second, _vertices[t.v1].second, _vertices[t.v2].second, fs);
+      }
+    }
+
+    //TODO: Write vertical walls between adjacent buildings as done when creating LoD1
+  }
+}
+
+
 void Building::get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long> &dPts) {
   nlohmann::json b;
   b["type"] = "Building";

@@ -60,6 +60,7 @@ int main(int argc, const char * argv[]) {
   std::map<std::string, std::string> outputs;
   outputs["OBJ"] = "";
   outputs["OBJ-NoID"] = "";
+  outputs["STL"] = "";
   outputs["CityGML"] = "";
   outputs["CityGML-Multifile"] = "";
   outputs["CityGML-IMGeo"] = "";
@@ -84,6 +85,7 @@ int main(int argc, const char * argv[]) {
       ("license", "View license")
       ("OBJ", po::value<std::string>(&outputs["OBJ"]), "Output ")
       ("OBJ-NoID", po::value<std::string>(&outputs["OBJ-NoID"]), "Output ")
+      ("STL", po::value<std::string>(&outputs["STL"]), "Output ")
       ("CityGML", po::value<std::string>(&outputs["CityGML"]), "Output ")
       ("CityGML-Multifile", po::value<std::string>(&outputs["CityGML-Multifile"]), "Output ")
       ("CityGML-IMGeo", po::value<std::string>(&outputs["CityGML-IMGeo"]), "Output ")
@@ -652,6 +654,10 @@ int main(int argc, const char * argv[]) {
     else if (format == "OBJ-NoID") {
       std::clog << "OBJ (without IDs, sorted per class) output: " << ofname << std::endl;
       map3d.get_obj_per_class(of);
+    }
+    else if (format == "STL") {
+      std::clog << "STL output: " << ofname << std::endl;
+      map3d.get_stl(of);
     }
     else if (format == "CSV-BUILDINGS") {
       std::clog << "CSV output (only of the buildings): " << ofname << std::endl;
