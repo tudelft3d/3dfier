@@ -59,8 +59,3 @@ _site
 /ressources/convert-to-simulation/bin/
 /example_data/o.json
 /buildxcode
-
-#stl exporter specific data
-/example_data/stlout
-/build
-/cmake-build-debug/

@@ -218,11 +218,7 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
   }
 }
 
-void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts, std::string mtl, std::string &fs) {
-    // In case every single feature has to be defined as a separate solid
-//  // remove "usemtl" from feature name
-//  mtl=mtl.substr(mtl.find_first_of(" \t")+1);
-//  fs+= "solid "; fs += mtl; fs += "\n";
+void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts, std::string &fs) {
   for (auto& t : _triangles) {
     unsigned long a, b, c;
     auto it = dPts.find(_vertices[t.v0].second);
@@ -252,11 +248,9 @@ void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts
       stl_prep(_vertices[t.v0].second, _vertices[t.v1].second, _vertices[t.v2].second, fs);
     }
   }
-//  fs += "endsolid "; fs+= mtl; fs += "\n";
 
   //-- vertical triangles
   if (_triangles_vw.size() > 0) {
-//    fs+= "solid "; fs += mtl; fs += "Wall"; fs += "\n";
     for (auto& t : _triangles_vw) {
       unsigned long a, b, c;
       auto it = dPts.find(_vertices_vw[t.v0].second);
@@ -285,7 +279,6 @@ void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts
         stl_prep(_vertices_vw[t.v0].second, _vertices_vw[t.v1].second, _vertices_vw[t.v2].second, fs);
       }
     }
-//    fs += "endsolid "; fs += mtl; fs += "Wall"; fs += "\n";
   }
 }
 

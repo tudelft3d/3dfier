@@ -430,10 +430,10 @@ void Map3d::get_stl(std::wostream& of) {
       if (p->get_class() == c) {
         if (p->get_class() == BUILDING) {
           Building* b = dynamic_cast<Building*>(p);
-          b->get_stl(dPts, _building_lod, b->get_mtl(), fs[0]);
+          b->get_stl(dPts, _building_lod, fs[0]);
         }
         else {
-          p->get_stl(dPts, p->get_mtl(), fs[c]);
+          p->get_stl(dPts, fs[c]);
         }
       }
     }
