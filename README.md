@@ -1,5 +1,5 @@
 [![GitHub license](https://img.shields.io/github/license/tudelft3d/3dfier)](https://github.com/tudelft3d/3dfier/blob/master/LICENSE)
-[![docs](https://img.shields.io/badge/docs-/-brightgreen)](http://tudelft3d.github.io/3dfier)
+[![docs](https://img.shields.io/badge/docs-http://tudelft3d.github.io/3dfier-brightgreen)](http://tudelft3d.github.io/3dfier)
 [![GitHub issues](https://img.shields.io/github/issues/tudelft3d/3dfier)](https://github.com/tudelft3d/3dfier/issues)
 
 
@@ -74,7 +74,7 @@ Open a command line (click start and type `command` or `cmd`). Using the command
 
 **Mac OS X and Linux**
 Open a console. Using the console browse to the folder where you extracted the example files and run:
-`$ ./3dfier myconfig.yml -o output.ext`
+`$ ./3dfier myconfig.yml --OBJ output.obj`
 
 **Docker**
 
@@ -97,44 +97,3 @@ There is also a [tutorial](https://github.com/tudelft3d/3dfier/wiki/General-3dfi
 
 ## Prepare BGT data
 For preparing BGT data as input for 3dfier look at [resources/BGT_prepare/ReadMe.md](https://github.com/tudelft3d/3dfier/blob/master/resources/BGT_prepare/ReadMe.md)
-
-## Compiling Mac OS X/Linux
-
-To build you'll normally do (from 3dfier root directory):
-
-```
-mkdir build && cd build
-cmake .. 
-cmake ..
-make
-```
-
-Notice that cmake is indeed called *twice*, we have noticed that on some machines the compiler optimisation is activated only when you cmake twice.
-Why that is we are not sure, but to be sure do it twice.
-With the optimisation, the test dataset should take around 20s to produce; if more (>5min) then the optimisation is not activated properly.
-
-The dependencies that are necessary (under Mac we suggest using [Homebrew](http://brew.sh)):
-
-  1. LIBLAS *with* LASzip support (`brew install liblas --with-laszip`)
-  1. GDAL (`brew install gdal`)
-  1. Boost (`brew install boost`)
-  1. CGAL (`brew install cgal`)
-  1. yaml-cpp (`brew install yaml-cpp`)
-
-For Linux we suggest taking a look at the travis build scripts for Ubuntu.
-
-## Compiling Windows using Visual Studio
-Detailed instructions can be found on our [wiki](https://github.com/tudelft3d/3dfier/wiki/Building-on-Windows-10). Short version:
-
-1. Download and install [Boost precompiled binaries](https://sourceforge.net/projects/boost/files/boost-binaries)
-1. Download and install [OSGeo4W](https://trac.osgeo.org/osgeo4w)
-1. Compile your own copies of [Yaml-cpp](https://github.com/jbeder/yaml-cpp) and [CGAL](https://www.cgal.org)
-1. Add environment variables for:
-1. - `OSGEO4W_ROOT` (set by OSGeo4W installer)
-    - `BOOST_ROOT` (root of the boost directory)
-    - `BOOST_LIBRARYDIR` (dir of the boost lib files)
-    - `LIBLAS_ROOT` (same as OSGEO4W_ROOT if that liblas is used)
-    - `LASZIP_ROOT` (same as OSGEO4W_ROOT if that liblas is used)
-    - `YAML-CPP_DIR` (root of the Yaml-cpp directory)
-    - `CGAL_DIR` (root of the CGAL directory)
-1. Build solution using Visual Studio
