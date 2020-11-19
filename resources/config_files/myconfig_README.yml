@@ -1,28 +1,18 @@
 input_polygons:                                         # Group for 2D input polygons
   - datasets:                                           # List of data set with specific settings
-      # Unix
       - /data/campus/partof.shp                         # Input file under Unix, can be full path or relative to the executable
-      # Windows
-      - D:\data\campus\partof.shp                       # Input file under Windows, can be full path or relative to the executable
     uniqueid: FACE_ID                                   # Unique identifier attribute within input file
     lifting: Building                                   # Class to which this input file will be mapped, class settings are defined in lifting_options
   - datasets:
-      # Unix
       - /data/campus/another.gml                        # Definition under Unix for multiple files using the same parameters
       - /data/campus/another2.gml
-      # Windows
-      - D:\data\campus\another.gml                      # Definition under Windows for multiple files using the same parameters
-      - D:\data\campus\another2.gml
     uniqueid: fid
     lifting_per_layer:                                  # Settings for mapping class to the layers defined within the input files
       Gebouw: Building                                  # Layer to class linking, 'Layer name in file:Class'
       Terrein: Terrain
       Waterdeel: Water
   - datasets: 
-      # Unix
       - /data/bgt_overbruggingsdeel.sqlite
-      # Windows
-      - D:\data\bgt_overbruggingsdeel.sqlite
     uniqueid: gml_id
     lifting: Bridge/Overpass
     height_field: relatievehoogteligging                # Attribute containing relative height level, should be an integer where ground surface is 0
@@ -71,14 +61,8 @@ lifting_options:                                        # Group for class liftin
 
 input_elevation:                                        # Group for point clouds
   - datasets:                                           # List of data set with specific settings
-    # Unix
     - /data/top10nl/schie/ahn3.laz                      # Definition under Unix for one or multiple LAS/LAZ files using the same parameters
-    # Windows
-    - D:\data\top10nl\schie\ahn3.laz                    # Definition under Windows for one or multiple LAS/LAZ files using the same parameters
-    # Unix
     - /data/top10nl/schie/*                             # Definition under Unix for reading a full directory with LAS/LAZ files using the same parameters
-    # Windows
-    - D:\data\top10nl\schie\*                           # Definition under Windows for reading a full  directory with LAS/LAZ files using the same parameters
   omit_LAS_classes:                                     # Option to omit classes defined in the LAS/LAZ files
     - 1 # unclassified                                  # ASPRS Standard LiDAR Point Classes classification value
     - 3 # vegetation

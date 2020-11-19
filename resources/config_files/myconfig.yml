@@ -1,30 +1,16 @@
 input_polygons:
   - datasets:
-      # Unix
       - /data/campus/partof.shp
-      # Windows
-      - D:\data\campus\partof.shp
     uniqueid: FACE_ID
     lifting: Building
   - datasets:
-      # Unix
       - /data/campus/another.gml
-      - /data/campus/another2.gml
-      # Windows
-      - D:\data\campus\another.gml
-      - D:\data\campus\another2.gml
-    uniqueid: fid
     lifting_per_layer:
       Gebouw: Building
       Terrein: Terrain
       Waterdeel: Water
   - datasets:
-      # Unix
       - /data/bgt_overbruggingsdeel.sqlite
-      # Windows
-      - D:\data\bgt_overbruggingsdeel.sqlite
-    uniqueid: gml_id
-    lifting: Bridge/Overpass
     height_field: relatievehoogteligging
     handle_multiple_heights: true
 
@@ -81,10 +67,7 @@ lifting_options:
 
 input_elevation:
   - datasets:
-    # Unix
     - /data/top10nl/schie/ahn3.laz
-    # Windows
-    - D:\data\top10nl\schie\ahn3.laz
   omit_LAS_classes:
     - 1 # unclassified
     - 3 # vegation
