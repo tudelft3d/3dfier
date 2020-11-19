@@ -6,8 +6,6 @@ sidebar: 3dfier_sidebar
 permalink: installation.html
 ---
 
-**TODO: CHANGE LIBLAS TO LASLIB for Ubuntu 16.04!!**
-
 ## Install on Windows using binaries
 Binary releases exist only for Windows users. Others will have to follow one of the other installation guides for [Linux](#ubuntu-1604) or [Docker](#docker)
 There exists a ready-to-use version of [3dfier for Windows 64-bit](https://github.com/{{site.repository}}/releases/latest). Download and extract the files to any given folder and follow the instructions in the [Get started guide]({{site.baseurl}}/index).
@@ -77,36 +75,64 @@ To compile 3dfier:
     $ mkdir build
     $ cd build
     $ cmake ..
-    $ make
-    $ ./3dfier
+    $ make install
+    $ 3dfier
 
 
 
 ## Ubuntu 20.04
-### 1. Adding *ubuntugis* repositories
-To install *GDAL* on Ubuntu 20.04 LTS it is probably the easiest to add one of the *ubuntugis* repositories, either [*ubuntugis-stable*](https://launchpad.net/~ubuntugis/+archive/ubuntu/ppa?field.series_filter=xenial) or [*ubuntugis-unstable*](https://launchpad.net/~ubuntugis/+archive/ubuntu/ubuntugis-unstable?field.series_filter=xenial). Both contains *GDAL* >= 2.1.
+### 1. Adding *ubuntugis-unstable* repository
+To install *GDAL* on Ubuntu 20.04 LTS it is probably the easiest to add the [*ubuntugis-unstable*](https://launchpad.net/~ubuntugis/+archive/ubuntu/ubuntugis-unstable?field.series_filter=xenial). It contains *GDAL* >= 2.1 under (`libgdal-dev`) package.
 
-E.g. add the *ubuntugis-stable* repository by running:
+*Note: *ubuntugis-stable* repository doesn't contain any Ubuntu 20.04 packages yet.*
+
+Add the *ubuntugis-unstable* repository by running:
 ```
-sudo add-apt-repository ppa:ubuntugis/ppa
+sudo add-apt-repository ppa:ubuntugis/ubuntugis-unstable
 sudo apt-get update
 ```
 
 ### 2. Install dependencies
-*CGAL* (`libcgal-dev`), *Boost* (`libboost-all-dev`) and *yaml-cpp* (`libyaml-cpp0.5v5`) are part of the *Ubuntu Universe* repository.
+*CGAL* (`libcgal-dev`), *Boost* (`libboost-all-dev`) and *yaml-cpp* (`libyaml-cpp-dev`) are part of the *Ubuntu Universe* repository.
 
 Once you have all the repos added, you can use a package manager, e.g. `apt` or *Synaptic* to install them. 
 
 E.g. using apt-get:
 ```
-sudo apt-get install libcgal-dev libboost-all-dev libyaml-cpp0.5v5
+sudo apt-get install libcgal-dev libboost-all-dev libyaml-cpp-dev libgdal-dev
 ```
 
-Then you need to install [LASlib](https://github.com/LAStools/LAStools/tree/master/LASlib) and [LASzip](https://github.com/LAStools/LAStools/tree/master/LASzip).
-Follow the instruction given in the GitHub repository and use the `CMakeLists.txt`.
+### 3. Compile LAStools
+*LAStools* contains both the *LASlib* and *LASzip*.
 
+This step requires *CMake* and *UnZip* packages. Some Linux distributions don't have them preinstalled:
+```
+sudo apt-get install -y unzip cmake
+```
 
+Download and compile *LAStools* with the following:
+```
+wget  http://lastools.github.io/download/LAStools.zip
+unzip LAStools.zip
+cd LAStools; mkdir build; cd build
+cmake ..
+sudo make install
+```
 
+### 4. Compile 3dfier
+
+Download and compile 3dfier:
+```
+git clone https://github.com/tudelft3d/3dfier.git
+cd 3dfier; mkdir build; cd build
+cmake ..
+sudo make install
+```
+
+Test the installation by typing
+```
+3dfier
+```
 
 ## Windows
 This guide will talk you through the compilation of 3dfier on Windows 10 64-bit using Visual Studio (steps are identical for Visual Studio 2017 and 2019).
