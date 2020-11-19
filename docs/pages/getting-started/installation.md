@@ -53,12 +53,38 @@ zlib1.dll | GDAL
 zstd.dll | GDAL
 
 
-## Docker
-We offer built docker images from the `master`, `development` branches and each release. You'll find the images and instructions on using them at [Docker Hub](https://hub.docker.com/r/tudelft3d/3dfier).
+## macOS
 
-## Ubuntu 16.04
+You need to install the following free libraries:
+
+  1. [CMake](http://www.cmake.org)
+  1. [CGAL v5.0+](http://www.cgal.org) 
+  1. [GDAL](https://gdal.org/)
+  1. [yaml-cpp](https://github.com/jbeder/yaml-cpp)
+  1. [LASlib](https://github.com/LAStools/LAStools/tree/master/LASlib)
+  1. [LASzip](https://github.com/LAStools/LAStools/tree/master/LASzip)
+
+We suggest using [Homebrew](http://brew.sh/) for the first 4:
+
+    $ brew install cgal
+    $ brew install gdal
+    $ brew install cmake
+
+For LASlib/LASzip, follow the instruction and use the `CMakeLists.txt`.
+
+To compile 3dfier:
+
+    $ mkdir build
+    $ cd build
+    $ cmake ..
+    $ make
+    $ ./3dfier
+
+
+
+## Ubuntu 20.04
 ### 1. Adding *ubuntugis* repositories
-To install *GDAL* on Ubuntu 16.04 LTS it is probably the easiest to add one of the *ubuntugis* repositories, either [*ubuntugis-stable*](https://launchpad.net/~ubuntugis/+archive/ubuntu/ppa?field.series_filter=xenial) or [*ubuntugis-unstable*](https://launchpad.net/~ubuntugis/+archive/ubuntu/ubuntugis-unstable?field.series_filter=xenial). Both contains *GDAL* >= 2.1.
+To install *GDAL* on Ubuntu 20.04 LTS it is probably the easiest to add one of the *ubuntugis* repositories, either [*ubuntugis-stable*](https://launchpad.net/~ubuntugis/+archive/ubuntu/ppa?field.series_filter=xenial) or [*ubuntugis-unstable*](https://launchpad.net/~ubuntugis/+archive/ubuntu/ubuntugis-unstable?field.series_filter=xenial). Both contains *GDAL* >= 2.1.
 
 E.g. add the *ubuntugis-stable* repository by running:
 ```
@@ -76,19 +102,11 @@ E.g. using apt-get:
 sudo apt-get install libcgal-dev libboost-all-dev libyaml-cpp0.5v5
 ```
 
-### 3. Run the build script 
-*LASzip*, *libLAS* and *3dfier* need to be built manually in this order, and this is what the [build script](https://github.com/tudelft3d/3dfier/blob/build_ubuntu_2/ressources/build_ubuntu1604.sh) can do for you. It downloads and compiles these three packages, and takes care that *libLAS* is compiled with *LASzip* support and that *3dfier* can find the executables of both. We try to take care that the download links are up to date with the upcoming releases. However, if you notice that the links are outdated, just update the version number in the script.
+Then you need to install [LASlib](https://github.com/LAStools/LAStools/tree/master/LASlib) and [LASzip](https://github.com/LAStools/LAStools/tree/master/LASzip).
+Follow the instruction given in the GitHub repository and use the `CMakeLists.txt`.
 
-To download and run the [build script](https://github.com/tudelft3d/3dfier/blob/build_ubuntu_2/ressources/build_ubuntu1604.sh) do:
-```
-wget https://raw.githubusercontent.com/tudelft3d/3dfier/build_ubuntu_2/ressources/build_ubuntu1604.sh
-sudo build_ubuntu1604.sh /opt
-```
 
-Where `/opt` is the directory where *3dfier* will be installed and *LASzip*, *libLAS* downloaded and compiled. *LASzip*, *libLAS* is installed into `/usr/local`, hence you'll probably need root privilage to run the script.
 
-**A note on GRASS GIS and libLAS**\
-If you already have GRASS installed from the *ubuntugis-(un)stable* PPA, you probably also have libLAS (`liblas-c3, liblas3`) installed, as GRASS depends on them. However, this *libLAS* install is without *LASzip* support as *LASzip* is not part of the *ubuntugis* PPA. Therefore, you will need to remove the GRASS and *libLAS* libraries first, then compile *libLAS* with *LASzip* support (with this script). Then you can install GRASS again from the *ubuntugis* PPA, it will be compiled with *libLAS* that now supports `.laz`.
 
 ## Windows
 This guide will talk you through the compilation of 3dfier on Windows 10 64-bit using Visual Studio (steps are identical for Visual Studio 2017 and 2019).
@@ -168,3 +186,6 @@ Check whether the directories and files specified in the environment variables a
 * the libraries files in `Project > Properties > Linker > Input > Additional Dependencies`
 
 Make sure each directory or file exists on your drive. For example: you may need to change a version number somewhere.
+
+## Docker
+We offer built docker images from the `master`, `development` branches and each release. You'll find the images and instructions on using them at [Docker Hub](https://hub.docker.com/r/tudelft3d/3dfier).

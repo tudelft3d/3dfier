@@ -35,6 +35,11 @@ OBJ is a geometry definition file format first developed by Wavefront Technologi
 
 When the goal is to visualise the geometries in a viewer like [MeshLab](http://www.meshlab.net/) this is the best choice as an output format. If you put the material definition file [3dfier.mtl](https://github.com/{{site.repository}}/raw/master/resources/3dfier.mtl) within the same folder of the .obj file, you will even have objects coloured according to their class.
 
+### STL
+[Wikipedia STL](https://en.wikipedia.org/wiki/STL_%28file_format%29)
+
+3dfier currently exports to the text version of STL (binary support coming soon).
+
 ### CityGML
 [CityGML.org](http://www.citygml.org/)
 
