@@ -733,7 +733,7 @@ std::string print_license() {
     "For any information or further details about 3dfier, contact:\n"
     "Hugo Ledoux \n"
     "<h.ledoux@tudelft.nl>\n"
-    "Faculty of Architecture & the Built Environment\n"
+    "Faculty of The Built Environment & Architecture\n"
     "Delft University of Technology\n"
     "Julianalaan 134, Delft 2628BL, the Netherlands\n"
     "======================================================================\n"
