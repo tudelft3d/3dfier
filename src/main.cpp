@@ -717,7 +717,7 @@ int main(int argc, const char * argv[]) {
 std::string print_license() {
   std::string thelicense =
     "======================================================================\n"
-    "\n3dfier: takes 2D GIS datasets and '3dfies' to create 3D city models.\n\n"
+    "\n3dfier: takes 2D GIS datasets and '3dfies' them to create 3D city models.\n\n"
     "Copyright (C) 2015-2020 3D geoinformation research group, TU Delft\n\n"
     "3dfier is free software: you can redistribute it and/or modify\n"
     "it under the terms of the GNU General Public License as published by\n"
