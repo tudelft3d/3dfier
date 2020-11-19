@@ -14,26 +14,27 @@ endif()
 
 set( CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true )
 
-set(CMAKE_CXX_FLAGS "-O2")
+set( CMAKE_CXX_FLAGS "-O2" )
+set( CMAKE_BUILD_TYPE "Release" )
  
 if ( COMMAND cmake_policy )
   cmake_policy( SET CMP0003 NEW )  
 endif()
 
 # Boost
-find_package( Boost REQUIRED locale chrono system filesystem program_options)
+find_package( Boost REQUIRED locale chrono system filesystem program_options )
 
 # GDAL
-find_package( GDAL REQUIRED)
+find_package( GDAL REQUIRED )
 
 # LASLIB
-find_package( LASlib REQUIRED)
+find_package( LASlib REQUIRED )
 
 # YamlCpp
-find_package( yaml-cpp REQUIRED)
+find_package( yaml-cpp REQUIRED )
 
 # CGAL
-find_package( CGAL REQUIRED QUIET COMPONENTS)
+find_package( CGAL REQUIRED QUIET COMPONENTS )
 
 # include helper file
 include( ${CGAL_USE_FILE} )
