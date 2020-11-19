@@ -129,10 +129,7 @@ cmake ..
 sudo make install
 ```
 
-Test the installation by typing
-```
-3dfier
-```
+Test the installation by trying out the [first run]({{site.baseurl}}/first_run).
 
 ## Windows
 This guide will talk you through the compilation of 3dfier on Windows 10 64-bit using Visual Studio (steps are identical for Visual Studio 2017 and 2019).
