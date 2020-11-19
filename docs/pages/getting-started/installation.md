@@ -79,12 +79,11 @@ To compile 3dfier:
     $ 3dfier
 
 
-
 ## Ubuntu 20.04
 ### 1. Adding *ubuntugis-unstable* repository
 To install *GDAL* on Ubuntu 20.04 LTS it is probably the easiest to add the [*ubuntugis-unstable*](https://launchpad.net/~ubuntugis/+archive/ubuntu/ubuntugis-unstable?field.series_filter=xenial). It contains *GDAL* >= 2.1 under (`libgdal-dev`) package.
 
-*Note: *ubuntugis-stable* repository doesn't contain any Ubuntu 20.04 packages yet.*
+*Note: ubuntugis-stable repository doesn't contain any Ubuntu 20.04 packages yet.*
 
 Add the *ubuntugis-unstable* repository by running:
 ```
@@ -109,7 +108,6 @@ This step requires *CMake* and *UnZip* packages. Some Linux distributions don't 
 ```
 sudo apt-get install -y unzip cmake
 ```
-
 Download and compile *LAStools* with the following:
 ```
 wget  http://lastools.github.io/download/LAStools.zip
@@ -128,7 +126,6 @@ cd 3dfier; mkdir build; cd build
 cmake ..
 sudo make install
 ```
-
 Test the installation by trying out the [first run]({{site.baseurl}}/first_run).
 
 ## Windows
