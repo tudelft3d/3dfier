@@ -3,9 +3,9 @@
 
 `3dfier testarea_config.yml --OBJ out/myoutput.obj`
 
-if you want CityGML output, change command to `--CityGML` and run:
+if you want CityJSON output, change command to `--CityJSON` and run:
 
-`3dfier testarea_config.yml --CityGML out/myoutput.gml`
+`3dfier testarea_config.yml --CityJSON out/myoutput.json`
 
 
 ## 2D input data: the BGT
@@ -18,7 +18,10 @@ The 2 files in the folder `ahn3` are part of the [AHN3](https://www.pdok.nl/nl/a
 
 ## Example output 
 
-What you should get when you run 3dfier is in `output/testarea.obj` and `output/testarea.gml`.
-If you use [MeshLab](http://meshlab.sourceforge.net) to view the file, the colours for each class can be activated in the menu `Render/Color/Per Face`. It looks like that:
+What you should get when you run 3dfier is in `output/testarea.obj` and `output/testarea.json`.
+If you use [MeshLab](http://meshlab.sourceforge.net) to visualise the OBJ file, the colours for each class can be activated in the menu `Render/Color/Per Face`. It looks like that:
 
 ![](output/testarea.png)
+
+
+For CityJSON, use [ninja](https://ninja.cityjson.org).
