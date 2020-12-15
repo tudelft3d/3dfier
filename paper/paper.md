@@ -59,6 +59,9 @@ The software *3dfier* automates the reconstruction step, it enriches the data wi
 
 It builds upon previous work done for reconstructing the whole country of the Netherlands (with 10M+ buildings) [@OudeElberink13], and provides the following improvements: use of recent and maintained libraries (eg [CGAL](https://www.cgal.org/), [GDAL](https://gdal.org/) and [Boost](https://www.boost.org/)), a clear open-source license, recent formats and international standards are supported, no geometric errors in output.
 
+There exist different commercial software that can perform extrusion (eg [Safe FME](https://www.safe.com/fme/) or [ArcGIS](https://www.arcgis.com/)), but these extrude each classes of objects separately (usually only buildings), without ensuring that adjacent objects should be "stitched" together.
+As a result, the resulting 3D dataset is often unsuitable as input for other spatial analysis software.
+
 
 # Overview of the reconstruction steps
 
