@@ -44,8 +44,8 @@ However, those 3D models, which typically contain buildings and other man-made o
 The software *3dfier* addresses this issue by automating the 3D reconstruction process.
 It takes 2D geographical datasets (eg topographic datasets) and "3dfies" them (as in "making them three-dimensional"). 
 The elevation is obtained from an aerial point cloud dataset, and the semantics of every polygon is used to perform the lifting to the third dimension, so that it is realistic.
-The resulting surface aims at being error-free: no self-intersections, no gaps, etc.
-Several output formats are supported (including the international standards), and the 3D city models are optimised for used in different software 
+The resulting 3D dataset is semantically decomposed/labelled based on the input polygons, and together they form one(many) surface(s) that aim(s) at being error-free: no self-intersections, no gaps, etc.
+Several output formats are supported (including the international standards), and the 3D city models are optimised for used in different software. 
 
 
 
