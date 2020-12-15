@@ -184,7 +184,7 @@ int main(int argc, const char * argv[]) {
   
   boost::filesystem::path yp(f_yaml);
   boost::filesystem::path ypcan = canonical(yp.parent_path(), boost::filesystem::current_path());
-  std::cout << "==> " << ypcan << std::endl;
+  // std::cout << "==> " << ypcan << std::endl;
 
   //-- store the lifting options in the Map3d
   if (nodes["lifting_options"]) {
@@ -412,27 +412,60 @@ int main(int argc, const char * argv[]) {
       if ((*it)["handle_multiple_heights"] && (*it)["handle_multiple_heights"].as<std::string>() == "true") {
         handle_multiple_heights = true;
       }
-
       // Get all datasets
       YAML::Node datasets = (*it)["datasets"];
       for (auto it2 = datasets.begin(); it2 != datasets.end(); ++it2) {
-        PolygonFile file;
-        boost::filesystem::path p = canonical(it2->as<std::string>(), ypcan).make_preferred();
-        std::cout << "=>" << p << std::endl;
-        file.filename = p.string();
-        file.idfield = uniqueid;
-        file.heightfield = heightfield;
-        file.handle_multiple_heights = handle_multiple_heights;
-        if ((*it)["lifting"]) {
-          file.layers.emplace_back(std::string(), (*it)["lifting"].as<std::string>());
-          polygonFiles.push_back(file);
-        }
-        else if ((*it)["lifting_per_layer"]) {
-          YAML::Node layers = (*it)["lifting_per_layer"];
-          for (auto it3 = layers.begin(); it3 != layers.end(); ++it3) {
-            file.layers.emplace_back(it3->first.as<std::string>(), it3->second.as<std::string>());
+        boost::filesystem::path thepath(it2->as<std::string>());
+        if (thepath.stem() == "*") {
+          // std::cout << "GLOB *** GLOB" << std::endl;
+          boost::filesystem::path rootPath = canonical(thepath.parent_path(), ypcan).make_preferred();
+          if (!boost::filesystem::exists(rootPath) || !boost::filesystem::is_directory(rootPath)) {
+            std::cerr << "ERROR: " << rootPath << "is not a directory.\n";
+            return EXIT_FAILURE;
           }
-          polygonFiles.push_back(file);
+          else {
+            boost::filesystem::recursive_directory_iterator it_end;
+            for (boost::filesystem::recursive_directory_iterator it3(rootPath); it3 != it_end; ++it3) {
+              if (boost::filesystem::is_regular_file(*it3) && it3->path().extension() == thepath.extension()) {
+                PolygonFile file;
+                boost::filesystem::path p = canonical(it3->path().string(), ypcan).make_preferred();
+                // std::cout << "=>" << p << std::endl;
+                file.filename = p.string();
+                file.idfield = uniqueid;
+                file.heightfield = heightfield;
+                file.handle_multiple_heights = handle_multiple_heights;
+                if ((*it)["lifting"]) {
+                  file.layers.emplace_back(std::string(), (*it)["lifting"].as<std::string>());
+                  polygonFiles.push_back(file);
+                } else if ((*it)["lifting_per_layer"]) {
+                  YAML::Node layers = (*it)["lifting_per_layer"];
+                  for (auto it4 = layers.begin(); it4 != layers.end(); ++it4) {
+                    file.layers.emplace_back(it4->first.as<std::string>(), it4->second.as<std::string>());
+                  }
+                  polygonFiles.push_back(file);
+                }
+              }
+            }
+          }
+        }
+        else {
+          PolygonFile file;
+          boost::filesystem::path p = canonical(thepath, ypcan).make_preferred();
+          // std::cout << "=>" << p << std::endl;
+          file.filename = p.string();
+          file.idfield = uniqueid;
+          file.heightfield = heightfield;
+          file.handle_multiple_heights = handle_multiple_heights;
+          if ((*it)["lifting"]) {
+            file.layers.emplace_back(std::string(), (*it)["lifting"].as<std::string>());
+            polygonFiles.push_back(file);
+          } else if ((*it)["lifting_per_layer"]) {
+            YAML::Node layers = (*it)["lifting_per_layer"];
+            for (auto it3 = layers.begin(); it3 != layers.end(); ++it3) {
+              file.layers.emplace_back(it3->first.as<std::string>(), it3->second.as<std::string>());
+            }
+            polygonFiles.push_back(file);
+          }
         }
       }
     }
@@ -493,19 +526,20 @@ int main(int argc, const char * argv[]) {
         }
 
         //-- iterate over all files in directory
-        boost::filesystem::path path = canonical(it2->as<std::string>(), ypcan).make_preferred();
-        boost::filesystem::path rootPath = path.parent_path();
-        if (path.stem() == "*") {
+        boost::filesystem::path thepath(it2->as<std::string>());
+        if (thepath.stem() == "*") {
+          boost::filesystem::path rootPath = canonical(thepath.parent_path(), ypcan).make_preferred();
           if (!boost::filesystem::exists(rootPath) || !boost::filesystem::is_directory(rootPath)) {
             std::cerr << "ERROR: " << rootPath << "is not a directory.\n";
             return EXIT_FAILURE;
           }
           else {
             boost::filesystem::recursive_directory_iterator it_end;
-            for (boost::filesystem::recursive_directory_iterator it(rootPath); it != it_end; ++it) {
-              if (boost::filesystem::is_regular_file(*it) && it->path().extension() == path.extension()) {
+            for (boost::filesystem::recursive_directory_iterator it3(rootPath); it3 != it_end; ++it3) {
+              if (boost::filesystem::is_regular_file(*it3) && it3->path().extension() == thepath.extension()) {
                 PointFile pointFile;
-                pointFile.filename = it->path().string();
+                boost::filesystem::path p = canonical(it3->path().string(), ypcan).make_preferred();
+                pointFile.filename = p.string();
                 pointFile.lasomits = lasomits;
                 pointFile.thinning = thinning;
                 elevationFiles.push_back(pointFile);
@@ -515,7 +549,8 @@ int main(int argc, const char * argv[]) {
         }
         else {
           PointFile pointFile;
-          pointFile.filename = path.string();
+          boost::filesystem::path p = canonical(thepath, ypcan).make_preferred();
+          pointFile.filename = p.string();
           pointFile.lasomits = lasomits;
           pointFile.thinning = thinning;
           elevationFiles.push_back(pointFile);
