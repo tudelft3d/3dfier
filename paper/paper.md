@@ -62,7 +62,7 @@ It builds upon previous work done for reconstructing the whole country of the Ne
 
 # Overview of the reconstruction steps
 
-![Overview of 3dfier.\label{fig:overview}](extrusion.png)
+![Overview of 3dfier.\label{fig:overview}](extrusion.png){ width=90% }
 
 As shown in \autoref{fig:overview}, as input we use geographical datasets that are readily available for an area (often as open data too):
 
