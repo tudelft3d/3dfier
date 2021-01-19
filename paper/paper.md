@@ -42,9 +42,9 @@ Examples of such environmental factors are noise [@Stoter08], wind [@GarciaSanch
 However, those 3D models, which typically contain buildings and other man-made objects such as roads, overpasses, bridges, and trees, are in practice complex to obtain, and it is very time-consuming and tedious to reconstruct them manually.
 
 The software *3dfier* addresses this issue by automating the 3D reconstruction process.
-It takes 2D geographical datasets (eg topographic datasets) and "3dfies" them (as in "making them three-dimensional"). 
-The elevation is obtained from an aerial point cloud dataset, and the semantics of every polygon is used to perform the lifting to the third dimension, so that it is realistic.
-The resulting 3D dataset is semantically decomposed/labelled based on the input polygons, and together they form one(many) surface(s) that aim(s) at being error-free: no self-intersections, no gaps, etc.
+It takes 2D geographical datasets (eg topographic datasets) that consist of polygons and "3dfies" them (as in "making them three-dimensional"). 
+The elevation is obtained from an aerial point cloud dataset, and the semantics of the polygons is used to perform the lifting to the third dimension, so that it is realistic.
+The resulting 3D dataset is semantically decomposed/labelled based on the input polygons, and together they form one(many) surface(s) that aim(s) to be error-free: no self-intersections, no gaps, etc.
 Several output formats are supported (including the international standards), and the 3D city models are optimised for use in different software. 
 
 
@@ -77,7 +77,7 @@ Each of the classes in the input 2D polygons is mapped to a specific class: *Ter
 
 The semantics of every input 2D polygon is used to perform the lifting to the third dimension.
 For example, water polygons are extruded to horizontal polygons, buildings to prismatic blocks, roads as smooth surfaces, etc. 
-Every polygon is triangulated and in a next step the lifted polygons are "stitched" together so that one  surface is reconstructed. 
+Every polygon is triangulated and in a next step the lifted polygons are "stitched" together so that one surface is reconstructed. 
 In this step, priority is given to "hard" objects such as roads, ie vegetation polygons are moved to be aligned with the road polygons.
 The output of the software is one watertight surface with no intersecting triangles and no holes, and features such as buildings and trees can be added or omitted.  
 Triangles are grouped and labelled with the class and the attributes that were in the input 2D polygons they decompose.
