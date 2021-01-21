@@ -439,7 +439,6 @@ void Map3d::get_stl(std::wostream& of) {
     }
   }
 
-  // Is there a better way to handle this?
   // Define each class as a separate solid
   fs[0] = "solid Building\n"   + fs[0]; fs[0] += "endsolid Building";
   fs[1] = "solid Water\n"      + fs[1]; fs[1] += "endsolid Water";

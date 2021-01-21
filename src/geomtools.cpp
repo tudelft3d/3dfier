@@ -416,3 +416,73 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
     }
 
 }
+
+
+/**
+ * operations on triangles required for STL export
+ */
+
+//-- Struct PointSTL
+// Constructors
+PointSTL::PointSTL() {};
+
+PointSTL::PointSTL(const std::string& point) {
+    std::stringstream ss;
+    double num;
+
+    ss << point;
+    while (ss >> num) vertex.push_back(num);
+}
+
+// Destructor
+PointSTL::~PointSTL() {};
+
+// Operators
+std::array<double, 3> PointSTL::operator+(const PointSTL& other) const {
+    std::array<double, 3> temp;
+    for (auto i = 0; i < 3; ++i) {
+        temp[i] = other.vertex[i] + this->vertex[i];
+    }
+    return temp;
+}
+
+std::array<double, 3> PointSTL::operator-(const PointSTL& other) const {
+    std::array<double, 3> temp;
+    for (auto i = 0; i < 3; ++i) {
+        temp[i] = other.vertex[i] - this->vertex[i];
+    }
+    return temp;
+}
+
+//- Struct TriangleSTL
+// Constructors
+TriangleSTL::TriangleSTL() {
+    PointSTL a();
+    PointSTL b();
+    PointSTL c();
+}
+TriangleSTL::TriangleSTL(const PointSTL& pointa, const PointSTL& pointb, const PointSTL& pointc)
+:a(pointa), b(pointb), c(pointc)
+{
+    vecU = b - a;
+    vecV = c - a;
+}
+
+// Destructor
+TriangleSTL::~TriangleSTL() {}
+
+// Member functions
+std::array<double, 3> TriangleSTL::norm() const {
+    std::array<double, 3> nVec;
+
+    nVec[0] = vecU[1]*vecV[2] - vecU[2]*vecV[1];
+    nVec[1] = vecU[2]*vecV[0] - vecU[0]*vecV[2];
+    nVec[2] = vecU[0]*vecV[1] - vecU[1]*vecV[0];
+
+    double nLen = sqrt(nVec[0]*nVec[0] + nVec[1]*nVec[1] + nVec[2]*nVec[2]); // normalize the normal
+    for (int j = 0; j < 3; j++)
+        nVec[j] /= nLen;
+
+    return nVec;
+}
+

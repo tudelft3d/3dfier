@@ -283,39 +283,12 @@ void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts
 }
 
 /* Access, calculate and output STL format for a feature */
-void TopoFeature::stl_prep(std::string pointsa, std::string pointsb, std::string pointsc, std::string &fs){
-    // take vertices that are written as string and turn them into float point vectors
-    std::vector<double> v1, v2, v3;
-    double num;
-    std::stringstream ss;
+void TopoFeature::stl_prep(std::string& pointsa, std::string& pointsb, std::string& pointsc, std::string& fs){
+    // take vertices that are written as strings, turn them into doubles and perform operations
+    PointSTL pt1(pointsa), pt2(pointsb), pt3(pointsc);
+    TriangleSTL stl_triangle(pt1 , pt2, pt3);
 
-    ss << pointsa;
-    while (ss >> num) v1.push_back(num);
-    ss.clear();
-
-    ss << pointsb;
-    while (ss >> num) v2.push_back(num);
-    ss.clear();
-
-    ss << pointsc;
-    while (ss >> num) v3.push_back(num);
-    ss.clear();
-
-    // calculate face normals
-    double vecU[3], vecV[3];
-    double nVec[3];
-
-    for (int j = 0; j < 3; j++){
-      vecU[j] = v2[j] - v1[j];
-      vecV[j] = v3[j] - v1[j];
-    }
-    nVec[0] = vecU[1]*vecV[2] - vecU[2]*vecV[1];
-    nVec[1] = vecU[2]*vecV[0] - vecU[0]*vecV[2];
-    nVec[2] = vecU[0]*vecV[1] - vecU[1]*vecV[0];
-
-    double nLen = sqrt(nVec[0]*nVec[0] + nVec[1]*nVec[1] + nVec[2]*nVec[2]); // normalize the normal
-    for (int j = 0; j < 3; j++)
-      nVec[j] /= nLen;
+    std::array<double, 3> nVec = stl_triangle.norm();
 
     // output feature
     fs += "  facet normal "; fs += std::to_string(nVec[0]); fs += " "; fs += std::to_string(nVec[1]); fs+= " "; fs += std::to_string(nVec[2]); fs += "\n";

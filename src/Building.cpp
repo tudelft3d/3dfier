@@ -397,7 +397,6 @@ void Building::get_stl(std::unordered_map< std::string, unsigned long > &dPts, i
     TopoFeature::get_stl(dPts, fs);
 
     if (_building_include_floor) {
-//      fs += "solid BuildingFloor\n";
       float z = z_to_float(this->get_height_base());
       for (auto& t : _triangles) {
         unsigned long a, b, c;

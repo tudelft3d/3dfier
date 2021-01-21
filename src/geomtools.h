@@ -45,4 +45,26 @@ bool   getCDT(Polygon2* pgn,
             const std::vector<Point3> &lidarpts = std::vector<Point3>(),
             double tinsimp_threshold=0);
 
+struct PointSTL {
+    PointSTL();
+    PointSTL(const std::string& point);
+    ~PointSTL();
+
+    std::vector<double> vertex;
+
+    std::array<double, 3> operator+(const PointSTL& other) const;
+    std::array<double, 3> operator-(const PointSTL& other) const;
+};
+
+struct TriangleSTL {
+    TriangleSTL();
+    TriangleSTL(const PointSTL& pointa, const PointSTL& pointb, const PointSTL& pointc);
+    ~TriangleSTL();
+
+    PointSTL a, b, c;
+    std::array<double, 3> vecU, vecV;
+
+    std::array<double, 3> norm() const;
+};
+
 #endif /* geomtools_h */
