@@ -11,6 +11,7 @@ authors:
     orcid: 0000-0002-6229-7749
     affiliation: 2
   - name: Balázs Dukai
+    orcid: 0000-0003-0193-5863
     affiliation: 1
   - name: Kavisha Kumar
     affiliation: 1
