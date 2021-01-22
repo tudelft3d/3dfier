@@ -282,8 +282,89 @@ void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts
   }
 }
 
+void TopoFeature::get_stl_binary(std::unordered_map< std::string, unsigned long > &dPts, std::string &fs) {
+    for (auto& t : _triangles) {
+        unsigned long a, b, c;
+        auto it = dPts.find(_vertices[t.v0].second);
+        if (it == dPts.end()) {
+            // first get the size + 1 and then store the size in dPts due to unspecified order of execution
+            a = dPts.size() + 1;
+            dPts[_vertices[t.v0].second] = a;
+        }
+        else
+            a = it->second;
+        it = dPts.find(_vertices[t.v1].second);
+        if (it == dPts.end()) {
+            b = dPts.size() + 1;
+            dPts[_vertices[t.v1].second] = b;
+        }
+        else
+            b = it->second;
+        it = dPts.find(_vertices[t.v2].second);
+        if (it == dPts.end()) {
+            c = dPts.size() + 1;
+            dPts[_vertices[t.v2].second] = c;
+        }
+        else
+            c = it->second;
+
+        if ((a != b) && (a != c) && (b != c)) {
+            stl_prep(_vertices[t.v0].second, _vertices[t.v1].second, _vertices[t.v2].second, fs);
+        }
+    }
+
+    //-- vertical triangles
+    if (_triangles_vw.size() > 0) {
+        for (auto& t : _triangles_vw) {
+            unsigned long a, b, c;
+            auto it = dPts.find(_vertices_vw[t.v0].second);
+            if (it == dPts.end()) {
+                a = dPts.size() + 1;
+                dPts[_vertices_vw[t.v0].second] = a;
+            }
+            else
+                a = it->second;
+            it = dPts.find(_vertices_vw[t.v1].second);
+            if (it == dPts.end()) {
+                b = dPts.size() + 1;
+                dPts[_vertices_vw[t.v1].second] = b;
+            }
+            else
+                b = it->second;
+            it = dPts.find(_vertices_vw[t.v2].second);
+            if (it == dPts.end()) {
+                c = dPts.size() + 1;
+                dPts[_vertices_vw[t.v2].second] = c;
+            }
+            else
+                c = it->second;
+
+            if ((a != b) && (a != c) && (b != c)) {
+                stl_prep(_vertices_vw[t.v0].second, _vertices_vw[t.v1].second, _vertices_vw[t.v2].second, fs);
+            }
+        }
+    }
+}
+
 /* Access, calculate and output STL format for a feature */
 void TopoFeature::stl_prep(std::string& pointsa, std::string& pointsb, std::string& pointsc, std::string& fs){
+    // take vertices that are written as strings, turn them into doubles and perform operations
+    PointSTL pt1(pointsa), pt2(pointsb), pt3(pointsc);
+    TriangleSTL stl_triangle(pt1 , pt2, pt3);
+
+    std::array<double, 3> nVec = stl_triangle.norm();
+
+    // output feature
+    fs += "  facet normal "; fs += std::to_string(nVec[0]); fs += " "; fs += std::to_string(nVec[1]); fs+= " "; fs += std::to_string(nVec[2]); fs += "\n";
+    fs += "    outer loop"; fs += "\n";
+    fs += "      "; fs += "vertex "; fs += pointsa; fs += "\n";
+    fs += "      "; fs += "vertex "; fs += pointsb; fs += "\n";
+    fs += "      "; fs += "vertex "; fs += pointsc; fs += "\n";
+    fs += "    endloop"; fs += "\n";
+    fs += "  endfacet"; fs += "\n";
+}
+
+void TopoFeature::stl_prep_binary(std::string& pointsa, std::string& pointsb, std::string& pointsc, std::string& fs){
     // take vertices that are written as strings, turn them into doubles and perform operations
     PointSTL pt1(pointsa), pt2(pointsb), pt3(pointsc);
     TriangleSTL stl_triangle(pt1 , pt2, pt3);

@@ -61,6 +61,7 @@ int main(int argc, const char * argv[]) {
   outputs["OBJ"] = "";
   outputs["OBJ-NoID"] = "";
   outputs["STL"] = "";
+  outputs["STL-Binary"] = "";
   outputs["CityGML"] = "";
   outputs["CityGML-Multifile"] = "";
   outputs["CityGML-IMGeo"] = "";
@@ -86,6 +87,7 @@ int main(int argc, const char * argv[]) {
       ("OBJ", po::value<std::string>(&outputs["OBJ"]), "Output ")
       ("OBJ-NoID", po::value<std::string>(&outputs["OBJ-NoID"]), "Output ")
       ("STL", po::value<std::string>(&outputs["STL"]), "Output ")
+      ("STL-Binary", po::value<std::string>(&outputs["STL-Binary"]), "Output ")
       ("CityGML", po::value<std::string>(&outputs["CityGML"]), "Output ")
       ("CityGML-Multifile", po::value<std::string>(&outputs["CityGML-Multifile"]), "Output ")
       ("CityGML-IMGeo", po::value<std::string>(&outputs["CityGML-IMGeo"]), "Output ")
@@ -659,8 +661,11 @@ int main(int argc, const char * argv[]) {
     if (format != "CityGML-Multifile" && format != "CityGML-IMGeo-Multifile" &&
       format != "Shapefile" && format != "Shapefile-Multifile" &&
       format != "PostGIS" && format != "PostGIS-PDOK" && format != "PostGIS-PDOK-CityGML" &&
-      format != "GDAL") {
+      format != "GDAL" && format != "STL-Binary") {
       of.open(ofname);
+    }
+    else if (format == "STL-Binary") {
+      of.open(ofname, std::ios::binary);
     }
     if (format == "CityGML") {
       std::clog << "CityGML output: " << ofname << std::endl;
@@ -693,6 +698,10 @@ int main(int argc, const char * argv[]) {
     else if (format == "STL") {
       std::clog << "STL output: " << ofname << std::endl;
       map3d.get_stl(of);
+    }
+    else if (format == "STL-Binary") {
+        std::clog << "STL output: " << ofname << std::endl;
+        map3d.get_stl_binary(of);
     }
     else if (format == "CSV-BUILDINGS") {
       std::clog << "CSV output (only of the buildings): " << ofname << std::endl;
