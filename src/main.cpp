@@ -664,9 +664,6 @@ int main(int argc, const char * argv[]) {
       format != "GDAL" && format != "STL-Binary") {
       of.open(ofname);
     }
-    else if (format == "STL-Binary") {
-      of.open(ofname, std::ios::binary);
-    }
     if (format == "CityGML") {
       std::clog << "CityGML output: " << ofname << std::endl;
       map3d.get_citygml(of);
@@ -700,8 +697,8 @@ int main(int argc, const char * argv[]) {
       map3d.get_stl(of);
     }
     else if (format == "STL-Binary") {
-        std::clog << "STL output: " << ofname << std::endl;
-        map3d.get_stl_binary(of);
+      std::clog << "STL output: " << ofname << std::endl;
+      map3d.get_stl_binary(ofname);
     }
     else if (format == "CSV-BUILDINGS") {
       std::clog << "CSV output (only of the buildings): " << ofname << std::endl;

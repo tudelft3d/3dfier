@@ -453,8 +453,12 @@ void Map3d::get_stl(std::wostream& of) {
   }
 }
 
-void Map3d::get_stl_binary(std::wostream& of) {
+void Map3d::get_stl_binary(std::string& ofname) {
+    std::ofstream of;
+    of.open(ofname, std::ios::binary);
+
     std::unordered_map< std::string, unsigned long > dPts;
+    int ntri = 0; // number of triangles
     std::string fs[7];
 
     for (int c = 0; c < 7; c++) {
@@ -462,29 +466,45 @@ void Map3d::get_stl_binary(std::wostream& of) {
             if (p->get_class() == c) {
                 if (p->get_class() == BUILDING) {
                     Building* b = dynamic_cast<Building*>(p);
-                    b->get_stl_binary(dPts, _building_lod, fs[0]);
+                    b->get_stl_binary(dPts, _building_lod, fs[0], ntri);
                 }
                 else {
-                    p->get_stl_binary(dPts, fs[c]);
+                    p->get_stl_binary(dPts, fs[c], ntri);
                 }
             }
         }
     }
 
-    // Define each class as a separate solid
-    fs[0] = "solid Building\n"   + fs[0]; fs[0] += "endsolid Building";
-    fs[1] = "solid Water\n"      + fs[1]; fs[1] += "endsolid Water";
-    fs[2] = "solid Bridge\n"     + fs[2]; fs[2] += "endsolid Bridge";
-    fs[3] = "solid Road\n"       + fs[3]; fs[3] += "endsolid Road";
-    fs[4] = "solid Terrain\n"    + fs[4]; fs[4] += "endsolid Terrain";
-    fs[5] = "solid Forest\n"     + fs[5]; fs[5] += "endsolid Forest";
-    fs[6] = "solid Separation\n" + fs[6]; fs[6] += "endsolid Separation";
+    // -- Output to file
+    // Define header
+    std::string header_info = "3dfier binary STL output";
+    char head[80];
+    std::strncpy(head,header_info.c_str(),sizeof(head)-1);
 
-    for (int c = 0; c < 7; c++) {
-        of << fs[c] << std::endl;
+    of.write(head, sizeof(head));
+    of.write((char *)&ntri, 4);
+
+    // Parse string data to binary output for each atrribute
+    for (int attr = 0; attr < 7; ++attr) {
+        fs[attr].erase(0, 1); // remove the first \n
+        std::istringstream f(fs[attr]);
+        std::string line;
+
+        int i = 0;
+        while (std::getline(f, line)) {
+            float num = std::stof(line);
+            of.write((char *) &num, 4);
+
+            if (i < 11) {
+                ++i;
+            } else {
+                i = 0;
+                of.write((char *) &attr, 2);
+            }
+        }
     }
+    of.close();
 }
-
 
 bool Map3d::get_postgis_output(std::string connstr, bool pdok, bool citygml) {
 #if GDAL_VERSION_MAJOR < 2

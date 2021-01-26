@@ -282,7 +282,7 @@ void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts
   }
 }
 
-void TopoFeature::get_stl_binary(std::unordered_map< std::string, unsigned long > &dPts, std::string &fs) {
+void TopoFeature::get_stl_binary(std::unordered_map< std::string, unsigned long > &dPts, std::string &fs, int& ntri) {
     for (auto& t : _triangles) {
         unsigned long a, b, c;
         auto it = dPts.find(_vertices[t.v0].second);
@@ -309,7 +309,7 @@ void TopoFeature::get_stl_binary(std::unordered_map< std::string, unsigned long 
             c = it->second;
 
         if ((a != b) && (a != c) && (b != c)) {
-            stl_prep(_vertices[t.v0].second, _vertices[t.v1].second, _vertices[t.v2].second, fs);
+            stl_prep_binary(_vertices[t.v0].second, _vertices[t.v1].second, _vertices[t.v2].second, fs, ntri);
         }
     }
 
@@ -340,7 +340,7 @@ void TopoFeature::get_stl_binary(std::unordered_map< std::string, unsigned long 
                 c = it->second;
 
             if ((a != b) && (a != c) && (b != c)) {
-                stl_prep(_vertices_vw[t.v0].second, _vertices_vw[t.v1].second, _vertices_vw[t.v2].second, fs);
+                stl_prep_binary(_vertices_vw[t.v0].second, _vertices_vw[t.v1].second, _vertices_vw[t.v2].second, fs, ntri);
             }
         }
     }
@@ -364,21 +364,31 @@ void TopoFeature::stl_prep(std::string& pointsa, std::string& pointsb, std::stri
     fs += "  endfacet"; fs += "\n";
 }
 
-void TopoFeature::stl_prep_binary(std::string& pointsa, std::string& pointsb, std::string& pointsc, std::string& fs){
+void TopoFeature::stl_prep_binary(std::string& pointsa, std::string& pointsb, std::string& pointsc, std::string& fs, int& ntri){
+    ntri += 1;
     // take vertices that are written as strings, turn them into doubles and perform operations
     PointSTL pt1(pointsa), pt2(pointsb), pt3(pointsc);
     TriangleSTL stl_triangle(pt1 , pt2, pt3);
 
     std::array<double, 3> nVec = stl_triangle.norm();
 
-    // output feature
-    fs += "  facet normal "; fs += std::to_string(nVec[0]); fs += " "; fs += std::to_string(nVec[1]); fs+= " "; fs += std::to_string(nVec[2]); fs += "\n";
-    fs += "    outer loop"; fs += "\n";
-    fs += "      "; fs += "vertex "; fs += pointsa; fs += "\n";
-    fs += "      "; fs += "vertex "; fs += pointsb; fs += "\n";
-    fs += "      "; fs += "vertex "; fs += pointsc; fs += "\n";
-    fs += "    endloop"; fs += "\n";
-    fs += "  endfacet"; fs += "\n";
+    //- output feature
+    // normal
+    for (auto i = 0; i < 3; ++i) {
+        fs += "\n"; fs += std::to_string(nVec[i]);
+    }
+    // vertex pointsa
+    for (auto i = 0; i < 3; ++i) {
+        fs += "\n"; fs += std::to_string(pt1.vertex[i]);
+    }
+    // vertex pointsb
+    for (auto i = 0; i < 3; ++i) {
+        fs += "\n"; fs += std::to_string(pt2.vertex[i]);
+    }
+    // vertex pointsc
+    for (auto i = 0; i < 3; ++i) {
+        fs += "\n"; fs += std::to_string(pt3.vertex[i]);
+    }
 }
 
 AttributeMap &TopoFeature::get_attributes() {

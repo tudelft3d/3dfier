@@ -468,9 +468,9 @@ void Building::get_stl(std::unordered_map< std::string, unsigned long > &dPts, i
   }
 }
 
-void Building::get_stl_binary(std::unordered_map< std::string, unsigned long > &dPts, int lod,std::string &fs) {
+void Building::get_stl_binary(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string &fs, int& ntri) {
     if (lod == 1) {
-        TopoFeature::get_stl(dPts, fs);
+        TopoFeature::get_stl_binary(dPts, fs, ntri);
 
         if (_building_include_floor) {
             float z = z_to_float(this->get_height_base());
@@ -502,7 +502,7 @@ void Building::get_stl_binary(std::unordered_map< std::string, unsigned long > &
                 }
                 //reverse orientation for floor polygon, a-c-b instead of a-b-c.
                 if ((a != b) && (a != c) && (b != c)) {
-                    stl_prep(_vertices[t.v0].second, _vertices[t.v2].second, _vertices[t.v1].second, fs);
+                    stl_prep_binary(_vertices[t.v0].second, _vertices[t.v2].second, _vertices[t.v1].second, fs, ntri);
                 }
             }
         }
@@ -536,7 +536,7 @@ void Building::get_stl_binary(std::unordered_map< std::string, unsigned long > &
                 c = it->second;
             }
             if ((a != b) && (a != c) && (b != c)) {
-                stl_prep(_vertices[t.v0].second, _vertices[t.v1].second, _vertices[t.v2].second, fs);
+                stl_prep_binary(_vertices[t.v0].second, _vertices[t.v1].second, _vertices[t.v2].second, fs, ntri);
             }
         }
 
