@@ -497,7 +497,7 @@ void Map3d::get_stl_binary(std::string& ofname) {
 
             if (i < 11) {
                 ++i;
-            } else {
+            }else {
                 i = 0;
                 of.write((char *) &attr, 2);
             }

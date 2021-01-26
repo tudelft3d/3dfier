@@ -89,6 +89,55 @@ Polygon2* TopoFeature::get_Polygon2() {
   return _p2;
 }
 
+void TopoFeature::get_vertices(std::unordered_map<std::string,unsigned long> &dPts, Triangle &t, unsigned long &a, unsigned long &b, unsigned long &c) {
+    auto it = dPts.find(_vertices[t.v0].second);
+    if (it == dPts.end()) {
+        // first get the size + 1 and then store the size in dPts due to unspecified order of execution
+        a = dPts.size() + 1;
+        dPts[_vertices[t.v0].second] = a;
+    }
+    else
+        a = it->second;
+    it = dPts.find(_vertices[t.v1].second);
+    if (it == dPts.end()) {
+        b = dPts.size() + 1;
+        dPts[_vertices[t.v1].second] = b;
+    }
+    else
+        b = it->second;
+    it = dPts.find(_vertices[t.v2].second);
+    if (it == dPts.end()) {
+        c = dPts.size() + 1;
+        dPts[_vertices[t.v2].second] = c;
+    }
+    else
+        c = it->second;
+}
+
+void TopoFeature::get_vertices_vw(std::unordered_map<std::string,unsigned long> &dPts, Triangle &t, unsigned long &a, unsigned long &b, unsigned long &c) {
+    auto it = dPts.find(_vertices_vw[t.v0].second);
+    if (it == dPts.end()) {
+        a = dPts.size() + 1;
+        dPts[_vertices_vw[t.v0].second] = a;
+    }
+    else
+        a = it->second;
+    it = dPts.find(_vertices_vw[t.v1].second);
+    if (it == dPts.end()) {
+        b = dPts.size() + 1;
+        dPts[_vertices_vw[t.v1].second] = b;
+    }
+    else
+        b = it->second;
+    it = dPts.find(_vertices_vw[t.v2].second);
+    if (it == dPts.end()) {
+        c = dPts.size() + 1;
+        dPts[_vertices_vw[t.v2].second] = c;
+    }
+    else
+        c = it->second;
+}
+
 void TopoFeature::get_cityjson_geom(nlohmann::json& g, std::unordered_map<std::string,unsigned long> &dPts, std::string primitive) {
   g["type"] = primitive;
   g["lod"] = 1;
@@ -156,29 +205,7 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
   fs += mtl; fs += "\n";
   for (auto& t : _triangles) {
     unsigned long a, b, c;
-    auto it = dPts.find(_vertices[t.v0].second);
-    if (it == dPts.end()) {
-      // first get the size + 1 and then store the size in dPts due to unspecified order of execution
-      a = dPts.size() + 1;
-      dPts[_vertices[t.v0].second] = a;
-    }
-    else
-      a = it->second;
-    it = dPts.find(_vertices[t.v1].second);
-    if (it == dPts.end()) {
-      b = dPts.size() + 1;
-      dPts[_vertices[t.v1].second] = b;
-    }
-    else
-      b = it->second;
-    it = dPts.find(_vertices[t.v2].second);
-    if (it == dPts.end()) {
-      c = dPts.size() + 1;
-      dPts[_vertices[t.v2].second] = c;
-    }
-    else
-      c = it->second;
-
+    get_vertices(dPts, t, a, b, c);
     if ((a != b) && (a != c) && (b != c)) {
       fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
     }
@@ -189,28 +216,7 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
     fs += mtl; fs += "Wall"; fs += "\n";
     for (auto& t : _triangles_vw) {
       unsigned long a, b, c;
-      auto it = dPts.find(_vertices_vw[t.v0].second);
-      if (it == dPts.end()) {
-        a = dPts.size() + 1;
-        dPts[_vertices_vw[t.v0].second] = a;
-      }
-      else
-        a = it->second;
-      it = dPts.find(_vertices_vw[t.v1].second);
-      if (it == dPts.end()) {
-        b = dPts.size() + 1;
-        dPts[_vertices_vw[t.v1].second] = b;
-      }
-      else
-        b = it->second;
-      it = dPts.find(_vertices_vw[t.v2].second);
-      if (it == dPts.end()) {
-        c = dPts.size() + 1;
-        dPts[_vertices_vw[t.v2].second] = c;
-      }
-      else
-        c = it->second;
-
+      get_vertices_vw(dPts, t, a, b, c);
       if ((a != b) && (a != c) && (b != c)) {
         fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
       }
@@ -221,29 +227,7 @@ void TopoFeature::get_obj(std::unordered_map< std::string, unsigned long > &dPts
 void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts, std::string &fs) {
   for (auto& t : _triangles) {
     unsigned long a, b, c;
-    auto it = dPts.find(_vertices[t.v0].second);
-    if (it == dPts.end()) {
-      // first get the size + 1 and then store the size in dPts due to unspecified order of execution
-      a = dPts.size() + 1;
-      dPts[_vertices[t.v0].second] = a;
-    }
-    else
-      a = it->second;
-    it = dPts.find(_vertices[t.v1].second);
-    if (it == dPts.end()) {
-      b = dPts.size() + 1;
-      dPts[_vertices[t.v1].second] = b;
-    }
-    else
-      b = it->second;
-    it = dPts.find(_vertices[t.v2].second);
-    if (it == dPts.end()) {
-      c = dPts.size() + 1;
-      dPts[_vertices[t.v2].second] = c;
-    }
-    else
-      c = it->second;
-
+    get_vertices(dPts, t, a, b, c);
     if ((a != b) && (a != c) && (b != c)) {
       stl_prep(_vertices[t.v0].second, _vertices[t.v1].second, _vertices[t.v2].second, fs);
     }
@@ -253,28 +237,7 @@ void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts
   if (_triangles_vw.size() > 0) {
     for (auto& t : _triangles_vw) {
       unsigned long a, b, c;
-      auto it = dPts.find(_vertices_vw[t.v0].second);
-      if (it == dPts.end()) {
-        a = dPts.size() + 1;
-        dPts[_vertices_vw[t.v0].second] = a;
-      }
-      else
-        a = it->second;
-      it = dPts.find(_vertices_vw[t.v1].second);
-      if (it == dPts.end()) {
-        b = dPts.size() + 1;
-        dPts[_vertices_vw[t.v1].second] = b;
-      }
-      else
-        b = it->second;
-      it = dPts.find(_vertices_vw[t.v2].second);
-      if (it == dPts.end()) {
-        c = dPts.size() + 1;
-        dPts[_vertices_vw[t.v2].second] = c;
-      }
-      else
-        c = it->second;
-
+      get_vertices_vw(dPts, t, a, b, c);
       if ((a != b) && (a != c) && (b != c)) {
         stl_prep(_vertices_vw[t.v0].second, _vertices_vw[t.v1].second, _vertices_vw[t.v2].second, fs);
       }
@@ -285,29 +248,7 @@ void TopoFeature::get_stl(std::unordered_map< std::string, unsigned long > &dPts
 void TopoFeature::get_stl_binary(std::unordered_map< std::string, unsigned long > &dPts, std::string &fs, int& ntri) {
     for (auto& t : _triangles) {
         unsigned long a, b, c;
-        auto it = dPts.find(_vertices[t.v0].second);
-        if (it == dPts.end()) {
-            // first get the size + 1 and then store the size in dPts due to unspecified order of execution
-            a = dPts.size() + 1;
-            dPts[_vertices[t.v0].second] = a;
-        }
-        else
-            a = it->second;
-        it = dPts.find(_vertices[t.v1].second);
-        if (it == dPts.end()) {
-            b = dPts.size() + 1;
-            dPts[_vertices[t.v1].second] = b;
-        }
-        else
-            b = it->second;
-        it = dPts.find(_vertices[t.v2].second);
-        if (it == dPts.end()) {
-            c = dPts.size() + 1;
-            dPts[_vertices[t.v2].second] = c;
-        }
-        else
-            c = it->second;
-
+        get_vertices(dPts, t, a, b, c);
         if ((a != b) && (a != c) && (b != c)) {
             stl_prep_binary(_vertices[t.v0].second, _vertices[t.v1].second, _vertices[t.v2].second, fs, ntri);
         }
@@ -317,28 +258,7 @@ void TopoFeature::get_stl_binary(std::unordered_map< std::string, unsigned long 
     if (_triangles_vw.size() > 0) {
         for (auto& t : _triangles_vw) {
             unsigned long a, b, c;
-            auto it = dPts.find(_vertices_vw[t.v0].second);
-            if (it == dPts.end()) {
-                a = dPts.size() + 1;
-                dPts[_vertices_vw[t.v0].second] = a;
-            }
-            else
-                a = it->second;
-            it = dPts.find(_vertices_vw[t.v1].second);
-            if (it == dPts.end()) {
-                b = dPts.size() + 1;
-                dPts[_vertices_vw[t.v1].second] = b;
-            }
-            else
-                b = it->second;
-            it = dPts.find(_vertices_vw[t.v2].second);
-            if (it == dPts.end()) {
-                c = dPts.size() + 1;
-                dPts[_vertices_vw[t.v2].second] = c;
-            }
-            else
-                c = it->second;
-
+            get_vertices_vw(dPts, t, a, b, c);
             if ((a != b) && (a != c) && (b != c)) {
                 stl_prep_binary(_vertices_vw[t.v0].second, _vertices_vw[t.v1].second, _vertices_vw[t.v2].second, fs, ntri);
             }

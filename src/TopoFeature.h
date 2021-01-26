@@ -75,6 +75,8 @@ public:
   bool         get_top_level();
   bool         get_multipolygon_features(OGRLayer* layer, std::string className, bool writeAttributes, const AttributeMap& extraAttributes = AttributeMap());
   bool         writeAttribute(OGRFeature* feature, OGRFeatureDefn* featureDefn, std::string name, std::string value);
+  void         get_vertices(std::unordered_map<std::string,unsigned long> &dPts, Triangle &t, unsigned long &a, unsigned long &b, unsigned long &c);
+  void         get_vertices_vw(std::unordered_map<std::string,unsigned long> &dPts, Triangle &t, unsigned long &a, unsigned long &b, unsigned long &c);
   void         get_obj(std::unordered_map< std::string, unsigned long >& dPts, std::string mtl, std::string& fs);
   void         get_stl(std::unordered_map< std::string, unsigned long >& dPts,std::string& fs);
   void         get_stl_binary(std::unordered_map< std::string, unsigned long >& dPts,std::string& fs, int& ntri);

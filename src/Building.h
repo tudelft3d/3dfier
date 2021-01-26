@@ -39,6 +39,7 @@ public:
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within);
   void          construct_building_walls(const NodeColumn& nc);
+  void          get_vertices(std::unordered_map< std::string, unsigned long > &dPts, Triangle &t, unsigned long &a, unsigned long &b, unsigned long &c, float z);
   void          get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs);
   void          get_stl(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string &fs);
   void          get_stl_binary(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string &fs, int& ntri);

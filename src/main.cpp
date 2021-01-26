@@ -697,7 +697,7 @@ int main(int argc, const char * argv[]) {
       map3d.get_stl(of);
     }
     else if (format == "STL-Binary") {
-      std::clog << "STL output: " << ofname << std::endl;
+      std::clog << "Binary STL output: " << ofname << std::endl;
       map3d.get_stl_binary(ofname);
     }
     else if (format == "CSV-BUILDINGS") {

@@ -313,6 +313,33 @@ std::string Building::get_mtl() {
   return "usemtl Building";
 }
 
+void Building::get_vertices(std::unordered_map< std::string, unsigned long > &dPts, Triangle &t, unsigned long &a, unsigned long &b, unsigned long &c, float z) {
+    auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
+    if (it == dPts.end()) {
+        a = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
+    }
+    else {
+        a = it->second;
+    }
+    it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
+    if (it == dPts.end()) {
+        b = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
+    }
+    else {
+        b = it->second;
+    }
+    it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
+    if (it == dPts.end()) {
+        c = dPts.size() + 1;
+        dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
+    }
+    else {
+        c = it->second;
+    }
+}
+
 void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, int lod, std::string mtl, std::string &fs) {
   if (lod == 1) {
     TopoFeature::get_obj(dPts, mtl, fs);
@@ -322,30 +349,7 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
       float z = z_to_float(this->get_height_base());
       for (auto& t : _triangles) {
         unsigned long a, b, c;
-        auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
-        if (it == dPts.end()) {
-          a = dPts.size() + 1;
-          dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
-        }
-        else {
-          a = it->second;
-        }
-        it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
-        if (it == dPts.end()) {
-          b = dPts.size() + 1;
-          dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
-        }
-        else {
-          b = it->second;
-        }
-        it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
-        if (it == dPts.end()) {
-          c = dPts.size() + 1;
-          dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
-        }
-        else {
-          c = it->second;
-        }
+        get_vertices(dPts, t, a, b, c, z);
         //reverse orientation for floor polygon, a-c-b instead of a-b-c.
         if ((a != b) && (a != c) && (b != c)) {
           fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(c); fs += " "; fs += std::to_string(b); fs += "\n";
@@ -359,30 +363,7 @@ void Building::get_obj(std::unordered_map< std::string, unsigned long > &dPts, i
     float z = z_to_float(this->get_height_base());
     for (auto& t : _triangles) {
       unsigned long a, b, c;
-      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
-      if (it == dPts.end()) {
-        a = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
-      }
-      else {
-        a = it->second;
-      }
-      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
-      if (it == dPts.end()) {
-        b = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
-      }
-      else {
-        b = it->second;
-      }
-      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
-      if (it == dPts.end()) {
-        c = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
-      }
-      else {
-        c = it->second;
-      }
+      get_vertices(dPts, t, a, b, c, z);
       if ((a != b) && (a != c) && (b != c)) {
         fs += "f "; fs += std::to_string(a); fs += " "; fs += std::to_string(b); fs += " "; fs += std::to_string(c); fs += "\n";
       }
@@ -400,30 +381,7 @@ void Building::get_stl(std::unordered_map< std::string, unsigned long > &dPts, i
       float z = z_to_float(this->get_height_base());
       for (auto& t : _triangles) {
         unsigned long a, b, c;
-        auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
-        if (it == dPts.end()) {
-          a = dPts.size() + 1;
-          dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
-        }
-        else {
-          a = it->second;
-        }
-        it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
-        if (it == dPts.end()) {
-          b = dPts.size() + 1;
-          dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
-        }
-        else {
-          b = it->second;
-        }
-        it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
-        if (it == dPts.end()) {
-          c = dPts.size() + 1;
-          dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
-        }
-        else {
-          c = it->second;
-        }
+        get_vertices(dPts, t, a, b, c, z);
         //reverse orientation for floor polygon, a-c-b instead of a-b-c.
         if ((a != b) && (a != c) && (b != c)) {
           stl_prep(_vertices[t.v0].second, _vertices[t.v2].second, _vertices[t.v1].second, fs);
@@ -435,30 +393,7 @@ void Building::get_stl(std::unordered_map< std::string, unsigned long > &dPts, i
     float z = z_to_float(this->get_height_base());
     for (auto& t : _triangles) {
       unsigned long a, b, c;
-      auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
-      if (it == dPts.end()) {
-        a = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
-      }
-      else {
-        a = it->second;
-      }
-      it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
-      if (it == dPts.end()) {
-        b = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
-      }
-      else {
-        b = it->second;
-      }
-      it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
-      if (it == dPts.end()) {
-        c = dPts.size() + 1;
-        dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
-      }
-      else {
-        c = it->second;
-      }
+      get_vertices(dPts, t, a, b, c, z);
       if ((a != b) && (a != c) && (b != c)) {
         stl_prep(_vertices[t.v0].second, _vertices[t.v1].second, _vertices[t.v2].second, fs);
       }
@@ -476,30 +411,7 @@ void Building::get_stl_binary(std::unordered_map< std::string, unsigned long > &
             float z = z_to_float(this->get_height_base());
             for (auto& t : _triangles) {
                 unsigned long a, b, c;
-                auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
-                if (it == dPts.end()) {
-                    a = dPts.size() + 1;
-                    dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
-                }
-                else {
-                    a = it->second;
-                }
-                it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
-                if (it == dPts.end()) {
-                    b = dPts.size() + 1;
-                    dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
-                }
-                else {
-                    b = it->second;
-                }
-                it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
-                if (it == dPts.end()) {
-                    c = dPts.size() + 1;
-                    dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
-                }
-                else {
-                    c = it->second;
-                }
+                get_vertices(dPts, t, a, b, c, z);
                 //reverse orientation for floor polygon, a-c-b instead of a-b-c.
                 if ((a != b) && (a != c) && (b != c)) {
                     stl_prep_binary(_vertices[t.v0].second, _vertices[t.v2].second, _vertices[t.v1].second, fs, ntri);
@@ -511,30 +423,7 @@ void Building::get_stl_binary(std::unordered_map< std::string, unsigned long > &
         float z = z_to_float(this->get_height_base());
         for (auto& t : _triangles) {
             unsigned long a, b, c;
-            auto it = dPts.find(gen_key_bucket(&_vertices[t.v0].first, z));
-            if (it == dPts.end()) {
-                a = dPts.size() + 1;
-                dPts[gen_key_bucket(&_vertices[t.v0].first, z)] = a;
-            }
-            else {
-                a = it->second;
-            }
-            it = dPts.find(gen_key_bucket(&_vertices[t.v1].first, z));
-            if (it == dPts.end()) {
-                b = dPts.size() + 1;
-                dPts[gen_key_bucket(&_vertices[t.v1].first, z)] = b;
-            }
-            else {
-                b = it->second;
-            }
-            it = dPts.find(gen_key_bucket(&_vertices[t.v2].first, z));
-            if (it == dPts.end()) {
-                c = dPts.size() + 1;
-                dPts[gen_key_bucket(&_vertices[t.v2].first, z)] = c;
-            }
-            else {
-                c = it->second;
-            }
+            get_vertices(dPts, t, a, b, c, z);
             if ((a != b) && (a != c) && (b != c)) {
                 stl_prep_binary(_vertices[t.v0].second, _vertices[t.v1].second, _vertices[t.v2].second, fs, ntri);
             }
