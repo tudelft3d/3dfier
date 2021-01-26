@@ -1,12 +1,10 @@
 [![GitHub license](https://img.shields.io/github/license/tudelft3d/3dfier)](https://github.com/tudelft3d/3dfier/blob/master/LICENSE)
 [![docs](https://img.shields.io/badge/docs-http://tudelft3d.github.io/3dfier-brightgreen)](http://tudelft3d.github.io/3dfier)
 [![GitHub issues](https://img.shields.io/github/issues/tudelft3d/3dfier)](https://github.com/tudelft3d/3dfier/issues)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.02866/status.svg)](https://doi.org/10.21105/joss.02866)
 
 
-# Documentation
-The [3dfier documentation](http://tudelft3d.github.io/3dfier) has extensive information on the installation, usage, and how 3dfier works.
-
-# 3dfier
+## 3dfier
 <img src="docs/images/3dfierLogo.png" width="300">
 
 Takes 2D GIS datasets (e.g. topographical datasets) and "3dfies" them (as in "making them three-dimensional") by lifting every polygon to 3D.
@@ -37,6 +35,18 @@ Output is in the following formats: OBJ, CityGML, CityJSON, CSV (for buildings o
 The ID of each polygon is preserved, and there is a 1-to-1 mapping between the input and the output. 
 
 If you use it, feedback is very much appreciated.
+
+
+## Documentation
+The [3dfier documentation](http://tudelft3d.github.io/3dfier) has extensive information on the installation, usage, and how 3dfier works.
+
+
+## If you use 3dfier in a scientific context, please cite this article:
+
+Ledoux H, Biljecki B, Dukai B, Kumar K, Peters R, Stoter J, and Commandeur T (2021). 3dfier: automatic reconstruction of 3D city models. *Journal of Open Source Software*, 6(57), 2866. 
+
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.02866/status.svg)](https://doi.org/10.21105/joss.02866)
+
 
 ## LAS/LAZ Pointcloud
 
@@ -95,5 +105,10 @@ For instance to run it on the example data set (on Linux):
 
 There is also a [tutorial](https://github.com/tudelft3d/3dfier/wiki/General-3dfier-tutorial-to-generate-LOD1-models) on how to generate a 3D model with 3dfier.
 
+
 ## Prepare BGT data
 For preparing BGT data as input for 3dfier look at [resources/BGT_prepare/ReadMe.md](https://github.com/tudelft3d/3dfier/blob/master/resources/BGT_prepare/ReadMe.md)
+
+
+
+
