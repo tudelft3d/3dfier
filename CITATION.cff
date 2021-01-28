@@ -1,0 +1,41 @@
+# YAML 1.2
+---
+authors: 
+  -
+    affiliation: "Delft University of Technology, the Netherlands"
+    family-names: Ledoux
+    given-names: Hugo
+    orcid: "https://orcid.org/0000-0002-1251-8654"
+  -
+    affiliation: "National University of Singapore, Singapore"
+    family-names: Biljecki
+    given-names: Filip
+    orcid: "https://orcid.org/0000-0002-6229-7749"
+  -
+    affiliation: "Delft University of Technology, the Netherlands"
+    family-names: Dukai
+    given-names: "Balázs"
+    orcid: "https://orcid.org/0000-0003-0193-5863"
+  -
+    affiliation: "Delft University of Technology, the Netherlands"
+    family-names: Kumar
+    given-names: Kavisha
+  -
+    affiliation: "Delft University of Technology, the Netherlands"
+    family-names: Peters
+    given-names: Ravi
+  -
+    affiliation: "Delft University of Technology, the Netherlands"
+    family-names: Stoter
+    given-names: Jantien
+  -
+    affiliation: "Delft University of Technology, the Netherlands"
+    family-names: Commandeur
+    given-names: Tom
+cff-version: "1.1.0"
+date-released: 2021-01-26
+doi: "10.21105/joss.02866"
+message: "If you use this software, please cite it using these metadata."
+repository-code: "https://github.com/tudelft3d/3dfier"
+title: "3dfier: automatic reconstruction of 3D city models"
+...

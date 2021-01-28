@@ -43,10 +43,22 @@ The [3dfier documentation](http://tudelft3d.github.io/3dfier) has extensive info
 
 ## If you use 3dfier in a scientific context, please cite this article:
 
-Ledoux H, Biljecki B, Dukai B, Kumar K, Peters R, Stoter J, and Commandeur T (2021). 3dfier: automatic reconstruction of 3D city models. *Journal of Open Source Software*, 6(57), 2866. 
+Ledoux H, Biljecki F, Dukai B, Kumar K, Peters R, Stoter J, and Commandeur T (2021). 3dfier: automatic reconstruction of 3D city models. *Journal of Open Source Software*, 6(57), 2866. 
 
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.02866/status.svg)](https://doi.org/10.21105/joss.02866)
 
+```
+@article{3dfier,
+  author = {Ledoux, Hugo and Biljecki, Filip and Dukai, Balázs and Kumar, Kavisha and Peters, Ravi and Stoter, Jantien and Commandeur, Tom},
+  doi = {10.21105/joss.02866},
+  journal = {Journal of Open Source Software},
+  number = {57},
+  pages = {2866},
+  title = {3dfier: automatic reconstruction of 3D city models},
+  volume = {6},
+  year = {2021}
+}
+```
 
 ## LAS/LAZ Pointcloud
 
