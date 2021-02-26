@@ -43,7 +43,7 @@ As an alternative a file with multiple layers can be used for input polygons. In
 
 ### uniqueid
 This is the name of the attribute in the input file that contains a unique value per feature. In case nothing is put here it uses *fid* by default. **CHECK THIS**
-When not using a unique identifier many of the output formats will be invalid according to their standard. **Note: Multipolygons are split so the identifier is changed by adding a trailing counter**.
+When identifiers from different datasets conflict with each other, many of the output formats will be invalid according to their standard. This is because each object in the final model has to have a unique id, even when originating from different sources. **Note: Multipolygons are split so the identifier is changed by adding a trailing counter**.
 
 ### lifting
 This is a class name corresponding to the list of the lifting options defined in [Lifting options]({{site.baseurl}}/lifting_options). In total there are 7 different possibilities to choose from;
