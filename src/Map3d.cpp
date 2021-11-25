@@ -1616,6 +1616,8 @@ void Map3d::stitch_average(TopoFeature* f1, int ringi1, int pi1, TopoFeature* f2
  */
 void Map3d::stitch_bridges() {
   std::vector<int> ringis, pis;
+  int z_sum;
+  size_t z_cnt = 0;
   for (auto& f : _lsFeatures) {
     if (f->get_class() == BRIDGE && f->get_top_level() == false) {
       // Make bridge face flattened
@@ -1649,6 +1651,8 @@ void Map3d::stitch_bridges() {
                   std::string key_bucket = gen_key_bucket(&p);
                   _nc[key_bucket].push_back(z);
                   _bridge_stitches[key_bucket] = z;
+                  z_cnt ++;
+                  z_sum += z;
                 }
               }
             }
@@ -1737,7 +1741,32 @@ void Map3d::stitch_bridges() {
           if (setheight) {
             // set corner height to lowest value in the NC
             if (_nc.find(key_bucket) == _nc.end()) {
-              std::clog << "ERROR: NodeColumn not filled at " << key_bucket << std::endl;
+              std::clog << "WARNING: NodeColumn not filled at " << key_bucket << std::endl;
+              
+              
+              // This is a crude fix for a potential crash when there is a lack of elevation points locally
+              // find an z elevation value through the vertices of this feature to put in the NC, otherwise fall back on global average z
+              int ringi = -1;
+              int z_fix;
+              bool found_z = false;
+              for (Ring2& ring : rings) {
+                ringi++;
+
+                for (int i = 0; i < ring.size(); i++) {
+                  Point2 p = f->get_point2(ringi, i);
+                  std::string key_bucket_cand = gen_key_bucket(&p);
+                  if (_nc.find(key_bucket_cand) != _nc.end()) {
+                    found_z = true;
+                    z_fix = _nc[key_bucket_cand].front();
+                    break;
+                  }
+                }
+              }
+              if(found_z) 
+                _nc[key_bucket].push_back(z_fix);
+              else 
+                _nc[key_bucket].push_back(z_sum/z_cnt);
+
             }
             int z = _nc[key_bucket].front();
             f->set_vertex_elevation(ringi, i, z);
