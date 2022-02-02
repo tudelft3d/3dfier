@@ -36,7 +36,7 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
-std::string VERSION = "1.3.1";
+std::string VERSION = "1.3.2";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
@@ -243,7 +243,7 @@ int main(int argc, const char * argv[]) {
     if (n["Terrain"]) {
       if (n["Terrain"]["simplification"])
         map3d.set_terrain_simplification(n["Terrain"]["simplification"].as<int>());
-      if (n["Terrain"]["simplification_tinsimp"].as<int>() != 0)
+      if (n["Terrain"]["simplification_tinsimp"].as<double>() != 0)
         map3d.set_terrain_simplification_tinsimp(n["Terrain"]["simplification_tinsimp"].as<double>());
       if (n["Terrain"]["innerbuffer"])
         map3d.set_terrain_innerbuffer(n["Terrain"]["innerbuffer"].as<float>());
@@ -259,7 +259,7 @@ int main(int argc, const char * argv[]) {
     if (n["Forest"]) {
       if (n["Forest"]["simplification"])
         map3d.set_forest_simplification(n["Forest"]["simplification"].as<int>());
-      if (n["Forest"]["simplification_tinsimp"].as<int>() != 0)
+      if (n["Forest"]["simplification_tinsimp"].as<double>() != 0)
         map3d.set_forest_simplification_tinsimp(n["Forest"]["simplification_tinsimp"].as<double>());
       if (n["Forest"]["innerbuffer"])
         map3d.set_forest_innerbuffer(n["Forest"]["innerbuffer"].as<float>());
