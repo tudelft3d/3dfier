@@ -1,34 +1,18 @@
-FROM alpine:3.10
-LABEL maintainer.email="b.dukai@tudelft.nl" maintainer.name="Balázs Dukai"
-LABEL description="Base image for building 3dfier"
-LABEL org.name="3D Geoinformation Research Group, Delft University of Technology, Netherlands" org.website="https://3d.bk.tudelft.nl/"
-LABEL website="http://tudelft3d.github.io/3dfier"
-LABEL version="1.3"
+FROM alpine:3.15
+LABEL org.opencontainers.image.authors="Balázs Dukai <balazs.dukai@3dgi.nl>"
+LABEL org.opencontainers.image.source="https://github.com/tudelft3d/3dfier"
+LABEL org.opencontainers.image.vendor="3DGI"
+LABEL org.opencontainers.image.title="3dfier builder"
+LABEL org.opencontainers.image.description="Base image for building 3dfier"
+LABEL org.opencontainers.image.licenses="GPL-3.0"
+LABEL org.opencontainers.image.url="http://tudelft3d.github.io/3dfier"
+
+ARG JOBS
 
 #
 # 1 Install FreeXL
 #
-ARG FREEXL_VERSION=1.0.5
-RUN apk --update add --virtual .freexl-deps \
-        make \
-        gcc \
-        g++ \
-        wget \
-        autoconf \
-        automake \
-        libtool && \
-    cd /tmp && \
-    wget http://www.gaia-gis.it/gaia-sins/freexl-${FREEXL_VERSION}.tar.gz && \
-    tar xfz freexl-${FREEXL_VERSION}.tar.gz  && \
-    cd freexl-${FREEXL_VERSION} && \
-    ./configure && \
-    make && \
-    make install && \
-    cd ~ && \
-    apk del .freexl-deps && \
-    rm -rf /tmp/* && \
-    rm -rf /user/local/man && \
-    for i in /usr/local/lib/libfreexl*; do strip -s $i 2>/dev/null || /bin/true; done
+RUN apk --update add freexl
 
 #
 # 2 Install proj
@@ -100,44 +84,6 @@ RUN apk --update add --virtual .geos-deps \
     for i in /usr/local/lib/libgeos*; do strip -s $i 2>/dev/null || /bin/true; done && \
     for i in /usr/local/bin/geos-config*; do strip -s $i 2>/dev/null || /bin/true; done
 
-#
-# 4 Install Spatialite
-# use straight current version of repository because there was no release since august 2018
-#
-ARG SPATIALITE_VERSION=latest
-RUN apk --update add \
-        gnu-libiconv \
-        zlib \
-        libxml2 \
-        sqlite && \
-    apk --update add --virtual .spatialite-deps \
-        gnu-libiconv-dev \
-        zlib-dev \
-        libxml2-dev \
-        sqlite-libs \
-        fossil \
-        sqlite-dev \
-        make \
-        gcc \
-        g++ \
-        wget \
-        autoconf \
-        automake \
-        libtool && \
-    cd /tmp && \
-    fossil clone --admin-user docker-user https://www.gaia-gis.it/fossil/libspatialite libspatialite.fossil && \
-    mkdir libspatialite && \
-    cd libspatialite && \
-    fossil open ../libspatialite.fossil && \
-    ./configure && \
-    make && \
-    make install && \
-    cd ~ && \
-    apk del .spatialite-deps && \
-    rm -rf /tmp/* && \
-    rm -rf /user/local/man && \
-    for i in /usr/local/lib/libspatialite*; do strip -s $i 2>/dev/null || /bin/true; done && \
-    for i in /usr/local/lib/mod_spatialite*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
 # 5 Install geotiff
@@ -174,7 +120,7 @@ RUN apk --update add \
 #
 # 6 Install Boost
 #
-ARG BOOST_VERSION=1_71_0
+ARG BOOST_VERSION=1_77_0
 RUN apk del boost boost-dev && \
     apk --update add \
         zlib \
@@ -182,7 +128,7 @@ RUN apk del boost boost-dev && \
         xz \
         icu \
         bzip2 \
-        mpfr3 \
+        mpfr4 \
         eigen && \
     apk --update add --virtual .boost-deps \
         zlib-dev \
@@ -197,7 +143,7 @@ RUN apk del boost boost-dev && \
         cmake \
         linux-headers && \
     cd /tmp && \
-    wget https://dl.bintray.com/boostorg/release/1.71.0/source/boost_${BOOST_VERSION}.tar.gz && \
+    wget https://boostorg.jfrog.io/artifactory/main/release/1.77.0/source/boost_${BOOST_VERSION}.tar.gz && \
     tar xzf boost_${BOOST_VERSION}.tar.gz && \
     cd boost_${BOOST_VERSION} && \
     ./bootstrap.sh \
@@ -217,64 +163,38 @@ RUN apk del boost boost-dev && \
     for i in /usr/local/lib/libboost*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
-# 7 Install LasZip
+# 7 Install LASTools
 #
-ARG LASZIP_VERSION=3.4.1
-RUN apk --update add --virtual .laszip-deps \
+ARG LASTOOLS_VERSION=9ecb4e682153436b044adaeb3b4bfdf556109a0f
+RUN apk --update add --virtual .lastools-deps \
+        which \
         make \
+        cmake \
         gcc \
         g++ \
         file \
         git \
-        cmake \
-        linux-headers && \
+        libtool && \
     cd /tmp && \
-    git clone https://github.com/LASzip/LASzip.git && \
-    cd LASzip && \
-    git checkout tags/${LASZIP_VERSION} && \
-    mkdir build && \
-    cd build && \
-    cmake .. && \
-    make && \
+    git clone https://github.com/LAStools/LAStools.git lastools && \
+    cd lastools && \
+    git checkout ${LASTOOLS_VERSION} && \
+    mkdir "_build" && \
+    cd "_build" && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release && \
+    make -j $JOBS && \
     make install && \
-    cd ~ && \
-    apk del .laszip-deps && \
+    apk del .lastools-deps && \
     rm -rf /tmp/* && \
-    rm -rf /user/local/man && \
-    for i in /usr/local/lib/liblaszip*; do strip -s $i 2>/dev/null || /bin/true; done && \
-    for i in /usr/local/bin/las*; do strip -s $i 2>/dev/null || /bin/true; done
+    rm -rf /user/local/man
 
 #
-# 8 Install LibLas
+# 8 Install CGAL
 #
-RUN apk --update add --virtual .liblas-deps \
-        make \
-        gcc \
-        g++ \
-        git \
-        cmake \
-        linux-headers && \
-    cd /tmp && \
-    git clone https://github.com/LAStools/LAStools.git las_tools && \
-    cd las_tools && \
-    mkdir build && \
-    cd build && \
-    cmake -G "Unix Makefiles" ../ && \
-    make && \
-    make install && \
-    cd ~ && \
-    apk del .liblas-deps && \
-    rm -rf /tmp/* && \
-    rm -rf /user/local/man && \
-    for i in /usr/local/lib/LASlib/*; do strip -s $i 2>/dev/null || /bin/true; done
-
-#
-# 9 Install CGAL
-#
-ARG CGAL_VERSION=releases/CGAL-4.14.1
+ARG CGAL_VERSION=5.3
 RUN apk --update add \
         gmp \
-        mpfr3 \
+        mpfr4 \
         eigen \
         zlib && \
     apk --update add --virtual .cgal-deps \
@@ -289,17 +209,23 @@ RUN apk --update add \
         cmake \
         linux-headers && \
     cd /tmp && \
-    git clone https://github.com/CGAL/cgal.git cgal && \
-    cd cgal && \
-    git checkout tags/${CGAL_VERSION} && \
+    wget https://github.com/CGAL/cgal/releases/download/v${CGAL_VERSION}/CGAL-${CGAL_VERSION}.tar.xz && \
+    tar xf CGAL-${CGAL_VERSION}.tar.xz && \
+    cd CGAL-${CGAL_VERSION} && \
     mkdir build && \
     cd build && \
     cmake \
-        -DBoost_NO_BOOST_CMAKE=TRUE \
-        -DBoost_NO_SYSTEM_PATHS=TRUE \
+        -DBoost_NO_BOOST_CMAKE=ON \
+        -DBoost_NO_SYSTEM_PATHS=ON \
         -DBOOST_ROOT=/usr/local \
-        -DCMAKE_BUILD_TYPE=Release .. && \
-    make && \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DWITH_examples=OFF \
+        -DWITH_demos=OFF \
+        -DWITH_CGAL_Core=ON \
+        -DWITH_CGAL_Qt5=OFF \
+        -DWITH_CGAL_ImageIO=OFF \
+        .. && \
+    make -j $JOBS && \
     make install && \
     cd ~ && \
     apk del .cgal-deps && \
@@ -308,12 +234,12 @@ RUN apk --update add \
     for i in /usr/local/lib64/libCGAL*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
-# 10 Install SFCGAL
+# 9 Install SFCGAL
 #
-ARG SFCGAL_VERSION=v1.3.7
+ARG SFCGAL_VERSION=v1.4.1
 RUN apk --update add \
         gmp \
-        mpfr3 \
+        mpfr4 \
         zlib && \
     apk --update add --virtual .sfcgal-deps \
         make \
@@ -326,7 +252,7 @@ RUN apk --update add \
         cmake \
         linux-headers && \
     cd /tmp && \
-    git clone https://github.com/Oslandia/SFCGAL.git && \
+    git clone https://gitlab.com/Oslandia/SFCGAL.git && \
     cd SFCGAL && \
     git checkout tags/${SFCGAL_VERSION} && \
     mkdir build && \
@@ -345,11 +271,11 @@ RUN apk --update add \
     for i in /usr/local/lib64/libSFCGAL*; do strip -s $i 2>/dev/null || /bin/true; done
 
 #
-# 11 Install PostGIS
+# 10 Install PostGIS
 #
-ARG POSTGIS_VERSION=2.5.3
-RUN ln -sf /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
-    apk --update add \
+ARG POSTGIS_VERSION=3.1.4
+# RUN ln -sf /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
+RUN apk --update add \
         curl \
         nghttp2 \
         zlib \
@@ -357,7 +283,7 @@ RUN ln -sf /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
         xz \
         icu \
         bzip2 \
-        mpfr3 \
+        mpfr4 \
         perl \
         json-c \
         libxml2 \
@@ -391,8 +317,12 @@ RUN ln -sf /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
     tar xzf postgis-${POSTGIS_VERSION}.tar.gz && \
     cd postgis-${POSTGIS_VERSION} && \
     ./configure \
-        --without-raster && \
-    make && \
+        --without-raster \
+        --without-topology  \
+        --without-address-standardizer \
+        --without-phony-revision \
+        --without-protobuf && \
+    make -j $JOBS && \
     make install && \
     cd ~ && \
     apk del .postgis-deps && \
@@ -400,31 +330,20 @@ RUN ln -sf /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
     rm -rf /user/local/man
 
 #
-# 12 Install GDAL
+# 11 Install GDAL
 #
-ARG GDAL_VERSION=3.0.2
-RUN ln -sf /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
-    apk --update add \
-        xz \
-        zstd \
-        curl \
-        libxml2 \
-        sqlite \
-        tiff \
-        postgresql && \
-    apk --update add --virtual .gdal-deps \
+ARG GDAL_VERSION=3.4.0
+RUN apk --update add \
         xz-dev \
         zstd-dev \
-        curl-dev \
-        libxml2-dev \
         sqlite-dev \
+        postgresql-dev \
+        portablexdr-dev && \
+    apk --update add --virtual .gdal-deps \
         make \
         gcc \
         g++ \
         file \
-        tiff-dev \
-        postgresql-dev \
-        portablexdr-dev \
         linux-headers && \
     cd /tmp && \
     wget http://download.osgeo.org/gdal/${GDAL_VERSION}/gdal-${GDAL_VERSION}.tar.gz && \
@@ -432,18 +351,12 @@ RUN ln -sf /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
     rm -f gdal-${GDAL_VERSION}.tar.gz && \
     cd gdal-${GDAL_VERSION} && \
     ./configure \
-        --with-proj=/usr/local \
-        --with-liblzma=yes \
-        --with-zstd=yes \
-        --with-pg=yes \
-        --with-geotiff=/usr/local \
-        --with-curl=/usr/local \
-        --with-xml2=/usr/local \
-        --with-sqlite3=yes \
-        --with-spatialite=yes \
-        --with-sfcgal=yes \
-        --with-geos=/usr/local/bin/geos-config && \
-    make -j 4 && \
+        PQ_CFLAGS="-I/usr/include/postgresql" \
+        PQ_LIBS="-L/usr/lib/postgresql14 -lpq" \
+        CFLAGS="-g -O3" \
+        CXXFLAGS="-g -O3" \
+        --enable-lto && \
+    make -j $JOBS && \
     make install && \
     cd ~ && \
     apk del .gdal-deps && \
@@ -451,3 +364,26 @@ RUN ln -sf /usr/local/lib64/libSFCGAL.so /usr/local/lib && \
     rm -rf /user/local/man && \
     for i in /usr/local/lib/libgdal*; do strip -s $i 2>/dev/null || /bin/true; done && \
     for i in /usr/local/bin/gdal*; do strip -s $i 2>/dev/null || /bin/true; done
+
+#
+# 12 Additional build dependencies
+#
+RUN ln -s /usr/local/lib64/libCGAL.so.13 /usr/local/lib && \
+    ln -s /usr/local/lib64/libSFCGAL.so.1 /usr/local/lib && \
+    apk --update add \
+        gmp \
+        mpfr4 \
+        yaml \
+        bash \
+        yaml-cpp && \
+    apk --update add --virtual .3dfier-deps \
+        make \
+        gmp-dev \
+        mpfr-dev \
+        yaml-dev \
+        yaml-cpp-dev \
+        gcc \
+        g++ \
+        gdb \
+        cmake \
+        linux-headers

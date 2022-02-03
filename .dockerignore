@@ -1,4 +1,5 @@
 build
+cmake-build-debug-docker
 dist
 .coverage
 .git
