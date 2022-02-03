@@ -1,8 +1,8 @@
-FROM alpine:3.15
+FROM alpine:3.15 AS base
 LABEL org.opencontainers.image.authors="Balázs Dukai <balazs.dukai@3dgi.nl>"
 LABEL org.opencontainers.image.source="https://github.com/tudelft3d/3dfier"
 LABEL org.opencontainers.image.vendor="3DGI"
-LABEL org.opencontainers.image.title="3dfier builder"
+LABEL org.opencontainers.image.title="3dfier base"
 LABEL org.opencontainers.image.description="Base image for building 3dfier"
 LABEL org.opencontainers.image.licenses="GPL-3.0"
 LABEL org.opencontainers.image.url="http://tudelft3d.github.io/3dfier"
@@ -17,7 +17,7 @@ RUN apk --update add freexl
 #
 # 2 Install proj
 #
-ARG PROJ_VERSION=6.1.1
+ARG PROJ_VERSION=8.1.1
 RUN apk --update add sqlite libstdc++ sqlite-libs libgcc && \
     apk --update add --virtual .proj4-deps \
         make \
@@ -43,8 +43,12 @@ RUN apk --update add sqlite libstdc++ sqlite-libs libgcc && \
     unzip proj-datumgrid-oceania-1.0.zip -d proj-${PROJ_VERSION}/nad/ && \
     rm -f proj-datumgrid-oceania-1.0.zip && \
     cd proj-${PROJ_VERSION} && \
-    ./configure && \
-    make && \
+    ./configure \
+      --disable-tiff \
+      --without-curl \
+      --enable-lto \
+      CFLAGS="-O3" CXXFLAGS="-O3" && \
+    make -j $JOBS && \
     make install && \
     echo "Entering root folder" && \
     cd / &&\
@@ -58,24 +62,27 @@ RUN apk --update add sqlite libstdc++ sqlite-libs libgcc && \
     proj
 
 # 3 Install geos
-ARG GEOS_VERSION=3.7.2
+ARG GEOS_VERSION=3.10.1
 RUN apk --update add --virtual .geos-deps \
-        which \
         make \
         gcc \
         g++ \
+        cmake \
         file \
-        git \
-        autoconf \
-        automake \
         libtool && \
     cd /tmp && \
-    git clone https://git.osgeo.org/gitea/geos/geos.git geos && \
-    cd geos && \
-    git checkout ${GEOS_VERSION} && \
-    ./autogen.sh && \
-    ./configure && \
-    make && \
+    wget http://download.osgeo.org/geos/geos-${GEOS_VERSION}.tar.bz2 && \
+    tar xfvj geos-${GEOS_VERSION}.tar.bz2 && \
+    rm -f geos-${GEOS_VERSION}.tar.bz2 && \
+    cd geos-${GEOS_VERSION} && \
+    mkdir "_build" && \
+    cd "_build" && \
+    cmake \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_DOCUMENTATION=OFF \
+        .. && \
+    make -j $JOBS && \
+    ctest && \
     make install && \
     cd ~ && \
     apk del .geos-deps && \

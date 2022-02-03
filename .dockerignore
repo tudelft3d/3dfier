@@ -6,3 +6,10 @@ dist
 docs
 example_data
 vs_build
+.run
+.settings
+.vagrant
+flatroof
+paper
+resources
+vs_build
