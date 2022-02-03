@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-
+#!/bin/bash
 export PATH=$PATH:/usr/local/bin
 
 # Create passwd entry for arbitrary user ID
