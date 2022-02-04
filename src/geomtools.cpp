@@ -298,7 +298,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         } else {
           out_polys << "face_id,wkt" << std::endl;
           int fidx(0);
-          for (CDT::All_faces_iterator fptr = T.all_faces_begin(); fptr != T.all_faces_end(); ++fptr) {
+          for (CDT::Finite_faces_iterator fptr = T.finite_faces_begin(); fptr != T.finite_faces_end(); ++fptr) {
             out_polys << fidx++ << ",";
             out_polys << "\"PolygonZ((";
             out_polys << fptr->vertex(0)->point().x() << " " << fptr->vertex(0)->point().y() << " " << fptr->vertex(0)->point().z();
@@ -320,7 +320,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
           std::cout << "failed to open cdt_points.txt" << std::endl;
         } else {
           out_points << "vertex_id,x,y,z" << std::endl;
-          for (CDT::All_vertices_iterator vptr = T.all_vertices_begin(); vptr != T.all_vertices_end(); ++vptr) {
+          for (CDT::Finite_vertices_iterator vptr = T.finite_vertices_begin(); vptr != T.finite_vertices_end(); ++vptr) {
             out_points << vptr->id() << "," << vptr->point().x() << "," << vptr->point().y() << "," << vptr->point().z() << std::endl;
           }
         }
