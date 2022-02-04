@@ -276,6 +276,57 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
   {
     for (int i = 0; i < pts.size(); i++) {
       Point p = Point(bg::get<0>(pts[i]), bg::get<1>(pts[i]), bg::get<2>(pts[i]));
+      double xdev = fabs(bg::get<0>(pts[i]) - 150918.234);
+      double ydev = fabs(bg::get<1>(pts[i]) - 481046.781);
+      if (xdev < 0.001 && ydev < 0.001) {
+        std::cout.precision(3);
+        std::fixed(std::cout);
+        std::cout << "!!! DEBUG !!!" << std::endl;
+        std::cout << "Point cloud point: " << p.x() << " " << p.y() << " " << p.z() << std::endl;
+        std::cout << "Number of vertices: "
+                  << T.number_of_vertices() << std::endl;
+        std::cout << "Number of faces: "
+                  << T.number_of_faces() << std::endl;
+        // Write triangles
+        std::string filename_polys("cdt_polys.txt");
+        std::fstream out_polys;
+        out_polys.precision(3);
+        std::fixed(out_polys);
+        out_polys.open(filename_polys, std::ios_base::out);
+        if (!out_polys.is_open()) {
+          std::cout << "failed to open cdt_polys.txt" << std::endl;
+        } else {
+          out_polys << "face_id,wkt" << std::endl;
+          int fidx(0);
+          for (CDT::All_faces_iterator fptr = T.all_faces_begin(); fptr != T.all_faces_end(); ++fptr) {
+            out_polys << fidx++ << ",";
+            out_polys << "\"PolygonZ((";
+            out_polys << fptr->vertex(0)->point().x() << " " << fptr->vertex(0)->point().y() << " " << fptr->vertex(0)->point().z();
+            out_polys << ",";
+            out_polys << fptr->vertex(1)->point().x() << " " << fptr->vertex(1)->point().y() << " " << fptr->vertex(1)->point().z();
+            out_polys << ",";
+            out_polys << fptr->vertex(2)->point().x() << " " << fptr->vertex(2)->point().y() << " " << fptr->vertex(2)->point().z();
+            out_polys << "))\"" << std::endl;
+          }
+        }
+        out_polys.close();
+        // Write points
+        std::string filename_pts("cdt_points.txt");
+        std::fstream out_points;
+        out_points.precision(3);
+        std::fixed(out_points);
+        out_points.open(filename_pts, std::ios_base::out);
+        if (!out_points.is_open()) {
+          std::cout << "failed to open cdt_points.txt" << std::endl;
+        } else {
+          out_points << "vertex_id,x,y,z" << std::endl;
+          for (CDT::All_vertices_iterator vptr = T.all_vertices_begin(); vptr != T.all_vertices_end(); ++vptr) {
+            out_points << vptr->id() << "," << vptr->point().x() << "," << vptr->point().y() << "," << vptr->point().z() << std::endl;
+          }
+        }
+        out_points.close();
+        std::cout << "!!! END DEBUG !!!" << std::endl;
+      }
       CDT::Locate_type lt;
       int li;
       CDT::Face_handle face = T.locate(p, lt, li);
