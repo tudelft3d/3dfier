@@ -32,7 +32,7 @@
 
 #include "geomtools.h"
 #include "io.h"
-#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Constrained_Delaunay_triangulation_2.h>
 #include <CGAL/Projection_traits_xy_3.h>
 #include <CGAL/Triangulation_vertex_base_with_id_2.h>
@@ -43,7 +43,7 @@
 #include <unordered_set>
 #include <boost/heap/fibonacci_heap.hpp>
 
-typedef CGAL::Exact_predicates_inexact_constructions_kernel			K;
+typedef CGAL::Exact_predicates_exact_constructions_kernel			K;
 
 // fibonacci heap for greedy insertion code
 struct point_error {
@@ -83,8 +83,8 @@ typedef CGAL::Polygon_2<Gt>                                       Polygon_2;
 
 struct PointXYHash {
   std::size_t operator()(Point const& p) const noexcept {
-    std::size_t h1 = std::hash<double>{}(p.x());
-    std::size_t h2 = std::hash<double>{}(p.y());
+    std::size_t h1 = std::hash<double>{}(CGAL::to_double(p.x()));
+    std::size_t h2 = std::hash<double>{}(CGAL::to_double(p.y()));
     return h1 ^ (h2 << 1);
   }
 };
@@ -202,7 +202,7 @@ bool getCDT(Polygon2* pgn,
   }
   for (CDT::Finite_vertices_iterator vit = cdt.finite_vertices_begin();
     vit != cdt.finite_vertices_end(); ++vit) {
-    Point3 p = Point3(vit->point().x(), vit->point().y(), vit->point().z());
+    Point3 p = Point3(CGAL::to_double(vit->point().x()), CGAL::to_double(vit->point().y()), CGAL::to_double(vit->point().z()));
     vertices.push_back(std::make_pair(p, gen_key_bucket(&p)));
     vit->id() = index++;
   }
@@ -264,7 +264,7 @@ inline double compute_error(Point &p, CDT::Face_handle &face) {
 
   auto plane = face->info().plane;
   auto interpolate = - plane->a()/plane->c() * p.x() - plane->b()/plane->c()*p.y() - plane->d()/plane->c();
-  double error = std::fabs(interpolate - p.z());
+  double error = std::fabs(CGAL::to_double(interpolate - p.z()));
   return error;
 }
 
@@ -278,7 +278,7 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
       Point p = Point(bg::get<0>(pts[i]), bg::get<1>(pts[i]), bg::get<2>(pts[i]));
       double xdev = fabs(bg::get<0>(pts[i]) - 150918.234);
       double ydev = fabs(bg::get<1>(pts[i]) - 481046.781);
-      if (xdev < 0.001 && ydev < 0.001) {
+      /*if (xdev < 0.001 && ydev < 0.001) {
         std::cout.precision(3);
         std::fixed(std::cout);
         std::cout << "!!! DEBUG !!!" << std::endl;
@@ -319,14 +319,14 @@ void greedy_insert(CDT &T, const std::vector<Point3> &pts, double threshold) {
         if (!out_points.is_open()) {
           std::cout << "failed to open cdt_points.txt" << std::endl;
         } else {
-          out_points << "vertex_id,x,y,z" << std::endl;
+//          out_points << "vertex_id,x,y,z" << std::endl;
           for (CDT::Finite_vertices_iterator vptr = T.finite_vertices_begin(); vptr != T.finite_vertices_end(); ++vptr) {
-            out_points << vptr->id() << "," << vptr->point().x() << "," << vptr->point().y() << "," << vptr->point().z() << std::endl;
+            out_points << vptr->point().x() << "\t" << vptr->point().y() << "\t" << vptr->point().z() << std::endl;
           }
         }
         out_points.close();
         std::cout << "!!! END DEBUG !!!" << std::endl;
-      }
+      }*/
       CDT::Locate_type lt;
       int li;
       CDT::Face_handle face = T.locate(p, lt, li);
