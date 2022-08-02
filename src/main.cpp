@@ -530,7 +530,7 @@ int main(int argc, const char * argv[]) {
         if (thepath.stem() == "*") {
           boost::filesystem::path rootPath = canonical(thepath.parent_path(), ypcan).make_preferred();
           if (!boost::filesystem::exists(rootPath) || !boost::filesystem::is_directory(rootPath)) {
-            std::cerr << "ERROR: " << rootPath << "is not a directory.\n";
+            std::cerr << "ERROR: " << rootPath << "is not a directory. Can not read LAS file.\n";
             return EXIT_FAILURE;
           }
           else {
@@ -548,12 +548,17 @@ int main(int argc, const char * argv[]) {
           }
         }
         else {
-          PointFile pointFile;
-          boost::filesystem::path p = canonical(thepath, ypcan).make_preferred();
-          pointFile.filename = p.string();
-          pointFile.lasomits = lasomits;
-          pointFile.thinning = thinning;
-          elevationFiles.push_back(pointFile);
+          if (!boost::filesystem::exists(thepath) || !boost::filesystem::is_directory(thepath)) {
+            std::cerr << "ERROR: " << thepath << " is not a valid path. Can not read LAS file.\n";
+            return EXIT_FAILURE;
+          } else {
+            PointFile pointFile;
+            boost::filesystem::path p = canonical(thepath, ypcan).make_preferred();
+            pointFile.filename = p.string();
+            pointFile.lasomits = lasomits;
+            pointFile.thinning = thinning;
+            elevationFiles.push_back(pointFile);
+          }
         }
       }
     }
