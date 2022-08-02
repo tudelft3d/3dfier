@@ -16,25 +16,8 @@ jobs:
     env:
       VCPKG_DEFAULT_TRIPLET: x64-windows
       VCPKG_INSTALLATION_ROOT: C:\vcpkg
-      VCPKG_BINARY_SOURCES : clear;files,C:\vcpkg-bin-cache\archives,read
       VCPKG_FEATURE_FLAGS: manifests
     steps:
-    - name: Remove system vcpkg (to ensure support for binary caching)
-      shell: 'bash'
-      run: |
-        rm -rf "$VCPKG_INSTALLATION_ROOT"
-    - name: Install latest vcpkg (to ensure support for binary caching)
-      run: |
-        cd C:\
-        git clone https://github.com/microsoft/vcpkg
-        cd vcpkg
-        git checkout d1ba685e975db41d767af5676ca2669a5e7e6ad9
-        .\bootstrap-vcpkg.bat
-    - name: Download bin cache
-      run: |
-        Invoke-WebRequest http://godzilla.bk.tudelft.nl/tmp/vcpkg-bin-cache.7z -OutFile vcpkg-bin-cache.7z
-        mkdir C:\vcpkg-bin-cache
-        7z.exe x .\vcpkg-bin-cache.7z -oC:\vcpkg-bin-cache\
     - uses: actions/checkout@v2
     - name: Build
       run: |
