@@ -47,7 +47,6 @@ endif()
 include_directories( ${CMAKE_SOURCE_DIR}/thirdparty )
 
 include_directories( ${CGAL_INCLUDE_DIR} ${CGAL_3RD_PARTY_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${YAML_CPP_INCLUDE_DIR} ${GDAL_INCLUDE_DIR})
-link_directories(${YamlCpp_LIBRARY_DIRS})
 
 # # build ptinpoly as static lib
 # add_library(ptinpoly STATIC thirdparty/ptinpoly.c)
@@ -64,6 +63,6 @@ set_target_properties(
   PROPERTIES CXX_STANDARD 11
 )
 
-target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${GDAL_LIBRARY} ${YAML_CPP_LIBRARIES} Boost::program_options Boost::filesystem Boost::locale Boost::chrono LASlib)
+target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${GDAL_LIBRARY} yaml-cpp Boost::program_options Boost::filesystem Boost::locale Boost::chrono LASlib)
 
 install(TARGETS 3dfier DESTINATION bin)
