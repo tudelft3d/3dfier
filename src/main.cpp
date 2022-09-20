@@ -548,17 +548,19 @@ int main(int argc, const char * argv[]) {
           }
         }
         else {
-          if (!boost::filesystem::exists(thepath) || !boost::filesystem::is_directory(thepath)) {
-            std::cerr << "ERROR: " << thepath << " is not a valid path. Can not read LAS file.\n";
+          boost::filesystem::path p;
+          try {
+            p = canonical(thepath, ypcan).make_preferred();
+          } 
+          catch (boost::filesystem::filesystem_error &e) {
+            std::cerr << "WARNING: " << e.what() << ". Abort." << std::endl;
             return EXIT_FAILURE;
-          } else {
-            PointFile pointFile;
-            boost::filesystem::path p = canonical(thepath, ypcan).make_preferred();
-            pointFile.filename = p.string();
-            pointFile.lasomits = lasomits;
-            pointFile.thinning = thinning;
-            elevationFiles.push_back(pointFile);
           }
+          PointFile pointFile;
+          pointFile.filename = p.string();
+          pointFile.lasomits = lasomits;
+          pointFile.thinning = thinning;
+          elevationFiles.push_back(pointFile);
         }
       }
     }
