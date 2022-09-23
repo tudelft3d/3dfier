@@ -115,7 +115,7 @@ For instance to run it on the example data set (on Linux):
     $ cd 3dfier/example_data
     $ docker run --rm -it -v 3dfier/example_data:/data tudelft3d/3dfier:latest 3dfier testarea_config_unix.yml --OBJ test.obj
 
-There is also a [tutorial](https://github.com/tudelft3d/3dfier/wiki/General-3dfier-tutorial-to-generate-LOD1-models) on how to generate a 3D model with 3dfier.
+There is also a [tutorial](http://tudelft3d.github.io/3dfier/generate_lod1.html) on how to generate a 3D model with 3dfier.
 
 
 ## Prepare BGT data
