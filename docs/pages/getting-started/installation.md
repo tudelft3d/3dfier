@@ -67,7 +67,7 @@ We suggest using [Homebrew](http://brew.sh/) for the first 4:
     $ brew install cmake
     $ brew install cgal
     $ brew install gdal
-    $ brew install yamp-cpp
+    $ brew install yaml-cpp
 
 For LASlib/LASzip, get the source code from the LAStools repository and use the `CMakeLists.txt` included in the root folder:
 
