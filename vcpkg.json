@@ -1,16 +1,21 @@
 {
-    "name": "3dfier",
-    "version-string": "1.3.2",
-    "dependencies": [
-        "boost-program-options",
-        "boost-geometry",
-        "boost-locale",
-        "boost-chrono",
-        "boost-system",
-        "boost-filesystem",
-        "cgal",
-        "gdal",
-        "lastools",
-        "yaml-cpp"
-    ]
+  "name": "3dfier",
+  "version-string": "1.3.5",
+  "dependencies": [
+    "boost-program-options",
+    "boost-geometry",
+    "boost-locale",
+    "boost-chrono",
+    "boost-system",
+    "boost-filesystem",
+    "cgal",
+    "gdal",
+    {
+      "name": "libpq",
+      "version>=": "16.2"
+    },
+    "lastools",
+    "yaml-cpp"
+  ],
+  "builtin-baseline": "3dd44b931481d7a8e9ba412621fa810232b66289"
 }
