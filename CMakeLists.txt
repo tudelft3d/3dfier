@@ -1,7 +1,4 @@
-
-project( 3dfier )
-
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/" ${CMAKE_MODULE_PATH})
+# set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/" ${CMAKE_MODULE_PATH})
 
 cmake_minimum_required(VERSION 2.6.2)
 if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" VERSION_GREATER 2.6)
@@ -12,29 +9,28 @@ if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}" VERSION_GREATER 2.6)
   endif()
 endif()
 
-set( CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true )
+project( 3dfier )
 
-set( CMAKE_CXX_FLAGS "-O2" )
-set( CMAKE_BUILD_TYPE "Release" )
+set( CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true )
  
 if ( COMMAND cmake_policy )
   cmake_policy( SET CMP0003 NEW )  
 endif()
 
 # Boost
-find_package( Boost REQUIRED locale chrono system filesystem program_options )
+find_package( Boost CONFIG REQUIRED locale chrono system filesystem program_options )
 
 # GDAL
-find_package( GDAL REQUIRED )
+find_package( GDAL CONFIG REQUIRED )
 
 # LASLIB
-find_package( LASlib REQUIRED )
+find_package( LASlib CONFIG REQUIRED )
 
 # YamlCpp
-find_package( yaml-cpp REQUIRED )
+find_package( yaml-cpp CONFIG REQUIRED )
 
 # CGAL
-find_package( CGAL REQUIRED QUIET COMPONENTS )
+find_package( CGAL CONFIG REQUIRED QUIET COMPONENTS )
 
 # include helper file
 include( ${CGAL_USE_FILE} )
@@ -46,7 +42,7 @@ endif()
 
 include_directories( ${CMAKE_SOURCE_DIR}/thirdparty )
 
-include_directories( ${CGAL_INCLUDE_DIR} ${CGAL_3RD_PARTY_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${YAML_CPP_INCLUDE_DIR} ${GDAL_INCLUDE_DIR})
+# include_directories( ${CGAL_INCLUDE_DIR} ${CGAL_3RD_PARTY_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${YAML_CPP_INCLUDE_DIR} ${GDAL_INCLUDE_DIR})
 
 # # build ptinpoly as static lib
 # add_library(ptinpoly STATIC thirdparty/ptinpoly.c)
@@ -63,6 +59,6 @@ set_target_properties(
   PROPERTIES CXX_STANDARD 11
 )
 
-target_link_libraries( 3dfier ${CGAL_LIBRARIES} ${CGAL_3RD_PARTY_LIBRARIES} ${GDAL_LIBRARY} yaml-cpp Boost::program_options Boost::filesystem Boost::locale Boost::chrono LASlib)
+target_link_libraries( 3dfier PRIVATE CGAL::CGAL GDAL::GDAL yaml-cpp::yaml-cpp Boost::program_options Boost::filesystem Boost::locale Boost::chrono LASlib)
 
 install(TARGETS 3dfier DESTINATION bin)
