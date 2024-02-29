@@ -488,7 +488,7 @@ bool Map3d::get_postgis_output(std::string connstr, bool pdok, bool citygml) {
         std::cerr << "ERROR: Cannot open database '" + connstr + "' for writing" << std::endl;
         dataSource->RollbackTransaction();
         GDALClose(dataSource);
-        GDALClose(driver);
+        // GDALClose(driver);
         return false;
       }
       layers.emplace(layername, layer);
@@ -544,7 +544,7 @@ bool Map3d::get_postgis_output(std::string connstr, bool pdok, bool citygml) {
     return false;
   }
   GDALClose(dataSource);
-  GDALClose(driver);
+  // GDALClose(driver);
   return true;
 #endif
 }
@@ -563,14 +563,14 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
     if (layer == NULL) {
       std::cerr << "ERROR: Cannot open file '" + filename + "' for writing" << std::endl;
       GDALClose(layer);
-      GDALClose(driver);
+      // GDALClose(driver);
       return false;
     }
     for (auto& f : _lsFeatures) {
       f->get_shape(layer, false);
     }
     GDALClose(layer);
-    GDALClose(driver);
+    // GDALClose(driver);
   }
   else {
     std::unordered_map<std::string, OGRLayer*> layers;
@@ -604,7 +604,7 @@ void Map3d::close_gdal_resources(GDALDriver* driver, std::unordered_map<std::str
   for (auto& layer : layers) {
     GDALClose(layer.second);
   }
-  GDALClose(driver);
+  // GDALClose(driver);
 }
 #endif
 
