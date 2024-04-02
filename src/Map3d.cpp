@@ -33,6 +33,7 @@
  */
 
 #include "Map3d.h"
+#include <ogrsf_frmts.h>
 
 Map3d::Map3d() {
   OGRRegisterAll();
@@ -488,7 +489,6 @@ bool Map3d::get_postgis_output(std::string connstr, bool pdok, bool citygml) {
         std::cerr << "ERROR: Cannot open database '" + connstr + "' for writing" << std::endl;
         dataSource->RollbackTransaction();
         GDALClose(dataSource);
-        // GDALClose(driver);
         return false;
       }
       layers.emplace(layername, layer);
@@ -544,7 +544,6 @@ bool Map3d::get_postgis_output(std::string connstr, bool pdok, bool citygml) {
     return false;
   }
   GDALClose(dataSource);
-  // GDALClose(driver);
   return true;
 #endif
 }
@@ -559,21 +558,20 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
   GDALDriver *driver = GetGDALDriverManager()->GetDriverByName(drivername.c_str());
 
   if (!multi) {
-    OGRLayer *layer = create_gdal_layer(driver, NULL, filename, "my3dmap", AttributeMap(), true);
+    GDALDataset* dataSource;
+    OGRLayer *layer = create_gdal_layer(driver, dataSource, filename, "my3dmap", AttributeMap(), true);
     if (layer == NULL) {
       std::cerr << "ERROR: Cannot open file '" + filename + "' for writing" << std::endl;
-      GDALClose(layer);
-      // GDALClose(driver);
       return false;
     }
     for (auto& f : _lsFeatures) {
       f->get_shape(layer, false);
     }
-    GDALClose(layer);
-    // GDALClose(driver);
+    GDALClose(dataSource);
   }
   else {
     std::unordered_map<std::string, OGRLayer*> layers;
+    GDALDataset* dataSource;
     for (auto& f : _lsFeatures) {
       std::string layername = f->get_layername();
       if (layers.find(layername) == layers.end()) {
@@ -581,10 +579,9 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
         if (drivername == "ESRI Shapefile") {
           tmpFilename = filename + layername;
         }
-        OGRLayer *layer = create_gdal_layer(driver, NULL, tmpFilename, layername, f->get_attributes(), f->get_class() == BUILDING);
+        OGRLayer *layer = create_gdal_layer(driver, dataSource, tmpFilename, layername, f->get_attributes(), f->get_class() == BUILDING);
         if (layer == NULL) {
           std::cerr << "ERROR: Cannot open file '" + filename + "' for writing" << std::endl;
-          close_gdal_resources(driver, layers);
           return false;
         }
         layers.emplace(layername, layer);
@@ -593,20 +590,19 @@ bool Map3d::get_gdal_output(std::string filename, std::string drivername, bool m
         return false;
       }
     }
-    close_gdal_resources(driver, layers);
+    GDALClose(dataSource);
   }
   return true;
 #endif
 }
 
-#if GDAL_VERSION_MAJOR >= 2
-void Map3d::close_gdal_resources(GDALDriver* driver, std::unordered_map<std::string, OGRLayer*> layers) {
-  for (auto& layer : layers) {
-    GDALClose(layer.second);
-  }
-  // GDALClose(driver);
-}
-#endif
+// #if GDAL_VERSION_MAJOR >= 2
+// void Map3d::close_gdal_resources(GDALDriver* driver, std::unordered_map<std::string, OGRLayer*> layers) {
+//   for (auto& layer : layers) {
+//     GDALClose(layer.second);
+//   }
+// }
+// #endif
 
 #if GDAL_VERSION_MAJOR >= 2
 OGRLayer* Map3d::create_gdal_layer(GDALDriver* driver, GDALDataset* dataSource, std::string filename, std::string layername, AttributeMap attributes, bool addHeightAttributes) {
