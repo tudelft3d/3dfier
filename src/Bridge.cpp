@@ -30,11 +30,13 @@
 
 float Bridge::_heightref;
 bool Bridge::_flatten;
+float Bridge::_max_outlier_fraction;
 
-Bridge::Bridge(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, bool flatten)
+Bridge::Bridge(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, bool flatten, float max_outlier_fraction)
   : Boundary3D(wkt, layername, attributes, pid) {
   _heightref = heightref;
   _flatten = flatten;
+  _max_outlier_fraction = max_outlier_fraction;
 }
 
 TopoClass Bridge::get_class() {
@@ -64,6 +66,10 @@ bool Bridge::lift() {
 
 bool Bridge::get_flatten() {
   return _flatten;
+}
+
+bool Bridge::get_max_outlier_fraction() {
+  return _max_outlier_fraction;
 }
 
 void Bridge::get_cityjson(nlohmann::json& j, std::unordered_map<std::string,unsigned long> &dPts) {

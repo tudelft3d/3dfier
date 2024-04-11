@@ -31,12 +31,14 @@
 float Road::_heightref;
 bool  Road::_filter_outliers;
 bool  Road::_flatten;
+float Road::_max_outlier_fraction;
 
-Road::Road(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, bool filter_outliers, bool flatten)
+Road::Road(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, bool filter_outliers, bool flatten, float max_outlier_fraction)
   : Boundary3D(wkt, layername, attributes, pid) {
   _heightref = heightref;
   _filter_outliers = filter_outliers;
   _flatten = flatten;
+  _max_outlier_fraction = max_outlier_fraction;
 }
 
 TopoClass Road::get_class() {
@@ -62,7 +64,7 @@ bool Road::add_elevation_point(Point2 &p, double z, float radius, int lasclass, 
 bool Road::lift() {
   lift_each_boundary_vertices(_heightref);
   if (_filter_outliers || _flatten) {
-    detect_outliers(_flatten);
+    detect_outliers(_flatten, _max_outlier_fraction);
   }
   return true;
 }

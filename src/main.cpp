@@ -303,6 +303,8 @@ int main(int argc, const char * argv[]) {
         else
           map3d.set_road_flatten(false);
       }
+      if (n["Road"]["max_outlier_fraction"])
+          map3d.set_road_max_outlier_fraction(n["Road"]["max_outlier_fraction"].as<float>());
       YAML::Node tmp = n["Road"]["use_LAS_classes"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
         map3d.add_allowed_las_class(LAS_ROAD, it2->as<int>());
@@ -337,6 +339,8 @@ int main(int argc, const char * argv[]) {
         else
           map3d.set_bridge_flatten(false);
       }
+      if (n["Bridge/Overpass"]["max_outlier_fraction"])
+          map3d.set_bridge_max_outlier_fraction(n["Bridge/Overpass"]["max_outlier_fraction"].as<float>());
       YAML::Node tmp = n["Bridge/Overpass"]["use_LAS_classes"];
       for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2)
         map3d.add_allowed_las_class(LAS_BRIDGE, it2->as<int>());
@@ -1072,6 +1076,13 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
           std::cerr << "\tOption 'Road.flatten' invalid; must be 'true' or 'false'.\n";
         }
       }
+      if (n["Road"]["max_outlier_fraction"]) {
+        float s = n["Road"]["max_outlier_fraction"].as<float>();
+        if (!((s >= 0.0) && (s <= 1.0))) {
+          wentgood = false;
+          std::cerr << "\tOption 'Road.max_outlier_fraction' invalid; must be float between 0.0 and 1.0.\n";
+        }
+      }
       if (n["Road"]["use_LAS_classes"]) {
         YAML::Node tmp = n["Road"]["use_LAS_classes"];
         for (auto it2 = tmp.begin(); it2 != tmp.end(); ++it2) {
@@ -1151,6 +1162,13 @@ bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures) {
         if ((s != "true") && (s != "false")) {
           wentgood = false;
           std::cerr << "\tOption 'Bridge/Overpass.flatten' invalid; must be 'true' or 'false'.\n";
+        }
+      }
+      if (n["Bridge/Overpass"]["max_outlier_fraction"]) {
+        float s = n["Bridge/Overpass"]["max_outlier_fraction"].as<float>();
+        if (!((s >= 0.0) && (s <= 1.0))) {
+          wentgood = false;
+          std::cerr << "\tOption 'Bridge/Overpass.max_outlier_fraction' invalid; must be float between 0.0 and 1.0.\n";
         }
       }
     }

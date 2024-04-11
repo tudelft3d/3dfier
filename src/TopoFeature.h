@@ -146,7 +146,7 @@ public:
   virtual void         get_citygml(std::wostream& of) = 0;
   virtual void         get_cityjson(nlohmann::json& j, std::unordered_map<std::string, unsigned long>& dPts) = 0;
   virtual void         cleanup_elevations() = 0;
-  void                 detect_outliers(bool replace_all);
+  void                 detect_outliers(bool replace_all, float max_outlier_fraction=0.2);
 protected:
   int                  _simplification;
   void                 smooth_boundary(int passes = 1);

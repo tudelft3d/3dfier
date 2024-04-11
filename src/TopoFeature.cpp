@@ -34,6 +34,7 @@
  */
 
 #include "TopoFeature.h"
+#include <cstddef>
 
 TopoFeature::TopoFeature(char *wkt, std::string layername, AttributeMap attributes, std::string pid) {
   _id = pid;
@@ -1349,7 +1350,7 @@ void Boundary3D::smooth_boundary(int passes) {
 
 // Detect outliers in a 3D polygon by fitting a 3D polynomial surface through the vertices
 // iteratively remove largest outlier if larger then 2 sigma and refit surface
-void Boundary3D::detect_outliers(bool flatten){
+void Boundary3D::detect_outliers(bool flatten, float max_outlier_fraction){
   //-- gather all rings
   std::vector<Ring2> rings;
   rings.push_back(_p2->outer());
@@ -1429,7 +1430,12 @@ void Boundary3D::detect_outliers(bool flatten){
         }
       }
 
-      // get the new values based on the coeffs of the lase equation
+      // attempt to detect a bad polynomial fit by checking if we have a high fraction of outliers. 
+      // If the fit is bad we cannot rely on it for outlier detection.
+      double outlier_fraction = ((double) indices.size()) / ring.size();
+      if (outlier_fraction > max_outlier_fraction) return;
+
+      // get the new values based on the coeffs of the last equation
       std::vector<double> correctedvalues;
       polyval3d<double>(x, y, x0, y0, coeffs, correctedvalues);
       if (flatten) {

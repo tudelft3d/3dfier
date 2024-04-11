@@ -34,7 +34,7 @@
 
 class Bridge: public Boundary3D {
 public:
-  Bridge(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, bool flatten);
+  Bridge(char *wkt, std::string layername, AttributeMap attributes, std::string pid, float heightref, bool flatten, float max_outlier_fraction);
 
   bool          lift();
   bool          add_elevation_point(Point2 &p, double z, float radius, int lasclass, bool within);
@@ -47,9 +47,11 @@ public:
   bool          is_hard();
   void          cleanup_elevations();
   bool          get_flatten();
+  bool          get_max_outlier_fraction();
 private:
   static float  _heightref;
   static bool   _flatten;
+  static float  _max_outlier_fraction;
 };
 
 #endif /* Bridge_h */

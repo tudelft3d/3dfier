@@ -96,9 +96,11 @@ public:
   void set_road_heightref(float heightref);
   void set_road_filter_outliers(bool filter);
   void set_road_flatten(bool flatten);
+  void set_road_max_outlier_fraction(float max_outlier_fraction);
   void set_separation_heightref(float heightref);
   void set_bridge_heightref(float heightref);
   void set_bridge_flatten(bool flatten);
+  void set_bridge_max_outlier_fraction(float max_outlier_fraction);
   void set_radius_vertex_elevation(float radius);
   void set_building_radius_vertex_elevation(float radius);
   void set_threshold_jump_edges(float threshold);
@@ -128,9 +130,11 @@ private:
   float       _road_heightref;
   bool        _road_filter_outliers;
   bool        _road_flatten;
+  float       _road_max_outlier_fraction;
   float       _separation_heightref;
   float       _bridge_heightref;
   bool        _bridge_flatten;
+  float       _bridge_max_outlier_fraction;
   float       _radius_vertex_elevation;
   float       _building_radius_vertex_elevation;
   int         _threshold_jump_edges; //-- in cm/integer
