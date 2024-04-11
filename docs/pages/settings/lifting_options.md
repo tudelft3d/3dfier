@@ -59,14 +59,10 @@ Lets say this setting corresponds to the class `Road` and the LAS classes config
 
 **If no classes are defined here, all points read are used!**
 
-**TODO: Add image**
-
 #### use_LAS_classes_within
 Additional to the [use_LAS_classes](#use_las_classes) there is a more specific version that defines additionally that points have to lay within a polygon to be allowed to be added to the heights list. All 3 steps described in the previous setting are taken plus an additional one that checks if the point falls within the polygon. This can be used for example for objects that are influenced by surrounding objects and their heights like bridges crossing over bridges.
 
 **If use_LAS_classes are not defined but only use_LAS_classes_within, points within distance of a vertex but not within the polygon are not filtered by class and all classes are used!**
-
-**TODO: Add image of vertex buffer including within and image of excluding use_LAS_classes**
 
 #### lod: 0
 *Download [YAML]({{site.baseurl}}/assets/configs/lod0.yml) and [OBJ]({{site.baseurl}}/assets/configs/lod0.obj)*
@@ -141,6 +137,7 @@ Class for objects that describe water surfaces. Water objects will be raised to 
 height: percentile-50
 filter_outliers: true     # Filter outliers by iterative Least Squares fitting of 3D quadric surface, only replace heights of detected outliers
 flatten: true             # Filter outliers by iterative Least Squares fitting of 3D quadric surface, replace all heights of polygon with the fitted plane which results in smoother roads
+max_outlier_fraction: 0.2 # Cancel outlier filtering in case the fraction of outliers is higher that this value
 use_LAS_classes:          # LAS classes to be used for this class, if empty all classes are used
   - 2
   - 11
@@ -155,15 +152,11 @@ All heights of vertices which are marked as an outlier are replaced with the val
 
 **Important: not all height points are used for performance reasons, only vertices. Therefore this filter is extremely sensitive to the arrangement of vertices of the road polygon**
 
-**TODO: add image of outlier filter**
-
 #### filter_outliers: false
 Disable filtering of outliers using iterative Least Squares fitting of a 3D quadratic surface.
 
 #### flatten: true {#road-flatten-true}
 Option to even further fit the road objects towards the quadratic surface calculated by [filter_outliers](#filter_outliers). By enabling this all heights of the polygon vertices are replaced by the values represented by the fitted surface.
-
-**TODO: add image of flatten filter**
 
 #### flatten: false {#road-flatten-false}
 Disable height replacement of vertices not marked as outliers by the Least Squares 3D quadratic surface fitting in [filter_outliers](#filter_outliers).
@@ -179,13 +172,12 @@ Class that describes objects inspired by objects contained in the Dutch BGT. The
 ~~~ yaml
 height: percentile-50
 flatten: true             # Filter outliers by iterative Least Squares fitting of 3D quadric surface, replace all heights of polygon with the fitted plane which results in smoother bridges
+max_outlier_fraction: 0.2 # Cancel outlier filtering in case the fraction of outliers is higher that this value
 ~~~
 
 Settings for reconstruction of bridges is handled in this class. Some of the sides of a bridge must be floating with no connection to neighbouring polygons and some of the sides need to be stitched to the neighbours. A rather complex method is used to identify what vertices to stitch to adjacent objects and what vertices to skip so they *'float'*.
 
 The Least Squares 3D quadratic surface fitting as described in [road:filter_outliers](#filter_outliers-true) is always applied.
-
-**TODO: add image of bridge**
 
 #### flatten: true
 See [road:flatten: true](#road-flatten-true) for more information. This adjusts all vertices of the bridge to the height of the fitted quadratic surface.
