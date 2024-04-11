@@ -1,6 +1,6 @@
 {
   "name": "3dfier",
-  "version-string": "1.3.5",
+  "version-string": "1.4.0",
   "dependencies": [
     "boost-program-options",
     "boost-geometry",
