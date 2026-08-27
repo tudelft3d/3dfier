@@ -45,7 +45,15 @@ jobs:
 
       - name: Smoke test
         run: |
-          dist/3dfier-linux-x64/3dfier --version
+          mkdir -p smoketest && tar -xzf dist/3dfier-linux-x64.tar.gz -C smoketest
+          BIN=smoketest/3dfier-linux-x64/3dfier
+          "$BIN" --version
+          cd example_data
+          ../smoketest/3dfier-linux-x64/3dfier testarea_config.yml --OBJ smoke.obj > ../smoke.log 2>&1 || { cat ../smoke.log; exit 1; }
+          grep -q "Successfully terminated" ../smoke.log || { echo "run did not finish cleanly:"; tail -20 ../smoke.log; exit 1; }
+          SIZE=$(wc -c < smoke.obj)
+          echo "output size: $SIZE bytes"
+          [ "$SIZE" -gt 500000 ] || { echo "suspiciously small OBJ output"; exit 1; }
 
       - uses: actions/upload-artifact@v4
         with:
@@ -85,6 +93,13 @@ jobs:
         run: |
           BIN=$(find dist -path '*macos/bin/3dfier' -type f | head -1)
           "$BIN" --version
+          ROOT="$PWD"
+          cd example_data
+          "$ROOT/$BIN" testarea_config.yml --OBJ smoke.obj > ../smoke.log 2>&1 || { cat ../smoke.log; exit 1; }
+          grep -q "Successfully terminated" ../smoke.log || { echo "run did not finish cleanly:"; tail -20 ../smoke.log; exit 1; }
+          SIZE=$(wc -c < smoke.obj)
+          echo "output size: $SIZE bytes"
+          [ "$SIZE" -gt 500000 ] || { echo "suspiciously small OBJ output"; exit 1; }
 
       - uses: actions/upload-artifact@v4
         with:
@@ -145,7 +160,21 @@ jobs:
 
       - name: Smoke test
         run: |
-          & .\dist\3dfier-windows-x64\3dfier.bat --version
+          Expand-Archive dist\3dfier-windows-x64.zip -DestinationPath smoketest
+          & .\smoketest\3dfier-windows-x64\3dfier.bat --version
+          Push-Location example_data
+          ..\smoketest\3dfier-windows-x64\3dfier.bat testarea_config.yml --OBJ smoke.obj *> ..\smoke.log
+          $code = $LASTEXITCODE
+          Pop-Location
+          if ($code -ne 0) { Get-Content ..\smoke.log -Tail 40; throw "3dfier exited with code $code" }
+          if (-not (Select-String -Path ..\smoke.log -Pattern "Successfully terminated" -Quiet)) {
+            echo "run did not finish cleanly:"
+            Get-Content ..\smoke.log -Tail 40
+            throw "missing success marker in log"
+          }
+          $size = (Get-Item example_data\smoke.obj).Length
+          echo "output size: $size bytes"
+          if ($size -le 500000) { throw "suspiciously small OBJ output ($size bytes)" }
 
       - uses: actions/upload-artifact@v4
         with:
