@@ -40,6 +40,64 @@
 #include <pdal/PointTable.hpp>
 #include <pdal/Options.hpp>
 #include <pdal/Stage.hpp>
+#include <pdal/QuickInfo.hpp>
+
+namespace {
+
+//-- number of LAS points buffered while reading; keeps memory bounded
+//-- no matter how large a file is
+const pdal::point_count_t STREAM_BATCH_SIZE = 1000000;
+
+/**
+ * Streaming PDAL point table: instead of materializing a whole LAS/LAZ
+ * file in memory, each decoded batch of points is fed to Map3d's elevation
+ * processing inside reset(), mirroring the old point-by-point reader loop.
+ */
+struct ElevationStreamTable : public pdal::FixedPointTable {
+  ElevationStreamTable(Map3d& map3d, const std::vector<int>& lasomits,
+                       unsigned long thinning, uint64_t totalPoints)
+    : pdal::FixedPointTable(STREAM_BATCH_SIZE),
+      _map3d(map3d),
+      _lasomits(lasomits),
+      _thinning(thinning),
+      _totalPoints(totalPoints),
+      _i(0) {}
+
+  void reset() override {
+    pdal::PointRef p(*this, 0);
+    const uint64_t n = this->numPoints();
+    for (uint64_t j = 0; j < n; ++j, ++_i) {
+      //-- set the thinning filter
+      if (_i % _thinning == 0) {
+        p.setPointId(j);
+        double x = p.getFieldAs<double>(pdal::Dimension::Id::X);
+        double y = p.getFieldAs<double>(pdal::Dimension::Id::Y);
+        double z = p.getFieldAs<double>(pdal::Dimension::Id::Z);
+        int classification = p.getFieldAs<int>(pdal::Dimension::Id::Classification);
+        int return_number = p.getFieldAs<int>(pdal::Dimension::Id::ReturnNumber);
+        int number_of_returns = p.getFieldAs<int>(pdal::Dimension::Id::NumberOfReturns);
+        //-- set the classification filter
+        if (std::find(_lasomits.begin(), _lasomits.end(), classification) == _lasomits.end()) {
+          //-- set the bounds filter
+          if (_map3d.check_bounds(x, x, y, y)) {
+            _map3d.add_elevation_point(x, y, z, classification, return_number, number_of_returns);
+          }
+        }
+      }
+      if (_totalPoints > 0 && _i % (_totalPoints / 100) == 0)
+        printProgressBar(100 * (_i / double(_totalPoints)));
+    }
+  }
+
+private:
+  Map3d& _map3d;
+  const std::vector<int>& _lasomits;
+  unsigned long _thinning;
+  uint64_t _totalPoints;
+  uint64_t _i;
+};
+
+} // namespace
 
 Map3d::Map3d() {
   OGRRegisterAll();
@@ -1177,20 +1235,35 @@ bool Map3d::add_las_file(PointFile pointFile) {
   reader->setOptions(las_opts);
 
   try {
-    pdal::PointTable table;
-    reader->prepare(table);
-    pdal::PointViewSet viewSet = reader->execute(table);
+    //-- read only the header/VLRs: bounding box and point count without
+    //-- decoding any points
+    pdal::QuickInfo quickinfo = reader->preview();
+    if (!quickinfo.valid()) {
+      std::cerr << "\tERROR: could not read the file's header" << std::endl;
+      return false;
+    }
+    uint64_t pointCount = quickinfo.m_pointCount;
+
+    //-- check whether the file's bounding box intersects the polygon extent
+    //-- (buffered with the elevation search radius); files entirely outside
+    //-- it can hold no relevant points and are skipped without decoding
+    double radius = std::max(_radius_vertex_elevation, _building_radius_vertex_elevation);
+    bool extent_valid = bg::get<bg::min_corner, 0>(_bbox) < bg::get<bg::max_corner, 0>(_bbox);
+    bool intersects_extent =
+      quickinfo.m_bounds.minx <= bg::get<bg::max_corner, 0>(_bbox) + radius &&
+      quickinfo.m_bounds.maxx >= bg::get<bg::min_corner, 0>(_bbox) - radius &&
+      quickinfo.m_bounds.miny <= bg::get<bg::max_corner, 1>(_bbox) + radius &&
+      quickinfo.m_bounds.maxy >= bg::get<bg::min_corner, 1>(_bbox) - radius;
+    if (extent_valid && intersects_extent == false) {
+      std::clog << "\tskipping file, bounds do not intersect polygon extent\n";
+      return true;
+    }
 
     //-- LAS classes to omit
     std::vector<int> lasomits;
     for (int i : pointFile.lasomits) {
       lasomits.push_back(i);
     }
-
-    //-- read each point 1-by-1
-    uint32_t pointCount = 0;
-    for (auto& view : viewSet)
-      pointCount += view->size();
 
     if (pointCount == 0) {
       std::clog << "\tno points in the file\n";
@@ -1213,30 +1286,9 @@ bool Map3d::add_las_file(PointFile pointFile) {
     }
 
     printProgressBar(0);
-    int i = 0;
-    for (auto& view : viewSet) {
-      for (uint32_t j = 0; j < view->size(); ++j) {
-        //-- set the thinning filter
-        if (i % pointFile.thinning == 0) {
-          double x = view->getFieldAs<double>(pdal::Dimension::Id::X, j);
-          double y = view->getFieldAs<double>(pdal::Dimension::Id::Y, j);
-          double z = view->getFieldAs<double>(pdal::Dimension::Id::Z, j);
-          int classification = view->getFieldAs<int>(pdal::Dimension::Id::Classification, j);
-          int return_number = view->getFieldAs<int>(pdal::Dimension::Id::ReturnNumber, j);
-          int number_of_returns = view->getFieldAs<int>(pdal::Dimension::Id::NumberOfReturns, j);
-          //-- set the classification filter
-          if (std::find(lasomits.begin(), lasomits.end(), classification) == lasomits.end()) {
-            //-- set the bounds filter
-            if (check_bounds(x, x, y, y)) {
-              this->add_elevation_point(x, y, z, classification, return_number, number_of_returns);
-            }
-          }
-        }
-        if (i % (pointCount / 100) == 0)
-          printProgressBar(100 * (i / double(pointCount)));
-        i++;
-      }
-    }
+    ElevationStreamTable streamTable(*this, lasomits, pointFile.thinning, pointCount);
+    reader->prepare(streamTable);
+    reader->execute(streamTable);
     printProgressBar(100);
     std::clog << std::endl;
   }
