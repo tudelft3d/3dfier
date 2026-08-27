@@ -162,17 +162,18 @@ jobs:
         run: |
           Expand-Archive dist\3dfier-windows-x64.zip -DestinationPath smoketest
           & .\smoketest\3dfier-windows-x64\3dfier.bat --version
+          $root = (Get-Location).Path
           Push-Location example_data
-          ..\smoketest\3dfier-windows-x64\3dfier.bat testarea_config.yml --OBJ smoke.obj *> ..\smoke.log
+          ..\smoketest\3dfier-windows-x64\3dfier.bat testarea_config.yml --OBJ smoke.obj *> "$root\smoke.log"
           $code = $LASTEXITCODE
           Pop-Location
-          if ($code -ne 0) { Get-Content ..\smoke.log -Tail 40; throw "3dfier exited with code $code" }
-          if (-not (Select-String -Path ..\smoke.log -Pattern "Successfully terminated" -Quiet)) {
+          if ($code -ne 0) { Get-Content "$root\smoke.log" -Tail 40; throw "3dfier exited with code $code" }
+          if (-not (Select-String -Path "$root\smoke.log" -Pattern "Successfully terminated" -Quiet)) {
             echo "run did not finish cleanly:"
-            Get-Content ..\smoke.log -Tail 40
+            Get-Content "$root\smoke.log" -Tail 40
             throw "missing success marker in log"
           }
-          $size = (Get-Item example_data\smoke.obj).Length
+          $size = (Get-Item "$root\example_data\smoke.obj").Length
           echo "output size: $size bytes"
           if ($size -le 500000) { throw "suspiciously small OBJ output ($size bytes)" }
 
