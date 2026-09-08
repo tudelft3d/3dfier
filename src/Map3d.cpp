@@ -585,7 +585,6 @@ bool Map3d::get_postgis_output(std::string connstr, bool pdok, bool citygml) {
     
     if (pdok) {
       //Add additional attribute describing CityGML of feature
-      std::wstring_convert<codecvt<wchar_t, char, std::mbstate_t>>converter;
       std::wstringstream ss;
       ss << std::fixed << std::setprecision(3);
       if (citygml) {
@@ -594,7 +593,8 @@ bool Map3d::get_postgis_output(std::string connstr, bool pdok, bool citygml) {
       else {
         f->get_citygml_imgeo(ss);
       }
-      std::string gmlAttribute = converter.to_bytes(ss.str());
+      std::string gmlAttribute = boost::locale::conv::utf_to_utf<char>(
+        ss.str(), boost::locale::conv::stop);
       ss.clear();
       extraAttribute["xml"] = std::make_pair(OFTString, gmlAttribute);
     }
