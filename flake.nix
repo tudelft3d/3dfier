@@ -15,17 +15,7 @@
 
       forAllSystems = nixpkgs.lib.genAttrs systems;
 
-      pkgsFor =
-        system:
-        import nixpkgs {
-          inherit system;
-          config.allowUnfreePredicate =
-            pkg:
-            builtins.elem (nixpkgs.lib.getName pkg) [
-              "LAStools"
-              "lastools"
-            ];
-        };
+      pkgsFor = system: import nixpkgs { inherit system; };
     in
     {
       packages = forAllSystems (
@@ -36,7 +26,7 @@
         {
           default = pkgs.stdenv.mkDerivation {
             pname = "3dfier";
-            version = "1.4.0";
+            version = "1.5.0";
 
             src = self;
 
@@ -50,8 +40,8 @@
               cgal
               gdal
               gmp
-              LAStools
               mpfr
+              pdal
               yaml-cpp
             ];
 

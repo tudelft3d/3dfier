@@ -63,3 +63,6 @@ _site
 # CLion files
 .idea
 cmake-build-debug-docker
+
+# CMake build directory
+/build/

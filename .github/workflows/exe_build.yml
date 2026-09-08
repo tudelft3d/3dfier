@@ -1,37 +1,199 @@
-# This is a basic workflow to help you get started with Actions
+# Builds 3dfier binaries for Windows, macOS and Linux.
+# Binaries are uploaded as build artifacts on every run and attached to
+# GitHub releases when a release is published.
 
-name: CI
+name: Build binaries
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   push:
     branches: [ master, development ]
+  release:
+    types: [ published ]
+  workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  Windows-build:
-    name: Build Windows
-    runs-on: windows-latest
-    env:
-      VCPKG_DEFAULT_TRIPLET: x64-windows
-      VCPKG_INSTALLATION_ROOT: C:\vcpkg
-      VCPKG_FEATURE_FLAGS: manifests
+  linux:
+    name: Linux (x64)
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: |
-        vcpkg install
-        mkdir Release
-        cd Release
-        cmake .. -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_INSTALL_PREFIX=C:\Software -DCMAKE_PREFIX_PATH=Release\vcpkg_installed\x64-windows\share\lastools
-        cmake --build . --parallel 4 --config Release
-    - name: Package binary files
-      run: |
-        cd Release
-        7z a 3dfier-win64.zip .\Release\*
-    - name: Upload binary files as artifact
-      uses: actions/upload-artifact@master
-      with:
-        name: 3dfier-win64
-        path: Release/3dfier-win64.zip
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake g++ make patchelf \
+            libboost-program-options-dev libboost-filesystem-dev \
+            libboost-locale-dev libboost-chrono-dev \
+            libcgal-dev libgdal-dev libpdal-dev libyaml-cpp-dev
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --parallel 2
+
+      - name: Package
+        run: |
+          mkdir -p dist/3dfier-linux-x64/lib
+          cp build/3dfier dist/3dfier-linux-x64/
+          for lib in $(ldd build/3dfier | awk '/=> \//{print $3}'); do
+            cp -L "$lib" dist/3dfier-linux-x64/lib/ 2>/dev/null || true
+          done
+          patchelf --force-rpath --set-rpath '$ORIGIN/lib' dist/3dfier-linux-x64/3dfier
+          cd dist && tar -czf 3dfier-linux-x64.tar.gz 3dfier-linux-x64
+
+      - name: Smoke test
+        run: |
+          mkdir -p smoketest && tar -xzf dist/3dfier-linux-x64.tar.gz -C smoketest
+          BIN=smoketest/3dfier-linux-x64/3dfier
+          "$BIN" --version
+          cd example_data
+          ../smoketest/3dfier-linux-x64/3dfier testarea_config.yml --OBJ smoke.obj > ../smoke.log 2>&1 || { cat ../smoke.log; exit 1; }
+          grep -q "Successfully terminated" ../smoke.log || { echo "run did not finish cleanly:"; tail -20 ../smoke.log; exit 1; }
+          SIZE=$(wc -c < smoke.obj)
+          echo "output size: $SIZE bytes"
+          [ "$SIZE" -gt 500000 ] || { echo "suspiciously small OBJ output"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 3dfier-linux-x64
+          path: dist/3dfier-linux-x64.tar.gz
+
+  macos:
+    name: macOS (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            arch: arm64
+          - os: macos-15-intel
+            arch: x86_64
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew install boost cgal gdal pdal yaml-cpp dylibbundler
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --parallel 4
+
+      - name: Package
+        run: |
+          mkdir -p dist
+          ./resources/package_macos.sh build/3dfier dist
+
+      - name: Smoke test
+        run: |
+          BIN=$(find dist -path '*macos/bin/3dfier' -type f | head -1)
+          "$BIN" --version
+          ROOT="$PWD"
+          cd example_data
+          "$ROOT/$BIN" testarea_config.yml --OBJ smoke.obj > ../smoke.log 2>&1 || { cat ../smoke.log; exit 1; }
+          grep -q "Successfully terminated" ../smoke.log || { echo "run did not finish cleanly:"; tail -20 ../smoke.log; exit 1; }
+          SIZE=$(wc -c < smoke.obj)
+          echo "output size: $SIZE bytes"
+          [ "$SIZE" -gt 500000 ] || { echo "suspiciously small OBJ output"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 3dfier-macos-${{ matrix.arch }}
+          path: dist/3dfier-*-macos-*.tar.gz
+
+  windows:
+    name: Windows (x64)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          activate-environment: 3dfier
+          channels: conda-forge
+          channel-priority: strict
+
+      - name: Install dependencies
+        run: |
+          conda install -y -n 3dfier cmake ninja cgal gdal pdal boost yaml-cpp gmp mpfr eigen
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure and build
+        run: |
+          $env:CMAKE_PREFIX_PATH = "$env:CONDA_PREFIX\Library;$env:CONDA_PREFIX"
+          $env:BOOST_ROOT = "$env:CONDA_PREFIX\Library"
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+
+      - name: Package
+        run: |
+          $dst = "dist\3dfier-windows-x64"
+          New-Item -ItemType Directory -Force -Path $dst
+          Copy-Item build\3dfier.exe $dst\
+          Copy-Item "$env:CONDA_PREFIX\Library\bin\*.dll" $dst\ -ErrorAction SilentlyContinue
+          Copy-Item -Recurse "$env:CONDA_PREFIX\Library\share\gdal" $dst\ -ErrorAction SilentlyContinue
+          Copy-Item -Recurse "$env:CONDA_PREFIX\Library\share\proj" $dst\ -ErrorAction SilentlyContinue
+          $bat = @(
+            '@echo off',
+            'setlocal',
+            'set "BIN=%~dp0"',
+            'set "PATH=%BIN%;%PATH%"',
+            'set "GDAL_DATA=%BIN%gdal"',
+            'set "PROJ_LIB=%BIN%proj"',
+            'set "PDAL_DRIVER_PATH=%BIN%"',
+            '"%~dp03dfier.exe" %*'
+          )
+          Set-Content -Path "$dst\3dfier.bat" -Value $bat -Encoding ascii
+          Compress-Archive -Path $dst -DestinationPath dist\3dfier-windows-x64.zip
+
+      - name: Smoke test
+        run: |
+          Expand-Archive dist\3dfier-windows-x64.zip -DestinationPath smoketest
+          & .\smoketest\3dfier-windows-x64\3dfier.bat --version
+          $root = (Get-Location).Path
+          Push-Location example_data
+          ..\smoketest\3dfier-windows-x64\3dfier.bat testarea_config.yml --OBJ smoke.obj *> "$root\smoke.log"
+          $code = $LASTEXITCODE
+          Pop-Location
+          if ($code -ne 0) { Get-Content "$root\smoke.log" -Tail 40; throw "3dfier exited with code $code" }
+          if (-not (Select-String -Path "$root\smoke.log" -Pattern "Successfully terminated" -Quiet)) {
+            echo "run did not finish cleanly:"
+            Get-Content "$root\smoke.log" -Tail 40
+            throw "missing success marker in log"
+          }
+          $size = (Get-Item "$root\example_data\smoke.obj").Length
+          echo "output size: $size bytes"
+          if ($size -le 500000) { throw "suspiciously small OBJ output ($size bytes)" }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 3dfier-windows-x64
+          path: dist/3dfier-windows-x64.zip
+
+  release:
+    name: Upload binaries to release
+    if: github.event_name == 'release'
+    needs: [ linux, macos, windows ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Upload binaries
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*

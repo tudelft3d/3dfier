@@ -7,7 +7,6 @@
 #include <vector>
 #include <unordered_map>
 
-#include <lasreader.hpp>
 #include <ogrsf_frmts.h>
 
 #include <boost/geometry.hpp>

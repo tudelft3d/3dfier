@@ -50,7 +50,7 @@ Reading and validation of the configuration is done using the [YAML-CPP library]
 When validation passes, all values are used to set the corresponding parameters in the software. After this initial read the configuration file is not used anymore since all values are now stored in memory.
 
 ### Data integrity check
-For all input files configured to use a check is done if they exist and readable. The polygon files are opened using an OGR reader and closed directly after. Same is done for the LAS/LAZ files, they are opened with LASlib and directly closed. This prevents failure of the program after partly executing. Also the output filepaths are tested to be existing before execution of the algorithm.
+For all input files configured to use a check is done if they exist and readable. The polygon files are opened using an OGR reader and closed directly after. Same is done for the LAS/LAZ files, they are opened with PDAL and directly closed. This prevents failure of the program after partly executing. Also the output filepaths are tested to be existing before execution of the algorithm.
 
 *NOTE: Output folder must exist, it's not created automatically*
 

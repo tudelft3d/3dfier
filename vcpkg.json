@@ -1,6 +1,6 @@
 {
   "name": "3dfier",
-  "version-string": "1.4.0",
+  "version-string": "1.5.0",
   "dependencies": [
     "boost-program-options",
     "boost-geometry",
@@ -14,8 +14,8 @@
       "name": "libpq",
       "version>=": "16.2"
     },
-    "lastools",
+    "pdal",
     "yaml-cpp"
   ],
-  "builtin-baseline": "3dd44b931481d7a8e9ba412621fa810232b66289"
+  "builtin-baseline": "764ad0a297a101a279e700b0a74213cbf7e7efcc"
 }

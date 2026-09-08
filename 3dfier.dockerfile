@@ -1,74 +1,46 @@
-FROM tudelft3d/3dfier:base AS builder
+# syntax=docker/dockerfile:1
 
-ARG JOBS
+FROM ubuntu:22.04 AS builder
 
-#
-# 13 Install 3dfier
-#
-COPY . /tmp
-RUN cd /tmp && \
-    mkdir build && \
-    cd build && \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     cmake \
-        -DCGAL_DIR=/usr/local \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DBoost_NO_BOOST_CMAKE=TRUE \
-        -DBoost_NO_SYSTEM_PATHS=TRUE \
-        -DBOOST_ROOT=/usr/local \
-        .. && \
-    make -j $JOBS && \
-    make install && \
-    cd ~ && \
-    apk del .3dfier-deps && \
-    rm -rf /tmp/* && \
-    rm -rf /user/local/man
+    libboost-program-options-dev \
+    libboost-filesystem-dev \
+    libboost-locale-dev \
+    libboost-chrono-dev \
+    libcgal-dev \
+    libgdal-dev \
+    libpdal-dev \
+    libyaml-cpp-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN 3dfier --version
+WORKDIR /build
 
-# removing unnecessary headers
-RUN rm -rf /usr/local/include
+COPY . /src
 
-RUN mkdir /data && \
-    chown 1001 /data && \
-    chgrp 0 /data && \
-    chmod g=u /data && \
-    chgrp 0 /etc/passwd && \
-    chmod g=u /etc/passwd
+RUN cmake -S /src -B /build -DCMAKE_BUILD_TYPE=Release \
+    && cmake --build /build --parallel "$(nproc)"
 
-#
-# Export the dependencies
-#
-RUN mkdir /export
-COPY strip-docker-image-export /tmp
-RUN bash /tmp/strip-docker-image-export \
-    -v \
-    -d /export \
-    -f /bin/bash \
-    -f /usr/bin/awk \
-    -f /usr/bin/id \
-    -f /etc/passwd \
-    -f /bin/ls \
-    -f /data \
-    -f /usr/local/share/proj/proj.db \
-    -f /usr/local/bin/3dfier
+FROM ubuntu:22.04 AS runtime
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libboost-chrono1.74.0 \
+    libboost-filesystem1.74.0 \
+    libboost-locale1.74.0 \
+    libboost-program-options1.74.0 \
+    libgdal30 \
+    libgmp10 \
+    libmpfr6 \
+    libpdal-base13 \
+    libpdal-util13 \
+    libyaml-cpp0.7 \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --create-home --user-group 3dfier
 
-FROM scratch AS exe
-LABEL org.opencontainers.image.authors="Balázs Dukai <balazs.dukai@3dgi.nl>"
-LABEL org.opencontainers.image.source="https://github.com/tudelft3d/3dfier"
-LABEL org.opencontainers.image.vendor="3DGI"
-LABEL org.opencontainers.image.title="3dfier"
-LABEL org.opencontainers.image.description="The open-source tool for creating 3D models"
-LABEL org.opencontainers.image.licenses="GPL-3.0"
-LABEL org.opencontainers.image.url="http://tudelft3d.github.io/3dfier"
+COPY --from=builder /build/3dfier /usr/local/bin/3dfier
 
-COPY --from=builder /export/ /
-COPY --chown=1001:0 uid_entrypoint.sh /usr/local/bin/
-
-USER 1001
-
+USER 3dfier
 WORKDIR /data
 
-ENTRYPOINT ["/usr/local/bin/uid_entrypoint.sh"]
-
-CMD ["3dfier"]
+ENTRYPOINT ["/usr/local/bin/3dfier"]

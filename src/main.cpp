@@ -35,8 +35,9 @@
 #include "boost/chrono.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
+#include <pdal/pdal_config.hpp>
 
-std::string VERSION = "1.4.0";
+std::string VERSION = "1.5.0";
 
 bool validate_yaml(const char* arg, std::set<std::string>& allowedFeatures);
 int main(int argc, const char * argv[]);
@@ -129,7 +130,7 @@ int main(int argc, const char * argv[]) {
     }
     if (vm.count("version")) {
       std::cout << "3dfier " << VERSION << std::endl;
-      std::cout << "LASlib " << LAS_TOOLS_VERSION << std::endl;
+      std::cout << "PDAL " << pdal::Config::versionString() << std::endl;
       std::cout << "GDAL " << GDALVersionInfo("--version") << std::endl;
       //-- TODO : put here the date and/or the git-commit?
       return EXIT_SUCCESS;
@@ -786,7 +787,7 @@ std::string print_license() {
     "External libraries used by 3dfier have their own license.\n"
     "Please refer to the license of the library for more information.\n"
     "The following libraries are used:\n"
-    "LasLib, GDAL, Boost, CGAL, YAML-cpp and nlohmann-json\n"
+    "PDAL, GDAL, Boost, CGAL, YAML-cpp and nlohmann-json\n"
     "======================================================================";
   return thelicense;
 }
